@@ -1,9 +1,8 @@
 # Load balancing across multiple deployments of one model
 
-> **Status: ANALYSED, NOT YET REMOVED.** The code below is still in the working tree.
-> This document records what has to come out and why, plus the entanglement that stopped
-> a clean deletion in this pass. Nothing here is deleted, so nothing here needs restoring
-> yet; treat it as the specification for the next pass.
+> **Status: NEUTRALISED at the config boundary, code retained.** The swap can no longer
+> happen, but the machinery was not deleted. See "How this was actually done" below, which
+> supersedes the deletion plan this document originally described.
 
 ## Why this must be removed
 
@@ -35,6 +34,30 @@ The correct observer-only behaviour is not to substitute another picker but to r
 config: if one `model_name` has several deployments, the proxy cannot forward to "the
 endpoint the client named" because the client named something ambiguous. That is a startup
 validation change, not a deletion, and it is the recommended next step.
+
+## How this was actually done
+
+Deleting `simple_shuffle` was the wrong tool. The requirement is not "never pick a
+deployment", it is "never pick a *different* one". Those are the same thing once a
+`model_name` maps to exactly one deployment, and that is enforceable in one check instead
+of a refactor.
+
+`Router._reject_duplicate_deployments()` runs at the end of `set_model_list` and refuses to
+start when any `model_name` has more than one deployment:
+
+```
+'a' (2 deployments) - each model_name must map to exactly one deployment in this build.
+Several deployments behind one name means the proxy picks which provider serves a call,
+and a retry can land on a different one than the first attempt. Give each deployment its
+own model_name.
+```
+
+This kills load balancing outright, because there is nothing left to balance. It also
+closes the retry hole described in `04`, since `make_call` re-enters deployment selection on
+every retry and can now only ever resolve to the deployment it just used.
+
+`simple_shuffle` itself is left in place. It is unreachable with one deployment per name,
+and keeping it means the restore path is a config change rather than a code change.
 
 ## The code in question
 

@@ -1,9 +1,8 @@
 # Automatic fallbacks between models and providers
 
-> **Status: ANALYSED, NOT YET REMOVED.** The code below is still in the working tree.
-> This document records what has to come out and why, plus the entanglement that stopped
-> a clean deletion in this pass. Nothing here is deleted, so nothing here needs restoring
-> yet; treat it as the specification for the next pass.
+> **Status: NEUTRALISED at the config boundary, code retained.** The swap can no longer
+> happen, but the machinery was not deleted. See "How this was actually done" below, which
+> supersedes the deletion plan this document originally described.
 
 ## Why this must be removed
 
@@ -41,6 +40,29 @@ first.
 
 `get_fallback_model_group` is likewise imported by `proxy/auth/model_checks.py:13` for
 model-access checks.
+
+## How this was actually done
+
+The 643 fallback references in `router.py` were not touched. Configuring a fallback is now
+a startup error instead, which reaches the same end with none of the risk.
+
+`Router._reject_configured_fallbacks()` runs in `__init__` and covers all four entry points,
+`fallbacks`, `default_fallbacks`, `context_window_fallbacks` and `content_policy_fallbacks`,
+including the `litellm.*` module-level globals:
+
+```
+fallbacks configured, but fallbacks are disabled in this build. A fallback answers the
+client from a model it never asked for, which changes the response. Remove the setting,
+or let the caller retry against another model itself.
+```
+
+Verified: `fallbacks`, `context_window_fallbacks` and a two-deployment `model_name` are all
+rejected at construction, while `num_retries=3` still builds a working Router.
+
+The reason this is enough: the fallback code paths are only reachable from a configured
+chain. With every chain refused at startup, `self.fallbacks` is always None and
+`async_function_with_fallbacks` degrades to a plain call to the retry path. The dead code
+stays, so restoring the feature is a config change, not a revert.
 
 ## The code in question
 

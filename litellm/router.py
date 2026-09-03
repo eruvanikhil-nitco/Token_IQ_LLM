@@ -926,6 +926,12 @@ class Router:
         ### validate if it's set + in correct format
         _fallbacks = fallbacks or litellm.fallbacks
 
+        self._reject_configured_fallbacks(
+            fallbacks=_fallbacks,
+            default_fallbacks=default_fallbacks or litellm.default_fallbacks,
+            context_window_fallbacks=context_window_fallbacks or litellm.context_window_fallbacks,
+            content_policy_fallbacks=content_policy_fallbacks or litellm.content_policy_fallbacks,
+        )
         self.validate_fallbacks(fallback_param=_fallbacks)
         ### set fallbacks
         self.fallbacks = _fallbacks
@@ -1161,6 +1167,67 @@ class Router:
         "usage-based-routing",
         "usage-based-routing-v2",
     )
+
+    def _reject_configured_fallbacks(
+        self,
+        *,
+        fallbacks: list | None,
+        default_fallbacks: list | None,
+        context_window_fallbacks: list | None,
+        content_policy_fallbacks: list | None,
+    ) -> None:
+        """
+        Refuse to start when any fallback chain is configured.
+
+        A fallback answers the client from a model it did not ask for, and the
+        swap is invisible in the response body. This proxy returns what the
+        provider the client named returned, or it returns that provider's error.
+        See project_usage/03-automatic-fallbacks.md
+        """
+        configured: Final = tuple(
+            name
+            for name, value in (
+                ("fallbacks", fallbacks),
+                ("default_fallbacks", default_fallbacks),
+                ("context_window_fallbacks", context_window_fallbacks),
+                ("content_policy_fallbacks", content_policy_fallbacks),
+            )
+            if value
+        )
+        if not configured:
+            return
+        raise ValueError(
+            f"{', '.join(configured)} configured, but fallbacks are disabled in this build. "
+            f"A fallback answers the client from a model it never asked for, which changes the "
+            f"response. Remove the setting, or let the caller retry against another model itself. "
+            f"See project_usage/03-automatic-fallbacks.md"
+        )
+
+    def _reject_duplicate_deployments(self) -> None:
+        """
+        Refuse a `model_name` that maps to more than one deployment.
+
+        With a single deployment per name there is nothing to load balance and,
+        more importantly, a retry re-enters deployment selection and can only
+        resolve to the same provider and model it just used. That is what keeps
+        a retry a retry rather than a silent provider swap.
+        See project_usage/02-load-balancing.md
+        """
+        duplicated: Final = tuple(
+            (name, len(indices))
+            for name, indices in sorted(self.model_name_to_deployment_indices.items())
+            if len(indices) > 1
+        )
+        if not duplicated:
+            return
+        detail: Final = ", ".join(f"'{name}' ({count} deployments)" for name, count in duplicated)
+        raise ValueError(
+            f"{detail} - each model_name must map to exactly one deployment in this build. "
+            f"Several deployments behind one name means the proxy picks which provider serves a "
+            f"call, and a retry can land on a different one than the first attempt. "
+            f"Give each deployment its own model_name. "
+            f"See project_usage/02-load-balancing.md"
+        )
 
     def _validate_routing_strategy(self, routing_strategy: RoutingStrategy | str | None) -> None:
         # See: https://github.com/BerriAI/litellm/issues/11330
@@ -9043,6 +9110,7 @@ class Router:
                 )
 
         verbose_router_logger.debug("\nInitialized Model List %s", self.get_model_names())
+        self._reject_duplicate_deployments()
         self.model_names = {m["model_name"] for m in model_list}
 
         # Note: model_name_to_deployment_indices is already built incrementally

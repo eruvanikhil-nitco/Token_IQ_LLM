@@ -19,9 +19,9 @@ bounds.
 | # | Concern | Status |
 |---|---------|--------|
 | 01 | Weighted / latency-based / cost-based routing | REMOVED |
-| 02 | Load balancing across deployments | Analysed, not yet removed |
-| 03 | Automatic fallbacks between models and providers | Analysed, not yet removed |
-| 04 | Retries, cooldowns and circuit breakers | Analysed, not yet removed |
+| 02 | Load balancing across deployments | Neutralised: one deployment per model_name |
+| 03 | Automatic fallbacks between models and providers | Neutralised: configuring one is a startup error |
+| 04 | Retries that reroute | Neutralised. Same-provider retry kept on purpose; cooldowns still open |
 | 05 | Semantic and exact-match response caching | Analysed, not yet removed |
 | 06 | Enterprise-licensed code | REMOVED (separate reason: licensing) |
 | 07 | Enterprise upsell sections in the Admin UI | REMOVED (separate reason: licensing) |

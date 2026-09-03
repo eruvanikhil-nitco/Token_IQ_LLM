@@ -1,9 +1,8 @@
 # Retries, cooldowns and circuit breakers
 
-> **Status: ANALYSED, NOT YET REMOVED.** The code below is still in the working tree.
-> This document records what has to come out and why, plus the entanglement that stopped
-> a clean deletion in this pass. Nothing here is deleted, so nothing here needs restoring
-> yet; treat it as the specification for the next pass.
+> **Status: NEUTRALISED at the config boundary, code retained.** The swap can no longer
+> happen, but the machinery was not deleted. See "How this was actually done" below, which
+> supersedes the deletion plan this document originally described.
 
 ## Why this must be removed
 
@@ -35,6 +34,38 @@ Same shape as the fallback work: the cooldown modules are referenced from 7, 4 a
 respectively, and the retry paths are woven through the same `router.py` methods as the
 fallback chain. They should be removed in one pass with the fallbacks, since a retry that
 cannot fall back and a fallback that cannot retry are the same code path.
+
+## How this was actually done, and what was kept
+
+The distinction that matters here is between a retry and a *reroute*.
+
+A retry against the same provider and the same model is legitimate, and it is not something
+an observer needs to forbid: the client asked for that endpoint, and the proxy is still
+talking to that endpoint. What breaks observer-only is a retry that lands somewhere else,
+because then the response comes from a provider the client never named.
+
+Those were the same code path here. `async_function_with_retries` calls `make_call`, which
+re-invokes the original function, which re-enters deployment selection. With several
+deployments behind one `model_name`, attempt two could resolve to a different provider than
+attempt one.
+
+The one-deployment-per-name rule in `02` closes that, structurally. Deployment selection
+still runs on every retry, but it has exactly one candidate, so the retry provably hits the
+same provider and the same model. Retries, `num_retries` and `RetryPolicy` all keep working.
+
+Cooldowns and circuit breakers are still present and are the remaining gap. A cooldown
+cannot reroute a call any more, since there is nowhere to reroute it to, but it can still
+make a deployment unavailable and turn a request the client expected to reach a provider
+into a proxy-generated error. That is a smaller violation than a silent swap, and it is the
+next thing to look at.
+
+## Response alteration
+
+`add_retry_headers_to_response` is deliberately kept. It adds `attempted_retries` and
+`max_retries` to the response's hidden params. That is additive telemetry about what the
+proxy did, not a change to what the provider returned, and it is exactly the kind of thing
+an observer exists to report. The fallback headers it sits beside are now unreachable,
+because no fallback can be configured.
 
 ## The code in question
 
