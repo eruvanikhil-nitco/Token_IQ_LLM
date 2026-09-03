@@ -206,6 +206,13 @@ class LLMCachingHandler:
         Raises:
             None
         """
+        # Observer-only build: a cache hit answers the caller without reaching the
+        # provider, so the response was never generated for this request. Refuse to
+        # read from the cache no matter how `litellm.cache` came to be set, which
+        # keeps this guarantee independent of config validation elsewhere.
+        # See project_usage/05-response-caching.md
+        return None
+
         # Check if caching should be performed BEFORE doing expensive operations
         if (
             (kwargs.get("caching", None) is None and litellm.cache is not None) or kwargs.get("caching", False) is True
@@ -326,6 +333,11 @@ class LLMCachingHandler:
         args: tuple[object, ...] | None = None,
     ) -> CachingHandlerResponse:
         cached_result: Any | None = None
+
+        # Observer-only build: see `_async_get_cache`. An empty response here means
+        # "no hit", so the caller proceeds to the provider as if the cache were cold.
+        # See project_usage/05-response-caching.md
+        return CachingHandlerResponse(cached_result=None)
 
         # Check if caching should be performed BEFORE doing expensive kwargs copy
         if litellm.cache is not None and self._is_call_type_supported_by_cache(original_function=original_function):

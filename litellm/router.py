@@ -800,10 +800,12 @@ class Router:
             redis_cache = self._create_redis_cache(cache_config)
 
         if cache_responses:
-            if litellm.cache is None:
-                # the cache can be initialized on the proxy server. We should not overwrite it
-                litellm.cache = litellm.Cache(type=cache_type, **cache_config)
-            self.cache_responses = cache_responses
+            raise ValueError(
+                "cache_responses=True was set, but response caching is disabled in this build. "
+                "A cache hit answers the caller without reaching the provider, so the response "
+                "was never generated for that request. "
+                "See project_usage/05-response-caching.md"
+            )
         self.cache = DualCache(
             redis_cache=redis_cache, in_memory_cache=InMemoryCache()
         )  # use a dual cache (Redis+In-Memory) for tracking cooldowns, usage, etc.

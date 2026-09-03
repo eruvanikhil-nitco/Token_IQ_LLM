@@ -22,7 +22,7 @@ bounds.
 | 02 | Load balancing across deployments | Neutralised: one deployment per model_name |
 | 03 | Automatic fallbacks between models and providers | Neutralised: configuring one is a startup error |
 | 04 | Retries that reroute, cooldowns, circuit breakers | Neutralised. Same-provider retry kept on purpose |
-| 05 | Semantic and exact-match response caching | Analysed, not yet removed |
+| 05 | Semantic and exact-match response caching | Neutralised: reads always miss, config refused |
 | 06 | Enterprise-licensed code | REMOVED (separate reason: licensing) |
 | 07 | Enterprise upsell sections in the Admin UI | REMOVED (separate reason: licensing) |
 | 08 | LiteLLM branding in the Admin UI shell | REPLACED with Token IQ |
@@ -54,7 +54,7 @@ The property is enforced at the surface, not by deletion:
 - expose only the pass-through routes, so no request reaches the routed endpoints
 - keep `model_list` empty, which the proxy already supports (`proxy_server.py` guards on
   `llm_router is None` in 45 places)
-- never set `litellm.cache`
+- never set `litellm.cache` (now enforced: reads always miss and both enablement paths raise)
 
 Deletion is still worth doing, because it means a later config change cannot quietly turn
 these back on. The two are complementary: the surface gives the guarantee today, the

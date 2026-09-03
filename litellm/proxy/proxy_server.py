@@ -5135,6 +5135,13 @@ class ProxyConfig:
             reset_color_code: Final = "\033[0m"
             for key, value in litellm_settings.items():
                 if key == "cache" and value is True:
+                    raise ValueError(
+                        "litellm_settings.cache is enabled, but response caching is disabled in "
+                        "this build. A cache hit answers the caller without reaching the provider, "
+                        "so the response was never generated for that request and the spend log "
+                        "would describe a call that never happened. Remove the setting. "
+                        "See project_usage/05-response-caching.md"
+                    )
                     print(f"{blue_color_code}\nSetting Cache on Proxy")  # noqa: T201
                     from litellm.caching.caching import Cache
 

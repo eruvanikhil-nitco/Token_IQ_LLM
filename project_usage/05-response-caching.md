@@ -1,9 +1,8 @@
 # Semantic and exact-match response caching
 
-> **Status: ANALYSED, NOT YET REMOVED.** The code below is still in the working tree.
-> This document records what has to come out and why, plus the entanglement that stopped
-> a clean deletion in this pass. Nothing here is deleted, so nothing here needs restoring
-> yet; treat it as the specification for the next pass.
+> **Status: NEUTRALISED, code retained.** A cache hit can no longer be served. The
+> handler was not deleted. See "How this was actually done" below, which supersedes the
+> deletion plan this document originally described.
 
 ## Why this must be removed
 
@@ -41,6 +40,63 @@ The safer sequencing is to disable it at the surface first, since an observer pr
 never set `litellm.cache` at all, and only then remove the hook. Verify with the
 `x-litellm-cache-key` response header and the `cache_hit` field on the spend log: on an
 observer build both should be absent on every request.
+
+## How this was actually done
+
+Two layers, because config validation alone would not have been a guarantee.
+
+**The read path is blocked unconditionally.** `_async_get_cache` returns `None` and
+`_sync_get_cache` returns an empty `CachingHandlerResponse`, both as the first statement,
+before any `litellm.cache` check. An empty response means "no hit", so the caller proceeds
+to the provider exactly as if the cache were cold. This holds no matter how `litellm.cache`
+came to be set, which is what makes it a guarantee rather than a configuration.
+
+**Both enablement paths fail loudly.** `litellm_settings.cache: true` in the proxy config
+and `Router(cache_responses=True)` now raise at startup, so nobody sets a knob that
+silently does nothing.
+
+## Verification
+
+Forcing `litellm.cache = litellm.Cache(type="local")` by hand and then calling the readers
+directly still yields a miss:
+
+```
+litellm.cache is set: True
+_sync_get_cache  -> cached_result=None ... embedding_all_elements_cache_hit=False
+_async_get_cache -> None
+```
+
+Booting the proxy with `cache: true`:
+
+```
+ValueError: litellm_settings.cache is enabled, but response caching is disabled in this
+build. A cache hit answers the caller without reaching the provider, so the response was
+never generated for that request and the spend log would describe a call that never
+happened.
+```
+
+And end to end, the same request twice at `temperature: 0`, which is the shape a cache
+would collapse:
+
+```
+call 1 -> upstream id: gen-1788459862-uI9KjPXbDhoZhNdTvmE5 | cost: 3.3e-05
+call 2 -> upstream id: gen-1788459863-ZGmcfmKiVzxk8boOYoMz | cost: 3.3e-05
+```
+
+Two distinct upstream ids, both billed. Both requests reached the provider.
+
+## What was left alone
+
+The write path, `async_set_cache` and `sync_set_cache`, is untouched but unreachable in
+practice, since nothing can set `litellm.cache` through a supported path any more. The
+`DualCache` and `InMemoryCache` primitives used for rate-limit counters and router
+bookkeeping are unaffected, as noted above.
+
+## How to restore
+
+Remove the two early returns in `caching_handler.py`, the `raise` at the top of the
+`key == "cache"` branch in `proxy_server.py`, and the `cache_responses` raise in
+`router.py`. No file was deleted.
 
 ## The code in question
 
