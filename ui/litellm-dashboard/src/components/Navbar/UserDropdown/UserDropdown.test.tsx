@@ -99,18 +99,21 @@ describe("UserDropdown", () => {
     });
   });
 
-  it("should display Standard badge for non-premium users", async () => {
+  it("should show no tier badge and no upgrade prompt to a non-premium user", async () => {
     const user = userEvent.setup();
     renderWithProviders(<UserDropdown onLogout={mockOnLogout} />);
 
     await user.click(getAccountTrigger());
 
     await waitFor(() => {
-      expect(screen.getByText("Standard")).toBeInTheDocument();
+      expect(screen.getByTestId("user-dropdown-panel")).toBeInTheDocument();
     });
+    expect(screen.queryByText("Standard")).not.toBeInTheDocument();
+    expect(screen.queryByText("Premium")).not.toBeInTheDocument();
+    expect(screen.queryByText("Upgrade to Premium for advanced features")).not.toBeInTheDocument();
   });
 
-  it("should display Premium badge for premium users", async () => {
+  it("should show no tier badge to a premium user either", async () => {
     const user = userEvent.setup();
     mockUseAuthorizedImpl = () => ({
       userId: "test-user-id",
@@ -124,8 +127,9 @@ describe("UserDropdown", () => {
     await user.click(getAccountTrigger());
 
     await waitFor(() => {
-      expect(screen.getByText("Premium")).toBeInTheDocument();
+      expect(screen.getByTestId("user-dropdown-panel")).toBeInTheDocument();
     });
+    expect(screen.queryByText("Premium")).not.toBeInTheDocument();
   });
 
   it("should call onLogout when logout is clicked", async () => {

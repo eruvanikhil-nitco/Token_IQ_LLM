@@ -113,16 +113,18 @@ describe("SidebarAccountMenu", () => {
     expect(screen.getAllByText("Admin").length).toBeGreaterThan(0);
   });
 
-  it("should display Standard tier for non-premium users", async () => {
+  it("should show no Tier row to a non-premium user", async () => {
     const user = userEvent.setup();
     renderWithProviders(<SidebarAccountMenu onLogout={mockOnLogout} />);
 
     await openMenu(user);
 
-    expect(screen.getByText("Standard")).toBeInTheDocument();
+    expect(screen.queryByText("Tier")).not.toBeInTheDocument();
+    expect(screen.queryByText("Standard")).not.toBeInTheDocument();
+    expect(screen.getByText("Role")).toBeInTheDocument();
   });
 
-  it("should display Premium tier for premium users", async () => {
+  it("should show no Tier row to a premium user either", async () => {
     const user = userEvent.setup();
     mockUseAuthorizedImpl = () => ({
       userId: "test-user-id",
@@ -136,7 +138,8 @@ describe("SidebarAccountMenu", () => {
 
     await openMenu(user);
 
-    expect(screen.getByText("Premium")).toBeInTheDocument();
+    expect(screen.queryByText("Tier")).not.toBeInTheDocument();
+    expect(screen.queryByText("Premium")).not.toBeInTheDocument();
   });
 
   it("should render a clickable version badge linking to the release notes", async () => {

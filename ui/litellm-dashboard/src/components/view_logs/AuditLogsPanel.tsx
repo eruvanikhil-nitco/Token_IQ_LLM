@@ -1,7 +1,6 @@
 import { useCallback, useState } from "react";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { ColumnFiltersState, OnChangeFn, PaginationState } from "@tanstack/react-table";
-import { resolveLogoSrc } from "@/lib/assetPaths";
 import { uiAuditLogsCall } from "../networking";
 import { AuditLogEntry } from "./AuditLogsTableColumns";
 import { AuditLogsTable } from "./AuditLogsTable";
@@ -15,9 +14,6 @@ interface AuditLogsProps {
   isActive: boolean;
   premiumUser: boolean;
 }
-
-const asset_logos_folder = "/ui/assets/";
-const auditLogsPreviewImg = `${asset_logos_folder}audit-logs-preview.png`;
 
 const PAGE_SIZE = 50;
 
@@ -84,34 +80,6 @@ export default function AuditLogsPanel({
     setSelectedLog(log);
     setDrawerOpen(true);
   }, []);
-
-  if (!premiumUser) {
-    return (
-      <div style={{ textAlign: "center", marginTop: "20px" }}>
-        <h1 style={{ display: "block", marginBottom: "10px" }}>✨ Enterprise Feature.</h1>
-        <p style={{ display: "block", marginBottom: "10px" }}>
-          This is a LiteLLM Enterprise feature, and requires a valid key to use.
-        </p>
-        <p style={{ display: "block", marginBottom: "20px", fontStyle: "italic" }}>
-          Here&apos;s a preview of what Audit Logs offer:
-        </p>
-        <img
-          src={resolveLogoSrc(auditLogsPreviewImg)}
-          alt="Audit Logs Preview"
-          style={{
-            maxWidth: "100%",
-            maxHeight: "700px",
-            borderRadius: "8px",
-            boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-            margin: "0 auto",
-          }}
-          onError={(e) => {
-            (e.target as HTMLImageElement).style.display = "none";
-          }}
-        />
-      </div>
-    );
-  }
 
   return (
     <>

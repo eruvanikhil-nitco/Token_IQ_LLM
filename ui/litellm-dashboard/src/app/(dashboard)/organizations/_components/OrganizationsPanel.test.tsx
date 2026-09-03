@@ -86,11 +86,11 @@ beforeEach(() => {
 });
 
 describe("OrganizationsPanel", () => {
-  it("gates non-premium users behind the enterprise notice", () => {
+  it("shows non-premium users the panel itself, with no enterprise notice", () => {
     renderPanel({ premiumUser: false });
 
-    expect(screen.getByText(/LiteLLM Enterprise feature/i)).toBeInTheDocument();
-    expect(screen.queryByText("+ Create New Organization")).not.toBeInTheDocument();
+    expect(screen.queryByText(/LiteLLM Enterprise feature/i)).not.toBeInTheDocument();
+    expect(screen.getByText("+ Create New Organization")).toBeInTheDocument();
   });
 
   it("shows the create button for a premium admin", () => {

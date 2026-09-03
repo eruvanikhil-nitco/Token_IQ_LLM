@@ -92,13 +92,14 @@ it("should render DeletedKeysPage component", () => {
   expect(screen.getByText("Test Key Alias")).toBeInTheDocument();
 });
 
-it("should show the enterprise notice for a non-premium user", () => {
+it("should not advertise Enterprise to a non-premium user", () => {
   renderWithProviders(<DeletedKeysPage />);
 
-  expect(screen.getByText("Coming soon to Enterprise")).toBeInTheDocument();
+  expect(screen.queryByText("Coming soon to Enterprise")).not.toBeInTheDocument();
   expect(
-    screen.getByText("Deleted key auditing is graduating from beta into our Enterprise audit & compliance suite."),
-  ).toBeInTheDocument();
+    screen.queryByText("Deleted key auditing is graduating from beta into our Enterprise audit & compliance suite."),
+  ).not.toBeInTheDocument();
+  expect(screen.getByText("Test Key Alias")).toBeInTheDocument();
 });
 
 it("should show skeleton rows while the initial load is pending", () => {

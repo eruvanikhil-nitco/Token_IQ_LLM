@@ -130,13 +130,15 @@ const UsagePage: React.FC<UsagePageProps> = ({ accessToken, token, userRole, use
 
   const tagOptions: TagOption[] = [
     { value: ALL_TAGS, label: "All Tags", disabled: false },
-    ...allTagNames
-      .filter((tag) => tag !== ALL_TAGS)
-      .map((tag) => ({
-        value: tag,
-        label: premiumUser ? tag : `✨ ${tag} (Enterprise only Feature)`,
-        disabled: !premiumUser,
-      })),
+    ...(premiumUser
+      ? allTagNames
+          .filter((tag) => tag !== ALL_TAGS)
+          .map((tag) => ({
+            value: tag,
+            label: tag,
+            disabled: false,
+          }))
+      : []),
   ];
 
   function valueFormatterNumbers(number: number) {

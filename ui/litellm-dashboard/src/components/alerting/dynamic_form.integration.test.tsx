@@ -202,14 +202,15 @@ describe("DynamicForm change notifications", () => {
 });
 
 describe("DynamicForm premium gating", () => {
-  it("hides the control behind an upsell and registers no value when the user is not premium", async () => {
+  it("drops the row entirely, with no upsell, when the user is not premium", async () => {
     const user = userEvent.setup();
     const { handleSubmit } = renderForm({
       settings: [{ ...SETTINGS[1], premium_field: true }],
       premiumUser: false,
     });
 
-    expect(screen.getByText(/Enterprise Feature/)).toBeInTheDocument();
+    expect(screen.queryByText(/Enterprise Feature/)).not.toBeInTheDocument();
+    expect(screen.queryByText("region_name")).not.toBeInTheDocument();
     expect(screen.queryByDisplayValue("us-east")).not.toBeInTheDocument();
 
     await submit(user);

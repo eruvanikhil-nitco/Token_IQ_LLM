@@ -28,7 +28,6 @@ import {
   Blocks,
   Bot,
   BookOpen,
-  Building2,
   Boxes,
   ChevronRight,
   Code2,
@@ -238,13 +237,6 @@ const menuGroups: MenuGroup[] = [
         roles: all_admin_roles,
       },
       { key: "users", page: "users", label: "Internal Users", icon: <User {...ICON} />, roles: all_admin_roles },
-      {
-        key: "organizations",
-        page: "organizations",
-        label: "Organizations",
-        icon: <Building2 {...ICON} />,
-        roles: all_admin_roles,
-      },
       {
         key: "access-groups",
         page: "access-groups",

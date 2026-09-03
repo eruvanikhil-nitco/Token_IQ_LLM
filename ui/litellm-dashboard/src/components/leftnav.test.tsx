@@ -187,7 +187,6 @@ describe("Sidebar (leftnav)", () => {
       "Guardrails Monitor",
       "Teams",
       "Internal Users",
-      "Organizations",
       "Access Groups",
       "Budgets",
       "API Reference",
@@ -469,7 +468,7 @@ describe("Sidebar (leftnav)", () => {
     });
   });
 
-  it("should show Organizations tab for organization admins", () => {
+  it("no longer shows the Organizations tab, even to organization admins", () => {
     mockUseAuthorized.mockReturnValue({
       userId: "org-admin-user-id",
       accessToken: "test-access-token",
@@ -506,7 +505,7 @@ describe("Sidebar (leftnav)", () => {
 
     renderWithProviders(<Sidebar {...defaultProps} />);
 
-    expect(screen.getByText("Organizations")).toBeInTheDocument();
+    expect(screen.queryByText("Organizations")).not.toBeInTheDocument();
   });
 
   it("marks the selected page's nav item active", () => {
