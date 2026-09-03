@@ -91,11 +91,6 @@ from litellm.llms.base_llm.vector_store.transformation import (
 )
 from litellm.llms.openai_like.json_loader import JSONProviderRegistry
 from litellm.router_strategy.budget_limiter import RouterBudgetLimiting
-from litellm.router_strategy.least_busy import LeastBusyLoggingHandler
-from litellm.router_strategy.lowest_cost import LowestCostLoggingHandler
-from litellm.router_strategy.lowest_latency import LowestLatencyLoggingHandler
-from litellm.router_strategy.lowest_tpm_rpm import LowestTPMLoggingHandler
-from litellm.router_strategy.lowest_tpm_rpm_v2 import LowestTPMLoggingHandler_v2
 from litellm.router_strategy.simple_shuffle import simple_shuffle
 from litellm.router_strategy.tag_based_routing import (
     _get_tags_from_request_kwargs,
@@ -301,13 +296,9 @@ else:
     QualityRouter = Any
     PreRoutingHookResponse = Any
 
-RouterStrategySelector: TypeAlias = (
-    LeastBusyLoggingHandler
-    | LowestCostLoggingHandler
-    | LowestLatencyLoggingHandler
-    | LowestTPMLoggingHandler
-    | LowestTPMLoggingHandler_v2
-)
+# Observer-only build: the scored routing strategies were removed, so no
+# selector type remains. See project_usage/01-weighted-latency-cost-routing.md
+RouterStrategySelector: TypeAlias = Any
 
 
 def _cost_value_as_float(value: str | float | None) -> float | None:
@@ -605,8 +596,6 @@ class Router:
     cache_responses: bool | None = False
     default_cache_time_seconds: int = 1 * 60 * 60  # 1 hour
     tenacity = None
-    leastbusy_logger: LeastBusyLoggingHandler | None = None
-    lowesttpm_logger: LowestTPMLoggingHandler | None = None
     optional_callbacks: list[CustomLogger | Callable | str] | None = None
 
     def __init__(
@@ -1149,13 +1138,7 @@ class Router:
     # Maps a routing strategy string to the attribute on `self` that holds
     # the default group's strategy selector for that strategy. (The selectors
     # double as `CustomLogger` callbacks, hence the legacy `*_logger` attrs.)
-    _DEFAULT_SELECTOR_ATTR_BY_STRATEGY: dict[str, str] = {
-        "least-busy": "leastbusy_logger",
-        "usage-based-routing": "lowesttpm_logger",
-        "usage-based-routing-v2": "lowesttpm_logger_v2",
-        "latency-based-routing": "lowestlatency_logger",
-        "cost-based-routing": "lowestcost_logger",
-    }
+    _DEFAULT_SELECTOR_ATTR_BY_STRATEGY: dict[str, str] = {}
 
     @staticmethod
     def _normalize_strategy(
@@ -1167,14 +1150,32 @@ class Router:
             return strategy.value
         return strategy
 
+    # Removed from this observer-only build. Naming one is a hard config error
+    # rather than a silent downgrade to simple-shuffle, because a config asking
+    # for latency-based routing and quietly getting something else is worse than
+    # a failed startup. See project_usage/01-weighted-latency-cost-routing.md
+    _REMOVED_ROUTING_STRATEGIES: Final = (
+        "least-busy",
+        "latency-based-routing",
+        "cost-based-routing",
+        "usage-based-routing",
+        "usage-based-routing-v2",
+    )
+
     def _validate_routing_strategy(self, routing_strategy: RoutingStrategy | str | None) -> None:
         # See: https://github.com/BerriAI/litellm/issues/11330
-        valid_strategy_strings: Final = ["simple-shuffle", "lar1"] + [s.value for s in RoutingStrategy]
+        valid_strategy_strings: Final = ["simple-shuffle", "lar1", RoutingStrategy.PROVIDER_BUDGET_LIMITING.value]
         if routing_strategy is None:
             return
-        is_valid_string: Final = isinstance(routing_strategy, str) and routing_strategy in valid_strategy_strings
-        is_valid_enum: Final = isinstance(routing_strategy, RoutingStrategy)
-        if not is_valid_string and not is_valid_enum:
+        normalized: Final = self._normalize_strategy(routing_strategy)
+        if normalized in self._REMOVED_ROUTING_STRATEGIES:
+            raise ValueError(
+                f"routing_strategy '{normalized}' was removed from this build. "
+                f"This proxy forwards each request to the endpoint the client named and "
+                f"does not choose between deployments. Valid options: {valid_strategy_strings}. "
+                f"See project_usage/01-weighted-latency-cost-routing.md to restore it."
+            )
+        if normalized not in valid_strategy_strings:
             raise ValueError(
                 f"Invalid routing_strategy: '{routing_strategy}'. "
                 f"Valid options: {valid_strategy_strings}. "
@@ -1193,42 +1194,12 @@ class Router:
         Returns None for `simple-shuffle` (no selector needed) and unknown
         strategies.
         """
-        selector: RouterStrategySelector | None = None
-        match self._normalize_strategy(strategy):
-            case RoutingStrategy.LEAST_BUSY.value:
-                selector = LeastBusyLoggingHandler(router_cache=self.cache)
-                if register_callbacks:
-                    if isinstance(litellm.input_callback, list):
-                        litellm.input_callback.append(selector)
-                    else:
-                        litellm.input_callback = [selector]
-            case RoutingStrategy.USAGE_BASED_ROUTING.value:
-                selector = LowestTPMLoggingHandler(
-                    router_cache=self.cache,
-                    routing_args=routing_strategy_args,
-                )
-            case RoutingStrategy.USAGE_BASED_ROUTING_V2.value:
-                selector = LowestTPMLoggingHandler_v2(
-                    router_cache=self.cache,
-                    routing_args=routing_strategy_args,
-                )
-            case RoutingStrategy.LATENCY_BASED.value:
-                selector = LowestLatencyLoggingHandler(
-                    router_cache=self.cache,
-                    routing_args=routing_strategy_args,
-                )
-            case RoutingStrategy.COST_BASED.value:
-                selector = LowestCostLoggingHandler(
-                    router_cache=self.cache,
-                    routing_args={},
-                )
-            case _:
-                pass
-
-        if selector is not None and register_callbacks and isinstance(litellm.callbacks, list):
-            litellm.logging_callback_manager.add_litellm_callback(selector)
-
-        return selector
+        # Observer-only build: every scored strategy (least-busy, usage-based,
+        # latency-based, cost-based) was removed, so there is never a selector to
+        # build. `_validate_routing_strategy` rejects those names up front, so
+        # reaching here means the strategy needs no selector.
+        # See project_usage/01-weighted-latency-cost-routing.md
+        return None
 
     def _unregister_router_selectors(self, selectors: Sequence[object]) -> None:
         """
@@ -1255,12 +1226,6 @@ class Router:
             + list(getattr(self, "_override_selectors", {}).values())
         )
         self._override_selectors = {}
-
-        self.leastbusy_logger: LeastBusyLoggingHandler | None = None
-        self.lowesttpm_logger: LowestTPMLoggingHandler | None = None
-        self.lowesttpm_logger_v2: LowestTPMLoggingHandler_v2 | None = None
-        self.lowestlatency_logger: LowestLatencyLoggingHandler | None = None
-        self.lowestcost_logger: LowestCostLoggingHandler | None = None
 
         selector: Final = self._build_strategy_selector(
             strategy=routing_strategy,
@@ -1536,40 +1501,9 @@ class Router:
         """
         if selector is None:
             return None
-        match strategy:
-            case "least-busy":
-                return await selector.async_get_available_deployments(
-                    model_group=model,
-                    healthy_deployments=healthy_deployments,
-                )
-            case "usage-based-routing":
-                # `LowestTPMLoggingHandler` (v1) only exposes the sync
-                # `get_available_deployments`. Mirror the pre-routing-groups
-                # top-level fallback by calling it inline so groups using v1
-                # still work from async callers.
-                return selector.get_available_deployments(
-                    model_group=model,
-                    healthy_deployments=healthy_deployments,
-                    messages=messages,
-                    input=input,
-                )
-            case "usage-based-routing-v2" | "cost-based-routing":
-                return await selector.async_get_available_deployments(
-                    model_group=model,
-                    healthy_deployments=healthy_deployments,
-                    messages=messages,
-                    input=input,
-                )
-            case "latency-based-routing":
-                return await selector.async_get_available_deployments(
-                    model_group=model,
-                    healthy_deployments=healthy_deployments,
-                    messages=messages,
-                    input=input,
-                    request_kwargs=request_kwargs,
-                )
-            case _:
-                return None
+        # Observer-only build: no scored strategy survives, so there is no
+        # deployment to select. See project_usage/01-weighted-latency-cost-routing.md
+        return None
 
     def _select_deployment_sync(
         self,
@@ -1589,32 +1523,8 @@ class Router:
         if selector is None:
             return None
 
-        # `cost-based-routing` is intentionally omitted —
-        # `LowestCostLoggingHandler` only implements
-        # `async_get_available_deployments`
-        match strategy:
-            case "least-busy":
-                return selector.get_available_deployments(
-                    model_group=model,
-                    healthy_deployments=healthy_deployments,
-                )
-            case "usage-based-routing" | "usage-based-routing-v2":
-                return selector.get_available_deployments(
-                    model_group=model,
-                    healthy_deployments=healthy_deployments,
-                    messages=messages,
-                    input=input,
-                )
-            case "latency-based-routing":
-                return selector.get_available_deployments(
-                    model_group=model,
-                    healthy_deployments=healthy_deployments,
-                    messages=messages,
-                    input=input,
-                    request_kwargs=request_kwargs,
-                )
-            case _:
-                return None
+        # Observer-only build: see `_select_deployment_async`.
+        return None
 
     def initialize_assistants_endpoint(self):
         ## INITIALIZE PASS THROUGH ASSISTANTS ENDPOINT ##
@@ -11486,12 +11396,6 @@ class Router:
         for var in vars_to_include:
             if var in _all_vars:
                 _settings_to_return[var] = _all_vars[var]
-            if (
-                var == "routing_strategy_args"
-                and self.routing_strategy == "latency-based-routing"
-                and self.lowestlatency_logger is not None
-            ):
-                _settings_to_return[var] = self.lowestlatency_logger.routing_args.json()
 
         _settings_to_return["routing_groups"] = [group.model_dump() for group in self._routing_groups.values()]
         return _settings_to_return
