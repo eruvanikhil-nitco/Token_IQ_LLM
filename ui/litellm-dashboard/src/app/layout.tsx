@@ -12,8 +12,8 @@ import { Toaster } from "@/components/ui/sonner";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "LiteLLM Dashboard",
-  description: "LiteLLM Proxy Admin UI",
+  title: "Token IQ Dashboard",
+  description: "Token IQ Proxy Admin UI",
   icons: { icon: "/get_favicon" },
 };
 

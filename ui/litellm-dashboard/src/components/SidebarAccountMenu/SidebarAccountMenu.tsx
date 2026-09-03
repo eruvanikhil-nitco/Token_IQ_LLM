@@ -6,6 +6,7 @@ import { useDisableShowNewBadge } from "@/app/(dashboard)/hooks/useDisableShowNe
 import { useDisableShowPrompts } from "@/app/(dashboard)/hooks/useDisableShowPrompts";
 import { emitLocalStorageChange, removeLocalStorageItem, setLocalStorageItem } from "@/utils/localStorageUtils";
 import { navAccountDisplayName } from "@/components/Navbar/navDisplayName";
+import { BRAND_NAME } from "@/components/BrandLogo";
 import CopyButton from "@/components/shared/CopyButton";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -169,12 +170,12 @@ const SidebarAccountMenu: React.FC<SidebarAccountMenuProps> = ({ onLogout, colla
         data-testid="sidebar-account-menu-panel"
       >
         <div className="flex items-center gap-2 border-b border-border px-3 py-3">
-          <span className="text-[15px] font-bold tracking-tight text-foreground">LiteLLM</span>
+          <span className="text-[15px] font-bold tracking-tight text-foreground">{BRAND_NAME}</span>
           {!disableBouncingIcon && (
             <span
               className="animate-bounce text-lg leading-none"
               style={{ animationDuration: "2s" }}
-              title="Thanks for using LiteLLM!"
+              title="Thanks for using Token IQ!"
               aria-hidden
             >
               🌴

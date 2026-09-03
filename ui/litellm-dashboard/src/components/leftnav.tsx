@@ -73,6 +73,7 @@ import {
   rolesWithWriteAccess,
 } from "../utils/roles";
 import BetaBadge from "./BetaBadge";
+import BrandLogo, { BRAND_NAME } from "./BrandLogo";
 import SidebarAccountMenu from "./SidebarAccountMenu/SidebarAccountMenu";
 import SidebarUsageCard from "./SidebarUsageCard";
 import { MIGRATED_PAGES, migratedHref, legacyPageHref } from "@/utils/migratedPages";
@@ -595,15 +596,21 @@ const Sidebar_: React.FC<SidebarProps> = ({
       <SidebarHeader className="h-14 border-b border-border group-data-[collapsed=true]/sidebar:h-auto">
         <div className="flex items-center justify-between gap-2 group-data-[collapsed=true]/sidebar:flex-col">
           <div className="flex min-w-0 items-center gap-2">
-            <Link href={migratedHref("")} className="flex min-w-0 items-center" aria-label="LiteLLM home">
-              <img src={logoSrc} alt="LiteLLM" className={cn(LOGO_CLASS_NAME, "dark:hidden")} />
-              <img
-                src={darkLogoSrc}
-                alt=""
-                aria-hidden
-                onError={() => setErroredDarkLogo(logoUrlDark)}
-                className={cn(LOGO_CLASS_NAME, "hidden dark:block")}
-              />
+            <Link href={migratedHref("")} className="flex min-w-0 items-center" aria-label={`${BRAND_NAME} home`}>
+              {logoUrl ? (
+                <>
+                  <img src={logoSrc} alt={BRAND_NAME} className={cn(LOGO_CLASS_NAME, "dark:hidden")} />
+                  <img
+                    src={darkLogoSrc}
+                    alt=""
+                    aria-hidden
+                    onError={() => setErroredDarkLogo(logoUrlDark)}
+                    className={cn(LOGO_CLASS_NAME, "hidden dark:block")}
+                  />
+                </>
+              ) : (
+                <BrandLogo collapsed={collapsed} />
+              )}
             </Link>
             {version && (
               <Badge

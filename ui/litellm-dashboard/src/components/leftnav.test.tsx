@@ -112,22 +112,20 @@ describe("Sidebar (leftnav)", () => {
   it("should link the logo to the UI home route rather than the proxy origin", () => {
     renderWithProviders(<Sidebar {...defaultProps} />);
 
-    expect(screen.getByRole("link", { name: /litellm home/i })).toHaveAttribute("href", "/ui");
+    expect(screen.getByRole("link", { name: /token iq home/i })).toHaveAttribute("href", "/ui");
   });
 
-  it("pairs the logo with a dark-mode variant that swaps on the dark class", () => {
+  it("renders the Token IQ wordmark, not a fetched image, when no custom logo is configured", () => {
     renderWithProviders(<Sidebar {...defaultProps} />);
 
-    const [light, dark] = Array.from(screen.getByRole("link", { name: /litellm home/i }).querySelectorAll("img"));
-    const classesOf = (el: Element) => new Set(el.className.split(/\s+/));
+    const home = screen.getByRole("link", { name: /token iq home/i });
 
-    const lightSrc = light.getAttribute("src") ?? "";
-    expect(light).toHaveAttribute("src", expect.stringMatching(/\/get_image$/));
-    expect(dark).toHaveAttribute("src", `${lightSrc}?theme=dark`);
-    expect(classesOf(light).has("dark:hidden")).toBe(true);
-    expect(classesOf(light).has("hidden")).toBe(false);
-    expect(classesOf(dark).has("hidden")).toBe(true);
-    expect(classesOf(dark).has("dark:block")).toBe(true);
+    // The default brand is drawn inline so it needs no asset fetch and inherits
+    // the theme through currentColor, so there must be no <img> on this path.
+    expect(home.querySelectorAll("img")).toHaveLength(0);
+    expect(home.querySelector("svg")).not.toBeNull();
+    expect(home).toHaveTextContent("Token IQ");
+    expect(home).not.toHaveTextContent("LiteLLM");
   });
 
   it("prefers a configured dark logo over the light one in dark mode", () => {
@@ -138,7 +136,7 @@ describe("Sidebar (leftnav)", () => {
     });
     renderWithProviders(<Sidebar {...defaultProps} />);
 
-    const [light, dark] = Array.from(screen.getByRole("link", { name: /litellm home/i }).querySelectorAll("img"));
+    const [light, dark] = Array.from(screen.getByRole("link", { name: /token iq home/i }).querySelectorAll("img"));
 
     expect(light).toHaveAttribute("src", "https://cdn.example.com/logo.png");
     expect(dark).toHaveAttribute("src", "https://cdn.example.com/logo-dark.png");
@@ -148,7 +146,7 @@ describe("Sidebar (leftnav)", () => {
     mockUseThemeImpl = () => ({ ...unbrandedTheme(), logoUrl: "https://cdn.example.com/logo.png" });
     renderWithProviders(<Sidebar {...defaultProps} />);
 
-    const [light, dark] = Array.from(screen.getByRole("link", { name: /litellm home/i }).querySelectorAll("img"));
+    const [light, dark] = Array.from(screen.getByRole("link", { name: /token iq home/i }).querySelectorAll("img"));
 
     expect(light).toHaveAttribute("src", "https://cdn.example.com/logo.png");
     expect(dark).toHaveAttribute("src", "https://cdn.example.com/logo.png");
@@ -162,7 +160,7 @@ describe("Sidebar (leftnav)", () => {
     });
     renderWithProviders(<Sidebar {...defaultProps} />);
 
-    const [, dark] = Array.from(screen.getByRole("link", { name: /litellm home/i }).querySelectorAll("img"));
+    const [, dark] = Array.from(screen.getByRole("link", { name: /token iq home/i }).querySelectorAll("img"));
     expect(dark).toHaveAttribute("src", "https://cdn.example.com/gone.png");
 
     fireEvent.error(dark);

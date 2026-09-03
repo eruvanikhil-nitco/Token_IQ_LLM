@@ -25,6 +25,7 @@ bounds.
 | 05 | Semantic and exact-match response caching | Analysed, not yet removed |
 | 06 | Enterprise-licensed code | REMOVED (separate reason: licensing) |
 | 07 | Enterprise upsell sections in the Admin UI | REMOVED (separate reason: licensing) |
+| 08 | LiteLLM branding in the Admin UI shell | REPLACED with Token IQ |
 
 ## The unified translation layer
 
