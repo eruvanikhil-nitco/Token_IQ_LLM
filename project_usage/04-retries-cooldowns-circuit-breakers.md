@@ -53,11 +53,33 @@ The one-deployment-per-name rule in `02` closes that, structurally. Deployment s
 still runs on every retry, but it has exactly one candidate, so the retry provably hits the
 same provider and the same model. Retries, `num_retries` and `RetryPolicy` all keep working.
 
-Cooldowns and circuit breakers are still present and are the remaining gap. A cooldown
-cannot reroute a call any more, since there is nowhere to reroute it to, but it can still
-make a deployment unavailable and turn a request the client expected to reach a provider
-into a proxy-generated error. That is a smaller violation than a silent swap, and it is the
-next thing to look at.
+## Cooldowns and circuit breakers
+
+These are now off too, and the seam was already in the codebase.
+
+A cooldown parks a deployment after repeated failures, so a later request the client
+addressed to that provider never reaches it and comes back as a proxy-generated error
+instead of the provider's own answer. Once each `model_name` has one deployment there is
+nowhere to reroute to, so a cooldown stops being a swap and becomes an outage the proxy
+invented.
+
+`Router.disable_cooldowns` is forced to `True`. It is read by `_should_run_cooldown_logic`,
+which is the single gate in front of `_set_cooldown_deployments`, which is in turn the only
+writer into the cooldown cache. Nothing can enter cooldown, so all fourteen read sites in
+`router.py` see an empty list and every cooldown filter is a no-op. No call site changed.
+
+`_reject_cooldown_settings` then refuses `allowed_fails`, `cooldown_time`,
+`allowed_fails_policy` and an explicit `disable_cooldowns=False`, so an operator cannot set
+a knob that silently does nothing.
+
+Verified by driving the writer directly: ten consecutive 429s against one deployment leave
+`_get_cooldown_deployments` returning `[]`, and `_set_cooldown_deployments` returns False
+every time.
+
+### Restore
+
+Delete the `_reject_cooldown_settings` call and set `self.disable_cooldowns = disable_cooldowns`
+back in `Router.__init__`. Nothing else was removed; the cooldown modules are untouched.
 
 ## Response alteration
 

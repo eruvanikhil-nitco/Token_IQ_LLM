@@ -881,7 +881,20 @@ class Router:
             self.allowed_fails = litellm.allowed_fails
         self.cooldown_time = cooldown_time or DEFAULT_COOLDOWN_TIME_SECONDS
         self.cooldown_cache = CooldownCache(cache=self.cache, default_cooldown_time=self.cooldown_time)
-        self.disable_cooldowns = disable_cooldowns
+        self._reject_cooldown_settings(
+            allowed_fails=allowed_fails,
+            cooldown_time=cooldown_time,
+            allowed_fails_policy=allowed_fails_policy,
+            disable_cooldowns=disable_cooldowns,
+        )
+        # Forced on. A cooldown makes the proxy refuse to call a provider the
+        # client named, based on the proxy's own error-rate bookkeeping, so the
+        # caller gets a proxy-generated error instead of the provider's answer.
+        # `_should_run_cooldown_logic` reads this and is the single gate in front
+        # of `_set_cooldown_deployments`, the only writer into the cooldown cache,
+        # so nothing can ever enter cooldown and every reader sees an empty list.
+        # See project_usage/04-retries-cooldowns-circuit-breakers.md
+        self.disable_cooldowns = True
         self.enable_health_check_routing = enable_health_check_routing
         self.enable_weighted_failover = enable_weighted_failover
         self.health_check_ignore_transient_errors = health_check_ignore_transient_errors
@@ -1167,6 +1180,45 @@ class Router:
         "usage-based-routing",
         "usage-based-routing-v2",
     )
+
+    def _reject_cooldown_settings(
+        self,
+        *,
+        allowed_fails: int | None,
+        cooldown_time: float | None,
+        allowed_fails_policy: object | None,
+        disable_cooldowns: bool | None,
+    ) -> None:
+        """
+        Refuse settings that only make sense when cooldowns are active.
+
+        Cooldowns are off in this build, so honouring these silently would be the
+        worse outcome: an operator setting `cooldown_time` would believe failing
+        deployments get parked when they do not.
+        """
+        if disable_cooldowns is False:
+            raise ValueError(
+                "disable_cooldowns=False was set, but cooldowns cannot be enabled in this build. "
+                "A cooldown makes the proxy refuse to call a provider the client named, so the "
+                "caller gets a proxy error instead of the provider's answer. "
+                "See project_usage/04-retries-cooldowns-circuit-breakers.md"
+            )
+        configured: Final = tuple(
+            name
+            for name, value in (
+                ("allowed_fails", allowed_fails),
+                ("cooldown_time", cooldown_time),
+                ("allowed_fails_policy", allowed_fails_policy),
+            )
+            if value is not None
+        )
+        if not configured:
+            return
+        raise ValueError(
+            f"{', '.join(configured)} configured, but cooldowns are disabled in this build, so the "
+            f"setting would have no effect. Remove it. "
+            f"See project_usage/04-retries-cooldowns-circuit-breakers.md"
+        )
 
     def _reject_configured_fallbacks(
         self,
