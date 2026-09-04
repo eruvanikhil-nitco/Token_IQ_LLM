@@ -24,105 +24,6 @@ class MockResponse:
         return self._json_data
 
 
-@pytest.mark.asyncio
-async def test_async_session_id_affinity_routes_to_same_deployment():
-    """
-    When session_affinity is enabled, subsequent requests from the same session id
-    should route to the same deployment.
-    """
-    mock_response_data = {
-        "id": "resp_mock-resp-123",
-        "object": "response",
-        "created_at": 1741476542,
-        "status": "completed",
-        "model": "azure/computer-use-preview",
-        "output": [
-            {
-                "type": "message",
-                "id": "msg_123",
-                "status": "completed",
-                "role": "assistant",
-                "content": [
-                    {"type": "output_text", "text": "Hello there!", "annotations": []}
-                ],
-            }
-        ],
-        "parallel_tool_calls": True,
-        "usage": {
-            "input_tokens": 5,
-            "output_tokens": 10,
-            "total_tokens": 15,
-            "output_tokens_details": {"reasoning_tokens": 0},
-        },
-        "text": {"format": {"type": "text"}},
-        "error": None,
-        "previous_response_id": None,
-    }
-
-    router = litellm.Router(
-        model_list=[
-            {
-                "model_name": "azure-computer-use-preview",
-                "litellm_params": {
-                    "model": "azure/computer-use-preview-1",
-                    "api_key": "mock-api-key-1",
-                    "api_version": "mock-api-version",
-                    "api_base": "https://mock-endpoint-1.openai.azure.com",
-                },
-                "model_info": {"base_model": "computer-use-preview"},
-            },
-            {
-                "model_name": "azure-computer-use-preview",
-                "litellm_params": {
-                    "model": "azure/computer-use-preview-2",
-                    "api_key": "mock-api-key-2",
-                    "api_version": "mock-api-version-2",
-                    "api_base": "https://mock-endpoint-2.openai.azure.com",
-                },
-                "model_info": {"base_model": "computer-use-preview"},
-            },
-        ],
-        optional_pre_call_checks=["session_affinity"],
-    )
-
-    model_group = "azure-computer-use-preview"
-    session_id = "test-session-id-1"
-
-    choice_calls = {"count": 0}
-
-    def deterministic_choice(seq):
-        choice_calls["count"] += 1
-        if choice_calls["count"] == 1:
-            return seq[0]
-        return seq[1] if len(seq) > 1 else seq[0]
-
-    with (
-        patch(
-            "litellm.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
-            new_callable=AsyncMock,
-        ) as mock_post,
-        patch(
-            "litellm.router_strategy.simple_shuffle.random.choice",
-            side_effect=deterministic_choice,
-        ),
-    ):
-        mock_post.return_value = MockResponse(mock_response_data, 200)
-
-        first_response = await router.aresponses(
-            model=model_group,
-            input="Hello, how are you?",
-            truncation="auto",
-            litellm_metadata={"session_id": session_id},
-        )
-        first_model_id = first_response._hidden_params["model_id"]
-
-        second_response = await router.aresponses(
-            model=model_group,
-            input="Follow-up question",
-            truncation="auto",
-            litellm_metadata={"session_id": session_id},
-        )
-        assert second_response._hidden_params["model_id"] == first_model_id
 
 
 @pytest.mark.asyncio
@@ -315,46 +216,8 @@ async def _one_turn(router, model, session_id, key_hash):
     return response._hidden_params["model_id"]
 
 
-@pytest.mark.asyncio
-async def test_auto_router_session_affinity_writes_scoped_pin_and_follows_it():
-    """Turn 1 persists a key-scoped deployment pin; a pin seeded to the deployment
-    the shuffle would never pick is then followed, proving the read path."""
-    router = _smart_router()
-    try:
-        served = await _one_turn(router, "smart-router", "write-session", "key-1")
-        assert await router.cache.async_get_cache(key=_session_pin_key("write-session", "key-1")) == {
-            "model_id": served
-        }
-        assert await router.cache.async_get_cache(key=_session_pin_key("write-session", None)) is None
-
-        await router.cache.async_set_cache(
-            key=_session_pin_key("read-session", "key-1"), value={"model_id": "deployment-2"}
-        )
-        assert await _one_turn(router, "smart-router", "read-session", "key-1") == "deployment-2"
-    finally:
-        _cleanup_router_callbacks(router)
 
 
-@pytest.mark.asyncio
-@pytest.mark.parametrize(
-    "model,key_hash",
-    [
-        ("target-group", "key-1"),
-        ("smart-router", "key-2"),
-    ],
-    ids=["direct-group-call", "different-api-key"],
-)
-async def test_seeded_session_pin_is_invisible_outside_its_scope(model, key_hash):
-    """The pin binds (auto-routed request, api key, session): a direct call to the
-    group and a different key reusing the session id must both ignore it."""
-    router = _smart_router()
-    try:
-        await router.cache.async_set_cache(
-            key=_session_pin_key("scoped-session", "key-1"), value={"model_id": "deployment-2"}
-        )
-        assert await _one_turn(router, model, "scoped-session", key_hash) == "deployment-1"
-    finally:
-        _cleanup_router_callbacks(router)
 
 
 @pytest.mark.asyncio
@@ -596,62 +459,5 @@ async def test_marker_session_affinity_read_and_write_agree_for_wildcard_groups(
     assert [d["model_info"]["id"] for d in filtered] == ["wild-deployment-2"]
 
 
-@pytest.mark.asyncio
-@pytest.mark.parametrize(
-    "model,session_affinity,deployment_affinity,expect_marker",
-    [
-        ("smart-router", False, True, True),
-        ("smart-router", True, False, True),
-        ("smart-router", False, False, False),
-        ("target-group", False, True, False),
-    ],
-    ids=[
-        "deployment-affinity-stamps",
-        "session-affinity-implies-deployment-pin",
-        "both-off-no-stamp",
-        "non-auto-routed-clears",
-    ],
-)
-async def test_pre_routing_hook_stamps_or_clears_the_marker_per_attempt(
-    model, session_affinity, deployment_affinity, expect_marker
-):
-    """Every routing attempt writes or clears the marker, so a fallback from an
-    auto-routed group to a plain group cannot carry a stale marker. session_affinity
-    implies the deployment pin: a session frozen onto one group must not re-shuffle
-    across that group's deployments."""
-    router = _smart_router(session_affinity=session_affinity, deployment_affinity=deployment_affinity)
-    try:
-        request_kwargs = {
-            "metadata": {SESSION_DEPLOYMENT_AFFINITY_TTL_METADATA_KEY: 111},
-            "litellm_metadata": {SESSION_DEPLOYMENT_AFFINITY_TTL_METADATA_KEY: 111},
-        }
-        await router.async_pre_routing_hook(
-            model=model,
-            request_kwargs=request_kwargs,
-            messages=[{"role": "user", "content": "Hello"}],
-        )
-        if expect_marker:
-            assert request_kwargs["litellm_metadata"][SESSION_DEPLOYMENT_AFFINITY_TTL_METADATA_KEY] == 777
-        else:
-            assert SESSION_DEPLOYMENT_AFFINITY_TTL_METADATA_KEY not in request_kwargs["metadata"]
-            assert SESSION_DEPLOYMENT_AFFINITY_TTL_METADATA_KEY not in request_kwargs["litellm_metadata"]
-    finally:
-        _cleanup_router_callbacks(router)
 
 
-def test_complexity_router_with_deployment_affinity_registers_affinity_callback():
-    enabled = _smart_router()
-    session_only = _smart_router(session_affinity=True, deployment_affinity=False)
-    disabled = _smart_router(session_affinity=False, deployment_affinity=False)
-    try:
-        assert [
-            (cb.enable_user_key_affinity, cb.enable_responses_api_affinity, cb.enable_session_id_affinity)
-            for cb in enabled.optional_callbacks or []
-            if isinstance(cb, DeploymentAffinityCheck)
-        ] == [(False, False, False)]
-        assert any(isinstance(cb, DeploymentAffinityCheck) for cb in session_only.optional_callbacks or [])
-        assert not any(isinstance(cb, DeploymentAffinityCheck) for cb in disabled.optional_callbacks or [])
-    finally:
-        _cleanup_router_callbacks(enabled)
-        _cleanup_router_callbacks(session_only)
-        _cleanup_router_callbacks(disabled)

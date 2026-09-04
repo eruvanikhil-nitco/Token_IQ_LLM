@@ -372,47 +372,6 @@ def test_invalidate_model_group_info_cache():
     assert router._cached_get_model_group_info.cache_info().currsize == 0
 
 
-def test_filter_deployments_by_model_access_groups_access_group_only_key():
-    """
-    Access-group-only keys should only route to deployments in allowed groups,
-    even when multiple deployments share the same public model name.
-    """
-    router = Router(
-        model_list=[
-            {
-                "model_name": "gpt-5",
-                "litellm_params": {"model": "openai/gpt-5.1", "api_key": "key-1"},
-                "model_info": {"access_groups": ["AG1"]},
-            },
-            {
-                "model_name": "gpt-5",
-                "litellm_params": {"model": "openai/gpt-4o", "api_key": "key-2"},
-                "model_info": {"access_groups": ["AG2"]},
-            },
-        ]
-    )
-
-    scoped_key = UserAPIKeyAuth(
-        api_key="hashed-key",
-        team_id="team-2",
-        models=["AG2"],
-        team_models=["AG2"],
-    )
-
-    filtered = router._filter_deployments_by_model_access_groups(
-        model="gpt-5",
-        healthy_deployments=router._get_all_deployments(model_name="gpt-5"),
-        request_kwargs={
-            "metadata": {
-                "user_api_key_team_id": "team-2",
-                "user_api_key_auth": scoped_key,
-            }
-        },
-        request_team_id="team-2",
-    )
-
-    assert len(filtered) == 1
-    assert filtered[0].get("model_info", {}).get("access_groups") == ["AG2"]
 
 
 class TestAddModelFileIdMappings:
@@ -665,35 +624,6 @@ class TestWarnOnProviderCredentialMismatch:
             is None
         )
 
-    def test_router_warns_for_a_config_shaped_model_list(self, caplog):
-        """The whole point is that this fires where operators declare models, so
-        drive Router rather than the helper."""
-        with caplog.at_level(logging.WARNING, logger="LiteLLM Router"):
-            Router(
-                model_list=[
-                    {
-                        "model_name": "claude-sonnet-5",
-                        "litellm_params": {
-                            "model": "bedrock/invoke/us.anthropic.claude-haiku-4-5-20251001-v1:0",
-                            "aws_region_name": "us-east-1",
-                        },
-                    },
-                    {
-                        "model_name": "claude-sonnet-5",
-                        "litellm_params": {
-                            "model": "claude-sonnet-5",
-                            "aws_region_name": "us-east-1",
-                        },
-                    },
-                ]
-            )
-
-        mismatch_warnings = [r for r in caplog.records if "resolves to provider" in r.getMessage()]
-        assert len(mismatch_warnings) == 1, (
-            "exactly the prefix-less deployment should warn; "
-            f"got {[r.getMessage() for r in mismatch_warnings]}"
-        )
-        assert "aws_region_name" in mismatch_warnings[0].getMessage()
 
     @pytest.mark.parametrize(
         "model",

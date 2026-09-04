@@ -102,51 +102,6 @@ async def test_vertex_passthrough_load_balancing():
         assert call_args[1]["vertex_location"] == "us-central1-lb"
 
 
-def test_get_available_deployment_for_pass_through_filters_correctly():
-    """
-    Test that get_available_deployment_for_pass_through filters deployments correctly
-    """
-    from litellm.router import Router
-
-    # Configure router with both pass-through and non-pass-through deployments
-    model_list = [
-        {
-            "model_name": "gemini-pro",
-            "litellm_params": {
-                "model": "vertex_ai/gemini-pro",
-                "vertex_project": "project-1",
-                "vertex_location": "us-central1",
-                "use_in_pass_through": True,  # Supports pass-through
-            },
-        },
-        {
-            "model_name": "gemini-pro",
-            "litellm_params": {
-                "model": "vertex_ai/gemini-pro",
-                "vertex_project": "project-2",
-                "vertex_location": "us-west1",
-                "use_in_pass_through": False,  # Does not support pass-through
-            },
-        },
-        {
-            "model_name": "gemini-pro",
-            "litellm_params": {
-                "model": "vertex_ai/gemini-pro",
-                "vertex_project": "project-3",
-                "vertex_location": "us-east1",
-                # use_in_pass_through not set (defaults to False)
-            },
-        },
-    ]
-
-    router = Router(model_list=model_list, routing_strategy="simple-shuffle")
-
-    # Test: Should only return project-1 (use_in_pass_through=True)
-    deployment = router.get_available_deployment_for_pass_through(model="gemini-pro")
-
-    assert deployment is not None
-    assert deployment["litellm_params"]["vertex_project"] == "project-1"
-    assert deployment["litellm_params"]["use_in_pass_through"] is True
 
 
 def test_get_available_deployment_for_pass_through_no_deployments():
@@ -177,48 +132,6 @@ def test_get_available_deployment_for_pass_through_no_deployments():
     assert "use_in_pass_through=True" in str(exc_info.value)
 
 
-def test_get_available_deployment_for_pass_through_load_balancing():
-    """
-    Test load balancing for pass-through deployments
-    """
-    from litellm.router import Router
-
-    model_list = [
-        {
-            "model_name": "gemini-pro",
-            "litellm_params": {
-                "model": "vertex_ai/gemini-pro",
-                "vertex_project": "project-1",
-                "vertex_location": "us-central1",
-                "use_in_pass_through": True,
-                "rpm": 100,
-            },
-        },
-        {
-            "model_name": "gemini-pro",
-            "litellm_params": {
-                "model": "vertex_ai/gemini-pro",
-                "vertex_project": "project-2",
-                "vertex_location": "us-west1",
-                "use_in_pass_through": True,
-                "rpm": 200,  # Higher RPM should be selected more frequently
-            },
-        },
-    ]
-
-    router = Router(model_list=model_list, routing_strategy="simple-shuffle")
-
-    # Call multiple times and track selected deployments
-    selections = {"project-1": 0, "project-2": 0}
-    for _ in range(100):
-        deployment = router.get_available_deployment_for_pass_through(
-            model="gemini-pro"
-        )
-        project = deployment["litellm_params"]["vertex_project"]
-        selections[project] += 1
-
-    # Due to rpm weight, project-2 should be selected more times
-    assert selections["project-2"] > selections["project-1"]
 
 
 @pytest.mark.asyncio

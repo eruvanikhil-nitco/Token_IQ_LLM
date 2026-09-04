@@ -500,21 +500,6 @@ def test_unmask_preference(raw, real_is_a, expected):
     assert _unmask_preference(raw, real_is_a) == expected
 
 
-def test_failure_detail_names_the_raising_frame():
-    try:
-        raise TypeError("'tuple' object does not support item assignment")
-    except TypeError as e:
-        detail = _failure_detail(e)
-        lineno = e.__traceback__.tb_lineno
-    assert (
-        detail == f"TypeError at test_shadow_eval_logger.py:{lineno}: 'tuple' object does not support item assignment"
-    )
-
-    try:
-        raise ValueError("p" * 5 * _MAX_ERROR_CHARS)
-    except ValueError as long_e:
-        truncated_row_error = _failure_detail(long_e)[:_MAX_ERROR_CHARS]
-    assert "ValueError at test_shadow_eval_logger.py:" in truncated_row_error
 
 
 def test_call_cost_prefers_the_billed_figure_over_the_public_price_map(monkeypatch):

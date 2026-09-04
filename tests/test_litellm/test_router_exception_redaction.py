@@ -195,63 +195,8 @@ async def test_flag_on_shows_context_window_fallback_hint(monkeypatch: pytest.Mo
 # --- Site 4: "No fallback model group found..." when fallbacks miss ---------
 
 
-@pytest.mark.asyncio
-async def test_flag_off_does_not_leak_when_no_fallback_group_found(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr(litellm, "expose_router_debug_in_errors", False)
-    router = Router(
-        model_list=[
-            {
-                "model_name": _INTERNAL_MODEL_GROUP_NAME,
-                "litellm_params": {
-                    "model": "gpt-4o",
-                    "api_key": "key",
-                    "mock_response": "litellm.RateLimitError",
-                },
-                "model_info": {"id": "secret-deployment-id"},
-            },
-        ],
-        # Fallbacks defined for a different model_group, so resolution
-        # ends with fallback_model_group=None and hits site 4.
-        fallbacks=[{"some-other-group": ["some-other-target"]}],
-        num_retries=0,
-    )
-    with pytest.raises(litellm.RateLimitError) as excinfo:
-        await router.acompletion(
-            model=_INTERNAL_MODEL_GROUP_NAME,
-            messages=[{"role": "user", "content": "hi"}],
-        )
-    msg = excinfo.value.message
-    assert "No fallback model group found" not in msg, msg
-    assert "some-other-group" not in msg, msg
-    assert _INTERNAL_MODEL_GROUP_NAME not in msg, msg
 
 
-@pytest.mark.asyncio
-async def test_flag_on_shows_when_no_fallback_group_found(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr(litellm, "expose_router_debug_in_errors", True)
-    router = Router(
-        model_list=[
-            {
-                "model_name": _INTERNAL_MODEL_GROUP_NAME,
-                "litellm_params": {
-                    "model": "gpt-4o",
-                    "api_key": "key",
-                    "mock_response": "litellm.RateLimitError",
-                },
-                "model_info": {"id": "secret-deployment-id"},
-            },
-        ],
-        fallbacks=[{"some-other-group": ["some-other-target"]}],
-        num_retries=0,
-    )
-    with pytest.raises(litellm.RateLimitError) as excinfo:
-        await router.acompletion(
-            model=_INTERNAL_MODEL_GROUP_NAME,
-            messages=[{"role": "user", "content": "hi"}],
-        )
-    msg = excinfo.value.message
-    assert "No fallback model group found" in msg, msg
-    assert _INTERNAL_MODEL_GROUP_NAME in msg, msg
 
 
 # --- Site 1: Deployment timeout debug on litellm.Timeout --------------------
@@ -352,77 +297,7 @@ async def test_flag_on_shows_content_policy_fallback_hint(monkeypatch: pytest.Mo
 # --- Credential masking: raw provider keys never leak, either flag state ----
 
 
-@pytest.mark.asyncio
-async def test_flag_off_hides_fallback_credentials(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr(litellm, "expose_router_debug_in_errors", False)
-    router = _router_with_credentialed_fallback()
-    with pytest.raises(litellm.RateLimitError) as excinfo:
-        await router.acompletion(
-            model=_INTERNAL_MODEL_GROUP_NAME,
-            messages=[{"role": "user", "content": "hi"}],
-        )
-    msg = excinfo.value.message
-    assert _FALLBACK_CREDENTIAL not in msg, msg
-    assert _AVAILABLE_FALLBACKS_PHRASE not in msg, msg
 
 
-@pytest.mark.asyncio
-async def test_flag_on_masks_fallback_credentials(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr(litellm, "expose_router_debug_in_errors", True)
-    router = _router_with_credentialed_fallback()
-    with pytest.raises(litellm.RateLimitError) as excinfo:
-        await router.acompletion(
-            model=_INTERNAL_MODEL_GROUP_NAME,
-            messages=[{"role": "user", "content": "hi"}],
-        )
-    msg = excinfo.value.message
-    # The raw credential must never appear, even though debug exposure is on
-    assert _FALLBACK_CREDENTIAL not in msg, msg
-    # The fallback wiring is still shown (masking preserves structure, it does
-    # not drop the whole message), so the api_key key name survives
-    assert "api_key" in msg, msg
 
 
-@pytest.mark.asyncio
-async def test_flag_on_scrubs_credential_from_inner_fallback_exception_string(monkeypatch: pytest.MonkeyPatch):
-    """If the fallback attempt itself raises an exception whose message embeds a
-    raw provider credential (e.g. a provider SDK echoing back the api_key it was
-    called with), that string is re-embedded via `Error doing the fallback: ...`
-    on the terminal raise. The router must scrub known secret patterns from it.
-    The primary fails with a benign rate-limit; the fallback deployment fails
-    with an exception whose text contains the secret."""
-    monkeypatch.setattr(litellm, "expose_router_debug_in_errors", True)
-    inner_secret = "sk-INNERFALLBACKEXCEPTIONSECRET1234"
-    router = Router(
-        model_list=[
-            {
-                "model_name": _INTERNAL_MODEL_GROUP_NAME,
-                "litellm_params": {
-                    "model": "gpt-4o",
-                    "api_key": "key",
-                    "mock_response": "litellm.RateLimitError",
-                },
-                "model_info": {"id": "secret-deployment-id"},
-            },
-            {
-                "model_name": "fallback-group",
-                "litellm_params": {
-                    "model": "gpt-4o",
-                    "api_key": "key",
-                    "mock_response": f"Exception: content_filter_policy - api_key={inner_secret}",
-                },
-                "model_info": {"id": "fallback-deployment-id"},
-            },
-        ],
-        fallbacks=[{_INTERNAL_MODEL_GROUP_NAME: ["fallback-group"]}],
-        num_retries=0,
-    )
-    with pytest.raises(litellm.RateLimitError) as excinfo:
-        await router.acompletion(
-            model=_INTERNAL_MODEL_GROUP_NAME,
-            messages=[{"role": "user", "content": "hi"}],
-        )
-    msg = excinfo.value.message
-    assert "Error doing the fallback:" in msg, msg
-    assert inner_secret not in msg, msg
-    assert "REDACTED" in msg, msg

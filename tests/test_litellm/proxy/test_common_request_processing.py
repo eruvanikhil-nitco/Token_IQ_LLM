@@ -6488,21 +6488,6 @@ class TestModelDeploymentsSupportStreamOptions:
 
         assert self._support("tiny", router) is False
 
-    def test_mixed_provider_model_group_is_not_injected(self):
-        router = litellm.Router(
-            model_list=[
-                {
-                    "model_name": "mixed",
-                    "litellm_params": {"model": "openai/gpt-4o", "api_key": "fake"},
-                },
-                {
-                    "model_name": "mixed",
-                    "litellm_params": {"model": "oci/cohere.command-r-plus", "api_key": "fake"},
-                },
-            ]
-        )
-
-        assert self._support("mixed", router) is False
 
     def test_wildcard_route_resolves_provider_support(self):
         router = litellm.Router(

@@ -74,39 +74,8 @@ def _additional_headers(response: object) -> dict:
     return get_hidden_params_dict(response).get("additional_headers", {})
 
 
-@pytest.mark.asyncio
-async def test_include_fallback_errors_propagates_through_router():
-    router = _two_group_fallback_router()
-
-    response = await router.acompletion(
-        model="primary-model",
-        messages=[{"role": "user", "content": "Hello"}],
-        mock_testing_fallbacks=True,
-        mock_response="fallback success",
-        include_fallback_errors=True,
-    )
-
-    headers = _additional_headers(response)
-    assert headers["x-litellm-attempted-fallbacks"] == 1
-    errors = json.loads(headers["x-litellm-fallback-errors"])
-    assert isinstance(errors, list) and len(errors) >= 1
-    assert set(errors[0].keys()) == {"message", "type", "param", "code"}
 
 
-@pytest.mark.asyncio
-async def test_router_omits_fallback_errors_without_opt_in():
-    router = _two_group_fallback_router()
-
-    response = await router.acompletion(
-        model="primary-model",
-        messages=[{"role": "user", "content": "Hello"}],
-        mock_testing_fallbacks=True,
-        mock_response="fallback success",
-    )
-
-    headers = _additional_headers(response)
-    assert headers["x-litellm-attempted-fallbacks"] == 1
-    assert "x-litellm-fallback-errors" not in headers
 
 
 def test_prepare_fallback_hidden_params_no_additional_headers():

@@ -994,6 +994,9 @@ class Router:
         """
 
         ### ROUTING SETUP ###
+        # Validate before the lar1 branch below, which would otherwise install a
+        # custom deployment picker before routing_strategy_init ever validates.
+        self._validate_routing_strategy(routing_strategy)
         if self._normalize_strategy(routing_strategy) == "lar1":
             from litellm.router_strategy.lar1_routing import apply_lar1_routing_strategy
 
@@ -1181,6 +1184,10 @@ class Router:
         "cost-based-routing",
         "usage-based-routing",
         "usage-based-routing-v2",
+        # LAR-1 installs a custom routing strategy that picks the deployment from
+        # an agent confidence score in request metadata, so it chooses the model
+        # from the request just as the pre-routing strategies do.
+        "lar1",
     )
 
     def _reject_cooldown_settings(
@@ -1285,7 +1292,7 @@ class Router:
 
     def _validate_routing_strategy(self, routing_strategy: RoutingStrategy | str | None) -> None:
         # See: https://github.com/BerriAI/litellm/issues/11330
-        valid_strategy_strings: Final = ["simple-shuffle", "lar1", RoutingStrategy.PROVIDER_BUDGET_LIMITING.value]
+        valid_strategy_strings: Final = ["simple-shuffle", RoutingStrategy.PROVIDER_BUDGET_LIMITING.value]
         if routing_strategy is None:
             return
         normalized: Final = self._normalize_strategy(routing_strategy)
@@ -8673,6 +8680,42 @@ class Router:
             else:
                 raise e
 
+    _PRE_ROUTING_KIND_LABELS: Final = MappingProxyType(
+        {
+            "semantic": "a semantic auto-router",
+            "complexity": "a complexity router",
+            "adaptive": "an adaptive router",
+            "quality": "a quality router",
+        }
+    )
+
+    def _reject_pre_routing_deployment(self, deployment: Deployment) -> None:
+        """
+        Refuse any deployment that chooses the model from the request.
+
+        All four strategy routers register through `_add_deployment`, whether they
+        came from config.yaml or the database, and all four resolve a
+        `PreRoutingHookResponse` that replaces `model` before routing. The caller
+        commits to one model and a different one serves the request, with nothing
+        in the response to say so.
+
+        Keyed off `classify_strategy_router_model`, the same classifier the Router
+        registers by, so a strategy kind added upstream is refused by default
+        rather than silently admitted.
+
+        See project_usage/12-pre-routing-model-substitution.md
+        """
+        kind: Final = classify_strategy_router_model(deployment.litellm_params.model)
+        if kind is None:
+            return
+        label: Final = self._PRE_ROUTING_KIND_LABELS.get(kind, f"a {kind} router")
+        raise ValueError(
+            f"Deployment '{deployment.model_name}' is {label}, which is disabled in this "
+            f"build. It picks the model from the request, so the caller would be answered by "
+            f"a model it never asked for. Point this model_name at a provider model instead. "
+            f"See project_usage/12-pre-routing-model-substitution.md"
+        )
+
     def _is_auto_router_deployment(self, litellm_params: LiteLLM_Params) -> bool:
         """
         Check if the deployment is an auto-router deployment (semantic router).
@@ -9271,6 +9314,8 @@ class Router:
                 deployment=deployment,
                 custom_llm_provider=custom_llm_provider,
             )
+
+        self._reject_pre_routing_deployment(deployment=deployment)
 
         #########################################################
         # Check if this is an auto-router deployment

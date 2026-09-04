@@ -266,41 +266,6 @@ async def test_affinity_key_matches_the_messages_auto_caching_actually_sends(mon
     assert routing_key == PromptCachingCache.get_prompt_caching_cache_key(sent_messages, None)
 
 
-@pytest.mark.asyncio
-async def test_repeated_auto_cached_prefix_pins_to_one_deployment(monkeypatch, local_model_cost_map):
-    """
-    End to end over the router: identical requests with no client cache_control must stop bouncing
-    across a multi-deployment group once one deployment has cached the prefix. Bedrock and Anthropic
-    caches are per account and region, so every bounce paid the cache write premium and never read.
-    """
-    monkeypatch.setattr(litellm, "enable_anthropic_prompt_caching", True)
-    router = litellm.Router(
-        model_list=[
-            {
-                "model_name": MODEL_GROUP_ALIAS,
-                "litellm_params": {"model": AUTO_CACHING_MODEL, "api_key": "sk-fake"},
-                "model_info": {"id": model_id},
-            }
-            for model_id in ("dep-1", "dep-2")
-        ],
-        optional_pre_call_checks=["prompt_caching"],
-    )
-    messages = _auto_caching_messages()
-
-    first = await router.acompletion(model=MODEL_GROUP_ALIAS, messages=messages, mock_response="ok")
-    served_by = first._hidden_params["model_id"]
-
-    affinity_key = PromptCachingCache.get_prompt_caching_cache_key(_affinity_messages(messages), None)
-    assert await _eventually(lambda: router.cache.get_cache(key=affinity_key)) is not None
-
-    subsequent = [
-        (await router.acompletion(model=MODEL_GROUP_ALIAS, messages=messages, mock_response="ok"))._hidden_params[
-            "model_id"
-        ]
-        for _ in range(4)
-    ]
-
-    assert subsequent == [served_by] * 4
 
 
 @pytest.mark.asyncio

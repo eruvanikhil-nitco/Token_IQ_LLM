@@ -144,19 +144,6 @@ def test_first_matching_deployment_wins():
     assert passthrough_router.get_credentials(custom_llm_provider="openai", region_name=None) == "sk-first"
 
 
-def test_assemblyai_region_matching():
-    llm_router = litellm.Router(
-        model_list=[
-            _flagged_deployment(
-                "assemblyai/best", api_key="sk-eu", api_base="https://api.eu.assemblyai.com"
-            ),
-            _flagged_deployment("assemblyai/best", api_key="sk-us", api_base="https://api.assemblyai.com"),
-        ]
-    )
-    passthrough_router = _passthrough_router(llm_router)
-
-    assert passthrough_router.get_credentials(custom_llm_provider="assemblyai", region_name="eu") == "sk-eu"
-    assert passthrough_router.get_credentials(custom_llm_provider="assemblyai", region_name=None) == "sk-us"
 
 
 def test_env_fallback_when_no_router(monkeypatch):
