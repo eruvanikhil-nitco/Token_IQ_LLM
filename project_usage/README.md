@@ -29,6 +29,7 @@ bounds.
 | 09 | Pass-through body fidelity (managed-id rewriter) | Asserted at startup; nothing removed |
 | 10 | Docs and Blog links in the header toolbar | REMOVED from both headers |
 | 11 | Auto-Routers tab in Models + Endpoints | REMOVED from the UI; API still open |
+| 13 | Same-target retry on the pass-through path | ADDED (the one addition here) |
 
 ## The unified translation layer
 

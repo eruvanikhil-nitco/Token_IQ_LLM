@@ -13,6 +13,10 @@ from typing import TYPE_CHECKING, Any, Final, TypedDict, cast
 from urllib.parse import urlencode, urlparse
 
 import httpx
+from litellm.proxy.pass_through_endpoints.same_target_retry import (
+    passthrough_retry_policy,
+    send_with_same_target_retry,
+)
 from fastapi import (
     APIRouter,
     Depends,
@@ -1237,25 +1241,32 @@ async def pass_through_request(
             else:
                 # SigV4-signed callers (Bedrock) supply the exact pre-signed bytes;
                 # otherwise httpx encodes the parsed JSON dict as before.
-                req: Final = (
-                    async_client.build_request(
-                        request.method,
-                        url,
-                        params=requested_query_params,
-                        headers=headers,
-                        content=state_raw_body,
+                async def _send_to_named_endpoint() -> httpx.Response:
+                    # Rebuilt per attempt so every retry sends identical bytes to the
+                    # same endpoint. See same_target_retry.send_with_same_target_retry.
+                    return await async_client.send(
+                        async_client.build_request(
+                            request.method,
+                            url,
+                            params=requested_query_params,
+                            headers=headers,
+                            content=state_raw_body,
+                        )
+                        if state_raw_body is not None
+                        else async_client.build_request(
+                            request.method,
+                            url,
+                            params=requested_query_params,
+                            headers=headers,
+                            json=_parsed_body,
+                        ),
+                        stream=stream,
                     )
-                    if state_raw_body is not None
-                    else async_client.build_request(
-                        request.method,
-                        url,
-                        params=requested_query_params,
-                        headers=headers,
-                        json=_parsed_body,
-                    )
-                )
 
-                response = await async_client.send(req, stream=stream)
+                response = await send_with_same_target_retry(
+                    send=_send_to_named_endpoint,
+                    policy=passthrough_retry_policy(),
+                )
 
             upstream_usage = apply_upstream_reported_usage(
                 logging_obj=logging_obj,
