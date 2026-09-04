@@ -8,6 +8,7 @@ import pytest
 from fastapi import Request, Response
 from fastapi.testclient import TestClient
 
+from litellm.caching.dual_cache import DualCache
 from litellm.passthrough.utils import CommonUtils
 
 
@@ -102,3 +103,62 @@ def test_encode_bedrock_runtime_modelid_arn_partition_arns() -> None:
     endpoint = "model/arn:aws-us-gov:bedrock:us-gov-west-1:123456789012:inference-profile/test-profile/invoke"
     expected = "model/arn:aws-us-gov:bedrock:us-gov-west-1:123456789012:inference-profile%2Ftest-profile/invoke"
     assert CommonUtils.encode_bedrock_runtime_modelid_arn(endpoint) == expected
+
+
+def test_assert_passthrough_body_fidelity_allows_absent_managed_files_hook() -> None:
+    from litellm.proxy.pass_through_endpoints.common_utils import (
+        assert_passthrough_body_fidelity,
+    )
+
+    assert_passthrough_body_fidelity(None)
+
+
+def test_assert_passthrough_body_fidelity_rejects_registered_managed_files_hook() -> None:
+    """A registered managed_files hook enables the managed-id rewriter, which
+    swaps provider IDs out of response bodies, so startup must refuse it."""
+    from litellm.integrations.custom_logger import CustomLogger
+    from litellm.proxy.pass_through_endpoints.common_utils import (
+        assert_passthrough_body_fidelity,
+    )
+
+    with pytest.raises(ValueError) as excinfo:
+        assert_passthrough_body_fidelity(CustomLogger())
+
+    assert "managed_files" in str(excinfo.value)
+
+
+def test_proxy_startup_refuses_a_registered_managed_files_hook() -> None:
+    """Drive the real startup path: a registered hook must abort startup.
+
+    Asserting on `startup_event` itself rather than the helper is what proves
+    the guard is actually wired in, so deleting the call fails this test.
+    """
+    from litellm.integrations.custom_logger import CustomLogger
+    from litellm.proxy.utils import ProxyLogging
+
+    proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
+    with patch.object(
+        ProxyLogging, "_init_litellm_callbacks", lambda self, llm_router=None: None
+    ):
+        proxy_logging.proxy_hook_mapping["managed_files"] = CustomLogger()
+        with pytest.raises(ValueError) as excinfo:
+            proxy_logging.startup_event(llm_router=None, redis_usage_cache=None)
+
+    assert "managed_files" in str(excinfo.value)
+
+
+@pytest.mark.asyncio
+async def test_proxy_startup_succeeds_without_the_managed_files_hook() -> None:
+    """The happy path must still start, so the guard cannot pass by always raising.
+
+    Async because `startup_event` schedules the Slack daily report with
+    `asyncio.create_task`, which needs a running loop.
+    """
+    from litellm.proxy.utils import ProxyLogging
+
+    proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
+    with patch.object(
+        ProxyLogging, "_init_litellm_callbacks", lambda self, llm_router=None: None
+    ):
+        proxy_logging.proxy_hook_mapping.pop("managed_files", None)
+        proxy_logging.startup_event(llm_router=None, redis_usage_cache=None)

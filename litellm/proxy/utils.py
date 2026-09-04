@@ -141,6 +141,7 @@ from litellm.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrai
     UnifiedLLMGuardrails,
 )
 from litellm.proxy.hooks import PROXY_HOOKS, get_proxy_hook
+from litellm.proxy.pass_through_endpoints.common_utils import assert_passthrough_body_fidelity
 from litellm.proxy.hooks.cache_control_check import _PROXY_CacheControlCheck
 from litellm.proxy.hooks.max_budget_limiter import _PROXY_MaxBudgetLimiter
 from litellm.proxy.hooks.parallel_request_limiter import (
@@ -689,6 +690,9 @@ class ProxyLogging:
         self._init_litellm_callbacks(
             llm_router=llm_router
         )  # INITIALIZE LITELLM CALLBACKS ON SERVER STARTUP <- do this to catch any logging errors on startup, not when calls are being made
+
+        assert_passthrough_body_fidelity(self.get_proxy_hook("managed_files"))
+
 
         if (
             self.slack_alerting_instance is not None
