@@ -12,8 +12,6 @@ import { Badge } from "@/components/ui/badge";
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import Link from "next/link";
 import React from "react";
-import { BlogDropdown } from "./Navbar/BlogDropdown/BlogDropdown";
-import { DocsLink } from "./Navbar/DocsLink/DocsLink";
 import { CommunityEngagementButtons } from "./Navbar/CommunityEngagementButtons/CommunityEngagementButtons";
 import { cn } from "@/lib/cva.config";
 import { NotificationsBell } from "./Navbar/NotificationsBell/NotificationsBell";
@@ -138,14 +136,6 @@ const Navbar: React.FC<NavbarProps> = ({
                 <WorkerDropdown onWorkerSwitch={handleWorkerSwitch} />
               </div>
             )}
-
-            <nav
-              aria-label="Product documentation"
-              className={`flex min-w-0 items-center gap-2 ${showWorkerSwitch ? "border-l border-border pl-4" : ""}`}
-            >
-              <DocsLink />
-              <BlogDropdown />
-            </nav>
 
             {!hideCommunityLinks && (
               <div className="flex shrink-0 items-center border-l border-border pl-4">

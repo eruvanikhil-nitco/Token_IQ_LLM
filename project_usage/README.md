@@ -27,6 +27,7 @@ bounds.
 | 07 | Enterprise upsell sections in the Admin UI | REMOVED (separate reason: licensing) |
 | 08 | LiteLLM branding in the Admin UI shell | REPLACED with Token IQ |
 | 09 | Pass-through body fidelity (managed-id rewriter) | Asserted at startup; nothing removed |
+| 10 | Docs and Blog links in the header toolbar | REMOVED from both headers |
 
 ## The unified translation layer
 

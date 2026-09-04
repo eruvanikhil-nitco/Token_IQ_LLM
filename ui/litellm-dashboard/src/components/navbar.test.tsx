@@ -14,10 +14,6 @@ vi.mock("@/app/(dashboard)/hooks/useDisableBouncingIcon", () => ({
   useDisableBouncingIcon: () => false,
 }));
 
-vi.mock("./Navbar/BlogDropdown/BlogDropdown", () => ({
-  BlogDropdown: () => <div data-testid="blog-dropdown">Blog</div>,
-}));
-
 const mockUserDropdownData = vi.hoisted(() => ({
   current: () => ({
     userId: "test-user",
@@ -147,8 +143,10 @@ describe("Navbar", () => {
     renderWithProviders(<Navbar {...defaultProps} />);
 
     expect(screen.getByRole("button", { name: /^notifications$/i })).toBeInTheDocument();
-    expect(screen.getByText("Docs")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /open account menu/i })).toBeInTheDocument();
+    // Docs and Blog were removed from the header; the rest of the toolbar stays.
+    expect(screen.queryByText("Docs")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("blog-dropdown")).not.toBeInTheDocument();
   });
 
   it("should link the logo to the UI home route rather than the proxy origin", () => {
