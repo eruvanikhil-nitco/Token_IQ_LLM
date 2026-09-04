@@ -7,7 +7,6 @@ import ModelsAndEndpointsPage from "./page";
 
 vi.mock("./panels/AllModelsPanel", () => ({ default: () => <div data-testid="panel-all-models" /> }));
 vi.mock("./panels/AddModelPanel", () => ({ default: () => <div data-testid="panel-add" /> }));
-vi.mock("./panels/AutoRoutersTabPanel", () => ({ default: () => <div data-testid="panel-auto-routers" /> }));
 vi.mock("./panels/LlmCredentialsPanel", () => ({ default: () => <div data-testid="panel-credentials" /> }));
 vi.mock("./panels/PassThroughPanel", () => ({ default: () => <div data-testid="panel-pass-through" /> }));
 vi.mock("./panels/HealthStatusPanel", () => ({ default: () => <div data-testid="panel-health" /> }));
@@ -116,41 +115,13 @@ describe("ModelsAndEndpointsPage", () => {
     expect(screen.getByRole("tab", { name: "All Models" })).toBeInTheDocument();
   });
 
-  // Read parity: the Auto-Routers list stays reachable for a view-only admin; only the
-  // create affordance inside it is withheld, which AutoRoutersTabPanel decides.
-  it("keeps the Auto-Routers tab for a view-only admin session", () => {
-    mockUseAuthorized.mockReturnValue(VIEW_ONLY_ADMIN);
+  // The Auto-Routers tab was removed: semantic model selection picks a model the caller
+  // did not ask for, which this gateway must never do.
+  it("does not offer an Auto-Routers tab to an admin who can create models", () => {
     renderPage();
-    expect(screen.getByRole("tab", { name: /Auto-Routers/ })).toBeInTheDocument();
-  });
 
-  // Auto-routers are excluded from the All Models table, so this tab is their home: the only
-  // place in the product to list, create, edit or delete one.
-  describe("Auto-Routers tab", () => {
-    it("sits third, after All Models and Add Model", () => {
-      renderPage();
-
-      const tabs = screen.getAllByRole("tab").map((tab) => tab.textContent);
-      expect(tabs[0]).toContain("All Models");
-      expect(tabs[1]).toBe("Add Model");
-      expect(tabs[2]).toContain("Auto-Routers");
-      // Badged Beta while the tab settles; BetaBadge renders the label text.
-      expect(tabs[2]).toContain("Beta");
-    });
-
-    it("renders its panel when selected", async () => {
-      const user = userEvent.setup();
-      renderPage();
-
-      await user.click(screen.getByRole("tab", { name: /Auto-Routers/ }));
-      expect(screen.getByTestId("panel-auto-routers")).toBeInTheDocument();
-    });
-
-    it("is hidden from non-admins, who cannot write models", () => {
-      mockUseAuthorized.mockReturnValue(NON_ADMIN);
-      renderPage();
-
-      expect(screen.queryByRole("tab", { name: /Auto-Routers/ })).not.toBeInTheDocument();
-    });
+    expect(screen.queryByRole("tab", { name: /Auto-Routers/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "All Models" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Add Model" })).toBeInTheDocument();
   });
 });

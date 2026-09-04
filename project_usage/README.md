@@ -28,6 +28,7 @@ bounds.
 | 08 | LiteLLM branding in the Admin UI shell | REPLACED with Token IQ |
 | 09 | Pass-through body fidelity (managed-id rewriter) | Asserted at startup; nothing removed |
 | 10 | Docs and Blog links in the header toolbar | REMOVED from both headers |
+| 11 | Auto-Routers tab in Models + Endpoints | REMOVED from the UI; API still open |
 
 ## The unified translation layer
 

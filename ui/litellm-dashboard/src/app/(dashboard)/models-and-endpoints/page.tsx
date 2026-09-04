@@ -15,7 +15,6 @@ import TeamInfoView from "@/components/team/TeamInfo";
 import { useModelDetailRouting } from "@/app/(dashboard)/models-and-endpoints/detailNavigation";
 import { useModelDashboardData } from "@/app/(dashboard)/models-and-endpoints/useModelDashboardData";
 import AllModelsPanel from "@/app/(dashboard)/models-and-endpoints/panels/AllModelsPanel";
-import AutoRoutersTabPanel from "@/app/(dashboard)/models-and-endpoints/panels/AutoRoutersTabPanel";
 import AddModelPanel from "@/app/(dashboard)/models-and-endpoints/panels/AddModelPanel";
 import LlmCredentialsPanel from "@/app/(dashboard)/models-and-endpoints/panels/LlmCredentialsPanel";
 import PassThroughPanel from "@/app/(dashboard)/models-and-endpoints/panels/PassThroughPanel";
@@ -29,7 +28,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type ModelTabSlug =
   | "add"
-  | "auto-routers"
   | "llm-credentials"
   | "pass-through"
   | "health"
@@ -42,7 +40,6 @@ const BASE_TAB_KEY = "all-models";
 
 const TAB_LABELS: Record<ModelTabSlug, string> = {
   add: "Add Model",
-  "auto-routers": "Auto-Routers",
   "llm-credentials": "LLM Credentials",
   "pass-through": "Pass-Through Endpoints",
   health: "Health Status",
@@ -56,8 +53,6 @@ const renderPanel = (key: string) => {
   switch (key) {
     case BASE_TAB_KEY:
       return <AllModelsPanel />;
-    case "auto-routers":
-      return <AutoRoutersTabPanel />;
     case "add":
       return <AddModelPanel />;
     case "llm-credentials":
@@ -105,7 +100,6 @@ export default function ModelsAndEndpointsPage() {
     () => [
       "",
       ...(canCreate ? (["add"] as const) : []),
-      ...(isAdmin || canCreate ? (["auto-routers"] as const) : []),
       ...(isAdmin
         ? ([
             "llm-credentials",
@@ -124,7 +118,7 @@ export default function ModelsAndEndpointsPage() {
   const allModelsLabel = isAdmin ? "All Models" : "Your Models";
   const tabLabel = (slug: "" | ModelTabSlug): React.ReactNode => {
     if (!slug) return allModelsLabel;
-    if (slug === "auto-routers" || slug === "access-group-budgets") {
+    if (slug === "access-group-budgets") {
       return (
         <span className="flex items-center gap-2">
           {TAB_LABELS[slug]} <BetaBadge />
