@@ -34,7 +34,7 @@ bounds.
 | 14 | Agentic group in the sidebar | REMOVED from nav; pages still routable |
 | 15 | Provider model discovery + third caching bypass | ADDED endpoint; Response Cache nav REMOVED |
 | 16 | Providers tab | ADDED page + endpoints; Tools, Default Organization, community links REMOVED |
-| 17 | Base URL on created key | ADDED base URL and a ready-to-paste example beside the new key |
+| 17 | Base URL in key creation | ADDED base URL to the create and save dialogs, plus a ready-to-paste example |
 
 ## The unified translation layer
 

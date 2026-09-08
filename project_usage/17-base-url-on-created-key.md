@@ -1,7 +1,7 @@
-# Base URL on the created-key dialog
+# Base URL in the key creation flow
 
-> **Status: ADDED.** No code removed. One shared component rewritten, one test mock
-> completed.
+> **Status: ADDED.** No code removed. One shared component rewritten, one added, one test
+> mock completed.
 
 ## Why
 
@@ -60,6 +60,20 @@ Worth knowing for anything else that pulls a new function out of `networking`: e
 that mocks that module with a literal factory has to grow the same entry. The alternative is
 `importOriginal`, which the file deliberately does not use.
 
+## Shown before the key exists too
+
+The address does not depend on the key, so withholding it until the key is created was
+arbitrary. `components/shared/GatewayBaseUrl.tsx` renders it as a compact line under the
+"Create New Key" dialog title, using the existing shared `CopyButton` rather than a second
+copy implementation. It returns `null` when the address is unknown.
+
+Both places still show it, and that is deliberate. The dialog header answers "where does
+this thing live" while you are filling the form; the save dialog is what gets copied and
+handed to whoever will use the key, so it needs to carry both facts on its own.
+
+Not added to the Add Agent wizard's key step, which creates a key through the same shared
+display. Worth doing if that flow is used to hand keys to other people.
+
 ## Tests
 
 Five added to `CreatedKeyDisplay.test.tsx`, taking it from 7 to 12. Both of the ones that
@@ -69,6 +83,10 @@ matter were mutation-checked:
   base URL and the key"
 - rendering the base URL block unconditionally kills "should omit the base URL and example
   when no base URL is known"
+
+Three more for `GatewayBaseUrl`, and one integration case in
+`create_key_button.integration.test.tsx` proving the dialog actually renders it. Deleting the
+`<GatewayBaseUrl />` line from the dialog header kills that one.
 
 ## How to restore
 
