@@ -34,7 +34,8 @@ bounds.
 | 14 | Agentic group in the sidebar | REMOVED from nav; pages still routable |
 | 15 | Provider model discovery + third caching bypass | ADDED endpoint; Response Cache nav REMOVED |
 | 16 | Providers tab | ADDED page + endpoints; Tools, Default Organization, community links REMOVED |
-| 17 | Base URL in key creation | ADDED base URL to the create and save dialogs, plus a ready-to-paste example |
+| 17 | Base URL in key creation | ADDED base URL to the Virtual Keys header and the save dialog, plus a ready-to-paste example |
+| 18 | Organization field in create key | REMOVED the dropdown, its team filter and its payload key |
 
 ## The unified translation layer
 

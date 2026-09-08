@@ -117,7 +117,6 @@ const SECTIONS = {
 } as const;
 
 const ALL_CLOSED_PAYLOAD = {
-  organization_id: undefined,
   team_id: null,
   key_alias: "contract-key",
   models: [],
@@ -723,32 +722,32 @@ describe("CreateKey", () => {
     });
   });
 
-  describe("organization dropdown", () => {
-    it("is editable for an admin", async () => {
+  describe("organization field", () => {
+    it("offers no organization control even when organizations exist", async () => {
       state.organizations = [{ organization_id: "org-1", organization_alias: "Engineering" }];
       await openModal();
 
-      expect(await screen.findByLabelText("Organization")).not.toHaveAttribute("data-disabled");
+      expect(screen.queryByLabelText("Organization")).not.toBeInTheDocument();
     });
 
-    it("is read-only for a non-admin", async () => {
-      state.authorized = { ...state.authorized, userRole: "Internal User" };
-      state.organizations = [{ organization_id: "org-1", organization_alias: "Engineering" }];
+    it("keeps organization_id out of the payload entirely", async () => {
       await openModal();
+      await nameTheKey();
+      await submit();
 
-      expect(await screen.findByLabelText("Organization")).toHaveAttribute("data-disabled", "");
+      expect(await createdPayload()).not.toHaveProperty("organization_id");
     });
 
-    it("routes a chosen organization into organization_id", async () => {
-      state.organizations = [{ organization_id: "org-1", organization_alias: "Engineering" }];
+    it("still selects a team, which the removed field used to filter", async () => {
+      state.teams = [{ team_id: "team-1", team_alias: "Team One", models: [] }];
       await openModal();
       await nameTheKey();
 
-      await userEvent.click(await screen.findByLabelText("Organization"));
-      await userEvent.click(await screen.findByRole("option", { name: /Engineering/ }));
+      await userEvent.click(await screen.findByLabelText("Team"));
+      await userEvent.click(await screen.findByRole("option", { name: /Team One/ }));
       await submit();
 
-      expect((await createdPayload()).organization_id).toBe("org-1");
+      expect((await createdPayload()).team_id).toBe("team-1");
     });
   });
 
