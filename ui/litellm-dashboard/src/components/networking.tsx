@@ -8145,3 +8145,40 @@ export const deleteMemory = async (accessToken: string, key: string): Promise<vo
     throw new Error(errorData);
   }
 };
+
+export const providerOverviewCall = async (accessToken: string) => {
+  /**
+   * Per-provider rollup: models configured, catalogue size, and recent usage.
+   */
+  try {
+    return await apiClient.get(`/provider/overview`, { accessToken });
+  } catch (error) {
+    console.error("Failed to fetch provider overview:", error);
+    throw error;
+  }
+};
+
+export const providerModelsCall = async (accessToken: string, provider?: string) => {
+  /**
+   * Every catalogue model for a provider, flagged by whether this proxy serves it.
+   */
+  try {
+    const query = provider ? `?custom_llm_provider=${encodeURIComponent(provider)}` : "";
+    return await apiClient.get(`/provider/models${query}`, { accessToken });
+  } catch (error) {
+    console.error("Failed to fetch provider models:", error);
+    throw error;
+  }
+};
+
+export const providerModelUsageCall = async (accessToken: string, usageRange: string) => {
+  /**
+   * Per-model request, token and spend totals over a selectable range.
+   */
+  try {
+    return await apiClient.get(`/provider/model-usage?usage_range=${encodeURIComponent(usageRange)}`, { accessToken });
+  } catch (error) {
+    console.error("Failed to fetch model usage:", error);
+    throw error;
+  }
+};

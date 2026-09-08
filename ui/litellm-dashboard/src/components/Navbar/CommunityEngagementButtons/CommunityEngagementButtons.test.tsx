@@ -14,37 +14,42 @@ describe("CommunityEngagementButtons", () => {
     mockUseDisableShowPromptsImpl = () => false;
   });
 
-  it("should render", () => {
-    renderWithProviders(<CommunityEngagementButtons />);
-    expect(screen.getByRole("link", { name: /join slack/i })).toBeInTheDocument();
-  });
-
-  it("should render Join Slack button with correct link", () => {
+  it("should still render both icons", () => {
     renderWithProviders(<CommunityEngagementButtons />);
 
-    const joinSlackLink = screen.getByRole("link", { name: /join slack/i });
-    expect(joinSlackLink).toBeInTheDocument();
-    expect(joinSlackLink).toHaveAttribute("href", "https://www.litellm.ai/support");
-    expect(joinSlackLink).toHaveAttribute("target", "_blank");
-    expect(joinSlackLink).toHaveAttribute("rel", "noopener noreferrer");
+    expect(screen.getByTestId("community-icon-slack")).toBeInTheDocument();
+    expect(screen.getByTestId("community-icon-github")).toBeInTheDocument();
   });
 
-  it("should render GitHub link with correct href", () => {
+  it("should render no links at all, so nothing navigates away", () => {
+    const { container } = renderWithProviders(<CommunityEngagementButtons />);
+
+    expect(container.querySelectorAll("a")).toHaveLength(0);
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+  });
+
+  it("should not point anywhere near litellm.ai or the upstream repo", () => {
+    const { container } = renderWithProviders(<CommunityEngagementButtons />);
+
+    expect(container.innerHTML).not.toContain("litellm.ai");
+    expect(container.innerHTML).not.toContain("github.com/BerriAI");
+  });
+
+  it("should not be clickable", () => {
     renderWithProviders(<CommunityEngagementButtons />);
 
-    const githubLink = screen.getByRole("link", { name: /litellm on github/i });
-    expect(githubLink).toBeInTheDocument();
-    expect(githubLink).toHaveAttribute("href", "https://github.com/BerriAI/litellm");
-    expect(githubLink).toHaveAttribute("target", "_blank");
-    expect(githubLink).toHaveAttribute("rel", "noopener noreferrer");
+    // pointer-events-none is what makes them inert; without it a bare span
+    // still takes hover and focus styling and reads as interactive.
+    expect(screen.getByTestId("community-icon-slack")).toHaveClass("pointer-events-none");
+    expect(screen.getByTestId("community-icon-github")).toHaveClass("pointer-events-none");
   });
 
-  it("should not render buttons when prompts are disabled", () => {
+  it("should not render at all when prompts are disabled", () => {
     mockUseDisableShowPromptsImpl = () => true;
 
     renderWithProviders(<CommunityEngagementButtons />);
 
-    expect(screen.queryByRole("link", { name: /join slack/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: /litellm on github/i })).not.toBeInTheDocument();
+    expect(screen.queryByTestId("community-icon-slack")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("community-icon-github")).not.toBeInTheDocument();
   });
 });

@@ -1,24 +1,18 @@
 import { useDisableShowPrompts } from "@/app/(dashboard)/hooks/useDisableShowPrompts";
 import { buttonVariants } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/cva.config";
 import { Github, Slack } from "lucide-react";
 import React from "react";
 
-const COMMUNITY_LINKS = [
-  {
-    href: "https://www.litellm.ai/support",
-    label: "Join Slack",
-    tooltip: "LiteLLM Slack community",
-    Icon: Slack,
-  },
-  {
-    href: "https://github.com/BerriAI/litellm",
-    label: "LiteLLM on GitHub",
-    tooltip: "LiteLLM on GitHub",
-    Icon: Github,
-  },
+// Placeholders. They previously linked to litellm.ai/support and the BerriAI
+// GitHub repo, which are not this deployment's community. Rendered as inert
+// spans rather than links so nothing navigates away, and hidden from assistive
+// tech because a control that does nothing should not be announced as one.
+// Give an entry an `href` to make it a real link again.
+const COMMUNITY_ICONS = [
+  { key: "slack", Icon: Slack },
+  { key: "github", Icon: Github },
 ] as const;
 
 export const CommunityEngagementButtons: React.FC = () => {
@@ -29,27 +23,19 @@ export const CommunityEngagementButtons: React.FC = () => {
   }
 
   return (
-    <TooltipProvider>
-      <ButtonGroup aria-label="Community links">
-        {COMMUNITY_LINKS.map(({ href, label, tooltip, Icon }) => (
-          <Tooltip key={href}>
-            <TooltipTrigger
-              render={
-                <a
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={label}
-                  className={cn(buttonVariants({ variant: "outline", size: "icon" }), "text-muted-foreground")}
-                />
-              }
-            >
-              <Icon />
-            </TooltipTrigger>
-            <TooltipContent>{tooltip}</TooltipContent>
-          </Tooltip>
-        ))}
-      </ButtonGroup>
-    </TooltipProvider>
+    <ButtonGroup aria-hidden>
+      {COMMUNITY_ICONS.map(({ key, Icon }) => (
+        <span
+          key={key}
+          data-testid={`community-icon-${key}`}
+          className={cn(
+            buttonVariants({ variant: "outline", size: "icon" }),
+            "pointer-events-none text-muted-foreground",
+          )}
+        >
+          <Icon />
+        </span>
+      ))}
+    </ButtonGroup>
   );
 };

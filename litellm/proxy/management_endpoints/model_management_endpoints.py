@@ -112,6 +112,17 @@ from litellm.proxy.management_endpoints.model_discovery import (
     ModelDiscoveryResponse,
     merge_with_local_pricing,
 )
+from litellm.proxy.management_endpoints.provider_overview import (
+    DEFAULT_USAGE_RANGE,
+    ModelUsageResponse,
+    ProviderModelsResponse,
+    ProviderOverviewResponse,
+    build_model_usage,
+    build_provider_models,
+    build_provider_overview,
+    rollup_start_date,
+    usage_range_start,
+)
 
 if TYPE_CHECKING:
     from prisma import models as prisma_models
@@ -2675,3 +2686,100 @@ async def discover_provider_models(
             },
         )
     return merge_with_local_pricing(custom_llm_provider=custom_llm_provider, discovered_models=discovered)
+
+
+@router.get(
+    "/provider/overview",
+    description="Per-provider rollup: models configured, catalogue size, and recent usage",
+    tags=["model management"],  # mutable-ok: fastapi's decorator signature types tags as a list
+    dependencies=[Depends(user_api_key_auth)],  # mutable-ok: fastapi's decorator signature types dependencies as a list
+)
+async def provider_overview() -> ProviderOverviewResponse:
+    """
+    The Providers tab's Overview: four totals and one row per configured provider.
+
+    Usage comes from the daily rollup, which buckets by whole UTC day, so the figures
+    cover `rollup_days` complete days rather than a rolling 24 hours. Rows carrying no
+    provider are failed calls that never reached one and are excluded, so the request
+    count matches what actually left the gateway.
+    """
+    from litellm.proxy.proxy_server import llm_model_list, prisma_client
+
+    usage_rows: list[dict] = []
+    if prisma_client is not None:
+        records: Final = await prisma_client.db.litellm_dailyuserspend.find_many(
+            where={"date": {"gte": rollup_start_date()}},
+        )
+        usage_rows = [
+            {
+                "custom_llm_provider": getattr(record, "custom_llm_provider", None),
+                "api_requests": getattr(record, "api_requests", 0),
+                "spend": getattr(record, "spend", 0.0),
+                "date": getattr(record, "date", None),
+            }
+            for record in records
+        ]
+
+    return build_provider_overview(model_list=llm_model_list or [], usage_rows=usage_rows)
+
+
+@router.get(
+    "/provider/models",
+    description="Every catalogue model for a provider, flagged by whether this proxy serves it",
+    tags=["model management"],  # mutable-ok: fastapi's decorator signature types tags as a list
+    dependencies=[Depends(user_api_key_auth)],  # mutable-ok: fastapi's decorator signature types dependencies as a list
+)
+async def provider_models(custom_llm_provider: str | None = None) -> ProviderModelsResponse:
+    """
+    The Providers tab's Models view, filtered by provider.
+
+    Lists what the catalogue knows rather than what is configured, so the `configured`
+    flag is the interesting column: it is the gap between what could be served and what
+    this proxy actually serves.
+    """
+    from litellm.proxy.proxy_server import llm_model_list
+
+    return build_provider_models(model_list=llm_model_list or [], provider=custom_llm_provider)
+
+
+@router.get(
+    "/provider/model-usage",
+    description="Per-model request, token and spend totals over a selectable range",
+    tags=["model management"],  # mutable-ok: fastapi's decorator signature types tags as a list
+    dependencies=[Depends(user_api_key_auth)],  # mutable-ok: fastapi's decorator signature types dependencies as a list
+)
+async def provider_model_usage(usage_range: str = DEFAULT_USAGE_RANGE) -> ModelUsageResponse:
+    """
+    Usage per model group, for the Models table's Usage column.
+
+    `usage_range` is one of day, week or month. The daily table buckets by whole UTC day,
+    so a range counts whole days including today rather than a rolling window: "day" is
+    today's bucket, not the last 24 hours.
+    """
+    from litellm.proxy.proxy_server import prisma_client
+
+    start_date, days = usage_range_start(usage_range)
+
+    usage_rows: list[dict] = []
+    if prisma_client is not None:
+        records: Final = await prisma_client.db.litellm_dailyuserspend.find_many(
+            where={"date": {"gte": start_date}},
+        )
+        usage_rows = [
+            {
+                "model_group": getattr(record, "model_group", None),
+                "model": getattr(record, "model", None),
+                "api_requests": getattr(record, "api_requests", 0),
+                "prompt_tokens": getattr(record, "prompt_tokens", 0),
+                "completion_tokens": getattr(record, "completion_tokens", 0),
+                "spend": getattr(record, "spend", 0.0),
+            }
+            for record in records
+        ]
+
+    return build_model_usage(
+        range_key=usage_range,
+        start_date=start_date,
+        days=days,
+        usage_rows=usage_rows,
+    )

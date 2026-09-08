@@ -1,7 +1,6 @@
 import { Edit, Save } from "lucide-react";
 import React, { useEffect, useState } from "react";
 
-import { useOrganizations } from "@/app/(dashboard)/hooks/organizations/useOrganizations";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,12 +19,11 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/in
 import { Input } from "@/components/ui/input";
 import { UiLoadingSpinner } from "@/components/ui/ui-loading-spinner";
 
-import { getDefaultTeamSettings, updateDefaultTeamSettings, Organization } from "./networking";
+import { getDefaultTeamSettings, updateDefaultTeamSettings } from "./networking";
 import BudgetDurationDropdown, { getBudgetDurationLabel } from "./common_components/budget_duration_dropdown";
 import { getModelDisplayName } from "./key_team_helpers/fetch_available_models_team_key";
 import { toast } from "@/lib/toast";
 import { ModelSelect } from "./ModelSelect/ModelSelect";
-import OrganizationDropdown from "./common_components/OrganizationDropdown";
 
 interface TeamSSOSettingsProps {
   accessToken: string | null;
@@ -85,11 +83,6 @@ const renderTags = (values: string[], displayFn?: (v: string) => string) => {
   );
 };
 
-const getOrganizationLabel = (organizationId: string, organizations: Organization[] | undefined): string => {
-  const organization = organizations?.find((org) => org.organization_id === organizationId);
-  return organization?.organization_alias ? `${organization.organization_alias} (${organizationId})` : organizationId;
-};
-
 interface SettingsValues {
   max_budget: number | null;
   budget_duration: string | null;
@@ -118,7 +111,6 @@ const TeamSSOSettings: React.FC<TeamSSOSettingsProps> = ({ accessToken }) => {
   const [editedValues, setEditedValues] = useState<SettingsValues>(DEFAULT_VALUES);
   const [saving, setSaving] = useState<boolean>(false);
   const [fetchError, setFetchError] = useState<boolean>(false);
-  const { data: organizations, isLoading: isOrganizationsLoading } = useOrganizations();
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -321,30 +313,6 @@ const TeamSSOSettings: React.FC<TeamSSOSettingsProps> = ({ accessToken }) => {
             Access & Permissions
           </h4>
           <div className="border-t border-border">
-            <SettingRow
-              label="Default Organization"
-              description="Teams created without an explicit organization are assigned to this organization."
-              isEditing={isEditing}
-              viewContent={
-                values.organization_id ? (
-                  <span>{getOrganizationLabel(values.organization_id, organizations)}</span>
-                ) : (
-                  <NotSet />
-                )
-              }
-              editContent={
-                <div className="max-w-80 *:w-full">
-                  <OrganizationDropdown
-                    organizations={organizations}
-                    loading={isOrganizationsLoading}
-                    value={editedValues.organization_id ?? undefined}
-                    onChange={(organizationId) => update("organization_id", organizationId || null)}
-                    placeholder="Select an organization"
-                  />
-                </div>
-              }
-            />
-
             <SettingRow
               label="Models"
               description="Default list of models that new teams can access."

@@ -5,6 +5,8 @@
 
 // Page descriptions for UI Settings configuration
 export const pageDescriptions: Record<string, string> = {
+  "model-management": "Providers and the models this gateway serves",
+  providers: "Providers, their models and what they cost",
   "api-keys": "Manage virtual keys for API access and authentication",
   "llm-playground": "Interactive playground for testing LLM requests",
   models: "Configure and manage LLM models and endpoints",

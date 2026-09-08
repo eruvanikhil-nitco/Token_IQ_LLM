@@ -34,19 +34,19 @@ export interface ModelHubData {
   [key: string]: any;
 }
 
-const formatCapabilityName = (key: string) =>
+export const formatCapabilityName = (key: string) =>
   key
     .replace(/^supports_/, "")
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
 
-const getModelCapabilities = (model: ModelHubData) =>
+export const getModelCapabilities = (model: ModelHubData) =>
   Object.entries(model)
     .filter(([key, value]) => key.startsWith("supports_") && value === true)
     .map(([key]) => key);
 
-const formatCost = (cost: number) => `$${(cost * 1_000_000).toFixed(2)}`;
+export const formatCost = (cost: number) => `$${(cost * 1_000_000).toFixed(2)}`;
 
 const formatTokens = (tokens: number) => {
   if (tokens >= 1_000_000) return `${(tokens / 1_000_000).toFixed(1)}M`;

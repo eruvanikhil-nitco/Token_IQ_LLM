@@ -4,6 +4,7 @@ import MakeMCPPublicForm from "@/components/AIHub/forms/MakeMCPPublicForm";
 import MakeModelPublicForm from "@/components/AIHub/forms/MakeModelPublicForm";
 import { getMCPHubTableColumns, MCPServerData } from "@/components/AIHub/MCPHubTableColumns";
 import { getModelHubTableColumns, ModelHubData } from "@/components/AIHub/ModelHubTableColumns";
+import ModelHubDetailsDialog from "@/components/AIHub/ModelHubDetailsDialog";
 import UsefulLinksManagement from "@/components/AIHub/UsefulLinksManagement";
 import { getClaudeCodePluginsList } from "@/components/networking";
 import { Plugin } from "@/components/claude_code_plugins/types";
@@ -305,26 +306,6 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({ accessToken, publicPage, 
     setSelectedAgent(null);
     setIsMcpModalVisible(false);
     setSelectedMcpServer(null);
-  };
-
-  const formatCapabilityName = (key: string) => {
-    // Remove 'supports_' prefix and convert snake_case to Title Case
-    return key
-      .replace(/^supports_/, "")
-      .split("_")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
-  };
-
-  const getModelCapabilities = (model: ModelHubData) => {
-    // Find all properties that start with 'supports_' and are true
-    return Object.entries(model)
-      .filter(([key, value]) => key.startsWith("supports_") && value === true)
-      .map(([key]) => key);
-  };
-
-  const formatCost = (cost: number) => {
-    return `$${(cost * 1_000_000).toFixed(2)}`;
   };
 
   const handleMakePublicSuccess = () => {
@@ -656,154 +637,7 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({ accessToken, publicPage, 
         </DialogContent>
       </Dialog>
 
-      {/* Model Details Modal */}
-      <Dialog open={isModalVisible} onOpenChange={(open) => !open && handleCancel()}>
-        <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[1000px]">
-          <DialogHeader>
-            <DialogTitle>{selectedModel?.model_group || "Model Details"}</DialogTitle>
-          </DialogHeader>
-          {selectedModel && (
-            <div className="space-y-6">
-              {/* Model Overview */}
-              <div>
-                <p className="text-lg font-semibold mb-4">Model Overview</p>
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <p className="font-medium">Model Group:</p>
-                    <p>{selectedModel.model_group}</p>
-                  </div>
-                  <div>
-                    <p className="font-medium">Mode:</p>
-                    <p>{selectedModel.mode || "Not specified"}</p>
-                  </div>
-                  <div>
-                    <p className="font-medium">Providers:</p>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {selectedModel.providers.map((provider) => (
-                        <Badge key={provider} variant="secondary">
-                          {provider}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Token and Cost Information */}
-              <div>
-                <p className="text-lg font-semibold mb-4">Token & Cost Information</p>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="font-medium">Max Input Tokens:</p>
-                    <p>{selectedModel.max_input_tokens?.toLocaleString() || "Not specified"}</p>
-                  </div>
-                  <div>
-                    <p className="font-medium">Max Output Tokens:</p>
-                    <p>{selectedModel.max_output_tokens?.toLocaleString() || "Not specified"}</p>
-                  </div>
-                  <div>
-                    <p className="font-medium">Input Cost per 1M Tokens:</p>
-                    <p>
-                      {selectedModel.input_cost_per_token
-                        ? formatCost(selectedModel.input_cost_per_token)
-                        : "Not specified"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="font-medium">Output Cost per 1M Tokens:</p>
-                    <p>
-                      {selectedModel.output_cost_per_token
-                        ? formatCost(selectedModel.output_cost_per_token)
-                        : "Not specified"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Capabilities */}
-              <div>
-                <p className="text-lg font-semibold mb-4">Capabilities</p>
-                <div className="flex flex-wrap gap-2">
-                  {(() => {
-                    const capabilities = getModelCapabilities(selectedModel);
-                    const colors = ["green", "blue", "purple", "orange", "red", "yellow"];
-
-                    if (capabilities.length === 0) {
-                      return <p className="text-muted-foreground">No special capabilities listed</p>;
-                    }
-
-                    return capabilities.map((capability, index) => (
-                      <Badge key={capability} variant="secondary">
-                        {formatCapabilityName(capability)}
-                      </Badge>
-                    ));
-                  })()}
-                </div>
-              </div>
-
-              {/* Rate Limits */}
-              {(selectedModel.tpm || selectedModel.rpm) && (
-                <div>
-                  <p className="text-lg font-semibold mb-4">Rate Limits</p>
-                  <div className="grid grid-cols-2 gap-4">
-                    {selectedModel.tpm && (
-                      <div>
-                        <p className="font-medium">Tokens per Minute:</p>
-                        <p>{selectedModel.tpm.toLocaleString()}</p>
-                      </div>
-                    )}
-                    {selectedModel.rpm && (
-                      <div>
-                        <p className="font-medium">Requests per Minute:</p>
-                        <p>{selectedModel.rpm.toLocaleString()}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Supported OpenAI Parameters */}
-              {selectedModel.supported_openai_params && (
-                <div>
-                  <p className="text-lg font-semibold mb-4">Supported OpenAI Parameters</p>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedModel.supported_openai_params.map((param) => (
-                      <Badge key={param} variant="default">
-                        {param}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Usage Example */}
-              <div>
-                <p className="text-lg font-semibold mb-4">Usage Example</p>
-                <SyntaxHighlighter language="python" className="text-sm" style={syntaxTheme}>
-                  {`import openai
-
-client = openai.OpenAI(
-    api_key="your_api_key",
-    base_url="${getProxyBaseUrl()}"  # Your LiteLLM Proxy URL
-)
-
-response = client.chat.completions.create(
-    model="${selectedModel.model_group}",
-    messages=[
-        {
-            "role": "user",
-            "content": "Hello, how are you?"
-        }
-    ]
-)
-
-print(response.choices[0].message.content)`}
-                </SyntaxHighlighter>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <ModelHubDetailsDialog selectedModel={selectedModel} onClose={handleCancel} />
 
       {/* Agent Details Modal */}
       <Dialog open={isAgentModalVisible} onOpenChange={(open) => !open && handleCancel()}>

@@ -33,6 +33,7 @@ bounds.
 | 13 | Same-target retry on the pass-through path | ADDED (the one addition here) |
 | 14 | Agentic group in the sidebar | REMOVED from nav; pages still routable |
 | 15 | Provider model discovery + third caching bypass | ADDED endpoint; Response Cache nav REMOVED |
+| 16 | Providers tab | ADDED page + endpoints; Tools, Default Organization, community links REMOVED |
 
 ## The unified translation layer
 

@@ -173,12 +173,11 @@ describe("Sidebar (leftnav)", () => {
 
     const topLevelLabels = [
       "Virtual Keys",
+      "Model Management",
       "Playground",
-      "Models + Endpoints",
       "MCP Servers",
       "Guardrails",
       "Policies",
-      "Tools",
       "Usage",
       "Logs",
       "Guardrails Monitor",
@@ -197,21 +196,21 @@ describe("Sidebar (leftnav)", () => {
     });
   });
 
-  it("expands a nested tab to reveal its children (Tools > Search Tools)", async () => {
+  it("expands a nested tab to reveal its children (Experimental > API Playground)", async () => {
     renderWithProviders(<Sidebar {...defaultProps} />);
 
-    expect(screen.queryByText("Search Tools")).not.toBeInTheDocument();
+    expect(screen.queryByText("API Playground")).not.toBeInTheDocument();
     act(() => {
-      fireEvent.click(screen.getByText("Tools"));
+      fireEvent.click(screen.getByText("Experimental"));
     });
     await waitFor(() => {
-      expect(screen.getByText("Search Tools")).toBeInTheDocument();
+      expect(screen.getByText("API Playground")).toBeInTheDocument();
     });
   });
   it("reports whether a nested tab is expanded", async () => {
     renderWithProviders(<Sidebar {...defaultProps} />);
 
-    const toggle = screen.getByText("Tools").closest("button")!;
+    const toggle = screen.getByText("Experimental").closest("button")!;
     expect(toggle).toHaveAttribute("aria-expanded", "false");
 
     act(() => {
@@ -261,10 +260,18 @@ describe("Sidebar (leftnav)", () => {
       expect(screen.queryByText("Playground")).not.toBeInTheDocument();
     });
 
-    it("shows Models + Endpoints to Admin Viewer (read-only)", () => {
+    it("shows Models + Endpoints to Admin Viewer, nested under Model Management", async () => {
       mockUseAuthorized.mockReturnValue(adminViewerAuth);
       renderWithProviders(<Sidebar {...defaultProps} />);
-      expect(screen.getByText("Models + Endpoints")).toBeInTheDocument();
+
+      // Nested now, so the parent must be expanded before the child renders.
+      act(() => {
+        fireEvent.click(screen.getByText("Model Management"));
+      });
+      await waitFor(() => {
+        expect(screen.getByText("Models + Endpoints")).toBeInTheDocument();
+      });
+      expect(screen.getByText("Providers")).toBeInTheDocument();
     });
 
     it("no longer offers the Agentic group to Admin Viewer", () => {
@@ -281,7 +288,7 @@ describe("Sidebar (leftnav)", () => {
     });
   });
 
-  describe("capability-gated Tools children", () => {
+  describe("capability-gated nav entries", () => {
     const internalAuth = {
       userId: "internal-user-id",
       accessToken: "test-access-token",
@@ -298,28 +305,15 @@ describe("Sidebar (leftnav)", () => {
       mockUseAuthorized.mockReset();
     });
 
-    it("should hide Tool Policies from internal users while keeping other Tools children", async () => {
-      mockUseAuthorized.mockReturnValue(internalAuth);
+    it("no longer offers the Tools group or any of its children", () => {
       renderWithProviders(<Sidebar {...defaultProps} />);
 
-      act(() => {
-        fireEvent.click(screen.getByText("Tools"));
-      });
-      await waitFor(() => {
-        expect(screen.getByText("Search Tools")).toBeInTheDocument();
-      });
+      expect(screen.queryByText("Tools")).not.toBeInTheDocument();
+      expect(screen.queryByText("Search Tools")).not.toBeInTheDocument();
+      expect(screen.queryByText("Vector Stores")).not.toBeInTheDocument();
       expect(screen.queryByText("Tool Policies")).not.toBeInTheDocument();
-    });
-
-    it("should show Tool Policies to admins", async () => {
-      renderWithProviders(<Sidebar {...defaultProps} />);
-
-      act(() => {
-        fireEvent.click(screen.getByText("Tools"));
-      });
-      await waitFor(() => {
-        expect(screen.getByText("Tool Policies")).toBeInTheDocument();
-      });
+      // A sibling nested group still renders, so absence is not a dead sidebar.
+      expect(screen.getByText("Experimental")).toBeInTheDocument();
     });
 
     it("should hide the Policies entry from internal users while keeping Guardrails", () => {
@@ -530,7 +524,8 @@ describe("getBreadcrumb", () => {
   });
 
   it("resolves a nested child page to its parent section", () => {
-    expect(getBreadcrumb("search-tools")).toEqual({ section: "AI Gateway", title: "Search Tools" });
+    // search-tools has no nav entry now, so the breadcrumb falls back to the prettified page id.
+    expect(getBreadcrumb("search-tools")).toEqual({ section: null, title: "Search Tools" });
   });
 
   it("resolves router-settings under the Settings section", () => {

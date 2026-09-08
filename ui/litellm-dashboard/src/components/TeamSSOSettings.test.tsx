@@ -416,45 +416,10 @@ describe("TeamSSOSettings", () => {
   });
 
   // --- Default Organization ---
+  // The row was removed: organizations are enterprise-gated, the nav entry is gone and
+  // the database holds none, so the dropdown could only ever offer an empty list.
 
-  it("should display the default organization alias and id in view mode", async () => {
-    mockGetDefaultTeamSettings.mockResolvedValue({
-      values: { ...mockSettingsResponse.values, organization_id: "org-2" },
-    });
-
-    renderWithProviders(<TeamSSOSettings {...defaultProps} />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Sales (org-2)")).toBeInTheDocument();
-    });
-    expect(
-      screen.getByText("Teams created without an explicit organization are assigned to this organization."),
-    ).toBeInTheDocument();
-  });
-
-  it("should fall back to the raw organization id when it is not in the organization list", async () => {
-    mockGetDefaultTeamSettings.mockResolvedValue({
-      values: { ...mockSettingsResponse.values, organization_id: "org-deleted" },
-    });
-
-    renderWithProviders(<TeamSSOSettings {...defaultProps} />);
-
-    await waitFor(() => {
-      expect(screen.getByText("org-deleted")).toBeInTheDocument();
-    });
-  });
-
-  it("should display 'Not set' when the settings payload has no organization_id", async () => {
-    mockGetDefaultTeamSettings.mockResolvedValue(mockSettingsResponse);
-
-    renderWithProviders(<TeamSSOSettings {...defaultProps} />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Not set")).toBeInTheDocument();
-    });
-  });
-
-  it("should populate the organization dropdown with the fetched organizations in edit mode", async () => {
+  it("should not offer a default organization row", async () => {
     mockGetDefaultTeamSettings.mockResolvedValue(mockSettingsResponse);
 
     renderWithProviders(<TeamSSOSettings {...defaultProps} />);
@@ -463,74 +428,10 @@ describe("TeamSSOSettings", () => {
       expect(screen.getByRole("button", { name: /Edit Settings/i })).toBeInTheDocument();
     });
 
-    await userEvent.click(screen.getByRole("button", { name: /Edit Settings/i }));
-
-    await waitFor(() => {
-      const dropdown = screen.getByTestId("organization-dropdown");
-      expect(within(dropdown).getByRole("option", { name: "Engineering (org-1)" })).toBeInTheDocument();
-      expect(within(dropdown).getByRole("option", { name: "Sales (org-2)" })).toBeInTheDocument();
-    });
-  });
-
-  it("should send the selected organization_id when saving", async () => {
-    mockGetDefaultTeamSettings.mockResolvedValue(mockSettingsResponse);
-    mockUpdateDefaultTeamSettings.mockResolvedValue({
-      settings: { ...mockSettingsResponse.values, organization_id: "org-2" },
-    });
-
-    renderWithProviders(<TeamSSOSettings {...defaultProps} />);
-
-    await waitFor(() => {
-      expect(screen.getByRole("button", { name: /Edit Settings/i })).toBeInTheDocument();
-    });
-
-    await userEvent.click(screen.getByRole("button", { name: /Edit Settings/i }));
-    await waitFor(() => {
-      expect(screen.getByRole("option", { name: "Sales (org-2)" })).toBeInTheDocument();
-    });
-    await userEvent.selectOptions(screen.getByTestId("organization-dropdown"), "org-2");
-    await userEvent.click(screen.getByRole("button", { name: /Save Changes/i }));
-
-    await waitFor(() => {
-      expect(mockUpdateDefaultTeamSettings).toHaveBeenCalledWith("test-token", {
-        ...mockSettingsResponse.values,
-        organization_id: "org-2",
-      });
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText("Sales (org-2)")).toBeInTheDocument();
-    });
-  });
-
-  it("should send a null organization_id when the selection is cleared", async () => {
-    mockGetDefaultTeamSettings.mockResolvedValue({
-      values: { ...mockSettingsResponse.values, organization_id: "org-2" },
-    });
-    mockUpdateDefaultTeamSettings.mockResolvedValue({
-      settings: { ...mockSettingsResponse.values, organization_id: null },
-    });
-
-    renderWithProviders(<TeamSSOSettings {...defaultProps} />);
-
-    await waitFor(() => {
-      expect(screen.getByRole("button", { name: /Edit Settings/i })).toBeInTheDocument();
-    });
-
-    await userEvent.click(screen.getByRole("button", { name: /Edit Settings/i }));
-    await userEvent.click(screen.getByTestId("organization-dropdown-clear"));
-    await userEvent.click(screen.getByRole("button", { name: /Save Changes/i }));
-
-    await waitFor(() => {
-      expect(mockUpdateDefaultTeamSettings).toHaveBeenCalledWith("test-token", {
-        ...mockSettingsResponse.values,
-        organization_id: null,
-      });
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText("Not set")).toBeInTheDocument();
-    });
+    expect(screen.queryByText("Default Organization")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("organization-dropdown")).not.toBeInTheDocument();
+    // The section it sat in still renders its other rows.
+    expect(screen.getByText("Models")).toBeInTheDocument();
   });
 
   it("should show error notification when save fails", async () => {

@@ -1,4 +1,3 @@
-import { useTeams } from "@/app/(dashboard)/hooks/teams/useTeams";
 import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
 import useIsOrgAdmin from "@/app/(dashboard)/hooks/useIsOrgAdmin";
 import { useHealthReadinessDetails } from "@/app/(dashboard)/hooks/healthReadiness/useHealthReadinessDetails";
@@ -29,7 +28,6 @@ import {
   Boxes,
   ChevronRight,
   Code2,
-  Database,
   ExternalLink,
   FileText,
   FlaskConical,
@@ -45,17 +43,14 @@ import {
   PlayCircle,
   Route,
   ScrollText,
-  Search,
   Server,
   Settings as SettingsIcon,
   Shield,
-  ShieldCheck,
   Tags,
   Terminal,
   User,
   Users,
   Wallet,
-  Wrench,
 } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -65,7 +60,6 @@ import {
   all_admin_roles,
   internalUserRoles,
   isAdminRole,
-  isUserTeamAdminForAnyTeam,
   rolesAllowedToViewWriteScopedPages,
   rolesWithWriteAccess,
 } from "../utils/roles";
@@ -117,18 +111,33 @@ const menuGroups: MenuGroup[] = [
     items: [
       { key: "api-keys", page: "api-keys", label: "Virtual Keys", icon: <KeyRound {...ICON} /> },
       {
+        key: "model-management",
+        page: "model-management",
+        label: "Model Management",
+        icon: <Network {...ICON} />,
+        children: [
+          {
+            key: "providers",
+            page: "providers",
+            label: "Providers",
+            icon: <Boxes {...ICON} />,
+            roles: all_admin_roles,
+          },
+          {
+            key: "models",
+            page: "models",
+            label: "Models + Endpoints",
+            icon: <Network {...ICON} />,
+            roles: rolesAllowedToViewWriteScopedPages,
+          },
+        ],
+      },
+      {
         key: "llm-playground",
         page: "llm-playground",
         label: "Playground",
         icon: <PlayCircle {...ICON} />,
         roles: rolesWithWriteAccess,
-      },
-      {
-        key: "models",
-        page: "models",
-        label: "Models + Endpoints",
-        icon: <Network {...ICON} />,
-        roles: rolesAllowedToViewWriteScopedPages,
       },
       { key: "mcp-servers", page: "mcp-servers", label: "MCP Servers", icon: <Server {...ICON} /> },
       { key: "skills", page: "skills", label: "Skills", icon: <Blocks {...ICON} />, roles: all_admin_roles },
@@ -139,23 +148,6 @@ const menuGroups: MenuGroup[] = [
         label: "Policies",
         icon: <ScrollText {...ICON} />,
         roles: rolesWithCapability("viewPolicies"),
-      },
-      {
-        key: "tools",
-        page: "tools",
-        label: "Tools",
-        icon: <Wrench {...ICON} />,
-        children: [
-          { key: "search-tools", page: "search-tools", label: "Search Tools", icon: <Search {...ICON} /> },
-          { key: "vector-stores", page: "vector-stores", label: "Vector Stores", icon: <Database {...ICON} /> },
-          {
-            key: "tool-policies",
-            page: "tool-policies",
-            label: "Tool Policies",
-            icon: <ShieldCheck {...ICON} />,
-            roles: rolesWithCapability("viewToolPolicies"),
-          },
-        ],
       },
     ],
   },
@@ -369,7 +361,6 @@ const Sidebar_: React.FC<SidebarProps> = ({
 }) => {
   const { userId, accessToken, userRole, isViewOnly } = useAuthorized();
   const isOrgAdmin = useIsOrgAdmin();
-  const { data: teams } = useTeams();
   const { logoUrl, logoUrlDark } = useTheme();
   const [erroredDarkLogo, setErroredDarkLogo] = useState<string | null>(null);
   const { data: healthData } = useHealthReadinessDetails(accessToken);
@@ -396,8 +387,6 @@ const Sidebar_: React.FC<SidebarProps> = ({
     }
   }
 
-  const isTeamAdmin = useMemo(() => isUserTeamAdminForAnyTeam(teams ?? null, userId ?? ""), [teams, userId]);
-
   const filterItemsByRole = (items: MenuItem[]): MenuItem[] => {
     const isAdmin = isAdminRole(userRole);
     return items
@@ -414,13 +403,6 @@ const Sidebar_: React.FC<SidebarProps> = ({
           return true;
         }
         if (item.key === "projects" && !enableProjectsUI) return false;
-        if (
-          !isAdmin &&
-          item.key === "vector-stores" &&
-          disableVectorStoresForInternalUsers &&
-          !(allowVectorStoresForTeamAdmins && isTeamAdmin)
-        )
-          return false;
         if (item.roles && !item.roles.includes(userRole)) return false;
         if (!isAdmin && enabledPagesInternalUsers != null) {
           if (item.children && item.children.length > 0) {
