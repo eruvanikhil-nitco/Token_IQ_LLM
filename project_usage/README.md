@@ -31,6 +31,7 @@ bounds.
 | 11 | Auto-Routers tab in Models + Endpoints | REMOVED from the UI; API still open |
 | 12 | Pre-routing model substitution (4 strategies + LAR-1) | REFUSED at registration |
 | 13 | Same-target retry on the pass-through path | ADDED (the one addition here) |
+| 14 | Agentic group in the sidebar | REMOVED from nav; pages still routable |
 
 ## The unified translation layer
 

@@ -26,7 +26,6 @@ import {
   BarChart3,
   Bell,
   Blocks,
-  Bot,
   Boxes,
   ChevronRight,
   Code2,
@@ -57,7 +56,6 @@ import {
   Users,
   Wallet,
   Wrench,
-  Workflow,
 } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -131,35 +129,6 @@ const menuGroups: MenuGroup[] = [
         label: "Models + Endpoints",
         icon: <Network {...ICON} />,
         roles: rolesAllowedToViewWriteScopedPages,
-      },
-      {
-        key: "agentic",
-        page: "agentic",
-        label: "Agentic",
-        icon: <Bot {...ICON} />,
-        children: [
-          {
-            key: "agents",
-            page: "agents",
-            label: "Agents",
-            icon: <Bot {...ICON} />,
-            roles: rolesAllowedToViewWriteScopedPages,
-          },
-          {
-            key: "workflows",
-            page: "workflows",
-            label: "Workflow Runs",
-            icon: <Workflow {...ICON} />,
-            roles: rolesWithCapability("viewWorkflowRuns"),
-          },
-          {
-            key: "memory",
-            page: "memory",
-            label: "Memory",
-            icon: <Database {...ICON} />,
-            roles: rolesWithCapability("viewMemory"),
-          },
-        ],
       },
       { key: "mcp-servers", page: "mcp-servers", label: "MCP Servers", icon: <Server {...ICON} /> },
       { key: "skills", page: "skills", label: "Skills", icon: <Blocks {...ICON} />, roles: all_admin_roles },
@@ -452,13 +421,6 @@ const Sidebar_: React.FC<SidebarProps> = ({
           return true;
         }
         if (item.key === "projects" && !enableProjectsUI) return false;
-        if (
-          !isAdmin &&
-          item.key === "agents" &&
-          disableAgentsForInternalUsers &&
-          !(allowAgentsForTeamAdmins && isTeamAdmin)
-        )
-          return false;
         if (
           !isAdmin &&
           item.key === "vector-stores" &&

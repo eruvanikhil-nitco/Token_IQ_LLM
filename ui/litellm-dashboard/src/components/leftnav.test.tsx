@@ -175,7 +175,6 @@ describe("Sidebar (leftnav)", () => {
       "Virtual Keys",
       "Playground",
       "Models + Endpoints",
-      "Agentic",
       "MCP Servers",
       "Guardrails",
       "Policies",
@@ -268,17 +267,11 @@ describe("Sidebar (leftnav)", () => {
       expect(screen.getByText("Models + Endpoints")).toBeInTheDocument();
     });
 
-    it("shows Agents (under Agentic) to Admin Viewer (read-only)", async () => {
+    it("no longer offers the Agentic group to Admin Viewer", () => {
       mockUseAuthorized.mockReturnValue(adminViewerAuth);
       renderWithProviders(<Sidebar {...defaultProps} />);
-      // Agents is now nested under the "Agentic" submenu — expand parent
-      // first to render the children, then assert Agents is visible.
-      act(() => {
-        fireEvent.click(screen.getByText("Agentic"));
-      });
-      await waitFor(() => {
-        expect(screen.getByText("Agents")).toBeInTheDocument();
-      });
+      expect(screen.queryByText("Agentic")).not.toBeInTheDocument();
+      expect(screen.queryByText("Agents")).not.toBeInTheDocument();
     });
 
     it("shows Logs to Admin Viewer", () => {
@@ -397,18 +390,11 @@ describe("Sidebar (leftnav)", () => {
       mockUseAuthorized.mockReset();
     });
 
-    it("hides Workflow Runs and Memory from an internal user under Agentic", async () => {
+    it("offers no Agentic entries at all to an internal user", () => {
       mockUseAuthorized.mockReturnValue(authFor("internal"));
       renderWithProviders(<Sidebar {...defaultProps} />);
 
-      act(() => {
-        fireEvent.click(screen.getByText("Agentic"));
-      });
-      // Liveness gate: the sibling Agents child stays visible to this role, so
-      // the absences below mean the gate fired, not that the group never opened.
-      await waitFor(() => {
-        expect(screen.getByText("Agents")).toBeInTheDocument();
-      });
+      expect(screen.queryByText("Agentic")).not.toBeInTheDocument();
       expect(screen.queryByText("Workflow Runs")).not.toBeInTheDocument();
       expect(screen.queryByText("Memory")).not.toBeInTheDocument();
     });
@@ -430,23 +416,15 @@ describe("Sidebar (leftnav)", () => {
       expect(screen.queryByText("Memory")).not.toBeInTheDocument();
     });
 
-    it("keeps the Agentic group for an internal user, who can still see Agents", () => {
-      mockUseAuthorized.mockReturnValue(authFor("internal"));
+    it("offers no Agentic entries to an admin either", () => {
       renderWithProviders(<Sidebar {...defaultProps} />);
 
-      expect(screen.getByText("Agentic")).toBeInTheDocument();
-    });
-
-    it("shows Workflow Runs and Memory to admins", async () => {
-      renderWithProviders(<Sidebar {...defaultProps} />);
-
-      act(() => {
-        fireEvent.click(screen.getByText("Agentic"));
-      });
-      await waitFor(() => {
-        expect(screen.getByText("Workflow Runs")).toBeInTheDocument();
-      });
-      expect(screen.getByText("Memory")).toBeInTheDocument();
+      expect(screen.queryByText("Agentic")).not.toBeInTheDocument();
+      expect(screen.queryByText("Workflow Runs")).not.toBeInTheDocument();
+      expect(screen.queryByText("Memory")).not.toBeInTheDocument();
+      // The sibling capability-gated entry still renders, so this is not a
+      // whole-sidebar failure masquerading as absence.
+      expect(screen.getByText("Guardrails Monitor")).toBeInTheDocument();
     });
 
     it("hides Guardrails Monitor from an internal user while keeping Usage and Cost Optimization", () => {
