@@ -11,6 +11,7 @@ vi.mock("@/components/networking", () => ({
   createAgentCall: vi.fn(),
   getAgentCreateMetadata: vi.fn(),
   getAgentsList: vi.fn(),
+  getProxyBaseUrl: vi.fn(() => "http://localhost:4000"),
   keyCreateForAgentCall: vi.fn(),
   keyListCall: vi.fn(),
   keyUpdateCall: vi.fn(),
