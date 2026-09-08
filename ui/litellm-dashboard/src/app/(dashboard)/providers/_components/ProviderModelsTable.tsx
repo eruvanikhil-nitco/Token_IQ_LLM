@@ -7,18 +7,12 @@ import { getModelHubTableColumns, type ModelHubData } from "@/components/AIHub/M
 import { DataTable, DataTableSortHeader } from "@/components/shared/DataTable";
 import { modelHubCall, providerModelUsageCall } from "@/components/networking";
 import ModelHubDetailsDialog from "@/components/AIHub/ModelHubDetailsDialog";
+import { filterModelsByProvider, hasUsage, indexUsageByModel, type ModelUsageRow } from "./selectors";
 
 interface ProviderModelsTableProps {
   accessToken: string | null;
   /** Page-level provider filter. Null shows every provider. */
   selectedProvider: string | null;
-}
-
-interface ModelUsageRow {
-  model_group: string;
-  requests: number;
-  tokens: number;
-  spend: number;
 }
 
 interface ModelUsageResponse {
@@ -60,11 +54,7 @@ const ProviderModelsTable: React.FC<ProviderModelsTableProps> = ({ accessToken, 
     enabled: Boolean(accessToken),
   });
 
-  const usageByModel = useMemo(() => {
-    const lookup = new Map<string, ModelUsageRow>();
-    for (const row of usage?.usage ?? []) lookup.set(row.model_group, row);
-    return lookup;
-  }, [usage]);
+  const usageByModel = useMemo(() => indexUsageByModel(usage?.usage ?? []), [usage]);
 
   const columns = useMemo<ColumnDef<ModelHubData>[]>(() => {
     const usageColumn: ColumnDef<ModelHubData> = {
@@ -74,9 +64,7 @@ const ProviderModelsTable: React.FC<ProviderModelsTableProps> = ({ accessToken, 
       accessorFn: (model) => usageByModel.get(model.model_group)?.requests ?? 0,
       cell: ({ row }) => {
         const rowUsage = usageByModel.get(row.original.model_group);
-        // A model with no traffic in the range shows a dash, not a zero: unused and
-        // "used but free" are different things and should not look the same.
-        if (!rowUsage || rowUsage.requests === 0) {
+        if (!hasUsage(rowUsage)) {
           return <span className="text-muted-foreground">—</span>;
         }
         return (
@@ -92,10 +80,7 @@ const ProviderModelsTable: React.FC<ProviderModelsTableProps> = ({ accessToken, 
     return [...getModelHubTableColumns({ onModelClick: setSelectedModel }), usageColumn];
   }, [usageByModel]);
 
-  const rows = useMemo(
-    () => (selectedProvider ? (data ?? []).filter((model) => model.providers?.includes(selectedProvider)) : data ?? []),
-    [data, selectedProvider],
-  );
+  const rows = useMemo(() => filterModelsByProvider(data ?? [], selectedProvider), [data, selectedProvider]);
 
   return (
     <div className="flex flex-col gap-3">

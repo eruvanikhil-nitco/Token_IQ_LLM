@@ -5,10 +5,13 @@ import { providerOverviewCall } from "@/components/networking";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { filterProviderRows, usageWindowLabel } from "./selectors";
 import type { ProviderOverviewResponse } from "./types";
 
 const StatBlock: React.FC<{ label: string; value: string; hint?: string }> = ({ label, value, hint }) => (
-  <Card className="p-4">
+  // The labels collide with table headers ("Requests", "Cost"), so the block carries its
+  // own hook rather than making callers write positional queries.
+  <Card className="p-4" data-testid={`stat-${label.toLowerCase().replace(/\s+/g, "-")}`}>
     <p className="text-xs font-medium tracking-wider text-muted-foreground uppercase">{label}</p>
     <p className="mt-1 text-2xl font-semibold text-foreground">{value}</p>
     {hint && <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>}
@@ -30,11 +33,9 @@ const ProvidersOverview: React.FC<ProvidersOverviewProps> = ({ accessToken, sele
   if (isLoading) return <p className="p-4 text-sm text-muted-foreground">Loading providers…</p>;
   if (isError || !data) return <p className="p-4 text-sm text-destructive">Could not load provider overview.</p>;
 
-  const rows = selectedProvider ? data.providers.filter((p) => p.provider === selectedProvider) : data.providers;
+  const rows = filterProviderRows(data.providers, selectedProvider);
 
-  // The daily rollup buckets by whole UTC day, so this is not a rolling 24 hours and
-  // must not be labelled as one.
-  const window = `Last ${data.rollup_days} UTC days`;
+  const window = usageWindowLabel(data.rollup_days);
 
   return (
     <div className="flex flex-col gap-4">
