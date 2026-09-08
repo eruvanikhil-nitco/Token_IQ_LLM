@@ -108,6 +108,10 @@ from litellm.types.router import (
     updateDeployment,
 )
 from litellm.utils import get_utc_datetime
+from litellm.proxy.management_endpoints.model_discovery import (
+    ModelDiscoveryResponse,
+    merge_with_local_pricing,
+)
 
 if TYPE_CHECKING:
     from prisma import models as prisma_models
@@ -2626,3 +2630,48 @@ async def clear_cache() -> ReconcileOutcome:
         except Exception as e:
             verbose_proxy_logger.exception("Failed to clear cache and reload models. Due to error - %s", e)
             return ReconcileOutcome(still_desired=None, live_after=None)
+
+
+@router.get(
+    "/model/discover",
+    description="List the models a provider's own API says these credentials can reach",
+    tags=["model management"],  # mutable-ok: fastapi's decorator signature types tags as a list
+    dependencies=[Depends(user_api_key_auth)],  # mutable-ok: fastapi's decorator signature types dependencies as a list
+)
+async def discover_provider_models(
+    custom_llm_provider: str,
+    api_key: str | None = None,
+    api_base: str | None = None,
+) -> ModelDiscoveryResponse:
+    """
+    Ask the provider what its credentials can reach, and say which of those we can price.
+
+    The Add Model dropdown is built from the shipped pricing catalogue, which lags what a
+    provider actually serves. This asks the provider directly instead.
+
+    Credentials are optional: omit them and the provider's environment variables are used,
+    which is what the operator already configured. They are never returned in the response.
+
+    A model with no local pricing row is reported as such rather than as free. Whether the
+    provider will report a cost of its own is not knowable until a request is made.
+    """
+    from litellm.utils import get_valid_models
+
+    discovered: Final = await asyncio.to_thread(
+        get_valid_models,
+        check_provider_endpoint=True,
+        custom_llm_provider=custom_llm_provider,
+        api_key=api_key,
+        api_base=api_base,
+    )
+    if not discovered:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail={
+                "error": (
+                    f"'{custom_llm_provider}' returned no models. Check the credentials and that "
+                    f"the provider exposes a model-listing endpoint."
+                )
+            },
+        )
+    return merge_with_local_pricing(custom_llm_provider=custom_llm_provider, discovered_models=discovered)

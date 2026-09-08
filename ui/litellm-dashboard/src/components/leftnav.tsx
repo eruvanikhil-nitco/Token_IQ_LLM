@@ -222,13 +222,6 @@ const menuGroups: MenuGroup[] = [
       { key: "api_ref", page: "api_ref", label: "API Reference", icon: <Code2 {...ICON} /> },
       { key: "model-hub-table", page: "model-hub-table", label: "AI Hub", icon: <LayoutGrid {...ICON} /> },
       {
-        key: "caching",
-        page: "caching",
-        label: "Response Cache",
-        icon: <Database {...ICON} />,
-        roles: all_admin_roles,
-      },
-      {
         key: "experimental",
         page: "experimental",
         label: "Experimental",

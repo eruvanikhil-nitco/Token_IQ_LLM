@@ -587,6 +587,23 @@ async def update_cache_settings(
     2. Saves to LiteLLM_CacheConfig table
     3. Reinitializes cache with new settings
     """
+    # Response caching is disabled in this build, and this endpoint writes a
+    # cache_config row rather than going through litellm_settings or the Router,
+    # so it bypasses both guards. Refuse here too: saving settings that silently
+    # do nothing is worse than refusing them.
+    # See project_usage/05-response-caching.md
+    raise HTTPException(
+        status_code=400,
+        detail={
+            "error": (
+                "Response caching is disabled in this build, so saving cache settings would "
+                "have no effect. A cache hit answers the caller without reaching the provider, "
+                "so the response was never generated for that request. "
+                "See project_usage/05-response-caching.md"
+            )
+        },
+    )
+
     from litellm.proxy.proxy_server import (
         prisma_client,
         proxy_config,

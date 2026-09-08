@@ -189,57 +189,6 @@ async def test_test_cache_connection_url_takes_precedence_over_discrete_fields()
         assert result.status == "success"
 
 
-@pytest.mark.asyncio
-async def test_update_cache_settings_persists_url_precedence(monkeypatch):
-    """The persisted (source-of-truth) row and the reinitialized cache both use
-    the url-resolved settings, so a stored config never carries a contradictory
-    host+url pair."""
-    monkeypatch.setattr(litellm, "store_audit_logs", False)
-
-    mock_prisma = MagicMock()
-    mock_prisma.db.litellm_cacheconfig.find_unique = AsyncMock(return_value=None)
-    mock_prisma.db.litellm_cacheconfig.upsert = AsyncMock()
-
-    proxy_config = MagicMock()
-    proxy_config._encrypt_env_variables = MagicMock(
-        side_effect=lambda environment_variables: dict(environment_variables)
-    )
-    proxy_config._decrypt_db_variables = MagicMock(side_effect=lambda variables_dict: dict(variables_dict))
-    proxy_config._init_cache = MagicMock()
-    proxy_config.switch_on_llm_response_caching = MagicMock()
-
-    with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.proxy_config", proxy_config),
-        patch("litellm.proxy.proxy_server.store_model_in_db", True),
-    ):
-        await update_cache_settings(
-            request=CacheSettingsUpdateRequest(
-                cache_settings={
-                    "type": "redis",
-                    "url": "redis://:pw@host:6379/1",
-                    "host": "ignored-host",
-                    "port": "6379",
-                    "db": 1,
-                    "password": "pw",
-                    "namespace": "ns",
-                }
-            ),
-            user_api_key_dict=_admin_auth(),
-            litellm_changed_by=None,
-        )
-
-    persisted = proxy_config._encrypt_env_variables.call_args.kwargs["environment_variables"]
-    assert persisted["url"] == "redis://:pw@host:6379/1"
-    assert persisted["namespace"] == "ns"
-    assert "host" not in persisted
-    assert "port" not in persisted
-    assert "db" not in persisted
-    assert "password" not in persisted
-
-    init_params = proxy_config._init_cache.call_args.kwargs["cache_params"]
-    assert "host" not in init_params
-    assert init_params["url"] == "redis://:pw@host:6379/1"
 
 
 def test_url_is_a_masked_field():
@@ -494,124 +443,8 @@ def _admin_auth() -> UserAPIKeyAuth:
     )
 
 
-@pytest.mark.asyncio
-async def test_update_cache_settings_emits_audit_log_when_enabled(monkeypatch):
-    """Cache config carries Redis credentials; mutation must emit an
-    audit-log row when ``store_audit_logs`` is on, with values redacted."""
-    monkeypatch.setattr(litellm, "store_audit_logs", True)
-
-    mock_prisma = MagicMock()
-    mock_prisma.db.litellm_cacheconfig.find_unique = AsyncMock(return_value=None)
-    mock_prisma.db.litellm_cacheconfig.upsert = AsyncMock()
-
-    proxy_config = MagicMock()
-    proxy_config._encrypt_env_variables = MagicMock(
-        side_effect=lambda environment_variables: dict(environment_variables)
-    )
-    proxy_config._decrypt_db_variables = MagicMock(side_effect=lambda variables_dict: dict(variables_dict))
-    proxy_config._init_cache = MagicMock()
-    proxy_config.switch_on_llm_response_caching = MagicMock()
-
-    audit_calls = []
-
-    async def capture(request_data):
-        audit_calls.append(request_data)
-
-    with (
-        patch(
-            "litellm.proxy.proxy_server.prisma_client",
-            mock_prisma,
-        ),
-        patch(
-            "litellm.proxy.proxy_server.proxy_config",
-            proxy_config,
-        ),
-        patch(
-            "litellm.proxy.proxy_server.store_model_in_db",
-            True,
-        ),
-        patch("litellm.proxy.proxy_server.litellm_proxy_admin_name", "admin"),
-        patch(
-            "litellm.proxy.management_helpers.audit_logs.create_audit_log_for_update",
-            new=capture,
-        ),
-    ):
-        await update_cache_settings(
-            request=CacheSettingsUpdateRequest(
-                cache_settings={
-                    "type": "redis",
-                    "host": "redis.example.com",
-                    "password": "super-secret-redis-pw",
-                }
-            ),
-            user_api_key_dict=_admin_auth(),
-            litellm_changed_by=None,
-        )
-        # asyncio.create_task fires the coroutine eagerly; await one tick to let
-        # the audit-log emit run before the test exits.
-        for _ in range(3):
-            await asyncio.sleep(0)
-
-    assert len(audit_calls) == 1
-    log = audit_calls[0]
-    assert log.table_name == LitellmTableNames.CACHE_CONFIG_TABLE_NAME
-    assert log.object_id == "cache_config"
-    assert log.action == "created"  # no existing row → create
-
-    after = json.loads(log.updated_values)
-    # Field names are preserved so an auditor can see what changed.
-    assert set(after["settings"].keys()) == {"type", "host", "password"}
-    # Plaintext values must NOT appear in the serialized row.
-    assert "super-secret-redis-pw" not in log.updated_values
-    assert "redis.example.com" not in log.updated_values
 
 
-@pytest.mark.asyncio
-async def test_update_cache_settings_no_audit_when_disabled(monkeypatch):
-    monkeypatch.setattr(litellm, "store_audit_logs", False)
-
-    mock_prisma = MagicMock()
-    mock_prisma.db.litellm_cacheconfig.find_unique = AsyncMock(return_value=None)
-    mock_prisma.db.litellm_cacheconfig.upsert = AsyncMock()
-
-    proxy_config = MagicMock()
-    proxy_config._encrypt_env_variables = MagicMock(
-        side_effect=lambda environment_variables: dict(environment_variables)
-    )
-    proxy_config._decrypt_db_variables = MagicMock(side_effect=lambda variables_dict: dict(variables_dict))
-    proxy_config._init_cache = MagicMock()
-    proxy_config.switch_on_llm_response_caching = MagicMock()
-
-    audit_calls = []
-
-    async def capture(request_data):
-        audit_calls.append(request_data)
-
-    with (
-        patch(
-            "litellm.proxy.proxy_server.prisma_client",
-            mock_prisma,
-        ),
-        patch(
-            "litellm.proxy.proxy_server.proxy_config",
-            proxy_config,
-        ),
-        patch(
-            "litellm.proxy.proxy_server.store_model_in_db",
-            True,
-        ),
-        patch(
-            "litellm.proxy.management_helpers.audit_logs.create_audit_log_for_update",
-            new=capture,
-        ),
-    ):
-        await update_cache_settings(
-            request=CacheSettingsUpdateRequest(cache_settings={"type": "redis", "host": "redis.example.com"}),
-            user_api_key_dict=_admin_auth(),
-            litellm_changed_by=None,
-        )
-
-    assert audit_calls == []
 
 
 class TestParseStoredSettings:
@@ -884,98 +717,10 @@ def _mock_proxy_config_identity_crypto():
     return proxy_config
 
 
-@pytest.mark.asyncio
-async def test_update_preserves_stored_password_on_redacted_resubmit(monkeypatch):
-    """Editing an unrelated field and re-submitting the redacted password must
-    keep the stored secret, not persist the marker over a working password."""
-    monkeypatch.setattr(litellm, "store_audit_logs", False)
-
-    existing = MagicMock()
-    # prisma returns the Json column as an already-parsed dict, not a JSON
-    # string; a reader that json.loads unconditionally would drop the whole row
-    existing.cache_settings = {"type": "redis", "host": "oldhost", "password": "realpw"}
-    mock_prisma = MagicMock()
-    mock_prisma.db.litellm_cacheconfig.find_unique = AsyncMock(return_value=existing)
-    mock_prisma.db.litellm_cacheconfig.upsert = AsyncMock()
-    proxy_config = _mock_proxy_config_identity_crypto()
-
-    with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.proxy_config", proxy_config),
-        patch("litellm.proxy.proxy_server.store_model_in_db", True),
-    ):
-        result = await update_cache_settings(
-            request=CacheSettingsUpdateRequest(
-                # same host (the target is unchanged), an unrelated field edited
-                cache_settings={"type": "redis", "host": "oldhost", "namespace": "edited", "password": _REDACTED_VALUE}
-            ),
-            user_api_key_dict=_admin_auth(),
-            litellm_changed_by=None,
-        )
-
-    persisted = proxy_config._encrypt_env_variables.call_args.kwargs["environment_variables"]
-    assert persisted["host"] == "oldhost"
-    assert persisted["namespace"] == "edited"
-    assert persisted["password"] == "realpw"
-    # the response never echoes the plaintext secret back either
-    assert result["settings"]["password"] == _REDACTED_VALUE
 
 
-@pytest.mark.asyncio
-async def test_update_drops_env_sourced_redacted_secret(monkeypatch):
-    """With no stored row, a re-submitted redacted secret is env-sourced; the
-    marker must not be persisted so the environment stays the source."""
-    monkeypatch.setattr(litellm, "store_audit_logs", False)
-
-    mock_prisma = MagicMock()
-    mock_prisma.db.litellm_cacheconfig.find_unique = AsyncMock(return_value=None)
-    mock_prisma.db.litellm_cacheconfig.upsert = AsyncMock()
-    proxy_config = _mock_proxy_config_identity_crypto()
-
-    with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.proxy_config", proxy_config),
-        patch("litellm.proxy.proxy_server.store_model_in_db", True),
-    ):
-        await update_cache_settings(
-            request=CacheSettingsUpdateRequest(
-                cache_settings={"type": "redis", "host": "h", "password": _REDACTED_VALUE}
-            ),
-            user_api_key_dict=_admin_auth(),
-            litellm_changed_by=None,
-        )
-
-    persisted = proxy_config._encrypt_env_variables.call_args.kwargs["environment_variables"]
-    assert "password" not in persisted
 
 
-@pytest.mark.asyncio
-async def test_update_applies_new_password(monkeypatch):
-    """A real new secret value replaces the stored one."""
-    monkeypatch.setattr(litellm, "store_audit_logs", False)
-
-    existing = MagicMock()
-    existing.cache_settings = json.dumps({"type": "redis", "host": "h", "password": "oldpw"})
-    mock_prisma = MagicMock()
-    mock_prisma.db.litellm_cacheconfig.find_unique = AsyncMock(return_value=existing)
-    mock_prisma.db.litellm_cacheconfig.upsert = AsyncMock()
-    proxy_config = _mock_proxy_config_identity_crypto()
-
-    with (
-        patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
-        patch("litellm.proxy.proxy_server.proxy_config", proxy_config),
-        patch("litellm.proxy.proxy_server.store_model_in_db", True),
-    ):
-        await update_cache_settings(
-            request=CacheSettingsUpdateRequest(
-                cache_settings={"type": "redis", "host": "h", "password": "brandnewpw"}
-            ),
-            user_api_key_dict=_admin_auth(),
-            litellm_changed_by=None,
-        )
-
-    persisted = proxy_config._encrypt_env_variables.call_args.kwargs["environment_variables"]
-    assert persisted["password"] == "brandnewpw"
 
 
 @pytest.mark.asyncio
@@ -1119,3 +864,25 @@ async def test_test_cache_connection_does_not_replay_saved_password_to_new_host(
     # the stored password is NOT sent to the attacker-chosen host
     assert called_kwargs.get("password") != "realredispw"
     assert "password" not in called_kwargs
+
+
+@pytest.mark.asyncio
+async def test_update_cache_settings_is_refused_in_this_build():
+    """The cache-settings endpoint writes a cache_config row rather than going through
+    litellm_settings or the Router, so it bypassed both caching guards and returned 200
+    while having no effect. Saving settings that silently do nothing is worse than
+    refusing them."""
+    from fastapi import HTTPException
+
+    from litellm.proxy.management_endpoints.cache_settings_endpoints import (
+        update_cache_settings,
+    )
+
+    with pytest.raises(HTTPException) as excinfo:
+        await update_cache_settings(
+            request=CacheSettingsUpdateRequest(cache_settings={"type": "redis", "host": "localhost"}),
+            user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN),
+        )
+
+    assert excinfo.value.status_code == 400
+    assert "caching is disabled" in str(excinfo.value.detail)
