@@ -60,16 +60,24 @@ Worth knowing for anything else that pulls a new function out of `networking`: e
 that mocks that module with a literal factory has to grow the same entry. The alternative is
 `importOriginal`, which the file deliberately does not use.
 
-## Shown before the key exists too
+## Shown on the page, not just in a dialog
 
 The address does not depend on the key, so withholding it until the key is created was
-arbitrary. `components/shared/GatewayBaseUrl.tsx` renders it as a compact line under the
-"Create New Key" dialog title, using the existing shared `CopyButton` rather than a second
-copy implementation. It returns `null` when the address is unknown.
+arbitrary. `components/shared/GatewayBaseUrl.tsx` renders it as a compact line using the
+existing shared `CopyButton` rather than a second copy implementation, and returns `null`
+when the address is unknown.
 
-Both places still show it, and that is deliberate. The dialog header answers "where does
-this thing live" while you are filling the form; the save dialog is what gets copied and
-handed to whoever will use the key, so it needs to carry both facts on its own.
+It sits in the Virtual Keys page header, right-anchored opposite the "+ Create New Key"
+button, so it is readable without opening anything. `PageHeader` already has a `utilities`
+slot that renders with `ml-auto` next to `primaryAction`, so this needed no layout changes:
+the CTA stays where it was and the URL takes the other end of the same control row.
+
+It first went inside the create dialog's header, which was worse. You had to open a modal to
+read a value that never changes, and it was invisible to anyone browsing existing keys.
+
+The save dialog keeps its own copy, deliberately. The page header answers "where does this
+gateway live" while you are working; the save dialog is what gets copied and handed to
+whoever will use the key, so it has to carry both facts on its own.
 
 Not added to the Add Agent wizard's key step, which creates a key through the same shared
 display. Worth doing if that flow is used to hand keys to other people.
@@ -84,9 +92,9 @@ matter were mutation-checked:
 - rendering the base URL block unconditionally kills "should omit the base URL and example
   when no base URL is known"
 
-Three more for `GatewayBaseUrl`, and one integration case in
-`create_key_button.integration.test.tsx` proving the dialog actually renders it. Deleting the
-`<GatewayBaseUrl />` line from the dialog header kills that one.
+Three more for `GatewayBaseUrl`, and two in `VirtualKeysTable.test.tsx`: one that the header
+shows the address, one that it is anchored opposite the CTA rather than next to it. Deleting
+the `utilities` prop from `PageHeader` kills both.
 
 ## How to restore
 

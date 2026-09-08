@@ -13,6 +13,7 @@ import {
 } from "@/components/shared/DataTable";
 import { SearchSelect } from "@/components/shared/SearchSelect";
 import { PageHeader } from "@/components/shared/PageHeader";
+import GatewayBaseUrl from "@/components/shared/GatewayBaseUrl";
 import { Input } from "@/components/ui/input";
 import { useDebouncedValue } from "@tanstack/react-pacer/debouncer";
 import { ColumnFiltersState, functionalUpdate, OnChangeFn, PaginationState, SortingState } from "@tanstack/react-table";
@@ -262,6 +263,7 @@ export function VirtualKeysTable({ headerActions }: VirtualKeysTableProps) {
         title="Virtual Keys"
         subtitle="Every key that authenticates requests to the gateway."
         primaryAction={headerActions}
+        utilities={<GatewayBaseUrl />}
       />
       <DataTable
         data={keyList}

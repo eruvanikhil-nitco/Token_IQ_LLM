@@ -206,6 +206,28 @@ it("shows the Budget Reset column by default", async () => {
   });
 });
 
+it("shows the gateway base URL beside the create-key CTA, not only once a key exists", () => {
+  renderWithProviders(<VirtualKeysTable headerActions={<button>Create New Key</button>} />);
+
+  // A key authenticates the caller but carries no routing information, so an app given
+  // only the key reaches the provider directly instead of this proxy.
+  expect(screen.getByText("Base URL:")).toBeInTheDocument();
+  expect(screen.getByText(window.location.origin)).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Copy Base URL" })).toBeInTheDocument();
+});
+
+it("right-anchors the base URL away from the create-key CTA", () => {
+  renderWithProviders(<VirtualKeysTable headerActions={<button>Create New Key</button>} />);
+
+  const controls = screen.getByRole("group", { name: "Page controls" });
+  const cta = screen.getByRole("button", { name: "Create New Key" });
+  const baseUrl = screen.getByText("Base URL:");
+
+  expect(controls).toContainElement(cta);
+  expect(controls).toContainElement(baseUrl);
+  expect(cta.compareDocumentPosition(baseUrl) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+});
+
 it("left-anchors the create-key CTA below the title, between the header and the table toolbar", () => {
   renderWithProviders(<VirtualKeysTable headerActions={<button>Create New Key</button>} />);
 

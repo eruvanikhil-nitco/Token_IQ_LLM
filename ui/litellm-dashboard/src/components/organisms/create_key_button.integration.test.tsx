@@ -1007,18 +1007,6 @@ describe("CreateKey", () => {
     });
   });
 
-  describe("gateway address", () => {
-    it("shows the base URL while the key is still being created, not only afterwards", async () => {
-      await openModal();
-
-      // The key authenticates the caller but cannot route the request, so an app given
-      // only the key reaches the provider directly instead of this proxy.
-      expect(screen.getByText("Base URL:")).toBeInTheDocument();
-      expect(screen.getByText(window.location.origin)).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Copy Base URL" })).toBeInTheDocument();
-    });
-  });
-
   describe("dialog accessible names", () => {
     it("names the create form dialog", async () => {
       await openModal();

@@ -77,7 +77,6 @@ import {
   userFilterUICall,
 } from "../networking";
 import CreatedKeyDisplay from "../shared/CreatedKeyDisplay";
-import GatewayBaseUrl from "../shared/GatewayBaseUrl";
 import NumericalInput from "../shared/numerical_input";
 import VectorStoreSelector from "../vector_store_management/VectorStoreSelector";
 import { buildKeyCreatePayload, type KeyCreateInput } from "./createKeyPayload";
@@ -657,7 +656,6 @@ const CreateKey: React.FC<CreateKeyProps> = ({ team, teams, data, addKey, autoOp
         <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[1000px]">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold text-foreground">Create New Key</DialogTitle>
-            <GatewayBaseUrl />
           </DialogHeader>
           <MountedFormProvider value={mountedForm}>
             <form onSubmit={handleSubmit}>
