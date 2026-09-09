@@ -2702,10 +2702,15 @@ async def provider_overview() -> ProviderOverviewResponse:
     cover `rollup_days` complete days rather than a rolling 24 hours. Rows carrying no
     provider are failed calls that never reached one and are excluded, so the request
     count matches what actually left the gateway.
+
+    A provider with recorded traffic but no deployment left still gets a row. `last_used`
+    is queried over all history so it does not read "never" for a provider whose traffic
+    predates the rollup window.
     """
     from litellm.proxy.proxy_server import llm_model_list, prisma_client
 
     usage_rows: list[dict] = []
+    last_used_by_provider: dict[str, str] = {}
     if prisma_client is not None:
         records: Final = await prisma_client.db.litellm_dailyuserspend.find_many(
             where={"date": {"gte": rollup_start_date()}},
@@ -2715,12 +2720,28 @@ async def provider_overview() -> ProviderOverviewResponse:
                 "custom_llm_provider": getattr(record, "custom_llm_provider", None),
                 "api_requests": getattr(record, "api_requests", 0),
                 "spend": getattr(record, "spend", 0.0),
-                "date": getattr(record, "date", None),
             }
             for record in records
         ]
+        # group_by rather than find_many over all history: distinct fetches every column
+        # of every row and dedupes in application code, which does not scale on this table.
+        last_used_rows: Final = await prisma_client.db.litellm_dailyuserspend.group_by(
+            by=["custom_llm_provider"],
+            max={"date": True},
+        )
+        last_used_by_provider = {
+            provider: latest
+            for row in last_used_rows
+            if isinstance(provider := row.get("custom_llm_provider"), str)
+            and provider
+            and isinstance(latest := (row.get("_max") or {}).get("date"), str)
+        }
 
-    return build_provider_overview(model_list=llm_model_list or [], usage_rows=usage_rows)
+    return build_provider_overview(
+        model_list=llm_model_list or [],
+        usage_rows=usage_rows,
+        last_used_by_provider=last_used_by_provider,
+    )
 
 
 @router.get(
@@ -2769,6 +2790,7 @@ async def provider_model_usage(usage_range: str = DEFAULT_USAGE_RANGE) -> ModelU
             {
                 "model_group": getattr(record, "model_group", None),
                 "model": getattr(record, "model", None),
+                "custom_llm_provider": getattr(record, "custom_llm_provider", None),
                 "api_requests": getattr(record, "api_requests", 0),
                 "prompt_tokens": getattr(record, "prompt_tokens", 0),
                 "completion_tokens": getattr(record, "completion_tokens", 0),

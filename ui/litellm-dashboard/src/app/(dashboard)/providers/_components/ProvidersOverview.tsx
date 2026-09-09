@@ -62,13 +62,25 @@ const ProvidersOverview: React.FC<ProvidersOverviewProps> = ({ accessToken, sele
           {rows.length === 0 ? (
             <TableRow>
               <TableCell colSpan={7} className="text-center text-sm text-muted-foreground">
-                No providers configured yet.
+                No providers configured, and none recorded any traffic.
               </TableCell>
             </TableRow>
           ) : (
             rows.map((row) => (
               <TableRow key={row.provider}>
-                <TableCell className="font-medium">{row.provider}</TableCell>
+                <TableCell className="font-medium">
+                  <span className="flex items-center gap-2">
+                    {row.provider}
+                    {!row.is_configured && (
+                      <Badge
+                        variant="outline"
+                        title="Traffic recorded, but no deployment is configured for it any more"
+                      >
+                        Not configured
+                      </Badge>
+                    )}
+                  </span>
+                </TableCell>
                 <TableCell className="text-right">{row.models_configured}</TableCell>
                 <TableCell className="text-right text-muted-foreground">{row.models_in_catalogue}</TableCell>
                 <TableCell>

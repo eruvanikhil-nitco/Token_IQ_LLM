@@ -21,6 +21,7 @@ const response = (overrides: Partial<ProviderOverviewResponse> = {}): ProviderOv
       models_configured: 2,
       models_in_catalogue: 260,
       has_credentials: true,
+      is_configured: true,
       requests: 27,
       spend: 0.006135,
       last_used: "2026-09-08",
@@ -30,6 +31,7 @@ const response = (overrides: Partial<ProviderOverviewResponse> = {}): ProviderOv
       models_configured: 1,
       models_in_catalogue: 40,
       has_credentials: false,
+      is_configured: true,
       requests: 0,
       spend: 0,
       last_used: null,
@@ -90,6 +92,38 @@ describe("ProvidersOverview", () => {
     expect(screen.getByText("Total Providers")).toBeInTheDocument();
   });
 
+  it("flags a provider that served traffic but has no deployment left", async () => {
+    mockProviderOverviewCall.mockResolvedValue(
+      response({
+        providers: [
+          {
+            provider: "openrouter",
+            models_configured: 0,
+            models_in_catalogue: 260,
+            has_credentials: false,
+            is_configured: false,
+            requests: 24,
+            spend: 0.00642,
+            last_used: "2026-09-08",
+          },
+        ],
+      }),
+    );
+
+    renderWithProviders(<ProvidersOverview accessToken="tok" selectedProvider={null} />);
+
+    // Hiding it would drop real spend out of the totals above the table.
+    expect(await screen.findByText("openrouter")).toBeInTheDocument();
+    expect(screen.getByText("Not configured")).toBeInTheDocument();
+  });
+
+  it("does not label a still-configured provider as removed", async () => {
+    renderWithProviders(<ProvidersOverview accessToken="tok" selectedProvider={null} />);
+
+    await screen.findByText("openrouter");
+    expect(screen.queryByText("Not configured")).not.toBeInTheDocument();
+  });
+
   it("says so when nothing is configured rather than rendering an empty table", async () => {
     mockProviderOverviewCall.mockResolvedValue(
       response({ providers: [], total_providers: 0, total_models: 0, total_requests: 0, total_spend: 0 }),
@@ -97,7 +131,7 @@ describe("ProvidersOverview", () => {
 
     renderWithProviders(<ProvidersOverview accessToken="tok" selectedProvider={null} />);
 
-    expect(await screen.findByText("No providers configured yet.")).toBeInTheDocument();
+    expect(await screen.findByText("No providers configured, and none recorded any traffic.")).toBeInTheDocument();
   });
 
   it("reports a failed fetch instead of showing zeros that look like real data", async () => {

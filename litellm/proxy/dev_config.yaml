@@ -199,6 +199,10 @@ model_list:
 
 general_settings:
   master_key: sk-1234
+  # Load models added through the Admin UI from LiteLLM_ProxyModelTable at boot. Without
+  # it the proxy serves only what this file lists, so DB-backed models silently vanish
+  # from the Providers tab on restart.
+  store_model_in_db: true
   # Opt-in: let CheckBatchCost track cost for unmanaged batches created with a raw
   # gs:// (Vertex) or s3:// (Bedrock) input_file_id. Requires a matching deployment
   # configured for the batched model. Defaults to false.

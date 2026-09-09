@@ -4,6 +4,8 @@ import {
   filterProviderRows,
   hasUsage,
   indexUsageByModel,
+  isObservedOnly,
+  observedOnlyModels,
   usageWindowLabel,
   type ModelUsageRow,
 } from "./selectors";
@@ -14,6 +16,7 @@ const providerRow = (provider: string): ProviderRow => ({
   models_configured: 1,
   models_in_catalogue: 10,
   has_credentials: true,
+  is_configured: true,
   requests: 0,
   spend: 0,
   last_used: null,
@@ -75,8 +78,8 @@ describe("filterModelsByProvider", () => {
 describe("indexUsageByModel", () => {
   it("keys usage by model group so a row can look up its own", () => {
     const usage: ModelUsageRow[] = [
-      { model_group: "gpt-4o", requests: 5, tokens: 100, spend: 0.01 },
-      { model_group: "haiku", requests: 2, tokens: 20, spend: 0.001 },
+      { model_group: "gpt-4o", providers: ["openai"], requests: 5, tokens: 100, spend: 0.01 },
+      { model_group: "haiku", providers: ["anthropic"], requests: 2, tokens: 20, spend: 0.001 },
     ];
 
     const index = indexUsageByModel(usage);
@@ -96,12 +99,67 @@ describe("hasUsage", () => {
   });
 
   it("is false for zero requests, so an untrafficked model shows a dash not zeros", () => {
-    expect(hasUsage({ model_group: "x", requests: 0, tokens: 0, spend: 0 })).toBe(false);
+    const untrafficked: ModelUsageRow = { model_group: "x", providers: [], requests: 0, tokens: 0, spend: 0 };
+
+    expect(hasUsage(untrafficked)).toBe(false);
   });
 
   it("is true for requests with zero spend, which is a real case not an empty one", () => {
     // gpt-4o-mini genuinely records requests and no spend, and must not be hidden
     // behind the same dash as a model that was never called.
-    expect(hasUsage({ model_group: "gpt-4o-mini", requests: 2, tokens: 0, spend: 0 })).toBe(true);
+    const freeButCalled: ModelUsageRow = {
+      model_group: "gpt-4o-mini",
+      providers: ["openai"],
+      requests: 2,
+      tokens: 0,
+      spend: 0,
+    };
+
+    expect(hasUsage(freeButCalled)).toBe(true);
+  });
+});
+
+describe("observedOnlyModels", () => {
+  const configured = [{ model_group: "gpt-4", providers: ["openai"] }] as unknown as Parameters<
+    typeof observedOnlyModels
+  >[0];
+
+  const baseUsage: ModelUsageRow = {
+    model_group: "openrouter/openai/gpt-4o",
+    providers: ["openrouter"],
+    requests: 24,
+    tokens: 1458,
+    spend: 0.00642,
+  };
+
+  const usage = (overrides: Partial<ModelUsageRow> = {}): ModelUsageRow => ({ ...baseUsage, ...overrides });
+
+  it("builds a row for a model that served traffic but is no longer configured", () => {
+    const rows = observedOnlyModels(configured, [usage()]);
+
+    // Dropping it would hide real spend, which is the opposite of an observer gateway.
+    expect(rows).toHaveLength(1);
+    expect(rows[0].model_group).toBe("openrouter/openai/gpt-4o");
+    expect(rows[0].providers).toEqual(["openrouter"]);
+    expect(isObservedOnly(rows[0])).toBe(true);
+  });
+
+  it("does not duplicate a model that is still configured", () => {
+    expect(observedOnlyModels(configured, [usage({ model_group: "gpt-4", providers: ["openai"] })])).toEqual([]);
+  });
+
+  it("ignores a usage row with no requests, which would add an empty row", () => {
+    expect(observedOnlyModels(configured, [usage({ requests: 0 })])).toEqual([]);
+  });
+
+  it("marks configured models as not observed-only, so the flag means something", () => {
+    expect(isObservedOnly(configured[0])).toBe(false);
+  });
+
+  it("keeps the provider so the row survives the provider filter", () => {
+    const rows = observedOnlyModels(configured, [usage()]);
+
+    expect(filterModelsByProvider(rows, "openrouter")).toHaveLength(1);
+    expect(filterModelsByProvider(rows, "anthropic")).toHaveLength(0);
   });
 });

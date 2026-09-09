@@ -7,7 +7,15 @@ import { getModelHubTableColumns, type ModelHubData } from "@/components/AIHub/M
 import { DataTable, DataTableSortHeader } from "@/components/shared/DataTable";
 import { modelHubCall, providerModelUsageCall } from "@/components/networking";
 import ModelHubDetailsDialog from "@/components/AIHub/ModelHubDetailsDialog";
-import { filterModelsByProvider, hasUsage, indexUsageByModel, type ModelUsageRow } from "./selectors";
+import { Badge } from "@/components/ui/badge";
+import {
+  filterModelsByProvider,
+  hasUsage,
+  indexUsageByModel,
+  isObservedOnly,
+  observedOnlyModels,
+  type ModelUsageRow,
+} from "./selectors";
 
 interface ProviderModelsTableProps {
   accessToken: string | null;
@@ -77,10 +85,29 @@ const ProviderModelsTable: React.FC<ProviderModelsTableProps> = ({ accessToken, 
         );
       },
     };
-    return [...getModelHubTableColumns({ onModelClick: setSelectedModel }), usageColumn];
+    const statusColumn: ColumnDef<ModelHubData> = {
+      id: "status",
+      header: "Status",
+      cell: ({ row }) =>
+        isObservedOnly(row.original) ? (
+          <Badge variant="outline" title="Traffic recorded, but no deployment is configured for it any more">
+            Not configured
+          </Badge>
+        ) : (
+          <span className="text-muted-foreground">Configured</span>
+        ),
+    };
+
+    return [...getModelHubTableColumns({ onModelClick: setSelectedModel }), usageColumn, statusColumn];
   }, [usageByModel]);
 
-  const rows = useMemo(() => filterModelsByProvider(data ?? [], selectedProvider), [data, selectedProvider]);
+  const rows = useMemo(() => {
+    const configured = data ?? [];
+    return filterModelsByProvider(
+      [...configured, ...observedOnlyModels(configured, usage?.usage ?? [])],
+      selectedProvider,
+    );
+  }, [data, usage, selectedProvider]);
 
   return (
     <div className="flex flex-col gap-3">
@@ -109,7 +136,11 @@ const ProviderModelsTable: React.FC<ProviderModelsTableProps> = ({ accessToken, 
         onSortingChange={setSorting}
         isLoading={isLoading}
         loadingMessage="Loading models…"
-        noDataMessage={selectedProvider ? `No models configured for ${selectedProvider}.` : "No models configured."}
+        noDataMessage={
+          selectedProvider
+            ? `No models configured for ${selectedProvider}, and none recorded traffic.`
+            : "No models configured, and none recorded traffic."
+        }
       />
       <ModelHubDetailsDialog selectedModel={selectedModel} onClose={() => setSelectedModel(null)} />
     </div>

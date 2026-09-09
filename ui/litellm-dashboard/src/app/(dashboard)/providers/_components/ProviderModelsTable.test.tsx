@@ -44,9 +44,15 @@ const usage = {
   days: 7,
   start_date: "2026-09-02",
   usage: [
-    { model_group: "openrouter/openai/gpt-4o", requests: 17, tokens: 1313, spend: 0.0057425 },
+    {
+      model_group: "openrouter/openai/gpt-4o",
+      providers: ["openrouter"],
+      requests: 17,
+      tokens: 1313,
+      spend: 0.0057425,
+    },
     // Real case: requests with no spend, because only the provider prices this model.
-    { model_group: "anthropic/claude-haiku", requests: 0, tokens: 0, spend: 0 },
+    { model_group: "anthropic/claude-haiku", providers: ["anthropic"], requests: 0, tokens: 0, spend: 0 },
   ],
 };
 
@@ -126,11 +132,55 @@ describe("ProviderModelsTable", () => {
     expect(await screen.findByText("openrouter/openai/gpt-4o")).toBeInTheDocument();
   });
 
+  it("lists a model that recorded traffic but is no longer configured", async () => {
+    mockProviderModelUsageCall.mockResolvedValue({
+      ...usage,
+      usage: [
+        ...usage.usage,
+        {
+          model_group: "openrouter/openai/gpt-4o-mini",
+          providers: ["openrouter"],
+          requests: 3,
+          tokens: 40,
+          spend: 0.0001,
+        },
+      ],
+    });
+
+    renderWithProviders(<ProviderModelsTable accessToken="tok" selectedProvider={null} />);
+
+    // It is absent from the configured model list, so the old table fetched its usage and
+    // then threw the row away, hiding spend that really happened.
+    expect(await screen.findByText("openrouter/openai/gpt-4o-mini")).toBeInTheDocument();
+    expect(screen.getByText("Not configured")).toBeInTheDocument();
+    expect(screen.getByText("3 req")).toBeInTheDocument();
+  });
+
+  it("files an unconfigured model under the provider that served it", async () => {
+    mockProviderModelUsageCall.mockResolvedValue({
+      ...usage,
+      usage: [
+        {
+          model_group: "openrouter/openai/gpt-4o-mini",
+          providers: ["openrouter"],
+          requests: 3,
+          tokens: 40,
+          spend: 0.0001,
+        },
+      ],
+    });
+
+    renderWithProviders(<ProviderModelsTable accessToken="tok" selectedProvider="anthropic" />);
+
+    await screen.findByText("anthropic/claude-haiku");
+    expect(screen.queryByText("openrouter/openai/gpt-4o-mini")).not.toBeInTheDocument();
+  });
+
   it("names the filtered provider when it has no models", async () => {
     mockModelHubCall.mockResolvedValue({ data: [] });
 
     renderWithProviders(<ProviderModelsTable accessToken="tok" selectedProvider="bedrock" />);
 
-    expect(await screen.findByText("No models configured for bedrock.")).toBeInTheDocument();
+    expect(await screen.findByText("No models configured for bedrock, and none recorded traffic.")).toBeInTheDocument();
   });
 });

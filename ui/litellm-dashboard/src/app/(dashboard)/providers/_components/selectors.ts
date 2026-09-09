@@ -1,7 +1,10 @@
+import type { ModelHubData } from "@/components/AIHub/ModelHubTableColumns";
 import type { ProviderRow } from "./types";
 
 export interface ModelUsageRow {
   model_group: string;
+  /** Providers that served this model group. Empty when the daily rows carry no provider. */
+  providers: string[];
   requests: number;
   tokens: number;
   spend: number;
@@ -43,3 +46,31 @@ export const indexUsageByModel = (usage: ModelUsageRow[]): Map<string, ModelUsag
  */
 export const hasUsage = (usage: ModelUsageRow | undefined): usage is ModelUsageRow =>
   usage !== undefined && usage.requests > 0;
+
+/**
+ * Rows for models that recorded traffic but have no deployment left.
+ *
+ * The table is otherwise built from the configured model list, so a model removed after it
+ * served requests would be fetched and then silently dropped, hiding real spend from an
+ * observer gateway whose whole job is reporting what happened.
+ *
+ * The synthetic row carries no pricing or capabilities because the catalogue is keyed on
+ * models this proxy serves; those columns render dashes, which is honest.
+ */
+export const observedOnlyModels = (configured: ModelHubData[], usage: ModelUsageRow[]): ModelHubData[] => {
+  const known = new Set(configured.map((model) => model.model_group));
+  return usage
+    .filter((row) => !known.has(row.model_group) && row.requests > 0)
+    .map((row) => ({
+      model_group: row.model_group,
+      providers: row.providers,
+      supports_parallel_function_calling: false,
+      supports_vision: false,
+      supports_function_calling: false,
+      is_public_model_group: false,
+      is_observed_only: true,
+    }));
+};
+
+/** Whether a row was built from traffic rather than from a configured deployment. */
+export const isObservedOnly = (model: ModelHubData): boolean => model.is_observed_only === true;

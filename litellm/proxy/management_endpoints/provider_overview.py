@@ -20,7 +20,9 @@ See project_usage/16-providers-tab.md
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
+from itertools import groupby
 from types import MappingProxyType
 from typing import Final
 
@@ -51,9 +53,16 @@ class ProviderRow(BaseModel):
     models_configured: int = Field(description="Deployments on this proxy served by this provider")
     models_in_catalogue: int = Field(description="Models the local catalogue can price for this provider")
     has_credentials: bool = Field(description="Whether at least one configured deployment carries a key")
+    is_configured: bool = Field(
+        default=True,
+        description="False when this provider only appears in recorded traffic, with no deployment left for it",
+    )
     requests: int = 0
     spend: float = 0.0
-    last_used: str | None = None
+    last_used: str | None = Field(
+        default=None,
+        description="Latest UTC day this provider served traffic, over all history rather than the rollup window",
+    )
 
 
 class ProviderOverviewResponse(BaseModel):
@@ -99,6 +108,12 @@ def _catalogue_entries() -> Mapping[str, Mapping[str, object]]:
     }
 
 
+def _catalogue_counts() -> Mapping[str, int]:
+    """How many catalogue models each provider can be priced for."""
+    providers: Final = sorted(str(entry["litellm_provider"]) for entry in _catalogue_entries().values())
+    return {provider: len(tuple(group)) for provider, group in groupby(providers)}
+
+
 def _features_of(entry: Mapping[str, object]) -> list[str]:
     return [label for field, label in _FEATURE_FIELDS.items() if entry.get(field) is True]
 
@@ -122,52 +137,75 @@ def _configured_by_provider(model_list: Sequence[Mapping[str, object]]) -> dict[
     return grouped
 
 
+@dataclass(frozen=True, slots=True)
+class _ProviderUsage:
+    """Requests and spend a provider accumulated over the rollup window."""
+
+    requests: int = 0
+    spend: float = 0.0
+
+
+def _usage_by_provider(usage_rows: Sequence[Mapping[str, object]]) -> Mapping[str, _ProviderUsage]:
+    """Total requests and spend per provider.
+
+    Rows with no provider are failed calls that never reached one. Counting them would
+    inflate requests while contributing nothing to spend.
+    """
+    named: Final = sorted(
+        (
+            (provider, row)
+            for row in usage_rows
+            if isinstance(provider := row.get("custom_llm_provider"), str) and provider
+        ),
+        key=lambda pair: pair[0],
+    )
+    return {
+        provider: _ProviderUsage(
+            requests=sum(int(row.get("api_requests") or 0) for _, row in rows),
+            spend=sum(float(row.get("spend") or 0.0) for _, row in rows),
+        )
+        for provider, group in groupby(named, key=lambda pair: pair[0])
+        if (rows := tuple(group))
+    }
+
+
 def build_provider_overview(
     *,
     model_list: Sequence[Mapping[str, object]],
     usage_rows: Sequence[Mapping[str, object]],
+    last_used_by_provider: Mapping[str, str] = MappingProxyType({}),
 ) -> ProviderOverviewResponse:
-    """Merge configured deployments, the catalogue and today's usage into one table.
+    """Merge configured deployments, the catalogue and recent usage into one table.
+
+    A provider that served traffic but has no deployment left still gets a row, flagged
+    `is_configured=False`. Dropping it would hide real spend from the totals, which is the
+    opposite of what an observer gateway is for.
+
+    `last_used_by_provider` is queried over all history rather than the rollup window, so a
+    provider last called a month ago reads as a date instead of "never".
 
     Pure: usage rows are passed in rather than queried, so the shape is testable without
     a database.
     """
-    catalogue: Final = _catalogue_entries()
-    catalogue_counts: dict[str, int] = {}
-    for entry in catalogue.values():
-        provider = str(entry["litellm_provider"])
-        catalogue_counts[provider] = catalogue_counts.get(provider, 0) + 1
-
+    catalogue_counts: Final = _catalogue_counts()
     configured: Final = _configured_by_provider(model_list)
-
-    usage_by_provider: dict[str, dict[str, object]] = {}
-    for row in usage_rows:
-        provider = row.get("custom_llm_provider")
-        if not isinstance(provider, str) or not provider:
-            # Rows with no provider are failed calls that never reached one. Counting
-            # them would inflate requests while contributing nothing to spend.
-            continue
-        bucket = usage_by_provider.setdefault(provider, {"requests": 0, "spend": 0.0, "last_used": None})
-        bucket["requests"] = int(bucket["requests"]) + int(row.get("api_requests") or 0)
-        bucket["spend"] = float(bucket["spend"]) + float(row.get("spend") or 0.0)
-        date = row.get("date")
-        if isinstance(date, str) and (bucket["last_used"] is None or date > str(bucket["last_used"])):
-            bucket["last_used"] = date
+    usage: Final = _usage_by_provider(usage_rows)
 
     rows: Final = tuple(
         ProviderRow(
             provider=provider,
-            models_configured=len(deployments),
+            models_configured=len(configured.get(provider, ())),
             models_in_catalogue=catalogue_counts.get(provider, 0),
             has_credentials=any(
-                isinstance(d.get("litellm_params"), dict) and bool(d["litellm_params"].get("api_key"))
-                for d in deployments
+                isinstance(params := deployment.get("litellm_params"), dict) and bool(params.get("api_key"))
+                for deployment in configured.get(provider, ())
             ),
-            requests=int(usage_by_provider.get(provider, {}).get("requests", 0)),
-            spend=round(float(usage_by_provider.get(provider, {}).get("spend", 0.0)), 8),
-            last_used=usage_by_provider.get(provider, {}).get("last_used"),  # type: ignore[arg-type]
+            is_configured=provider in configured,
+            requests=usage.get(provider, _ProviderUsage()).requests,
+            spend=round(usage.get(provider, _ProviderUsage()).spend, 8),
+            last_used=last_used_by_provider.get(provider),
         )
-        for provider, deployments in sorted(configured.items())
+        for provider in sorted(configured.keys() | usage.keys())
     )
 
     return ProviderOverviewResponse(
@@ -232,6 +270,10 @@ class ModelUsageRow(BaseModel):
     """Usage for one model group over the selected range."""
 
     model_group: str
+    providers: list[str] = Field(  # writable-ok: FastAPI serialises the response model directly
+        default_factory=list,
+        description="Providers that served this model group, so a model no longer configured can still be attributed",
+    )
     requests: int = 0
     tokens: int = 0
     spend: float = 0.0
@@ -258,21 +300,23 @@ def build_model_usage(
     days: int,
     usage_rows: Sequence[Mapping[str, object]],
 ) -> ModelUsageResponse:
-    """Group daily rows by model group.
+    """Group daily rows by model group, carrying the providers that served each.
 
     Rows carrying no model group are dropped rather than bucketed under a blank key:
     they are failed calls that never resolved to a model, and a row of zeros against an
     unnamed model would read as a real model that costs nothing.
+
+    `providers` lets the Models table place a model that recorded traffic but has since
+    been removed from the model list, which otherwise has no provider to file it under.
     """
-    totals: dict[str, dict[str, float]] = {}
-    for row in usage_rows:
-        group = row.get("model_group") or row.get("model")
-        if not isinstance(group, str) or not group:
-            continue
-        bucket = totals.setdefault(group, {"requests": 0.0, "tokens": 0.0, "spend": 0.0})
-        bucket["requests"] += float(row.get("api_requests") or 0)
-        bucket["tokens"] += float(row.get("prompt_tokens") or 0) + float(row.get("completion_tokens") or 0)
-        bucket["spend"] += float(row.get("spend") or 0.0)
+    named: Final = sorted(
+        (
+            (group, row)
+            for row in usage_rows
+            if isinstance(group := (row.get("model_group") or row.get("model")), str) and group
+        ),
+        key=lambda pair: pair[0],
+    )
 
     return ModelUsageResponse(
         range=range_key if range_key in USAGE_RANGE_DAYS else DEFAULT_USAGE_RANGE,
@@ -281,10 +325,20 @@ def build_model_usage(
         usage=[
             ModelUsageRow(
                 model_group=group,
-                requests=int(values["requests"]),
-                tokens=int(values["tokens"]),
-                spend=round(values["spend"], 8),
+                providers=sorted(
+                    {
+                        provider
+                        for _, row in rows
+                        if isinstance(provider := row.get("custom_llm_provider"), str) and provider
+                    }
+                ),
+                requests=sum(int(row.get("api_requests") or 0) for _, row in rows),
+                tokens=sum(
+                    int(row.get("prompt_tokens") or 0) + int(row.get("completion_tokens") or 0) for _, row in rows
+                ),
+                spend=round(sum(float(row.get("spend") or 0.0) for _, row in rows), 8),
             )
-            for group, values in sorted(totals.items())
+            for group, group_rows in groupby(named, key=lambda pair: pair[0])
+            if (rows := tuple(group_rows))
         ],
     )
