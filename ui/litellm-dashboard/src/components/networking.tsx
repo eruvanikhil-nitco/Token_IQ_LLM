@@ -1690,6 +1690,7 @@ export const modelInfoCall = async (
   sortOrder?: string,
   excludeAutoRouters?: boolean,
   modelName?: string,
+  configuredOnly?: boolean,
 ) => {
   /**
    * Get all models on proxy
@@ -1717,6 +1718,9 @@ export const modelInfoCall = async (
     }
     if (sortOrder && sortOrder.trim()) {
       params.append("sortOrder", sortOrder.trim());
+    }
+    if (configuredOnly) {
+      params.append("configured_only", "true");
     }
     if (excludeAutoRouters) {
       params.append("exclude_auto_routers", "true");

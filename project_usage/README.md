@@ -37,7 +37,7 @@ bounds.
 | 17 | Base URL in key creation | ADDED base URL to the Virtual Keys header and the save dialog, plus a ready-to-paste example |
 | 18 | Organization field in create key | REMOVED the dropdown, its team filter and its payload key |
 | 19 | Observed providers and models | FIXED dropped traffic; page now lists only providers the client set up; store_model_in_db added |
-| 20 | The three model tables | FIXED AI Hub to match; broadened the credential rule beyond api_key; Models + Endpoints left complete |
+| 20 | The three model tables | FIXED all three to show only what the gateway can serve; broadened the credential rule beyond api_key |
 
 ## The unified translation layer
 

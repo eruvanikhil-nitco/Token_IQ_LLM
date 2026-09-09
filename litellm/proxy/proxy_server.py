@@ -13781,6 +13781,13 @@ async def model_info_v2(
             "existing callers are unaffected"
         ),
     ),
+    configured_only: bool | None = fastapi.Query(
+        False,
+        description=(
+            "Only return deployments carrying credentials someone supplied. Off by default: "
+            "callers that manage or health-check deployments need the complete list."
+        ),
+    ),
 ):
     """
     Paginated model metadata for proxy deployments (pricing, provider, team access).
@@ -13864,6 +13871,15 @@ async def model_info_v2(
         if user_model is not None:
             # if user does not use a config.yaml, https://github.com/BerriAI/litellm/issues/2061
             all_models += [user_model]
+
+        # Filter here, not further down: _enrich_model_info_with_litellm_data strips the api
+        # key and vertex credentials, so by the time the list is enriched there is nothing
+        # left to test. `is True` because direct-call tests bypass FastAPI and the Query
+        # default arrives as a truthy sentinel rather than False.
+        if configured_only is True:
+            from litellm.proxy.management_endpoints.provider_overview import has_credentials
+
+            all_models = [deployment for deployment in all_models if has_credentials((deployment,))]
 
         if model is not None:
             all_models = [m for m in all_models if _deployment_matches_allowed_model_names(m, frozenset((model,)))]

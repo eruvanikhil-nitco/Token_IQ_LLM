@@ -39,6 +39,7 @@ export const useModelsInfo = (
   sortOrder?: string,
   excludeAutoRouters: boolean = false,
   modelName?: string,
+  configuredOnly: boolean = false,
 ) => {
   const { accessToken, userId, userRole } = useAuthorized();
   return useQuery<PaginatedModelInfoResponse>({
@@ -57,6 +58,9 @@ export const useModelsInfo = (
         // Part of the key: callers that exclude auto-routers must not share a cache entry
         // with callers that keep them.
         ...(excludeAutoRouters && { excludeAutoRouters: "true" }),
+        // Part of the key for the same reason: a filtered list must not share a cache
+        // entry with the complete one the health panel reads.
+        ...(configuredOnly && { configuredOnly: "true" }),
       },
     }),
     queryFn: async () =>
@@ -73,6 +77,7 @@ export const useModelsInfo = (
         sortOrder,
         excludeAutoRouters,
         modelName,
+        configuredOnly,
       ),
     enabled: Boolean(accessToken && userId && userRole),
   });

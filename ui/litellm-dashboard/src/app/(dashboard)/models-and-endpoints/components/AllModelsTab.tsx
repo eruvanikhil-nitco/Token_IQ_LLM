@@ -114,6 +114,10 @@ const AllModelsTab = ({
     // lists and manages them. Excluded server-side so total_count stays honest.
     true,
     modelNameForQuery,
+    // A sample config ships deployments pointing at unset environment variables. They
+    // cannot serve a request, and listing them describes a gateway that is not there.
+    // Filtered server-side so total_count and the page numbers stay honest.
+    true,
   );
   const isLoading = isLoadingModelsInfo || isLoadingModelCostMap;
 

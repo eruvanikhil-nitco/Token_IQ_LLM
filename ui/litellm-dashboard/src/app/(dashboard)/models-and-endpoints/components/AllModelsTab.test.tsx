@@ -34,6 +34,7 @@ interface ModelsInfoArgs {
   sortBy?: string;
   sortOrder?: string;
   modelName?: string;
+  configuredOnly?: boolean;
 }
 
 const modelsInfoCalls: ModelsInfoArgs[] = [];
@@ -50,12 +51,13 @@ type UseModelsInfoArgs = [
   sortOrder?: string,
   excludeAutoRouters?: boolean,
   modelName?: string,
+  configuredOnly?: boolean,
 ];
 
 vi.mock("../../hooks/models/useModels", () => ({
   useModelsInfo: (...args: UseModelsInfoArgs) => {
-    const [page, size, search, , teamId, sortBy, sortOrder, , modelName] = args;
-    const call: ModelsInfoArgs = { page, size, search, teamId, sortBy, sortOrder, modelName };
+    const [page, size, search, , teamId, sortBy, sortOrder, , modelName, configuredOnly] = args;
+    const call: ModelsInfoArgs = { page, size, search, teamId, sortBy, sortOrder, modelName, configuredOnly };
     modelsInfoCalls.push(call);
     return { ...modelsInfoResult, refetch: mockRefetch };
   },
@@ -139,6 +141,16 @@ describe("AllModelsTab", () => {
 
     expect(await screen.findByText("gpt-4")).toBeInTheDocument();
     expect(screen.getByTestId("pagination-range")).toHaveTextContent("Showing 1-50 of 137");
+  });
+
+  it("asks the proxy only for deployments it can actually serve", async () => {
+    setModelsInfo([makeRow()], 1);
+    render(<AllModelsTab {...defaultProps} />);
+
+    // A sample config ships deployments pointing at unset environment variables. The
+    // filter is server-side so total_count and the page numbers stay honest, which a
+    // client-side filter over a paginated response could not manage.
+    expect(lastModelsInfoCall().configuredOnly).toBe(true);
   });
 
   it("does not re-query after the mount-time debounced search settles unchanged", async () => {

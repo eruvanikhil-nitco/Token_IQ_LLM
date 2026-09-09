@@ -452,3 +452,106 @@ async def test_model_info_v2_query_sentinel_does_not_filter(monkeypatch, mixed_a
     )
 
     assert "tri-tier-router" in [m["model_name"] for m in resp["data"]]
+
+
+# ---------------------------------------------------------------------------
+# GET /v2/model/info?configured_only
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def mixed_credential_router(monkeypatch):
+    """Deployments spanning every way a provider proves it was set up, plus two that were not."""
+    model_list = [
+        {
+            "model_name": "openrouter-gpt-4o",
+            "litellm_params": {"model": "openrouter/openai/gpt-4o", "api_key": "sk-test"},
+            "model_info": {"id": "with-key", "db_model": True},
+        },
+        {
+            "model_name": "bedrock-sonnet",
+            "litellm_params": {
+                "model": "bedrock/claude-sonnet",
+                "aws_access_key_id": "AKIA",
+                "aws_secret_access_key": "secret",
+            },
+            "model_info": {"id": "with-aws", "db_model": False},
+        },
+        {
+            "model_name": "vertex-gemini",
+            "litellm_params": {"model": "vertex_ai/gemini-3-flash", "vertex_credentials": "{}"},
+            "model_info": {"id": "with-vertex", "db_model": False},
+        },
+        {
+            # What a sample config leaves behind: a region says where to call, not that
+            # anyone may.
+            "model_name": "bedrock-unset",
+            "litellm_params": {"model": "bedrock/claude-opus", "aws_region_name": "us-east-1"},
+            "model_info": {"id": "no-creds-1", "db_model": False},
+        },
+        {
+            "model_name": "anthropic-unset",
+            "litellm_params": {"model": "anthropic/claude-haiku-4-5"},
+            "model_info": {"id": "no-creds-2", "db_model": False},
+        },
+    ]
+
+    from unittest.mock import AsyncMock
+
+    router = MagicMock()
+    router.model_list = model_list
+    monkeypatch.setattr(proxy_server, "llm_router", router)
+    monkeypatch.setattr(proxy_server, "llm_model_list", model_list)
+    monkeypatch.setattr(proxy_server, "prisma_client", MagicMock())
+    monkeypatch.setattr(proxy_server, "user_model", None)
+    monkeypatch.setattr(proxy_server.proxy_config, "get_config", AsyncMock(return_value={}))
+    monkeypatch.setattr(
+        proxy_server,
+        "_apply_search_filter_to_models",
+        AsyncMock(side_effect=lambda all_models, **kw: (all_models, len(all_models))),
+    )
+    monkeypatch.setattr(proxy_server, "_enrich_model_info_with_litellm_data", lambda model, **kw: model)
+
+    import litellm.proxy.agent_endpoints.model_list_helpers as mlh
+
+    monkeypatch.setattr(mlh, "append_agents_to_model_info", AsyncMock(side_effect=lambda models, **kw: models))
+    yield router
+
+
+def test_v2_model_info_returns_every_deployment_by_default(client, auth_as, mixed_credential_router):
+    """Opt-in: callers that manage or health-check deployments still need the whole list."""
+    with auth_as():
+        response = client.get("/v2/model/info")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["total_count"] == 5
+    assert "anthropic-unset" in _model_names(payload)
+
+
+def test_v2_model_info_configured_only_drops_deployments_nobody_can_call(client, auth_as, mixed_credential_router):
+    with auth_as():
+        response = client.get("/v2/model/info", params={"configured_only": "true"})
+    assert response.status_code == 200
+    assert _model_names(response.json()) == ["openrouter-gpt-4o", "bedrock-sonnet", "vertex-gemini"]
+
+
+def test_v2_model_info_configured_only_counts_aws_and_vertex_auth(client, auth_as, mixed_credential_router):
+    """api_key is only how OpenAI-style providers authenticate. Requiring one would hide a
+    working Bedrock or Vertex deployment."""
+    with auth_as():
+        response = client.get("/v2/model/info", params={"configured_only": "true"})
+    names = _model_names(response.json())
+    assert "bedrock-sonnet" in names
+    assert "vertex-gemini" in names
+    # A region alone is not a credential.
+    assert "bedrock-unset" not in names
+
+
+def test_v2_model_info_configured_only_shrinks_total_count(client, auth_as, mixed_credential_router):
+    """The filter must run before the count, or the table pages off a total including rows
+    it never renders."""
+    with auth_as():
+        response = client.get("/v2/model/info", params={"configured_only": "true"})
+    payload = response.json()
+    assert payload["total_count"] == 3
+    assert len(payload["data"]) == payload["total_count"]

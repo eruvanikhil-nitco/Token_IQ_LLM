@@ -65439,6 +65439,8 @@ export interface operations {
                 sortOrder?: string | null;
                 /** @description Omit auto-router deployments (litellm model prefixed `auto_router/`). They select among deployments rather than being deployments themselves, so a caller rendering a deployment list can leave them out. Defaults to false, so existing callers are unaffected */
                 exclude_auto_routers?: boolean | null;
+                /** @description Only return deployments carrying credentials someone supplied. Off by default: callers that manage or health-check deployments need the complete list. */
+                configured_only?: boolean | null;
             };
             header?: never;
             path?: never;

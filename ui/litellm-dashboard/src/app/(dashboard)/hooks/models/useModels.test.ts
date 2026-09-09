@@ -119,6 +119,9 @@ describe("useModelsInfo", () => {
       // every other consumer of this hook keeps seeing auto-routers.
       false,
       undefined,
+      // configured_only defaults off for the same reason: the health panel and the edit
+      // form need deployments that carry no credentials.
+      false,
     );
     expect(modelInfoCall).toHaveBeenCalledTimes(1);
   });
@@ -147,6 +150,9 @@ describe("useModelsInfo", () => {
       // every other consumer of this hook keeps seeing auto-routers.
       false,
       undefined,
+      // configured_only defaults off for the same reason: the health panel and the edit
+      // form need deployments that carry no credentials.
+      false,
     );
   });
 

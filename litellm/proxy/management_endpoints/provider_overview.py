@@ -196,8 +196,12 @@ def _usage_by_provider(usage_rows: Sequence[Mapping[str, object]]) -> Mapping[st
     }
 
 
-def _has_credentials(deployments: Sequence[Mapping[str, object]]) -> bool:
-    """Whether any deployment carries credentials someone deliberately supplied."""
+def has_credentials(deployments: Sequence[Mapping[str, object]]) -> bool:
+    """Whether any deployment carries credentials someone deliberately supplied.
+
+    Public because `/v2/model/info` filters on the same rule, and two definitions of
+    "configured" drifting apart would be worse than the coupling.
+    """
     return any(
         isinstance(params := deployment.get("litellm_params"), dict)
         and any(params.get(field) for field in _CREDENTIAL_FIELDS)
@@ -249,7 +253,7 @@ def build_provider_overview(
             provider=provider,
             models_configured=len(configured.get(provider, ())),
             models_in_catalogue=catalogue_counts.get(provider, 0),
-            has_credentials=_has_credentials(configured.get(provider, ())),
+            has_credentials=has_credentials(configured.get(provider, ())),
             is_configured=provider in configured,
             requests=usage.get(provider, _ProviderUsage()).requests,
             spend=round(usage.get(provider, _ProviderUsage()).spend, 8),

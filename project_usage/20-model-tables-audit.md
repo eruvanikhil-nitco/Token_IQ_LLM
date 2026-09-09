@@ -1,7 +1,7 @@
 # Auditing the three model tables
 
-> **Status: FIXED (AI Hub), UNCHANGED (Models + Endpoints), plus a credential-rule fix that
-> affects every surface.** No code removed.
+> **Status: FIXED (all three tables), plus a credential-rule fix that affects every
+> surface.** No code removed.
 
 ## The three tables and what each asks
 
@@ -9,7 +9,7 @@
 |---|---|---|---|
 | AI Hub > Model Hub | `/model_group/info` | what can I call | yes |
 | Providers > Models | `/model_group/info` | what does this provider serve | yes |
-| Models + Endpoints > All Models | `/v2/model/info` | what is deployed on this proxy | no |
+| Models + Endpoints > All Models | `/v2/model/info` | what is deployed on this proxy | yes, opt-in |
 
 All three showed 42 models, the two configured through the Admin UI plus the 40 samples that
 ship in `dev_config.yaml` pointing at `os.environ` placeholders for variables nobody set.
@@ -45,17 +45,43 @@ The public hub is deliberately left unfiltered. It has no token to ask `/provide
 with, so the provider list stays undefined and everything is shown. Failing open beats
 blanking a page because a request could not be made.
 
-## Models + Endpoints was deliberately left alone
+## Models + Endpoints, filtered through an opt-in flag
 
-This is the last surface that reports what the proxy actually holds. Filtering it would mean
-40 deployments loaded in the router with nothing anywhere in the UI admitting they exist,
-which is the same class of bug as the one fixed in change 19, where traffic was recorded and
-the page showed zero.
+Two things made this one different from the other tables.
 
-Worth knowing: those rows are already read-only there. `/model/delete` refuses anything not
-in `LiteLLM_ProxyModelTable`, so a config-file model can be seen but not edited or removed
-from the UI. Hiding them would therefore cost visibility without gaining any real management
-capability. If they should go, the fix is a config that does not load them.
+**The rows are paginated server-side.** A client-side filter would leave `total_count` and
+the page numbers describing rows the table never renders, the same defect the
+`exclude_auto_routers` tests already pin. The filter had to be server-side.
+
+**The credentials are gone by the time the handler assembles its output.**
+`_enrich_model_info_with_litellm_data` calls `remove_sensitive_info_from_deployment`, which
+strips `api_key` and the Vertex credentials, so a filter placed next to
+`exclude_auto_routers` near the end of the handler would have seen nothing to test and
+dropped every row. It runs immediately after `copy.deepcopy(llm_router.model_list)` instead,
+on the raw list.
+
+`configured_only` is a query parameter defaulting to false, matching how `user_models_only`
+and `exclude_auto_routers` already work on that endpoint. Only the All Models table passes
+it. Every other caller, the health panel, the edit form, the auto-router lookup and the CLI,
+keeps the complete list, which is what made this safe to do at all: the original objection
+was that filtering the config surface would leave deployments loaded with nothing in the UI
+admitting they exist, and an opt-in flag means the endpoint still tells the truth to anyone
+who asks plainly.
+
+Live:
+
+```
+/v2/model/info?size=100                        total_count 42
+/v2/model/info?size=100&configured_only=true   total_count 2
+```
+
+`has_credentials` moved from private to public in `provider_overview.py` so both surfaces
+share one definition of "configured". Two definitions drifting apart would be worse than the
+coupling.
+
+Worth knowing regardless: those config rows are read-only in that table. `/model/delete`
+refuses anything not in `LiteLLM_ProxyModelTable`, so a config-file model could be seen but
+never edited or removed from the UI. Hiding them costs no management capability.
 
 ## Where the filter did not go
 
@@ -80,9 +106,14 @@ the Providers page.
 
 ## Tests
 
-Backend goes to 17. Frontend: 6 new for the moved helper, 2 for AI Hub. 153 pass across the
-affected suites. Mutation-checked: bypassing the AI Hub memo kills its hiding test, and
-short-circuiting the helper kills the Providers one.
+Backend goes to 17 in `test_provider_overview.py`, plus 4 in `test_routes_model_info.py`
+covering the new parameter: off by default, AWS and Vertex auth counted, a region alone not,
+and `total_count` shrinking with the filter. Frontend: 6 new for the moved helper, 2 for AI
+Hub, 1 for the All Models opt-in. 241 pass in the models-and-endpoints suites.
+
+Mutation-checked throughout: bypassing the AI Hub memo kills its hiding test, short-circuiting
+the helper kills the Providers one, disabling `configured_only` in the handler kills three
+backend tests, and flipping the table's opt-in to false kills the UI one.
 
 Two AI Hub tests were passing for the wrong reason before this. Nothing in that file asserted
 a model row renders, so the table could have been empty and the suite would not have noticed.
