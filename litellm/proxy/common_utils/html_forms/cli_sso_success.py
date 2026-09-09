@@ -1,6 +1,6 @@
 from typing import Final
 
-from litellm.proxy.common_utils.banner import LITELLM_BANNER
+from litellm.proxy.common_utils.banner import TOKEN_IQ_BANNER
 
 
 def render_cli_sso_success_page() -> str:
@@ -156,7 +156,7 @@ def render_cli_sso_success_page() -> str:
                 </div>
             </div>
             
-            <div class="banner">{LITELLM_BANNER}</div>
+            <div class="banner">{TOKEN_IQ_BANNER}</div>
             
             <h1>Authentication Successful!</h1>
             <p class="subtitle">Your CLI authentication is complete.</p>

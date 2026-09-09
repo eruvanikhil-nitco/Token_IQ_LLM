@@ -182,43 +182,13 @@ try:
 except ImportError as e:
     raise ImportError(f"Missing dependency {e}. Run `pip install 'litellm[proxy]'`")
 
-list_of_messages: Final = [
-    "'The thing I wish you improved is...'",
-    "'A feature I really want is...'",
-    "'The worst thing about this product is...'",
-    "'This product would be better if...'",
-    "'I don't like how this works...'",
-    "'It would help me if you could add...'",
-    "'This feature doesn't meet my needs because...'",
-    "'I get frustrated when the product...'",
-]
-
 
 def generate_feedback_box():
-    box_width: Final = 60
+    """Kept as a no-op so the call site and LITELLM_DONT_SHOW_FEEDBACK_BOX still work.
 
-    # Select a random message
-    message: Final = random.choice(list_of_messages)
-
-    print()  # noqa: T201
-    print("\033[1;37m" + "#" + "-" * box_width + "#\033[0m")  # noqa: T201
-    print("\033[1;37m" + "#" + " " * box_width + "#\033[0m")  # noqa: T201
-    print("\033[1;37m" + f"# {message:^59} #\033[0m")  # noqa: T201
-    print(  # noqa: T201
-        "\033[1;37m" + "# {:^59} #\033[0m".format("https://github.com/BerriAI/litellm/issues/new")
-    )
-    print("\033[1;37m" + "#" + " " * box_width + "#\033[0m")  # noqa: T201
-    print("\033[1;37m" + "#" + "-" * box_width + "#\033[0m")  # noqa: T201
-    print()  # noqa: T201
-    print(" Thank you for using LiteLLM! - Krrish & Ishaan")  # noqa: T201
-    print()  # noqa: T201
-    print()  # noqa: T201
-    print()  # noqa: T201
-    print(  # noqa: T201
-        "\033[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new\033[0m"
-    )
-    print()  # noqa: T201
-    print()  # noqa: T201
+    Upstream printed a random prompt for feedback plus a link to BerriAI's issue tracker.
+    Neither belongs on the startup of a gateway someone else operates.
+    """
 
 
 import contextlib
