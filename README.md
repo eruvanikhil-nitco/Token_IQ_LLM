@@ -8,6 +8,36 @@ Built on [LiteLLM](https://github.com/BerriAI/litellm), which does the provider 
 Token IQ is a fork that removes the parts of that gateway which alter a request or silently
 change where it goes.
 
+```mermaid
+flowchart LR
+    A1["Sales app"]
+    A2["Support bot"]
+    A3["Internal tools"]
+
+    subgraph gateway ["Token IQ"]
+        direction TB
+        AUTH["Verify virtual key<br/>SHA-256 lookup"]
+        CHECK["Apply key and team limits<br/>models, budget, rate"]
+        FWD["Forward request<br/>unchanged"]
+        AUTH --> CHECK --> FWD
+    end
+
+    P1["OpenRouter"]
+    P2["Anthropic"]
+    P3["Bedrock"]
+
+    DB[("Postgres<br/>keys, teams, spend")]
+
+    A1 --> AUTH
+    A2 --> AUTH
+    A3 --> AUTH
+    FWD --> P1
+    FWD --> P2
+    FWD --> P3
+    AUTH -.-> DB
+    FWD -.-> DB
+```
+
 ## What observer-only means here
 
 A gateway that quietly retries against a different provider, falls back to a cheaper model, or
@@ -28,6 +58,28 @@ receives is not the one their chosen provider produced. Token IQ closes those pa
   the request and billed for it.
 
 Enterprise-gated features are removed rather than shown as upsells.
+
+The path a single request takes:
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant T as Token IQ
+    participant P as Provider
+    participant D as Postgres
+
+    C->>T: POST /v1/chat/completions<br/>Authorization: Bearer sk-...
+    T->>D: look up SHA-256 of the key
+    D-->>T: models, budget, rate limits, team
+    Note over T: refuse if expired, blocked,<br/>over budget, or model not allowed
+    T->>P: the same request, unchanged
+    P-->>T: the provider's response
+    T-->>C: the same response, unchanged
+    T->>D: record spend, batched
+```
+
+On a 429, 502, 503, 504 or a connection failure, Token IQ retries the arrow back to the same
+provider. There is no second arrow to somewhere else.
 
 ## Requirements
 
