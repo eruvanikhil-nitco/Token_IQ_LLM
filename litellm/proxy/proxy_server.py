@@ -848,24 +848,17 @@ else:
 ui_link: Final = f"{server_root_path}/ui"
 fallback_login_link: Final = f"{server_root_path}/fallback/login"
 model_hub_link: Final = f"{server_root_path}/ui/model_hub_table"
-ui_message = f"👉 [```LiteLLM Admin Panel on /ui```]({ui_link}). Create, Edit Keys with SSO. Having issues? Try [```Fallback Login```]({fallback_login_link})"
-ui_message += "\n\n💸 [```LiteLLM Model Cost Map```](https://models.litellm.ai/)."
+ui_message = f"\U0001f449 [```Admin Panel on /ui```]({ui_link}). Create and edit keys. Having issues? Try [```Fallback Login```]({fallback_login_link})"
 
-ui_message += f"\n\n🔎 [```LiteLLM Model Hub```]({model_hub_link}). See available models on the proxy. [**Docs**](https://docs.litellm.ai/docs/proxy/ai_hub)"
+ui_message += f"\n\n\U0001f50e [```Model Hub```]({model_hub_link}). See the models available on this gateway."
 
-custom_swagger_message: Final = (
-    "[**Customize Swagger Docs**](https://docs.litellm.ai/docs/proxy/enterprise#swagger-docs---custom-routes--branding)"
-)
-
-### CUSTOM BRANDING [ENTERPRISE FEATURE] ###
-_title: Final = os.getenv("DOCS_TITLE", "LiteLLM API") if premium_user else "LiteLLM API"
-_description: Final = (
-    os.getenv(
-        "DOCS_DESCRIPTION",
-        f"Enterprise Edition \n\nProxy Server to call 100+ LLMs in the OpenAI format. {custom_swagger_message}\n\n{ui_message}",
-    )
-    if premium_user
-    else f"Proxy Server to call 100+ LLMs in the OpenAI format. {custom_swagger_message}\n\n{ui_message}"
+### BRANDING ###
+# Honoured for every deployment rather than premium ones only: the docs page at / is the
+# first thing a client of this gateway sees, and it should carry the operator's name.
+_title: Final = os.getenv("DOCS_TITLE", "Token IQ API")
+_description: Final = os.getenv(
+    "DOCS_DESCRIPTION",
+    f"Gateway for calling LLM providers in the OpenAI format.\n\n{ui_message}",
 )
 
 

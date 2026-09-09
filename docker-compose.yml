@@ -38,7 +38,7 @@ services:
   db:
     image: postgres:16
     restart: always
-    container_name: litellm_db
+    container_name: tokeniq_db
     environment:
       POSTGRES_DB: litellm
       POSTGRES_USER: llmproxy

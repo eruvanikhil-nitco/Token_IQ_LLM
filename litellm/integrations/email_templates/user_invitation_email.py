@@ -10,7 +10,7 @@ USER_INVITATION_EMAIL_TEMPLATE: Final = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to LiteLLM</title>
+    <title>Welcome to Token IQ</title>
     <style>
         body, html {{
             margin: 0;
@@ -117,17 +117,17 @@ USER_INVITATION_EMAIL_TEMPLATE: Final = """
 <body>
     <div class="container">
         <div class="logo">
-            <img src="{email_logo_url}" alt="LiteLLM Logo" style="height: 32px; width: auto;">
+            <img src="{email_logo_url}" alt="Token IQ Logo" style="height: 32px; width: auto;">
         </div>
         <div class="content">
-            <h1>Welcome to LiteLLM</h1>
+            <h1>Welcome to Token IQ</h1>
 
             <div class="greeting">
                 <p>Hi {recipient_email},</p>
             </div>
             
             <div class="intro-text">
-                <p>LiteLLM allows you to call 100+ LLM providers in the OpenAI API format. Get started by accepting your invitation.</p>
+                <p>Token IQ lets you call your organisation's LLM providers through one OpenAI-compatible endpoint. Get started by accepting your invitation.</p>
             </div>
 
             <div class="btn-container">
@@ -154,7 +154,7 @@ USER_INVITATION_EMAIL_TEMPLATE: Final = """
                 <span class="arrow"></span>
             </a>
             
-            <p>View all supported LLM endpoints on LiteLLM (/chat/completions, /embeddings, /responses etc.)</p>
+            <p>View all supported LLM endpoints on Token IQ (/chat/completions, /embeddings, /responses etc.)</p>
             
             <div class="divider"></div>
             

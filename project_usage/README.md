@@ -38,6 +38,7 @@ bounds.
 | 18 | Organization field in create key | REMOVED the dropdown, its team filter and its payload key |
 | 19 | Observed providers and models | FIXED dropped traffic; page now lists only providers the client set up; store_model_in_db added |
 | 20 | The three model tables | FIXED all three to show only what the gateway can serve; broadened the credential rule beyond api_key |
+| 21 | Client-facing rebrand | CHANGED docs page, public hub, login and every user email to Token IQ; identifiers untouched |
 
 ## The unified translation layer
 
