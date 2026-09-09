@@ -5,10 +5,12 @@ import ProviderModelsTable from "./ProviderModelsTable";
 
 const mockModelHubCall = vi.hoisted(() => vi.fn());
 const mockProviderModelUsageCall = vi.hoisted(() => vi.fn());
+const mockProviderOverviewCall = vi.hoisted(() => vi.fn());
 
 vi.mock("@/components/networking", () => ({
   modelHubCall: mockModelHubCall,
   providerModelUsageCall: mockProviderModelUsageCall,
+  providerOverviewCall: mockProviderOverviewCall,
   getProxyBaseUrl: vi.fn(() => "http://localhost:4000"),
 }));
 
@@ -56,6 +58,36 @@ const usage = {
   ],
 };
 
+const overview = {
+  total_providers: 2,
+  total_models: 2,
+  total_requests: 0,
+  total_spend: 0,
+  rollup_days: 2,
+  providers: [
+    {
+      provider: "openrouter",
+      models_configured: 1,
+      models_in_catalogue: 260,
+      has_credentials: true,
+      is_configured: true,
+      requests: 17,
+      spend: 0.0057425,
+      last_used: "2026-09-08",
+    },
+    {
+      provider: "anthropic",
+      models_configured: 1,
+      models_in_catalogue: 28,
+      has_credentials: true,
+      is_configured: true,
+      requests: 0,
+      spend: 0,
+      last_used: null,
+    },
+  ],
+};
+
 describe("ProviderModelsTable", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -64,6 +96,7 @@ describe("ProviderModelsTable", () => {
     testQueryClient.clear();
     mockModelHubCall.mockResolvedValue({ data: models });
     mockProviderModelUsageCall.mockResolvedValue(usage);
+    mockProviderOverviewCall.mockResolvedValue(overview);
   });
 
   it("lists every model when no provider is selected", async () => {
@@ -174,6 +207,19 @@ describe("ProviderModelsTable", () => {
 
     await screen.findByText("anthropic/claude-haiku");
     expect(screen.queryByText("openrouter/openai/gpt-4o-mini")).not.toBeInTheDocument();
+  });
+
+  it("leaves out a model whose provider the overview does not list", async () => {
+    mockModelHubCall.mockResolvedValue({
+      data: [...models, { ...models[1], model_group: "bedrock/claude-sonnet", providers: ["bedrock"] }],
+    });
+
+    renderWithProviders(<ProviderModelsTable accessToken="tok" selectedProvider={null} />);
+
+    // bedrock ships in the sample config with no usable key, so the overview drops it and
+    // the model table must not reintroduce it.
+    expect(await screen.findByText("openrouter/openai/gpt-4o")).toBeInTheDocument();
+    expect(screen.queryByText("bedrock/claude-sonnet")).not.toBeInTheDocument();
   });
 
   it("names the filtered provider when it has no models", async () => {

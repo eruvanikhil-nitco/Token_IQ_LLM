@@ -169,6 +169,19 @@ def _usage_by_provider(usage_rows: Sequence[Mapping[str, object]]) -> Mapping[st
     }
 
 
+def _is_set_up(row: ProviderRow) -> bool:
+    """Whether the client actually set this provider up.
+
+    A key is the positive signal. Recorded traffic is the other one: a provider that
+    served requests was plainly configured at the time, and hiding it now would drop real
+    spend out of the totals above the table.
+
+    Everything else is a deployment nobody can call, which is what a sample config full of
+    `os.environ/...` placeholders for unset variables leaves behind.
+    """
+    return row.has_credentials or row.requests > 0 or row.last_used is not None
+
+
 def build_provider_overview(
     *,
     model_list: Sequence[Mapping[str, object]],
@@ -176,6 +189,10 @@ def build_provider_overview(
     last_used_by_provider: Mapping[str, str] = MappingProxyType({}),
 ) -> ProviderOverviewResponse:
     """Merge configured deployments, the catalogue and recent usage into one table.
+
+    Only providers this gateway is actually set up for are listed: see `_is_set_up`. A
+    config file that ships example deployments pointing at unset environment variables
+    would otherwise fill the page with providers nobody configured and nothing can call.
 
     A provider that served traffic but has no deployment left still gets a row, flagged
     `is_configured=False`. Dropping it would hide real spend from the totals, which is the
@@ -191,7 +208,7 @@ def build_provider_overview(
     configured: Final = _configured_by_provider(model_list)
     usage: Final = _usage_by_provider(usage_rows)
 
-    rows: Final = tuple(
+    candidates: Final = tuple(
         ProviderRow(
             provider=provider,
             models_configured=len(configured.get(provider, ())),
@@ -207,6 +224,8 @@ def build_provider_overview(
         )
         for provider in sorted(configured.keys() | usage.keys())
     )
+
+    rows: Final = tuple(row for row in candidates if _is_set_up(row))
 
     return ProviderOverviewResponse(
         total_providers=len(rows),

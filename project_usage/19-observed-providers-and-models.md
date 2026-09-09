@@ -63,6 +63,38 @@ false, so it was silently inert. It is gone: the untyped `dict[str, object]` acc
 was papering over is now a frozen `_ProviderUsage` dataclass, and both rollups are built in
 one shot with `itertools.groupby` instead of seeding an empty dict and mutating it.
 
+## Only providers the client set up
+
+`dev_config.yaml` ships 40 sample deployments across six providers, every one pointing at an
+`os.environ/...` placeholder for a variable nobody set, so none of them can serve a request.
+They filled the Providers page with providers nobody configured.
+
+`_is_set_up` now decides what the page lists. A resolved API key is the positive signal.
+Recorded traffic is the other one, because a provider that served requests was plainly
+configured at the time, and dropping it would take real spend out of the totals, undoing the
+fix above. Everything else is a deployment nobody can call.
+
+Live, that takes the page from seven providers and 42 models to one and two:
+
+```
+providers 1 | models 2 | requests 12 | spend 0.0010225
+  openrouter   models=2 creds=True reqs=12 last_used=2026-09-08
+```
+
+The Models sub-tab follows the same rule through `filterModelsByVisibleProviders`, keyed off
+the providers the overview returns. It reuses the overview's react-query cache rather than
+fetching a third time, since the page filter and the Overview tab already share that key.
+Observed-only rows are exempt: they exist because traffic happened, and the daily table
+sometimes records a model group with no provider to match on.
+
+The alternatives considered were filtering on `model_info.db_model`, which is true only for
+models added through the Admin UI, and not loading the samples at all. Credentials won
+because the source of a model should not decide whether it is real: a model added through a
+production config file with a working key is as configured as one added through the UI.
+
+The samples are still in the router and still callable. This filters the page, not the
+proxy. If that gap matters, the fix is a config without them rather than a wider filter.
+
 ## Honest limits
 
 A provider whose only traffic predates the rollup window still shows `requests=0`, correctly,
@@ -76,12 +108,17 @@ They still appear in the Models tab, attributed to a model with an empty provide
 
 ## Tests
 
-11 new backend tests in `tests/test_litellm/proxy/management_endpoints/test_provider_overview.py`,
+14 new backend tests in `tests/test_litellm/proxy/management_endpoints/test_provider_overview.py`,
 which had no mapped test file before. Mutation-checked: reverting the row union kills three,
-zeroing `last_used` kills one, and dropping the provider attribution kills two.
+zeroing `last_used` kills one, dropping the provider attribution kills two, and making
+`_is_set_up` always true kills one.
 
-Frontend goes from 30 to 39. Mutation-checked: making `observedOnlyModels` return nothing
-kills three across all three files, and never rendering the "Not configured" badge kills one.
+Frontend goes from 30 to 40. Mutation-checked: making `observedOnlyModels` return nothing
+kills three across all three files, never rendering the "Not configured" badge kills one, and
+short-circuiting `filterModelsByVisibleProviders` kills one.
+
+Two tests guard the exemptions that keep the filter from undoing the fix above: a keyless
+provider that served traffic, and one whose traffic predates the window, both stay listed.
 
 ## How to restore
 

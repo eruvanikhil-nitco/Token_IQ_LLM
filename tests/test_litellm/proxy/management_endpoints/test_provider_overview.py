@@ -13,7 +13,7 @@ def _deployment(model: str, api_key: str | None = None) -> dict[str, object]:
 
 def test_a_provider_with_traffic_but_no_deployment_still_gets_a_row() -> None:
     result = build_provider_overview(
-        model_list=[_deployment("anthropic/claude-haiku")],
+        model_list=[_deployment("anthropic/claude-haiku", api_key="sk-test")],
         usage_rows=[{"custom_llm_provider": "openrouter", "api_requests": 24, "spend": 0.00642}],
     )
 
@@ -27,7 +27,7 @@ def test_a_provider_with_traffic_but_no_deployment_still_gets_a_row() -> None:
 
 def test_traffic_from_an_unconfigured_provider_reaches_the_totals() -> None:
     result = build_provider_overview(
-        model_list=[_deployment("anthropic/claude-haiku")],
+        model_list=[_deployment("anthropic/claude-haiku", api_key="sk-test")],
         usage_rows=[
             {"custom_llm_provider": "openrouter", "api_requests": 24, "spend": 0.00642},
             {"custom_llm_provider": "anthropic", "api_requests": 10, "spend": 0.00038},
@@ -57,7 +57,7 @@ def test_a_configured_provider_with_no_traffic_is_still_listed() -> None:
 
 def test_last_used_comes_from_full_history_not_the_rollup_window() -> None:
     result = build_provider_overview(
-        model_list=[_deployment("openai/gpt-4")],
+        model_list=[_deployment("openai/gpt-4", api_key="sk-test")],
         usage_rows=[],
         last_used_by_provider={"openai": "2026-08-02"},
     )
@@ -70,7 +70,7 @@ def test_last_used_comes_from_full_history_not_the_rollup_window() -> None:
 
 def test_a_provider_never_used_reports_no_date() -> None:
     result = build_provider_overview(
-        model_list=[_deployment("openai/gpt-4")],
+        model_list=[_deployment("openai/gpt-4", api_key="sk-test")],
         usage_rows=[],
         last_used_by_provider={"anthropic": "2026-08-02"},
     )
@@ -80,7 +80,7 @@ def test_a_provider_never_used_reports_no_date() -> None:
 
 def test_rows_with_no_provider_are_left_out_of_the_totals() -> None:
     result = build_provider_overview(
-        model_list=[_deployment("openai/gpt-4")],
+        model_list=[_deployment("openai/gpt-4", api_key="sk-test")],
         usage_rows=[
             {"custom_llm_provider": None, "api_requests": 8, "spend": 0.0},
             {"custom_llm_provider": "", "api_requests": 3, "spend": 0.0},
@@ -95,7 +95,7 @@ def test_rows_with_no_provider_are_left_out_of_the_totals() -> None:
 
 def test_requests_and_spend_accumulate_across_days_for_one_provider() -> None:
     result = build_provider_overview(
-        model_list=[_deployment("openai/gpt-4")],
+        model_list=[_deployment("openai/gpt-4", api_key="sk-test")],
         usage_rows=[
             {"custom_llm_provider": "openai", "api_requests": 2, "spend": 0.25},
             {"custom_llm_provider": "openai", "api_requests": 3, "spend": 0.5},
@@ -104,6 +104,45 @@ def test_requests_and_spend_accumulate_across_days_for_one_provider() -> None:
 
     assert result.providers[0].requests == 5
     assert result.providers[0].spend == 0.75
+
+
+def test_a_deployment_with_no_key_and_no_traffic_is_left_off_the_page() -> None:
+    result = build_provider_overview(
+        model_list=[
+            _deployment("anthropic/claude-haiku"),
+            _deployment("bedrock/claude-sonnet"),
+            _deployment("openrouter/openai/gpt-4o", api_key="sk-test"),
+        ],
+        usage_rows=[],
+    )
+
+    # A sample config points at os.environ placeholders for variables nobody set. Those
+    # deployments cannot serve a request, so listing them describes a gateway that is not
+    # there.
+    assert [row.provider for row in result.providers] == ["openrouter"]
+    assert result.total_providers == 1
+    assert result.total_models == 1
+
+
+def test_a_keyless_provider_that_served_traffic_is_kept() -> None:
+    result = build_provider_overview(
+        model_list=[_deployment("openai/gpt-4")],
+        usage_rows=[{"custom_llm_provider": "openai", "api_requests": 3, "spend": 0.4}],
+    )
+
+    # The key may have been removed since, but the requests happened and the spend is real.
+    assert [row.provider for row in result.providers] == ["openai"]
+    assert result.total_requests == 3
+
+
+def test_a_keyless_provider_used_before_the_window_is_kept() -> None:
+    result = build_provider_overview(
+        model_list=[_deployment("openai/gpt-4")],
+        usage_rows=[],
+        last_used_by_provider={"openai": "2026-08-02"},
+    )
+
+    assert [row.provider for row in result.providers] == ["openai"]
 
 
 def test_a_model_carries_the_provider_that_served_it() -> None:

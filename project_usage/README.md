@@ -36,7 +36,7 @@ bounds.
 | 16 | Providers tab | ADDED page + endpoints; Tools, Default Organization, community links REMOVED |
 | 17 | Base URL in key creation | ADDED base URL to the Virtual Keys header and the save dialog, plus a ready-to-paste example |
 | 18 | Organization field in create key | REMOVED the dropdown, its team filter and its payload key |
-| 19 | Observed providers and models | FIXED providers with traffic but no deployment being dropped; store_model_in_db added |
+| 19 | Observed providers and models | FIXED dropped traffic; page now lists only providers the client set up; store_model_in_db added |
 
 ## The unified translation layer
 

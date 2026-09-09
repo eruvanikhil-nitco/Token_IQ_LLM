@@ -5,17 +5,19 @@ import type { ColumnDef, SortingState } from "@tanstack/react-table";
 import { useQuery } from "@tanstack/react-query";
 import { getModelHubTableColumns, type ModelHubData } from "@/components/AIHub/ModelHubTableColumns";
 import { DataTable, DataTableSortHeader } from "@/components/shared/DataTable";
-import { modelHubCall, providerModelUsageCall } from "@/components/networking";
+import { modelHubCall, providerModelUsageCall, providerOverviewCall } from "@/components/networking";
 import ModelHubDetailsDialog from "@/components/AIHub/ModelHubDetailsDialog";
 import { Badge } from "@/components/ui/badge";
 import {
   filterModelsByProvider,
+  filterModelsByVisibleProviders,
   hasUsage,
   indexUsageByModel,
   isObservedOnly,
   observedOnlyModels,
   type ModelUsageRow,
 } from "./selectors";
+import type { ProviderOverviewResponse } from "./types";
 
 interface ProviderModelsTableProps {
   accessToken: string | null;
@@ -53,6 +55,14 @@ const ProviderModelsTable: React.FC<ProviderModelsTableProps> = ({ accessToken, 
   const { data, isLoading } = useQuery<ModelHubData[]>({
     queryKey: ["providers", "model-hub"],
     queryFn: async () => (await modelHubCall(accessToken as string)).data,
+    enabled: Boolean(accessToken),
+  });
+
+  // Same query key as the Overview tab and the page filter, so this reads their cache
+  // rather than fetching a third time.
+  const { data: overview } = useQuery<ProviderOverviewResponse>({
+    queryKey: ["providers", "overview"],
+    queryFn: () => providerOverviewCall(accessToken as string),
     enabled: Boolean(accessToken),
   });
 
@@ -103,11 +113,13 @@ const ProviderModelsTable: React.FC<ProviderModelsTableProps> = ({ accessToken, 
 
   const rows = useMemo(() => {
     const configured = data ?? [];
-    return filterModelsByProvider(
-      [...configured, ...observedOnlyModels(configured, usage?.usage ?? [])],
-      selectedProvider,
+    const all = [...configured, ...observedOnlyModels(configured, usage?.usage ?? [])];
+    const setUp = filterModelsByVisibleProviders(
+      all,
+      overview?.providers.map((row) => row.provider),
     );
-  }, [data, usage, selectedProvider]);
+    return filterModelsByProvider(setUp, selectedProvider);
+  }, [data, usage, overview, selectedProvider]);
 
   return (
     <div className="flex flex-col gap-3">
