@@ -47,7 +47,7 @@ const SessionManagement: React.FC<SessionManagementProps> = ({
   const getSessionDescription = () => {
     if (!responsesSessionId) {
       return useApiSessionManagement
-        ? "LiteLLM will manage session using previous_response_id"
+        ? "Token IQ will manage session using previous_response_id"
         : "UI will manage session using chat history";
     }
 

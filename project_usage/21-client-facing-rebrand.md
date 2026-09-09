@@ -1,6 +1,6 @@
 # Rebranding what a client actually sees
 
-> **Status: CHANGED (copy only).** No identifiers renamed. Pass one of two.
+> **Status: CHANGED (copy only).** No identifiers renamed. Both passes.
 
 ## Why not rename everything
 
@@ -68,17 +68,52 @@ a logo URL is not a decision to make on someone's behalf. Both are overridable w
 set `EMAIL_LOGO_URL` (or `SMTP_SENDER_LOGO`) and `EMAIL_SUPPORT_CONTACT`. Do it before
 inviting anyone.
 
-## Pass two, not done
+## Pass two: the admin dashboard
 
-370 mentions remain in the admin dashboard, splitting cleanly:
+86 replacements across 24 files, all of them copy where LiteLLM meant *this gateway*: the
+login page, the MCP connect tab and its cURL examples, the transform-request explainer, the
+model-name hints on Add Model, the agent card discovery text, the cache-control hints, the
+UI theme page, and the pricing calculator export footer.
 
-- **189 are links to `docs.litellm.ai`**, which are real, working documentation. Rebranding
-  the surrounding text while the link still goes to LiteLLM would read worse than leaving it.
-- **181 are visible copy**, mostly on features not in use here: guardrails, caching, MCP
-  servers, agents, prompt compression.
+**The login page was missed in pass one.** `OnboardingFormBody.tsx` is the invitation-accept
+screen; `app/login/LoginPage.tsx` is the actual sign-in page, and it still showed `🚅 LiteLLM`
+twice plus "Access your LiteLLM Admin UI". Two files, similar names, and only one of them is
+what a person sees when they log in.
 
-Some of those should stay. "LiteLLM Content Filter" names LiteLLM's own guardrail, and
-renaming it claims authorship of someone else's work.
+### What was deliberately left alone
+
+**LiteLLM's own product names.** "LiteLLM Content Filter", "LiteLLM LLM as a Judge",
+"LiteLLM Built-in", "a native LiteLLM guardrail", "a LiteLLM Enterprise feature". Renaming
+these would claim authorship of someone else's work, and the guardrail garden genuinely lists
+LiteLLM's built-in guardrails alongside partner ones.
+
+**Links to `docs.litellm.ai`** and their link text, 189 of them. They point at real, working
+documentation. Rebranding the words while the link still goes to LiteLLM reads worse than
+leaving it honest.
+
+**"LiteLLM Params" and "LiteLLM Parameters"** as field labels. They label the `litellm_params`
+config key, which is not being renamed. A label that no longer matches the key the user has to
+type in `config.yaml` would be actively misleading.
+
+**`LiteLLM_TableName` type names**, which mirror the database tables, and every identifier.
+
+### Grammar the sweep broke, and the fix
+
+Replacing "LiteLLM proxy" with "Token IQ" leaves the article dangling: "used by the Token IQ
+itself", "an API call to the Token IQ with", "emitted by the Token IQ during". Three of those
+were caught by reading the diff rather than trusting the replacement. A blind sweep would have
+shipped them.
+
+`schema.d.ts` also picked up 24 replacements before being reverted: it is generated from the
+OpenAPI spec and must never be hand-edited, and those descriptions come from backend docstrings
+that regeneration will carry across properly.
+
+### Tests that pinned the old copy
+
+Three failed, all of them correct failures rather than breakage: two asserting the cache-control
+role hint verbatim, one selecting a tab by the accessible name "LiteLLM Proxy". Updated to the
+new strings. `TeamGuardrailsTab.test.tsx` was already in sync because the sweep covered test
+files too, which is right for assertions on visible labels.
 
 ## How to restore
 

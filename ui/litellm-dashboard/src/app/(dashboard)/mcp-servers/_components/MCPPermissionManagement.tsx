@@ -199,7 +199,7 @@ const MCPPermissionManagement: React.FC<MCPPermissionManagementProps> = ({
           <div className="flex items-start justify-between gap-4">
             <div>
               <span className="text-sm font-medium text-foreground flex items-center">
-                Allow All LiteLLM Keys
+                Allow All Token IQ Keys
                 <SimpleTooltip content="When enabled, every API key can access this MCP server.">
                   <Info className="ml-2 size-4 text-info hover:text-info/80 cursor-help" />
                 </SimpleTooltip>
@@ -209,7 +209,7 @@ const MCPPermissionManagement: React.FC<MCPPermissionManagementProps> = ({
               </p>
             </div>
             <MountedFormField name="allow_all_keys" defaultValue={mcpServer?.allow_all_keys ?? false} className="mb-0">
-              {(control) => <Switch aria-label="Allow All LiteLLM Keys" {...switchControl(control)} />}
+              {(control) => <Switch aria-label="Allow All Token IQ Keys" {...switchControl(control)} />}
             </MountedFormField>
           </div>
 

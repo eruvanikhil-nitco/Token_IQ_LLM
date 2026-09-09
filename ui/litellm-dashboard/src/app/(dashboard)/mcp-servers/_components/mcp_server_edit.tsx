@@ -307,7 +307,7 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
         };
         setToken(mcpServer.server_id, browserHeldToken, userID);
         toast.success(
-          "Token held for this browser session. Tools can now be loaded and configured; the token is not saved to LiteLLM.",
+          "Token held for this browser session. Tools can now be loaded and configured; the token is not saved to Token IQ.",
         );
         return;
       }
@@ -890,7 +890,7 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
                   label={
                     <span className="text-sm font-medium text-foreground flex items-center">
                       Max Concurrent Requests (optional)
-                      <SimpleTooltip content="Maximum number of tool calls LiteLLM will run against this server at the same time. Additional calls wait for a free slot. Leave blank for no limit.">
+                      <SimpleTooltip content="Maximum number of tool calls Token IQ will run against this server at the same time. Additional calls wait for a free slot. Leave blank for no limit.">
                         <Info className="ml-2 size-4 text-info hover:text-info/80 cursor-help" />
                       </SimpleTooltip>
                     </span>
@@ -1171,7 +1171,7 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
                       label={
                         <span className="text-sm font-medium text-foreground flex items-center">
                           AWS Role ARN
-                          <SimpleTooltip content="Optional. IAM role ARN to assume via STS before signing. If set, LiteLLM calls sts:AssumeRole to get temporary credentials.">
+                          <SimpleTooltip content="Optional. IAM role ARN to assume via STS before signing. If set, Token IQ calls sts:AssumeRole to get temporary credentials.">
                             <Info className="ml-2 size-4 text-info hover:text-info/80 cursor-help" />
                           </SimpleTooltip>
                         </span>

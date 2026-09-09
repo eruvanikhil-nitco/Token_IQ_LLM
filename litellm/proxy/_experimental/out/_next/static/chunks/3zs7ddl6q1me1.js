@@ -2,7 +2,7 @@
 
 client = openai.OpenAI(
     api_key="your_api_key",
-    base_url="${(0,_.getProxyBaseUrl)()}"  # Your LiteLLM Proxy URL
+    base_url="${(0,_.getProxyBaseUrl)()}"  # Your Token IQ URL
 )
 
 response = client.chat.completions.create(

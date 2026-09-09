@@ -154,7 +154,7 @@ const ModelHubDetailsDialog: React.FC<ModelHubDetailsDialogProps> = ({ selectedM
 
 client = openai.OpenAI(
     api_key="your_api_key",
-    base_url="${getProxyBaseUrl()}"  # Your LiteLLM Proxy URL
+    base_url="${getProxyBaseUrl()}"  # Your Token IQ URL
 )
 
 response = client.chat.completions.create(
