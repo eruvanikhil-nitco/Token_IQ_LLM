@@ -4,8 +4,8 @@ from litellm.proxy.management_endpoints.provider_overview import (
 )
 
 
-def _deployment(model: str, api_key: str | None = None) -> dict[str, object]:
-    params: dict[str, object] = {"model": model}
+def _deployment(model: str, api_key: str | None = None, **auth: object) -> dict[str, object]:
+    params: dict[str, object] = {"model": model, **auth}
     if api_key is not None:
         params["api_key"] = api_key
     return {"model_name": model, "litellm_params": params}
@@ -122,6 +122,37 @@ def test_a_deployment_with_no_key_and_no_traffic_is_left_off_the_page() -> None:
     assert [row.provider for row in result.providers] == ["openrouter"]
     assert result.total_providers == 1
     assert result.total_models == 1
+
+
+def test_aws_credentials_count_as_credentials() -> None:
+    result = build_provider_overview(
+        model_list=[_deployment("bedrock/claude-sonnet", aws_access_key_id="AKIA", aws_secret_access_key="x")],
+        usage_rows=[],
+    )
+
+    # Bedrock never carries an api_key. Requiring one would hide a working deployment.
+    assert [row.provider for row in result.providers] == ["bedrock"]
+    assert result.providers[0].has_credentials is True
+
+
+def test_vertex_credentials_count_as_credentials() -> None:
+    result = build_provider_overview(
+        model_list=[_deployment("vertex_ai/gemini-3-flash", vertex_credentials="{}")],
+        usage_rows=[],
+    )
+
+    assert [row.provider for row in result.providers] == ["vertex_ai"]
+
+
+def test_a_region_alone_is_not_a_credential() -> None:
+    result = build_provider_overview(
+        model_list=[_deployment("bedrock/claude-sonnet", aws_region_name="us-east-1")],
+        usage_rows=[],
+    )
+
+    # A region says where to call, not that anyone may. This is what the sample config
+    # leaves behind.
+    assert result.providers == []
 
 
 def test_a_keyless_provider_that_served_traffic_is_kept() -> None:

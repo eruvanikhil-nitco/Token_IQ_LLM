@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { isObservedOnly } from "@/utils/providerVisibility";
 import {
   filterModelsByProvider,
   filterProviderRows,
   hasUsage,
   indexUsageByModel,
-  isObservedOnly,
   observedOnlyModels,
   usageWindowLabel,
   type ModelUsageRow,

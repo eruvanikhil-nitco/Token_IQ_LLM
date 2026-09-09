@@ -19,6 +19,7 @@ import {
   getProxyBaseUrl,
   getUiConfig,
   modelHubCall,
+  providerOverviewCall,
   modelHubPublicModelsCall,
 } from "@/components/networking";
 import PublicModelHub from "@/components/public_model_hub";
@@ -35,6 +36,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Copy, Inbox, Search as SearchIcon, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { filterModelsByVisibleProviders } from "@/utils/providerVisibility";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { prism } from "react-syntax-highlighter/dist/esm/styles/prism";
 
@@ -76,6 +78,7 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({ accessToken, publicPage, 
   const [isPublicPageModalVisible, setIsPublicPageModalVisible] = useState(false);
   const [selectedModel, setSelectedModel] = useState<null | ModelHubData>(null);
   const [filteredData, setFilteredData] = useState<ModelHubData[]>([]);
+  const [setUpProviders, setSetUpProviders] = useState<string[] | undefined>(undefined);
   const [isMakePublicModalVisible, setIsMakePublicModalVisible] = useState(false);
   // Agent Hub state
   const [agentHubData, setAgentHubData] = useState<AgentHubData[] | null>(null);
@@ -363,6 +366,28 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({ accessToken, publicPage, 
     setFilteredData(newFilteredData);
   }, []);
 
+  // Which providers this gateway is actually set up for. A sample config can leave
+  // deployments pointing at unset environment variables, and offering a model nobody can
+  // call is worse here than anywhere else: this page exists to answer "what can I use".
+  // The public hub has no token to ask with, so it keeps showing everything.
+  useEffect(() => {
+    if (!accessToken || publicPage) return;
+    let cancelled = false;
+    providerOverviewCall(accessToken)
+      .then((overview) => {
+        if (!cancelled) setSetUpProviders(overview.providers.map((row: { provider: string }) => row.provider));
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [accessToken, publicPage]);
+
+  const setUpModels = useMemo(
+    () => filterModelsByVisibleProviders(modelHubData ?? [], setUpProviders),
+    [modelHubData, setUpProviders],
+  );
+
   const [modelSorting, setModelSorting] = useState<SortingState>([{ id: "model_group", desc: false }]);
   const [agentSorting, setAgentSorting] = useState<SortingState>([{ id: "name", desc: false }]);
   const [mcpSorting, setMcpSorting] = useState<SortingState>([{ id: "server_name", desc: false }]);
@@ -450,7 +475,7 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({ accessToken, publicPage, 
                   )}
 
                   {/* Filters */}
-                  <ModelFilters modelHubData={modelHubData || []} onFilteredDataChange={handleFilteredDataChange} />
+                  <ModelFilters modelHubData={setUpModels} onFilteredDataChange={handleFilteredDataChange} />
 
                   {/* Model Table */}
                   <DataTable
@@ -478,7 +503,7 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({ accessToken, publicPage, 
 
                 <div className="mt-4 text-center space-y-2">
                   <p className="text-sm text-muted-foreground">
-                    Showing {filteredData.length} of {modelHubData?.length || 0} models
+                    Showing {filteredData.length} of {setUpModels.length} models
                   </p>
                 </div>
               </TabsContent>

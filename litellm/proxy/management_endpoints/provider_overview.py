@@ -36,6 +36,33 @@ _ROLLUP_DAYS: Final = 2
 
 _COST_FIELDS: Final = ("input_cost_per_token", "output_cost_per_token")
 
+# Params that prove someone deliberately supplied credentials. `api_key` alone is not
+# enough: Bedrock, Vertex and Azure each authenticate their own way, and a deployment
+# configured with one of those is as set up as an OpenAI one with a key.
+#
+# Ambient credentials cannot appear here at all, because they are not in the model list:
+# an EC2 instance role or Google application default credentials leave litellm_params
+# holding nothing but a model name. Such a deployment is listed only once it has served
+# traffic, which `_is_set_up` treats as its own proof of being configured.
+_CREDENTIAL_FIELDS: Final = frozenset(
+    {
+        "api_key",
+        "aws_access_key_id",
+        "aws_secret_access_key",
+        "aws_role_name",
+        "aws_profile_name",
+        "aws_web_identity_token",
+        "aws_bedrock_runtime_endpoint",
+        "vertex_credentials",
+        "azure_ad_token",
+        "azure_ad_token_provider",
+        "azure_username",
+        "azure_password",
+        "tenant_id",
+        "client_secret",
+    }
+)
+
 _FEATURE_FIELDS: Final = MappingProxyType(
     {
         "supports_vision": "vision",
@@ -169,6 +196,15 @@ def _usage_by_provider(usage_rows: Sequence[Mapping[str, object]]) -> Mapping[st
     }
 
 
+def _has_credentials(deployments: Sequence[Mapping[str, object]]) -> bool:
+    """Whether any deployment carries credentials someone deliberately supplied."""
+    return any(
+        isinstance(params := deployment.get("litellm_params"), dict)
+        and any(params.get(field) for field in _CREDENTIAL_FIELDS)
+        for deployment in deployments
+    )
+
+
 def _is_set_up(row: ProviderRow) -> bool:
     """Whether the client actually set this provider up.
 
@@ -213,10 +249,7 @@ def build_provider_overview(
             provider=provider,
             models_configured=len(configured.get(provider, ())),
             models_in_catalogue=catalogue_counts.get(provider, 0),
-            has_credentials=any(
-                isinstance(params := deployment.get("litellm_params"), dict) and bool(params.get("api_key"))
-                for deployment in configured.get(provider, ())
-            ),
+            has_credentials=_has_credentials(configured.get(provider, ())),
             is_configured=provider in configured,
             requests=usage.get(provider, _ProviderUsage()).requests,
             spend=round(usage.get(provider, _ProviderUsage()).spend, 8),

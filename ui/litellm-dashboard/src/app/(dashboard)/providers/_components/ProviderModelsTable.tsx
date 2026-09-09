@@ -8,12 +8,11 @@ import { DataTable, DataTableSortHeader } from "@/components/shared/DataTable";
 import { modelHubCall, providerModelUsageCall, providerOverviewCall } from "@/components/networking";
 import ModelHubDetailsDialog from "@/components/AIHub/ModelHubDetailsDialog";
 import { Badge } from "@/components/ui/badge";
+import { filterModelsByVisibleProviders, isObservedOnly } from "@/utils/providerVisibility";
 import {
   filterModelsByProvider,
-  filterModelsByVisibleProviders,
   hasUsage,
   indexUsageByModel,
-  isObservedOnly,
   observedOnlyModels,
   type ModelUsageRow,
 } from "./selectors";

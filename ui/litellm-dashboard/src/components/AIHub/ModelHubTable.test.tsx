@@ -14,6 +14,7 @@ vi.mock("@/components/networking", () => ({
   getUiConfig: vi.fn(),
   modelHubPublicModelsCall: vi.fn(),
   modelHubCall: vi.fn(),
+  providerOverviewCall: vi.fn(),
   getConfigFieldSetting: vi.fn(),
   getProxyBaseUrl: vi.fn(() => "http://localhost:4000"),
   getAgentsList: vi.fn(),
@@ -49,6 +50,8 @@ describe("ModelHubTable", () => {
   const originalLocation = window.location;
 
   beforeEach(() => {
+    // A normal setup: the provider behind the fixture model carries credentials.
+    vi.mocked(networking.providerOverviewCall).mockResolvedValue({ providers: [{ provider: "anthropic" }] });
     Object.defineProperty(window, "location", {
       value: {
         href: "http://localhost:4000/ui/model_hub_table",
@@ -219,6 +222,23 @@ describe("ModelHubTable", () => {
       );
       return { user, search: await screen.findByPlaceholderText("Search model names...") };
     };
+
+    it("lists a model whose provider the gateway is set up for", async () => {
+      await renderHub();
+
+      expect(await screen.findByText("claude-opus-4-8")).toBeInTheDocument();
+    });
+
+    it("hides a model whose provider has no credentials and no traffic", async () => {
+      vi.mocked(networking.providerOverviewCall).mockResolvedValue({ providers: [{ provider: "openrouter" }] });
+
+      await renderHub();
+
+      // A sample config leaves anthropic deployments pointing at an unset environment
+      // variable. Offering one here would send someone to a model that cannot answer.
+      await screen.findByPlaceholderText("Search model names...");
+      expect(screen.queryByText("claude-opus-4-8")).not.toBeInTheDocument();
+    });
 
     it("keeps the model filter typed on the Model Hub tab after visiting another hub", async () => {
       const { user, search } = await renderHub();
