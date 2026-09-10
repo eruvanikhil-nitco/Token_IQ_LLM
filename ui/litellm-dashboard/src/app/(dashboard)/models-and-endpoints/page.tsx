@@ -24,6 +24,7 @@ import ModelLimitsTab from "@/app/(dashboard)/models-and-endpoints/components/Mo
 import ModelGroupAliasPanel from "@/app/(dashboard)/models-and-endpoints/panels/ModelGroupAliasPanel";
 import AccessGroupBudgetsPanel from "@/app/(dashboard)/models-and-endpoints/panels/AccessGroupBudgetsPanel";
 import PriceDataPanel from "@/app/(dashboard)/models-and-endpoints/panels/PriceDataPanel";
+import ModelPricingTab from "@/app/(dashboard)/models-and-endpoints/components/ModelPricingTab";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TabScroller from "@/components/shared/TabScroller";
@@ -35,19 +36,21 @@ type ModelTabSlug =
   | "health"
   | "retry-settings"
   | "model-limits"
+  | "model-pricing"
   | "model-group-alias"
   | "access-group-budgets"
   | "price-data";
 
 const BASE_TAB_KEY = "all-models";
 
-const TAB_LABELS: Record<ModelTabSlug, string> = {
+export const TAB_LABELS: Record<ModelTabSlug, string> = {
   add: "Add Model",
   "llm-credentials": "LLM Credentials",
   "pass-through": "Pass-Through Endpoints",
   health: "Health Status",
   "retry-settings": "Model Retry Settings",
   "model-limits": "Model Limits",
+  "model-pricing": "Model Pricing",
   "model-group-alias": "Model Group Alias",
   "access-group-budgets": "Model Access Group Budgets",
   "price-data": "Price Data Reload",
@@ -69,6 +72,8 @@ const renderPanel = (key: string) => {
       return <ModelRetrySettingsPanel />;
     case "model-limits":
       return <ModelLimitsTab />;
+    case "model-pricing":
+      return <ModelPricingTab />;
     case "model-group-alias":
       return <ModelGroupAliasPanel />;
     case "access-group-budgets":
@@ -113,6 +118,7 @@ export default function ModelsAndEndpointsPage() {
             "health",
             "retry-settings",
             "model-limits",
+            "model-pricing",
             "model-group-alias",
             "access-group-budgets",
             "price-data",

@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import ModelsAndEndpointsPage from "./page";
+import ModelsAndEndpointsPage, { TAB_LABELS } from "./page";
 
 vi.mock("./panels/AllModelsPanel", () => ({ default: () => <div data-testid="panel-all-models" /> }));
 vi.mock("./panels/AddModelPanel", () => ({ default: () => <div data-testid="panel-add" /> }));
@@ -14,6 +14,7 @@ vi.mock("./panels/ModelRetrySettingsPanel", () => ({ default: () => <div data-te
 vi.mock("./panels/ModelGroupAliasPanel", () => ({ default: () => <div data-testid="panel-alias" /> }));
 vi.mock("./panels/PriceDataPanel", () => ({ default: () => <div data-testid="panel-price" /> }));
 vi.mock("./components/ModelLimitsTab", () => ({ default: () => <div data-testid="panel-model-limits" /> }));
+vi.mock("./components/ModelPricingTab", () => ({ default: () => <div data-testid="panel-model-pricing" /> }));
 
 const detailState = { modelId: null as string | null, teamId: null as string | null };
 vi.mock("./detailNavigation", () => ({
@@ -107,18 +108,11 @@ describe("ModelsAndEndpointsPage", () => {
     // A tab can be declared in the label map and the panel switch yet never listed in
     // visibleSlugs, in which case it simply does not exist. That is how Model Limits
     // shipped invisible: three of the four places agreed and the fourth did not.
-    const declared = [
-      "All Models",
-      "Add Model",
-      "LLM Credentials",
-      "Pass-Through Endpoints",
-      "Health Status",
-      "Model Retry Settings",
-      "Model Limits",
-      "Model Group Alias",
-      "Model Access Group Budgets",
-      "Price Data Reload",
-    ];
+    //
+    // The labels come from the declaration itself rather than a list written out here,
+    // because a hardcoded list is a fifth place that has to be kept in agreement, and it
+    // silently covers nothing for any tab added after it was written.
+    const declared = ["All Models", ...Object.values(TAB_LABELS)];
 
     for (const label of declared) {
       expect(screen.getByRole("tab", { name: new RegExp(label, "i") })).toBeInTheDocument();
