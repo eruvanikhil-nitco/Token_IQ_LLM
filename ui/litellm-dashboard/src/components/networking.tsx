@@ -8150,6 +8150,23 @@ export const deleteMemory = async (accessToken: string, key: string): Promise<vo
   }
 };
 
+export const modelPatchCall = async (
+  accessToken: string,
+  modelId: string,
+  patch: { litellm_params: Record<string, number | null> },
+) => {
+  /**
+   * Partial update of one deployment. PATCH semantics: only the fields sent are touched,
+   * and an explicit null clears one.
+   */
+  try {
+    return await apiClient.patch(`/model/${encodeURIComponent(modelId)}/update`, { accessToken, body: patch });
+  } catch (error) {
+    console.error("Failed to update model:", error);
+    throw error;
+  }
+};
+
 export interface AuditListParams {
   table_name?: string;
   action?: string;
