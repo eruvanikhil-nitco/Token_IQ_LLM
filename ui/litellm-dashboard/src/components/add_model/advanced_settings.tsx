@@ -12,6 +12,7 @@ import { Team } from "../key_team_helpers/key_list";
 import { validatorRules } from "../common_components/formRules";
 import { labelWithHint } from "@/components/shared/form/LabelWithHint";
 import { MountedFormField } from "../common_components/MountedFormField";
+import PricingFields, { ADD_MODEL_PRICING_NAMES, type RateFieldProps } from "@/components/pricing/PricingFields";
 import { UtcDateTimeInput } from "@/components/shared/form/UtcDateTimeInput";
 import CacheControlInjectionPoints, {
   CACHE_CONTROL_LABEL,
@@ -86,6 +87,21 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
   const [pricingModel, setPricingModel] = React.useState<"per_token" | "per_second">("per_token");
   const [showCacheControl, setShowCacheControl] = React.useState(false);
   const ptuCostAttributionEnabled = usePtuCostAttributionEnabled();
+
+  const rateField = ({ slot, name, label, help, placeholder }: RateFieldProps) => (
+    <MountedFormField key={slot} name={name} label={label} help={help} rules={usageCostRules} className="mb-4">
+      {(control) => (
+        <Input
+          id={control.id}
+          value={(control.value as string | undefined) ?? ""}
+          onChange={control.onChange}
+          onBlur={control.onBlur}
+          placeholder={placeholder}
+        />
+      )}
+    </MountedFormField>
+  );
+
 
   const handlePricingModelChange =
     (onChange: (value: string) => void) =>
@@ -326,91 +342,7 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
                   )}
                 </MountedFormField>
 
-                {pricingModel === "per_token" ? (
-                  <>
-                    <MountedFormField
-                      name="input_cost_per_token"
-                      label="Input Cost (per 1M tokens)"
-                      rules={usageCostRules}
-                      className="mb-4"
-                    >
-                      {(control) => (
-                        <Input
-                          id={control.id}
-                          value={(control.value as string | undefined) ?? ""}
-                          onChange={control.onChange}
-                          onBlur={control.onBlur}
-                        />
-                      )}
-                    </MountedFormField>
-                    <MountedFormField
-                      name="output_cost_per_token"
-                      label="Output Cost (per 1M tokens)"
-                      rules={usageCostRules}
-                      className="mb-4"
-                    >
-                      {(control) => (
-                        <Input
-                          id={control.id}
-                          value={(control.value as string | undefined) ?? ""}
-                          onChange={control.onChange}
-                          onBlur={control.onBlur}
-                        />
-                      )}
-                    </MountedFormField>
-                    <MountedFormField
-                      name="cache_read_input_token_cost"
-                      label={labelWithHint("Cache Read Cost (per 1M tokens)", "If left blank, defaults to Input Cost.")}
-                      rules={usageCostRules}
-                      className="mb-4"
-                    >
-                      {(control) => (
-                        <Input
-                          id={control.id}
-                          value={(control.value as string | undefined) ?? ""}
-                          onChange={control.onChange}
-                          onBlur={control.onBlur}
-                          placeholder="Defaults to Input Cost if blank"
-                        />
-                      )}
-                    </MountedFormField>
-                    <MountedFormField
-                      name="cache_creation_input_token_cost"
-                      label={labelWithHint(
-                        "Cache Write Cost (per 1M tokens)",
-                        "If left blank, defaults to Input Cost (the backend falls back to input_cost_per_token when no cache-write rate is set).",
-                      )}
-                      rules={usageCostRules}
-                      className="mb-4"
-                    >
-                      {(control) => (
-                        <Input
-                          id={control.id}
-                          value={(control.value as string | undefined) ?? ""}
-                          onChange={control.onChange}
-                          onBlur={control.onBlur}
-                          placeholder="Defaults to Input Cost if blank"
-                        />
-                      )}
-                    </MountedFormField>
-                  </>
-                ) : (
-                  <MountedFormField
-                    name="input_cost_per_second"
-                    label="Cost Per Second"
-                    rules={usageCostRules}
-                    className="mb-4"
-                  >
-                    {(control) => (
-                      <Input
-                        id={control.id}
-                        value={(control.value as string | undefined) ?? ""}
-                        onChange={control.onChange}
-                        onBlur={control.onBlur}
-                      />
-                    )}
-                  </MountedFormField>
-                )}
+                <PricingFields mode={pricingModel} names={ADD_MODEL_PRICING_NAMES} renderField={rateField} />
               </div>
             )}
 
