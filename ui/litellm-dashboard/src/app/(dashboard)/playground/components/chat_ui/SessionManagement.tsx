@@ -52,7 +52,7 @@ const SessionManagement: React.FC<SessionManagementProps> = ({
     }
 
     return useApiSessionManagement
-      ? "LiteLLM API session active - context maintained server-side"
+      ? "Token IQ API session active - context maintained server-side"
       : "UI session active - context maintained client-side";
   };
 
@@ -67,7 +67,7 @@ const SessionManagement: React.FC<SessionManagementProps> = ({
               <Info className="size-3 text-muted-foreground" />
             </TooltipTrigger>
             <TooltipContent>
-              Choose between LiteLLM API session management (using previous_response_id) or UI-based session management
+              Choose between Token IQ API session management (using previous_response_id) or UI-based session management
               (using chat history)
             </TooltipContent>
           </Tooltip>

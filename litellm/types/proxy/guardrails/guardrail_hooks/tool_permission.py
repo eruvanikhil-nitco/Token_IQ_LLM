@@ -107,4 +107,4 @@ class ToolPermissionGuardrailConfigModel(GuardrailConfigModel):
 
     @staticmethod
     def ui_friendly_name() -> str:
-        return "LiteLLM Tool Permission Guardrail"
+        return "Token IQ Tool Permission Guardrail"

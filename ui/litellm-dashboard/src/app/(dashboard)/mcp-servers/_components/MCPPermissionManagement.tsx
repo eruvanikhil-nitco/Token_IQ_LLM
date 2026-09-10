@@ -111,7 +111,7 @@ const MCPPermissionManagement: React.FC<MCPPermissionManagementProps> = ({
     watchedExtraHeaders.some((h) => typeof h === "string" && h.toLowerCase() === "authorization");
   // Two distinct, independent opt-ins:
   //   - delegate_auth_to_upstream: oauth2 servers only (PKCE passthrough —
-  //     bypass LiteLLM admission).
+  //     bypass Token IQ admission).
   //   - oauth_passthrough: auth_type=none + Authorization in extra_headers
   //     (OAuth pass-through: proxy upstream oauth-protected-resource, emit 401
   //     challenges, propagate upstream 401/403).
@@ -235,12 +235,12 @@ const MCPPermissionManagement: React.FC<MCPPermissionManagementProps> = ({
               <div>
                 <span className="text-sm font-medium text-foreground flex items-center">
                   Delegate auth to upstream (PKCE passthrough)
-                  <SimpleTooltip content="When on, LiteLLM skips its own API key/SSO check for this server and lets the client complete PKCE directly with the upstream MCP server. Only honored when Auth Type is oauth2. No spend tracking or per-key rate limiting will run on this route.">
+                  <SimpleTooltip content="When on, Token IQ skips its own API key/SSO check for this server and lets the client complete PKCE directly with the upstream MCP server. Only honored when Auth Type is oauth2. No spend tracking or per-key rate limiting will run on this route.">
                     <Info className="ml-2 size-4 text-info hover:text-info/80 cursor-help" />
                   </SimpleTooltip>
                 </span>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Bypass LiteLLM auth so clients authenticate directly with the upstream OAuth MCP server.
+                  Bypass Token IQ auth so clients authenticate directly with the upstream OAuth MCP server.
                 </p>
               </div>
               <MountedFormField
@@ -285,7 +285,7 @@ const MCPPermissionManagement: React.FC<MCPPermissionManagementProps> = ({
               <AlertTitle>Internal server with upstream OAuth delegation</AlertTitle>
               <AlertDescription>
                 This MCP server is configured as internal-only but delegates auth to upstream. Anonymous users will be
-                able to reach the upstream OAuth2 /authorize flow without a LiteLLM session. Ensure your upstream
+                able to reach the upstream OAuth2 /authorize flow without a Token IQ session. Ensure your upstream
                 provider and network enforce access controls.
               </AlertDescription>
             </Alert>

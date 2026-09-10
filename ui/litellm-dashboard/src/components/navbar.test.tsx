@@ -152,13 +152,13 @@ describe("Navbar", () => {
   it("should link the logo to the UI home route rather than the proxy origin", () => {
     renderWithProviders(<Navbar {...defaultProps} />);
 
-    expect(screen.getByRole("link", { name: /litellm brand/i })).toHaveAttribute("href", "/ui");
+    expect(screen.getByRole("link", { name: /token iq brand/i })).toHaveAttribute("href", "/ui");
   });
 
   it("pairs the logo with a dark-mode variant that swaps on the dark class", () => {
     renderWithProviders(<Navbar {...defaultProps} />);
 
-    const [light, dark] = Array.from(screen.getByRole("link", { name: /litellm brand/i }).querySelectorAll("img"));
+    const [light, dark] = Array.from(screen.getByRole("link", { name: /token iq brand/i }).querySelectorAll("img"));
     const classesOf = (el: Element) => new Set(el.className.split(/\s+/));
 
     const lightSrc = light.getAttribute("src") ?? "";
@@ -255,7 +255,7 @@ describe("Navbar", () => {
 
     renderWithProviders(<Navbar {...defaultProps} />);
 
-    const logoImg = screen.getByAltText("LiteLLM Brand");
+    const logoImg = screen.getByAltText("Token IQ Brand");
     expect(logoImg).toHaveAttribute("src", "https://example.com/custom-logo.png");
 
     // Reset mock

@@ -124,7 +124,7 @@ describe("AddAgentForm submit payload", () => {
     await user.type(await screen.findByLabelText("Cost Per Query ($)"), "0.25");
     await user.type(screen.getByLabelText("Input Cost Per Token ($)"), "0.000002");
 
-    await user.click(await panel(/LiteLLM Parameters/));
+    await user.click(await panel(/Provider Parameters/));
     await user.type(await screen.findByLabelText("Model (Optional)"), "gpt-4o");
     await user.click(screen.getByRole("switch", { name: "Make Public" }));
 

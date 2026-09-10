@@ -54,7 +54,7 @@ describe("prepareModelAddRequest", () => {
     expect(deployment.litellmParamsObj.custom_llm_provider).toBe("petals");
   });
 
-  it("ignores litellm_credential_name inside LiteLLM Params JSON", async () => {
+  it("ignores litellm_credential_name inside Provider Params JSON", async () => {
     const formValues = {
       model_mappings: [
         {
@@ -78,7 +78,7 @@ describe("prepareModelAddRequest", () => {
     expect(deployment.litellmParamsObj.timeout).toBe(5);
   });
 
-  it("keeps litellm_credential_name from LiteLLM Params JSON when no credential is selected", async () => {
+  it("keeps litellm_credential_name from Provider Params JSON when no credential is selected", async () => {
     const formValues = {
       model_mappings: [
         {

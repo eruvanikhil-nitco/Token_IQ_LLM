@@ -43,14 +43,14 @@ const publicNameTooltipContent = (
     <div>The name you specify in your API calls to Token IQ</div>
     <div>
       <strong>Example:</strong> If you name your public model <code className={tooltipCodeClassName}>example-name</code>
-      , and choose <code className={tooltipCodeClassName}>openai/qwen-plus-latest</code> as the LiteLLM model
+      , and choose <code className={tooltipCodeClassName}>openai/qwen-plus-latest</code> as the Token IQ model
     </div>
     <div>
       <strong>Usage:</strong> You make an API call to Token IQ with{" "}
       <code className={tooltipCodeClassName}>model = &quot;example-name&quot;</code>
     </div>
     <div>
-      <strong>Result:</strong> LiteLLM sends <code className={tooltipCodeClassName}>qwen-plus-latest</code> to the
+      <strong>Result:</strong> Token IQ sends <code className={tooltipCodeClassName}>qwen-plus-latest</code> to the
       provider
     </div>
   </div>
@@ -105,7 +105,7 @@ const columns: ColumnDef<ModelMapping>[] = [
     accessorKey: "litellm_model",
     header: () => (
       <span className="flex items-center">
-        LiteLLM Model Name
+        Provider Model Name
         <SimpleTooltip content={<div>The model name Token IQ will send to the LLM API</div>} width="360px" />
       </span>
     ),
@@ -206,7 +206,7 @@ const ConditionalPublicModelName: React.FC = () => {
       label={
         <span className="flex items-center">
           Model Mappings
-          <SimpleTooltip content="Map public model names to LiteLLM model names for load balancing" />
+          <SimpleTooltip content="Map public model names to provider model names for load balancing" />
         </span>
       }
       required

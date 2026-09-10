@@ -56,12 +56,12 @@ export const AUTH_TYPE_ITEMS = [
   { value: AUTH_TYPE.OAUTH2_TOKEN_EXCHANGE, label: "OAuth Token Exchange (OBO)" },
   { value: AUTH_TYPE.OAUTH2_ID_JAG, label: "ID-JAG (Okta Cross App Access)" },
   { value: AUTH_TYPE.AWS_SIGV4, label: "AWS SigV4 (Bedrock AgentCore MCPs)" },
-  { value: AUTH_TYPE.TRUE_PASSTHROUGH, label: "True Passthrough (no LiteLLM auth)" },
+  { value: AUTH_TYPE.TRUE_PASSTHROUGH, label: "True Passthrough (no Token IQ auth)" },
   { value: AUTH_TYPE.OAUTH_DELEGATE, label: "OAuth Delegate (client-supplied upstream token)" },
 ];
 
 // The two client-forwarded token modes: the caller supplies the upstream Authorization (forwarded
-// verbatim for true_passthrough, alongside LiteLLM admission for oauth_delegate). The dashboard holds
+// verbatim for true_passthrough, alongside Token IQ admission for oauth_delegate). The dashboard holds
 // their token in sessionStorage instead of persisting it, and the browser-authorize temp payload keeps
 // their real auth_type so the backend does not treat them as needing a stored per-user token.
 export const isClientForwardedTokenMode = (authType?: string | null): boolean =>

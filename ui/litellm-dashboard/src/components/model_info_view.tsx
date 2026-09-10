@@ -305,13 +305,13 @@ export default function ModelInfoView({
       if (!accessToken) return;
       setIsSaving(true);
 
-      // Parse LiteLLM extra params from JSON text area
+      // Parse Token IQ extra params from JSON text area
       let parsedExtraParams: Record<string, any> = {};
       try {
         parsedExtraParams = values.litellm_extra_params ? JSON.parse(values.litellm_extra_params) : {};
         delete parsedExtraParams.litellm_credential_name;
       } catch (e) {
-        toast.fromError("Invalid JSON in LiteLLM Params");
+        toast.fromError("Invalid JSON in Provider Params");
         setIsSaving(false);
         return;
       }
@@ -687,7 +687,7 @@ export default function ModelInfoView({
                 </div>
               </Card>
               <Card className="block p-6">
-                <p className="text-sm">LiteLLM Model</p>
+                <p className="text-sm">Token IQ Model</p>
                 <div className="mt-2 overflow-hidden">
                   <SimpleTooltip content={modelData.litellm_model_name || "Not Set"} className="w-full min-w-0">
                     <div className="break-all text-sm font-medium leading-relaxed cursor-pointer">
@@ -806,7 +806,7 @@ export default function ModelInfoView({
             value: modelData?.model_name || "Not Set",
           },
           {
-            label: "LiteLLM Model Name",
+            label: "Provider Model Name",
             value: modelData?.litellm_model_name || "Not Set",
           },
           {

@@ -8,7 +8,7 @@ describe("PremiumLoggingSettings", () => {
     const { container } = renderWithProviders(<PremiumLoggingSettings value={[]} onChange={vi.fn()} />);
 
     expect(container).toBeEmptyDOMElement();
-    expect(screen.queryByText(/LiteLLM Enterprise feature/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Token IQ Enterprise feature/)).not.toBeInTheDocument();
     expect(screen.queryByText("✨ langfuse-logging")).not.toBeInTheDocument();
     expect(screen.queryByText("Logging Integrations")).not.toBeInTheDocument();
   });
@@ -17,6 +17,6 @@ describe("PremiumLoggingSettings", () => {
     renderWithProviders(<PremiumLoggingSettings value={[]} onChange={vi.fn()} premiumUser />);
 
     expect(screen.getByText("Logging Integrations")).toBeInTheDocument();
-    expect(screen.queryByText(/LiteLLM Enterprise feature/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Token IQ Enterprise feature/)).not.toBeInTheDocument();
   });
 });

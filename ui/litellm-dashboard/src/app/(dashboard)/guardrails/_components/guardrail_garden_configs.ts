@@ -7,7 +7,7 @@ export interface GuardrailPreset {
 }
 
 export const GUARDRAIL_PRESETS: Record<string, GuardrailPreset> = {
-  // ── LiteLLM Content Filter: Content Categories ──
+  // ── Token IQ Content Filter: Content Categories ──
   cf_denied_financial: {
     provider: "LitellmContentFilter",
     categoryName: "denied_financial_advice",
@@ -135,7 +135,7 @@ export const GUARDRAIL_PRESETS: Record<string, GuardrailPreset> = {
     defaultOn: false,
   },
 
-  // ── LiteLLM Content Filter: Patterns & Keywords (no category) ──
+  // ── Token IQ Content Filter: Patterns & Keywords (no category) ──
   cf_patterns: {
     provider: "LitellmContentFilter",
     guardrailNameSuggestion: "Pattern Matching",

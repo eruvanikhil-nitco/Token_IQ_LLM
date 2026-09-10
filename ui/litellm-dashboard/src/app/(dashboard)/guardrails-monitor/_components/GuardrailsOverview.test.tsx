@@ -49,7 +49,7 @@ describe("GuardrailsOverview", () => {
           id: "guardrail-low",
           name: "Low Failure Guardrail",
           type: "content_filter",
-          provider: "LiteLLM",
+          provider: "Token IQ",
           requestsEvaluated: 1200,
           failRate: 2.5,
           avgLatency: 45,

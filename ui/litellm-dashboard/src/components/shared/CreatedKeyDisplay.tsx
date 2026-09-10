@@ -67,7 +67,7 @@ const CreatedKeyDisplay: React.FC<CreatedKeyDisplayProps> = ({ apiKey, baseUrl =
     <div>
       <p className="mb-4">
         Please save this secret key somewhere safe and accessible. For security reasons,{" "}
-        <b>you will not be able to view it again</b> through your LiteLLM account. If you lose this secret key, you will
+        <b>you will not be able to view it again</b> through your Token IQ account. If you lose this secret key, you will
         need to generate a new one.
       </p>
 

@@ -421,7 +421,7 @@ describe("ModelInfoView", () => {
     render(<ModelInfoView {...DEFAULT_ADMIN_PROPS} />, { wrapper });
     await waitFor(() => {
       expect(screen.getByText("Provider")).toBeInTheDocument();
-      expect(screen.getByText("LiteLLM Model")).toBeInTheDocument();
+      expect(screen.getByText("Token IQ Model")).toBeInTheDocument();
       expect(screen.getByText("Pricing")).toBeInTheDocument();
     });
   });
@@ -486,7 +486,7 @@ describe("ModelInfoView", () => {
 
     await waitFor(() => {
       expect(screen.getByPlaceholderText("Enter model name")).toBeInTheDocument();
-      expect(screen.getByPlaceholderText("Enter LiteLLM model name")).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("Enter provider model name")).toBeInTheDocument();
     });
   });
 
@@ -565,10 +565,10 @@ describe("ModelInfoView", () => {
     });
   });
 
-  it("should display LiteLLM Params section", async () => {
+  it("should display Provider Params section", async () => {
     render(<ModelInfoView {...DEFAULT_ADMIN_PROPS} />, { wrapper });
     await waitFor(() => {
-      expect(screen.getByText("LiteLLM Params")).toBeInTheDocument();
+      expect(screen.getByText("Provider Params")).toBeInTheDocument();
     });
   });
 
@@ -587,7 +587,7 @@ describe("ModelInfoView", () => {
     });
   });
 
-  it("should keep selector credential and ignore litellm_credential_name from LiteLLM Params json", async () => {
+  it("should keep selector credential and ignore litellm_credential_name from Provider Params json", async () => {
     const user = userEvent.setup();
     render(<ModelInfoView {...DEFAULT_ADMIN_PROPS} />, { wrapper });
 
@@ -936,7 +936,7 @@ describe("ModelInfoView", () => {
     });
   });
 
-  it("blocks the save when the LiteLLM Params box does not hold valid JSON", async () => {
+  it("blocks the save when the Provider Params box does not hold valid JSON", async () => {
     const user = userEvent.setup();
     render(<ModelInfoView {...DEFAULT_ADMIN_PROPS} />, { wrapper });
 
@@ -1482,8 +1482,8 @@ describe("ModelInfoView", () => {
 
       await user.clear(screen.getByPlaceholderText("Enter model name"));
       await user.type(screen.getByPlaceholderText("Enter model name"), "renamed-model");
-      await user.clear(screen.getByPlaceholderText("Enter LiteLLM model name"));
-      await user.type(screen.getByPlaceholderText("Enter LiteLLM model name"), "gpt-4o");
+      await user.clear(screen.getByPlaceholderText("Enter provider model name"));
+      await user.type(screen.getByPlaceholderText("Enter provider model name"), "gpt-4o");
       await user.clear(screen.getByPlaceholderText("Enter API base"));
       await user.type(screen.getByPlaceholderText("Enter API base"), "https://example.test/v1");
       await user.clear(screen.getByPlaceholderText("Enter custom LLM provider"));
@@ -1564,7 +1564,7 @@ describe("ModelInfoView", () => {
       expect(payload.model_info).toMatchObject({ team_id: "team-7" });
     });
 
-    it("sends the edited LiteLLM extra params", async () => {
+    it("sends the edited Token IQ extra params", async () => {
       const user = userEvent.setup();
       await enterEditMode(user);
 

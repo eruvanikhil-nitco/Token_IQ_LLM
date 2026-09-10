@@ -104,7 +104,7 @@ const LiteLLMModelNameField: React.FC<LiteLLMModelNameFieldProps> = ({
     <>
       <MountedFormField
         name="model"
-        label={labelWithHint("LiteLLM Model Name(s)", "The model name Token IQ will send to the LLM API")}
+        label={labelWithHint("Provider Model Name(s)", "The model name Token IQ will send to the LLM API")}
         required
         rules={{
           validate: {

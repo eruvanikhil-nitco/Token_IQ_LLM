@@ -137,7 +137,7 @@ describe("UsageTab", () => {
   });
 
   it("sums compression and caching dollars across days into the summary cards", () => {
-    // Total caching and the LiteLLM-injected share deliberately differ so these
+    // Total caching and the Token IQ-injected share deliberately differ so these
     // assertions pin which one each figure uses: the caching headline and the
     // Total-saved tile take the injected share, the secondary keeps the total.
     const firstDay: Partial<SpendMetrics> = {

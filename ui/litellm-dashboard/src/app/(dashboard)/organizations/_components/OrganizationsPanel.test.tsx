@@ -89,7 +89,7 @@ describe("OrganizationsPanel", () => {
   it("shows non-premium users the panel itself, with no enterprise notice", () => {
     renderPanel({ premiumUser: false });
 
-    expect(screen.queryByText(/LiteLLM Enterprise feature/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Token IQ Enterprise feature/i)).not.toBeInTheDocument();
     expect(screen.getByText("+ Create New Organization")).toBeInTheDocument();
   });
 

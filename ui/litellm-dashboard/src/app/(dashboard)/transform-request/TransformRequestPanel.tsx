@@ -135,7 +135,7 @@ ${formattedBody}
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl font-bold">Original Request</CardTitle>
-            <CardDescription>The request you would send to LiteLLM /chat/completions endpoint.</CardDescription>
+            <CardDescription>The request you would send to Token IQ /chat/completions endpoint.</CardDescription>
           </CardHeader>
 
           <CardContent>

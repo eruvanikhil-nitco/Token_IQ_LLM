@@ -82,7 +82,7 @@ export default function UpdateModelCredentialsModal({
           <TriangleAlert />
           <AlertTitle>
             Only the API key is rotated here. Models that authenticate with an Azure AD token, AWS credentials, or a
-            Vertex service-account JSON aren&apos;t supported yet; update those from the model&apos;s LiteLLM Params for
+            Vertex service-account JSON aren&apos;t supported yet; update those from the model&apos;s Provider Params for
             now.
           </AlertTitle>
         </Alert>

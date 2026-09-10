@@ -1036,8 +1036,8 @@ const MCPServerEdit: React.FC<MCPServerEditProps> = ({
                         <TriangleAlert />
                         <AlertTitle>This server has no OAuth flow set</AlertTitle>
                         <AlertDescription>
-                          Choose Machine-to-Machine (M2M) or Interactive (PKCE) so LiteLLM authenticates it the way you
-                          intend, then save. Until it is set, LiteLLM falls back to interactive per-user auth and treats
+                          Choose Machine-to-Machine (M2M) or Interactive (PKCE) so Token IQ authenticates it the way you
+                          intend, then save. Until it is set, Token IQ falls back to interactive per-user auth and treats
                           a machine-to-machine credential shape conservatively.
                         </AlertDescription>
                       </Alert>

@@ -45,7 +45,7 @@ export const populateGuardrailProviders = (providerParamsResponse: Record<string
   providers.PresidioPII = "Presidio PII";
   providers.Bedrock = "Bedrock Guardrail";
   providers.Lakera = "Lakera";
-  providers.LlmAsAJudge = "LiteLLM LLM as a Judge";
+  providers.LlmAsAJudge = "Token IQ LLM as a Judge";
 
   // Add dynamic providers from API response
   Object.entries(providerParamsResponse).forEach(([key, value]) => {
@@ -167,7 +167,7 @@ export const shouldRenderContentFilterConfigSettings = (provider: string | null)
   // Check both dynamic and legacy providers
   const currentProviders = getGuardrailProviders();
   const providerEnum = currentProviders[provider as keyof typeof currentProviders];
-  return providerEnum === "LiteLLM Content Filter";
+  return providerEnum === "Token IQ Content Filter";
 };
 
 export const shouldRenderLLMJudgeFields = (provider: string | null) => {
@@ -199,8 +199,8 @@ export const guardrailLogoMap = {
   "Prompt Security": promptSecurityLogo.src,
   PromptGuard: promptguardLogo.src,
   XecGuard: xecguardLogo.src,
-  "LiteLLM Content Filter": litellmLogo.src,
-  "LiteLLM LLM as a Judge": litellmLogo.src,
+  "Token IQ Content Filter": litellmLogo.src,
+  "Token IQ LLM as a Judge": litellmLogo.src,
   "Hide Secrets": litellmLogo.src,
   Akto: aktoLogo.src,
   "DeepKeep AI Firewall": deepkeepLogo.src,

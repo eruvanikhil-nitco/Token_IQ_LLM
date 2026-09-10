@@ -708,7 +708,7 @@ function DetailPanel({
                 rel="noopener noreferrer"
                 className="text-info hover:underline"
               >
-                LiteLLM Generic Guardrail API docs
+                Token IQ Generic Guardrail API docs
               </a>{" "}
               for configuration details.
             </p>

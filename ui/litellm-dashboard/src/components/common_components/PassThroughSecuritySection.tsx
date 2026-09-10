@@ -22,7 +22,7 @@ const PassThroughSecuritySection: React.FC<PassThroughSecuritySectionProps> = ({
     <Card className="block p-6">
       <h3 className="mb-2 text-lg font-semibold text-foreground">Security</h3>
       <p className="mb-4 text-sm text-muted-foreground">
-        When enabled, requests to this endpoint will require a valid LiteLLM Virtual Key
+        When enabled, requests to this endpoint will require a valid Token IQ Virtual Key
       </p>
       <Switch checked={authEnabled} onCheckedChange={onAuthChange} />
     </Card>

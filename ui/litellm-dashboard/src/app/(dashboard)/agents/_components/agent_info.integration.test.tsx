@@ -173,7 +173,7 @@ describe("AgentInfoView update payload", () => {
     await user.click(screen.getByRole("button", { name: /Capabilities/ }));
     await user.click(screen.getByRole("button", { name: /Optional Settings/ }));
     await user.click(screen.getByRole("button", { name: /Cost Configuration/ }));
-    await user.click(screen.getByRole("button", { name: /LiteLLM Parameters/ }));
+    await user.click(screen.getByRole("button", { name: /Provider Parameters/ }));
     await user.click(screen.getByRole("button", { name: /Authentication Headers/ }));
     await screen.findByLabelText("Forward Client Headers");
 

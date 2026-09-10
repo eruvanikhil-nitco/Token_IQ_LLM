@@ -225,7 +225,7 @@ const MCPConnect: React.FC<MCPConnectProps> = ({ currentServerAccessGroups = [] 
         <FeatureCard
           icon={<ServerIcon className="text-success" size={16} />}
           title="MCP Server Information"
-          description="Connection details for your LiteLLM MCP server"
+          description="Connection details for your Token IQ MCP server"
         >
           <CodeBlock title="Server URL" code={`${proxyBaseUrl}/mcp`} copyKey="litellm-server-url" />
         </FeatureCard>
@@ -274,7 +274,7 @@ const MCPConnect: React.FC<MCPConnectProps> = ({ currentServerAccessGroups = [] 
           <h4 className="mb-0 text-xl font-semibold text-info">OpenAI Responses API Integration</h4>
         </div>
         <span className="text-info">
-          Connect OpenAI Responses API to your LiteLLM MCP server for seamless tool integration
+          Connect OpenAI Responses API to your Token IQ MCP server for seamless tool integration
         </span>
       </div>
 
@@ -305,7 +305,7 @@ const MCPConnect: React.FC<MCPConnectProps> = ({ currentServerAccessGroups = [] 
         <FeatureCard
           icon={<ServerIcon className="text-info" size={16} />}
           title="MCP Server Information"
-          description="Connection details for your LiteLLM MCP server"
+          description="Connection details for your Token IQ MCP server"
         >
           <CodeBlock title="Server URL" code={`${proxyBaseUrl}/mcp`} copyKey="openai-server-url" />
         </FeatureCard>
@@ -354,7 +354,7 @@ const MCPConnect: React.FC<MCPConnectProps> = ({ currentServerAccessGroups = [] 
           <h4 className="mb-0 text-xl font-semibold text-purple-900 dark:text-purple-100">Cursor IDE Integration</h4>
         </div>
         <span className="text-purple-700 dark:text-purple-300">
-          Use tools directly from Cursor IDE with LiteLLM MCP. Enable your AI assistant to perform real-world tasks
+          Use tools directly from Cursor IDE with Token IQ MCP. Enable your AI assistant to perform real-world tasks
           without leaving your coding environment.
         </span>
       </div>
@@ -418,7 +418,7 @@ const MCPConnect: React.FC<MCPConnectProps> = ({ currentServerAccessGroups = [] 
           <h4 className="mb-0 text-xl font-semibold text-success">Streamable HTTP Transport</h4>
         </div>
         <span className="text-success">
-          Connect to LiteLLM MCP using HTTP transport. Compatible with any MCP client that supports HTTP streaming.
+          Connect to Token IQ MCP using HTTP transport. Compatible with any MCP client that supports HTTP streaming.
         </span>
       </div>
 
@@ -474,7 +474,7 @@ const MCPConnect: React.FC<MCPConnectProps> = ({ currentServerAccessGroups = [] 
         <div>
           <h2 className="text-3xl font-bold text-foreground mb-3">Connect to your MCP client</h2>
           <p className="text-lg text-muted-foreground">
-            Use tools directly from any MCP client with LiteLLM MCP. Enable your AI assistant to perform real-world
+            Use tools directly from any MCP client with Token IQ MCP. Enable your AI assistant to perform real-world
             tasks through a simple, secure connection.
           </p>
         </div>

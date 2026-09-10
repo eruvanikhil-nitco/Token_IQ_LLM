@@ -48,7 +48,7 @@ describe("AdvancedSettings", () => {
       fireEvent.click(screen.getByText("Advanced Settings"));
     });
     await waitFor(() => {
-      expect(screen.getByText("LiteLLM Params")).toBeInTheDocument();
+      expect(screen.getByText("Provider Params")).toBeInTheDocument();
     });
   });
 

@@ -140,7 +140,7 @@ export const AGENT_FORM_CONFIG: {
   },
   litellm: {
     key: "litellm",
-    title: "LiteLLM Parameters",
+    title: "Provider Parameters",
     fields: [
       {
         name: "model",

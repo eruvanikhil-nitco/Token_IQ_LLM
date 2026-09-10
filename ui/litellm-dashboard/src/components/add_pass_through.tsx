@@ -165,7 +165,7 @@ const AddPassThroughEndpoint: React.FC<AddFallbacksProps> = ({
                 <AlertTitle>What is a Pass-Through Endpoint?</AlertTitle>
                 <AlertDescription>
                   Route requests from your Token IQ to any external API. Perfect for custom models, image
-                  generation APIs, or any service you want to proxy through LiteLLM.
+                  generation APIs, or any service you want to proxy through Token IQ.
                 </AlertDescription>
               </Alert>
 

@@ -29,7 +29,7 @@ const providerParams = {
     },
   },
   llm_as_a_judge: {
-    ui_friendly_name: "LiteLLM LLM as a Judge",
+    ui_friendly_name: "Token IQ LLM as a Judge",
   },
 };
 
@@ -200,7 +200,7 @@ describe("AddGuardrailForm create payload characterization", () => {
     renderForm();
 
     await user.type(await screen.findByLabelText("Guardrail Name"), "judge-1");
-    await pickProvider(user, "LiteLLM LLM as a Judge");
+    await pickProvider(user, "Token IQ LLM as a Judge");
     await user.click(screen.getByRole("button", { name: "Next" }));
 
     await user.type(await screen.findByPlaceholderText("Criterion name (e.g. Policy accuracy)"), "Accuracy");
@@ -230,7 +230,7 @@ describe("AddGuardrailForm create payload characterization", () => {
     renderForm();
 
     await user.type(await screen.findByLabelText("Guardrail Name"), "judge-2");
-    await pickProvider(user, "LiteLLM LLM as a Judge");
+    await pickProvider(user, "Token IQ LLM as a Judge");
     await user.click(screen.getByRole("button", { name: "Next" }));
 
     await user.type(await screen.findByPlaceholderText("Criterion name (e.g. Policy accuracy)"), "Accuracy");

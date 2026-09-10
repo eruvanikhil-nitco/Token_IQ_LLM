@@ -68,7 +68,7 @@ const modelDay = (date: string, models: Record<string, Partial<SpendMetrics>>): 
 });
 
 describe("savingsSeriesOf", () => {
-  it("plots the LiteLLM-injected caching share, sorted oldest first", () => {
+  it("plots the Token IQ-injected caching share, sorted oldest first", () => {
     // Total and injected caching deliberately differ: every chart derives from
     // SAVINGS_DRIVERS, so the caching series must follow the injected figure.
     const sharedSavings: Partial<SpendMetrics> = {
