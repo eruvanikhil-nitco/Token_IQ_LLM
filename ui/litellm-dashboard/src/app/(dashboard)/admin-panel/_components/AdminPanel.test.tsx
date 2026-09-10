@@ -29,6 +29,12 @@ vi.mock("@/components/Settings/AdminSettings/UISettings/UISettings", () => ({
   default: () => <div>UI Settings</div>,
 }));
 
+vi.mock("@/components/Settings/AdminSettings/LoggingSettings/LoggingSettings", () => ({
+  default: () => <div>Logging Settings Content</div>,
+}));
+vi.mock("@/components/Settings/AdminSettings/AuditLog/AuditLogView", () => ({
+  default: () => <div>Audit Log Content</div>,
+}));
 vi.mock("@/components/SCIM", () => ({
   default: () => <div>SCIM Config</div>,
 }));
@@ -75,6 +81,39 @@ describe("AdminPanel", () => {
       expect(screen.getByRole("tab", { name: /security settings/i })).toBeInTheDocument();
       expect(screen.getByRole("tab", { name: /scim/i })).toBeInTheDocument();
       expect(screen.getByRole("tab", { name: /ui settings/i })).toBeInTheDocument();
+    });
+
+    it("keeps every tab a sibling, so none reads as nested under another", () => {
+      render(<AdminPanel />);
+
+      // Adding a ninth tab made the strip wrap, and the overflow sat directly beneath the
+      // tab above it, which with the underline style looked like a sub-tab of it.
+      const strip = screen.getByRole("tablist");
+
+      for (const name of [
+        /sso settings/i,
+        /security settings/i,
+        /scim/i,
+        /ui settings/i,
+        /logging settings/i,
+        /audit log/i,
+        /hashicorp vault/i,
+        /cyberark/i,
+        /plugins/i,
+      ]) {
+        expect(within(strip).getByRole("tab", { name })).toBeInTheDocument();
+      }
+    });
+
+    it("does not wrap the tab strip onto a second row", () => {
+      render(<AdminPanel />);
+
+      // Wrapping is what put Plugins under Logging Settings. A single scrolling row keeps
+      // every tab visibly at the same level however many there are.
+      const strip = screen.getByRole("tablist");
+
+      expect(strip).toHaveClass("flex-nowrap");
+      expect(strip).not.toHaveClass("flex-wrap");
     });
 
     it("should display Security Settings content when Security Settings tab is clicked", async () => {

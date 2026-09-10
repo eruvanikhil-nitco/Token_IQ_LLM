@@ -419,7 +419,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ proxySettings }) => {
       <h2 className="mb-2 text-base font-semibold text-foreground">Admin Access</h2>
       <p className="mb-4 text-sm text-foreground">Go to &apos;Internal Users&apos; page to add other admins.</p>
       <Tabs defaultValue={tabItems[0].key}>
-        <TabsList variant="line" className="mb-4 h-auto flex-wrap">
+        <TabsList variant="line" className="mb-4 h-auto w-full flex-nowrap justify-start overflow-x-auto">
           {tabItems.map((item) => (
             <TabsTrigger key={item.key} value={item.key} className="flex-none">
               {item.label}
