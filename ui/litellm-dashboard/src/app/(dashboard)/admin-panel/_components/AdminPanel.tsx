@@ -14,6 +14,7 @@ import { useBaseUrl } from "@/components/constants";
 import { toast } from "@/lib/toast";
 import { addAllowedIP, deleteAllowedIP, getAllowedIPs, getSSOSettings } from "@/components/networking";
 import SCIMConfig from "@/components/SCIM";
+import AuditLogView from "@/components/Settings/AdminSettings/AuditLog/AuditLogView";
 import LoggingSettings from "@/components/Settings/AdminSettings/LoggingSettings/LoggingSettings";
 import SSOSettings from "@/components/Settings/AdminSettings/SSOSettings/SSOSettings";
 import UISettings from "@/components/Settings/AdminSettings/UISettings/UISettings";
@@ -390,6 +391,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ proxySettings }) => {
       key: "logging-settings",
       label: "Logging Settings",
       children: <LoggingSettings />,
+    },
+    {
+      key: "audit-log",
+      label: "Audit Log",
+      children: <AuditLogView />,
     },
     {
       key: "hashicorp-vault",

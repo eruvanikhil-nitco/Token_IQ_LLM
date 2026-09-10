@@ -8150,6 +8150,31 @@ export const deleteMemory = async (accessToken: string, key: string): Promise<vo
   }
 };
 
+export interface AuditListParams {
+  table_name?: string;
+  action?: string;
+  changed_by?: string;
+  page?: number;
+  size?: number;
+}
+
+export const auditListCall = async (accessToken: string, params: AuditListParams = {}) => {
+  /**
+   * Recorded changes to keys, teams, models and users, newest first.
+   */
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== "") query.append(key, String(value));
+  });
+  const suffix = query.toString();
+  try {
+    return await apiClient.get(`/audit/list${suffix ? `?${suffix}` : ""}`, { accessToken });
+  } catch (error) {
+    console.error("Failed to fetch audit log:", error);
+    throw error;
+  }
+};
+
 export const providerOverviewCall = async (accessToken: string) => {
   /**
    * Per-provider rollup: models configured, catalogue size, and recent usage.
