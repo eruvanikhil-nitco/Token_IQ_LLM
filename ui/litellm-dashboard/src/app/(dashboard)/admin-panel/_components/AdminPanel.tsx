@@ -3,6 +3,7 @@
  * Use this to avoid sharing master key with others
  */
 import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
+import type { ProxySettings } from "@/app/(dashboard)/hooks/proxySettings/useProxySettings";
 import { Alert, AlertDescription, AlertTitle } from "@/components/shared/Alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -10,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TabScroller from "@/components/shared/TabScroller";
 import { Info, TriangleAlert } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useBaseUrl } from "@/components/constants";
 import { toast } from "@/lib/toast";
 import { addAllowedIP, deleteAllowedIP, getAllowedIPs, getSSOSettings } from "@/components/networking";
@@ -61,7 +62,7 @@ const AddAllowedIPForm = ({ onSubmit }: { onSubmit: (values: AllowedIPFormValues
 };
 
 interface AdminPanelProps {
-  proxySettings?: any;
+  proxySettings?: ProxySettings;
 }
 
 const AdminPanel: React.FC<AdminPanelProps> = ({ proxySettings }) => {
@@ -83,7 +84,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ proxySettings }) => {
   let nonSssoUrl = baseUrl;
   nonSssoUrl += "/fallback/login";
 
-  const checkSSOConfiguration = async () => {
+  const checkSSOConfiguration = useCallback(async () => {
     if (accessToken) {
       try {
         const ssoData = await getSSOSettings(accessToken);
@@ -102,7 +103,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ proxySettings }) => {
         setSsoConfigured(false);
       }
     }
-  };
+  }, [accessToken]);
 
   const handleShowAllowedIPs = async () => {
     try {
@@ -201,7 +202,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ proxySettings }) => {
 
   useEffect(() => {
     checkSSOConfiguration();
-  }, [accessToken, premiumUser, checkSSOConfiguration]);
+  }, [checkSSOConfiguration]);
 
   const handleUIAccessControlOk = () => {
     setIsUIAccessControlModalVisible(false);

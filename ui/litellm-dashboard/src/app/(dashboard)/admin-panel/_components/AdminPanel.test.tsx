@@ -116,6 +116,20 @@ describe("AdminPanel", () => {
       expect(strip).not.toHaveClass("flex-wrap");
     });
 
+    it("reads the SSO settings once rather than on every render", async () => {
+      const user = userEvent.setup();
+      render(<AdminPanel />);
+
+      await waitFor(() => expect(mockGetSSOSettings).toHaveBeenCalledTimes(1));
+
+      // Switching tabs re-renders the panel. The effect that loads SSO settings depends on the
+      // loader function, so an unstable identity refetches on every single render.
+      await user.click(screen.getByRole("tab", { name: /logging settings/i }));
+      await user.click(screen.getByRole("tab", { name: /audit log/i }));
+
+      expect(mockGetSSOSettings).toHaveBeenCalledTimes(1);
+    });
+
     it("offers arrows to reach the tabs a single row cannot show", () => {
       render(<AdminPanel />);
 
