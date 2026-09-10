@@ -104,6 +104,29 @@ describe("PricingFields", () => {
     expect(copyFor("output").help).toBeUndefined();
   });
 
+  it("renders only the rates asked for, keeping the canonical order", () => {
+    // The edit form puts its PTU fields between the usage rates and the cache rates, so it
+    // asks for them in two calls.
+    render(
+      <PricingFields
+        mode="per_token"
+        names={ADD_MODEL_PRICING_NAMES}
+        renderField={renderField}
+        slots={["cacheWrite", "cacheRead"]}
+      />,
+    );
+
+    const labels = screen.getAllByRole("textbox").map((input) => input.getAttribute("aria-label"));
+
+    expect(labels).toEqual(["Cache Read Cost (per 1M tokens)", "Cache Write Cost (per 1M tokens)"]);
+  });
+
+  it("renders every rate when asked for none in particular", () => {
+    render(<PricingFields mode="per_token" names={ADD_MODEL_PRICING_NAMES} renderField={renderField} />);
+
+    expect(screen.getAllByRole("textbox")).toHaveLength(4);
+  });
+
   it("delegates rendering rather than choosing a field wrapper for the host", () => {
     // Add Model only submits fields registered through its own wrapper, so the component must
     // never render one itself.

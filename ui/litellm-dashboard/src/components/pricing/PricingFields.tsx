@@ -59,8 +59,8 @@ const CACHE_FALLBACK_PLACEHOLDER = "Defaults to Input Cost if blank";
  * which matters because that fallback is the least obvious thing about pricing a model.
  */
 const RATE_COPY: Readonly<Record<PricingField, Omit<RateFieldProps, "slot" | "name">>> = {
-  input: { label: "Input Cost (per 1M tokens)" },
-  output: { label: "Output Cost (per 1M tokens)" },
+  input: { label: "Input Cost (per 1M tokens)", placeholder: "Enter input cost" },
+  output: { label: "Output Cost (per 1M tokens)", placeholder: "Enter output cost" },
   cacheRead: {
     label: "Cache Read Cost (per 1M tokens)",
     help: "If left blank, defaults to Input Cost.",
@@ -86,6 +86,13 @@ export interface PricingFieldsProps {
   readonly mode: PricingMode;
   readonly names: PricingFieldNames;
   readonly renderField: RenderRateField;
+  /**
+   * Render only these rates, still in the canonical order.
+   *
+   * The edit form puts its PTU fields between the usage rates and the cache rates, so it asks
+   * for them in two calls rather than one. Ordering stays this component's job either way.
+   */
+  readonly slots?: readonly RateSlot[];
 }
 
 /**
@@ -95,12 +102,16 @@ export interface PricingFieldsProps {
  * a field is wired to its form. The switch that turns custom pricing on and the per-token /
  * per-second choice stay with the host too, because only the create form has them.
  */
-const PricingFields: React.FC<PricingFieldsProps> = ({ mode, names, renderField }) => (
-  <>
-    {slotsFor(mode).map((slot) => (
-      <React.Fragment key={slot}>{renderField({ slot, name: names[slot], ...copyFor(slot) })}</React.Fragment>
-    ))}
-  </>
-);
+const PricingFields: React.FC<PricingFieldsProps> = ({ mode, names, renderField, slots }) => {
+  const wanted = slotsFor(mode).filter((slot) => slots === undefined || slots.includes(slot));
+
+  return (
+    <>
+      {wanted.map((slot) => (
+        <React.Fragment key={slot}>{renderField({ slot, name: names[slot], ...copyFor(slot) })}</React.Fragment>
+      ))}
+    </>
+  );
+};
 
 export default PricingFields;

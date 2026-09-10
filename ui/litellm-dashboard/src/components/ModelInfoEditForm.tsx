@@ -9,6 +9,10 @@ import { z } from "zod/v4";
 
 import { TagsInput } from "@/app/(dashboard)/guardrails/_components/content_filter/TagsInput";
 import { FormField } from "@/components/shared/form/FormField";
+import PricingFields, {
+  EDIT_FORM_PRICING_NAMES,
+  type RateFieldProps,
+} from "@/components/pricing/PricingFields";
 import { UtcDateTimeInput } from "@/components/shared/form/UtcDateTimeInput";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -409,16 +413,16 @@ const ModelInfoEditForm: React.FC<ModelInfoEditFormProps> = ({
     </div>
   );
 
-  const pricingField = (name: TouchedPricingField, label: string, placeholder: string, description?: string) =>
+  const pricingField = ({ name, label, placeholder, help }: RateFieldProps) =>
     isEditing ? (
-      <FormField control={form.control} name={name} label={label} description={description}>
+      <FormField control={form.control} name={name as TouchedPricingField} label={label} description={help}>
         {({ value, onChange, ...control }) => (
           <NumericalInput
             {...control}
             value={value ?? ""}
             placeholder={placeholder}
             onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-              markTouched(name);
+              markTouched(name as TouchedPricingField);
               onChange(event);
             }}
           />
@@ -427,7 +431,7 @@ const ModelInfoEditForm: React.FC<ModelInfoEditFormProps> = ({
     ) : (
       <div>
         <FieldLabel>{label}</FieldLabel>
-        <Display>{displayCost(localModelData, name)}</Display>
+        <Display>{displayCost(localModelData, name as TouchedPricingField)}</Display>
       </div>
     );
 
@@ -463,8 +467,12 @@ const ModelInfoEditForm: React.FC<ModelInfoEditFormProps> = ({
               localModelData.litellm_model_name,
             )}
 
-            {pricingField("input_cost", "Input Cost (per 1M tokens)", "Enter input cost")}
-            {pricingField("output_cost", "Output Cost (per 1M tokens)", "Enter output cost")}
+            <PricingFields
+              mode="per_token"
+              names={EDIT_FORM_PRICING_NAMES}
+              renderField={pricingField}
+              slots={["input", "output"]}
+            />
 
             {ptuCostAttributionEnabled &&
               PTU_EDIT_FIELDS.map((ptuField) => (
@@ -503,18 +511,12 @@ const ModelInfoEditForm: React.FC<ModelInfoEditFormProps> = ({
                 </div>
               ))}
 
-            {pricingField(
-              "cache_read_cost",
-              "Cache Read Cost (per 1M tokens)",
-              "Defaults to Input Cost if blank",
-              "If left blank on save, defaults to Input Cost.",
-            )}
-            {pricingField(
-              "cache_write_cost",
-              "Cache Write Cost (per 1M tokens)",
-              "Defaults to Input Cost if blank",
-              "If left blank on save, defaults to Input Cost (backend falls back to input_cost_per_token).",
-            )}
+            <PricingFields
+              mode="per_token"
+              names={EDIT_FORM_PRICING_NAMES}
+              renderField={pricingField}
+              slots={["cacheRead", "cacheWrite"]}
+            />
 
             {textField("api_base", "API Base", "Enter API base", localModelData.litellm_params?.api_base)}
             {textField(
