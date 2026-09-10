@@ -26,7 +26,16 @@ import { CircleHelp, Clock } from "lucide-react";
 import React, { useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
 
+import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
+import { useAllTeams } from "@/app/(dashboard)/hooks/teams/useTeams";
+import { providerOverviewCall } from "@/components/networking";
+import { useQuery } from "@tanstack/react-query";
+import CaptureOverrides from "./CaptureOverrides";
+import { hasOverrides, type CaptureTable } from "./captureRules";
+
 const STORE_PROMPTS_FIELD_NAME = "store_prompts_in_spend_logs";
+const BY_TEAM_FIELD_NAME = "store_prompts_by_team";
+const BY_PROVIDER_FIELD_NAME = "store_prompts_by_provider";
 
 interface OptionalField {
   readonly name: GeneralSettingsFieldName;
@@ -82,6 +91,8 @@ const MINIMUM_COUNT = 1;
 
 interface LoggingSettingsFormValues {
   store_prompts_in_spend_logs: boolean;
+  store_prompts_by_team: CaptureTable;
+  store_prompts_by_provider: CaptureTable;
   maximum_spend_logs_retention_period: string;
   maximum_spend_logs_cleanup_batch_size: string;
   maximum_spend_logs_cleanup_max_batches: string;
@@ -116,6 +127,14 @@ const buildUpdateParams = (formValues: LoggingSettingsFormValues): StoreRequestI
 
   return {
     store_prompts_in_spend_logs: formValues.store_prompts_in_spend_logs,
+    // Only sent once rules exist. A deployment that never sets an override keeps the
+    // payload it always had, rather than carrying two empty objects on every save.
+    ...(hasOverrides(formValues.store_prompts_by_team) && {
+      store_prompts_by_team: formValues.store_prompts_by_team,
+    }),
+    ...(hasOverrides(formValues.store_prompts_by_provider) && {
+      store_prompts_by_provider: formValues.store_prompts_by_provider,
+    }),
     ...(retentionPeriod !== undefined && { maximum_spend_logs_retention_period: retentionPeriod }),
     ...(batchSize !== undefined && { maximum_spend_logs_cleanup_batch_size: batchSize }),
     ...(maxBatches !== undefined && { maximum_spend_logs_cleanup_max_batches: maxBatches }),
@@ -150,6 +169,8 @@ interface LoggingSettingsFormProps {
   describeField: (name: string, fallback: string) => string;
   isSaving: boolean;
   onSubmit: (formValues: LoggingSettingsFormValues) => void;
+  teams: readonly { readonly team_id: string; readonly team_alias?: string | null }[];
+  providers: readonly string[];
 }
 
 const LoggingSettingsForm: React.FC<LoggingSettingsFormProps> = ({
@@ -157,6 +178,8 @@ const LoggingSettingsForm: React.FC<LoggingSettingsFormProps> = ({
   describeField,
   isSaving,
   onSubmit,
+  teams,
+  providers,
 }) => {
   const form = useForm<LoggingSettingsFormValues>({ defaultValues: initialValues });
 
@@ -179,6 +202,17 @@ const LoggingSettingsForm: React.FC<LoggingSettingsFormProps> = ({
               <Switch id={id} checked={Boolean(value)} onCheckedChange={onChange} onBlur={onBlur} className="w-fit" />
             )}
           </FormField>
+
+          <CaptureOverrides
+            teams={teams}
+            providers={providers}
+            globalDefault={Boolean(form.watch(STORE_PROMPTS_FIELD_NAME))}
+            teamTable={form.watch(BY_TEAM_FIELD_NAME)}
+            providerTable={form.watch(BY_PROVIDER_FIELD_NAME)}
+            onTeamTableChange={(next) => form.setValue(BY_TEAM_FIELD_NAME, next, { shouldDirty: true })}
+            onProviderTableChange={(next) => form.setValue(BY_PROVIDER_FIELD_NAME, next, { shouldDirty: true })}
+            disabled={isSaving}
+          />
 
           {OPTIONAL_FIELDS.map((field) => (
             <FormField
@@ -231,7 +265,20 @@ const LoggingSettingsForm: React.FC<LoggingSettingsFormProps> = ({
 const LoggingSettings: React.FC = () => {
   const { mutate, isPending } = useStoreRequestInSpendLogs();
   const { mutate: deleteField, isPending: isDeletingField } = useDeleteProxyConfigField();
+  const { accessToken } = useAuthorized();
   const { data: proxyConfigData, isLoading: isLoadingConfig } = useProxyConfig(ConfigType.GENERAL_SETTINGS);
+  const { data: teams } = useAllTeams();
+
+  // Reuses the Providers tab's query key, so this reads that cache rather than fetching again.
+  const { data: providerOverview } = useQuery({
+    queryKey: ["providers", "overview"],
+    queryFn: () => providerOverviewCall(accessToken as string),
+    enabled: Boolean(accessToken),
+  });
+  const providers: readonly string[] = useMemo(
+    () => (providerOverview?.providers ?? []).map((row: { provider: string }) => row.provider),
+    [providerOverview],
+  );
 
   const describeField = (name: string, fallback: string) =>
     proxyConfigData?.find((field) => field.field_name === name)?.field_description || fallback;
@@ -250,6 +297,8 @@ const LoggingSettings: React.FC = () => {
     () =>
       ({
         store_prompts_in_spend_logs: storedValue(STORE_PROMPTS_FIELD_NAME) ?? false,
+        store_prompts_by_team: (storedValue(BY_TEAM_FIELD_NAME) as CaptureTable | undefined) ?? {},
+        store_prompts_by_provider: (storedValue(BY_PROVIDER_FIELD_NAME) as CaptureTable | undefined) ?? {},
         ...Object.fromEntries(
           OPTIONAL_FIELDS.map((field) => {
             const stored = storedValue(field.name);
@@ -341,6 +390,8 @@ const LoggingSettings: React.FC = () => {
               describeField={describeField}
               isSaving={isPending || isDeletingField}
               onSubmit={handleFormSubmit}
+              teams={teams ?? []}
+              providers={providers}
             />
           )}
         </div>

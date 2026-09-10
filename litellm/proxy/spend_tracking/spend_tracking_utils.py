@@ -541,6 +541,12 @@ def get_logging_payload(kwargs, response_obj, start_time, end_time) -> SpendLogs
     # Extract agent_id for A2A requests (set directly on model_call_details)
     agent_id: Final[str | None] = kwargs.get("agent_id") or metadata.get("agent_id")
 
+    # Who and what this request belongs to, for the capture decision below. Read from the
+    # same metadata the row itself is built from, so the rule is applied to the team the
+    # spend is billed to rather than anything inferred separately.
+    _capture_team_id: Final[str | None] = metadata.get("user_api_key_team_id") or None
+    _capture_team_alias: Final[str | None] = metadata.get("user_api_key_team_alias") or None
+
     try:
         payload: Final[SpendLogsPayload] = SpendLogsPayload(
             request_id=str(id),
@@ -570,11 +576,26 @@ def get_logging_payload(kwargs, response_obj, start_time, end_time) -> SpendLogs
             requester_ip_address=clean_metadata.get("requester_ip_address", None),
             custom_llm_provider=custom_llm_provider or "",
             messages=_get_messages_for_spend_logs_payload(
-                standard_logging_payload=standard_logging_payload, metadata=metadata
+                standard_logging_payload=standard_logging_payload,
+                metadata=metadata,
+                team_id=_capture_team_id,
+                team_alias=_capture_team_alias,
+                custom_llm_provider=custom_llm_provider,
             ),
-            response=_get_response_for_spend_logs_payload(payload=standard_logging_payload, kwargs=kwargs),
+            response=_get_response_for_spend_logs_payload(
+                payload=standard_logging_payload,
+                kwargs=kwargs,
+                team_id=_capture_team_id,
+                team_alias=_capture_team_alias,
+                custom_llm_provider=custom_llm_provider,
+            ),
             proxy_server_request=_get_proxy_server_request_for_spend_logs_payload(
-                metadata=metadata, litellm_params=litellm_params, kwargs=kwargs
+                metadata=metadata,
+                litellm_params=litellm_params,
+                kwargs=kwargs,
+                team_id=_capture_team_id,
+                team_alias=_capture_team_alias,
+                custom_llm_provider=custom_llm_provider,
             ),
             session_id=_get_session_id_for_spend_log(
                 kwargs=kwargs,
@@ -793,8 +814,11 @@ async def get_spend_by_team_and_customer(
 def _get_messages_for_spend_logs_payload(
     standard_logging_payload: StandardLoggingPayload | None,
     metadata: dict | None = None,
+    team_id: str | None = None,
+    team_alias: str | None = None,
+    custom_llm_provider: str | None = None,
 ) -> str:
-    if _should_store_prompts_and_responses_in_spend_logs():
+    if _should_store_prompts_and_responses_in_spend_logs(team_id, team_alias, custom_llm_provider):
         if standard_logging_payload is not None:
             call_type: Final = standard_logging_payload.get("call_type", "")
             if call_type == "_arealtime":
@@ -1198,13 +1222,16 @@ def _get_proxy_server_request_for_spend_logs_payload(
     metadata: dict,
     litellm_params: dict,
     kwargs: dict | None = None,
+    team_id: str | None = None,
+    team_alias: str | None = None,
+    custom_llm_provider: str | None = None,
 ) -> str:
     """
     Only store if _should_store_prompts_and_responses_in_spend_logs() is True
 
     If turn_off_message_logging is enabled, redact messages in the request body.
     """
-    if _should_store_prompts_and_responses_in_spend_logs():
+    if _should_store_prompts_and_responses_in_spend_logs(team_id, team_alias, custom_llm_provider):
         _proxy_server_request: Final = cast(dict | None, litellm_params.get("proxy_server_request", {}))
         if _proxy_server_request is not None:
             _request_body = _proxy_server_request.get("body", {}) or {}
@@ -1271,10 +1298,13 @@ def _get_vector_store_request_for_spend_logs_payload(
 def _get_response_for_spend_logs_payload(
     payload: StandardLoggingPayload | None,
     kwargs: dict | None = None,
+    team_id: str | None = None,
+    team_alias: str | None = None,
+    custom_llm_provider: str | None = None,
 ) -> str:
     if payload is None:
         return "{}"
-    if _should_store_prompts_and_responses_in_spend_logs():
+    if _should_store_prompts_and_responses_in_spend_logs(team_id, team_alias, custom_llm_provider):
         response_obj: object = payload.get("response")
         if response_obj is None:
             return "{}"
@@ -1322,23 +1352,28 @@ def _get_response_for_spend_logs_payload(
     return "{}"
 
 
-def _should_store_prompts_and_responses_in_spend_logs() -> bool:
+def _should_store_prompts_and_responses_in_spend_logs(
+    team_id: str | None = None,
+    team_alias: str | None = None,
+    custom_llm_provider: str | None = None,
+) -> bool:
+    """Whether this request's prompt and response are kept.
+
+    Resolved per request rather than globally: a team rule beats a provider rule beats the
+    gateway default. See `capture_policy` for why team comes first. The arguments are
+    optional so existing callers that have no request context keep the global behaviour.
+    """
     from litellm.proxy.proxy_server import general_settings
+    from litellm.proxy.spend_tracking.capture_policy import should_capture
     from litellm.secret_managers.main import get_secret_bool
 
-    # Check general_settings (from DB or proxy_config.yaml)
-    store_prompts_value: Final = general_settings.get("store_prompts_in_spend_logs")
-
-    # Normalize case: handle True/true/TRUE, False/false/FALSE, None/null
-    if store_prompts_value is True:
-        return True
-    elif isinstance(store_prompts_value, str):
-        # Case-insensitive string comparison
-        if store_prompts_value.lower() == "true":
-            return True
-
-    # Also check environment variable
-    return get_secret_bool("STORE_PROMPTS_IN_SPEND_LOGS") is True
+    return should_capture(
+        general_settings,
+        team_id=team_id,
+        team_alias=team_alias,
+        provider=custom_llm_provider,
+        env_default=get_secret_bool("STORE_PROMPTS_IN_SPEND_LOGS"),
+    )
 
 
 def _get_status_for_spend_log(

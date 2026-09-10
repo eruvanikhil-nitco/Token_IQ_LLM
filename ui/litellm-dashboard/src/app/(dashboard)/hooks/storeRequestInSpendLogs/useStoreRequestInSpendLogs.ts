@@ -10,6 +10,8 @@ export interface StoreRequestInSpendLogsParams {
   maximum_spend_logs_cleanup_max_batches?: number;
   maximum_spend_logs_cleanup_run_budget?: string;
   maximum_spend_logs_cleanup_batch_timeout?: string;
+  store_prompts_by_team?: Record<string, boolean>;
+  store_prompts_by_provider?: Record<string, boolean>;
 }
 
 export interface StoreRequestInSpendLogsResponse {

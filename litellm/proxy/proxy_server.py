@@ -551,6 +551,9 @@ try:
 except ImportError:
     build_billing_metrics_recorder = None
     shutdown_billing_metrics_recorder = None
+from litellm.proxy.management_endpoints.audit_log_endpoints import (
+    router as audit_log_endpoints_router,
+)
 from litellm.proxy.middleware.in_flight_requests_middleware import (
     InFlightRequestsMiddleware,
 )
@@ -9342,6 +9345,40 @@ class ProxyStartupEvent:
             misfire_grace_time=APSCHEDULER_MISFIRE_GRACE_TIME,
         )
 
+        ### AGE OUT SPEND LOG BODIES ###
+        # Bodies are the whole size of the spend log table and hold what people actually
+        # typed. The accounting stays forever; only the request and response go.
+        from litellm.proxy.db.spend_log_retention import (
+            clear_expired_bodies,
+        )
+        from litellm.proxy.db.spend_log_retention import (
+            is_enabled as spend_log_retention_enabled,
+        )
+
+        spend_log_retention_days: Final = general_settings.get("spend_log_body_retention_days")
+        if spend_log_retention_enabled(spend_log_retention_days):
+
+            async def _clear_expired_spend_log_bodies() -> None:
+                async def _execute(sql: str, cutoff: datetime) -> int:
+                    return await prisma_client.db.execute_raw(sql, cutoff)
+
+                await clear_expired_bodies(_execute, retention_days=spend_log_retention_days)
+
+            # Hourly: the window is measured in days, so nothing is gained by running often,
+            # and a quiet job competing with traffic is worth avoiding.
+            scheduler.add_job(
+                _clear_expired_spend_log_bodies,
+                "interval",
+                seconds=3600,
+                id="spend_log_retention_job",
+                replace_existing=True,
+                misfire_grace_time=APSCHEDULER_MISFIRE_GRACE_TIME,
+            )
+            verbose_proxy_logger.info(
+                "Spend log body retention: clearing request and response bodies older than %s days",
+                spend_log_retention_days,
+            )
+
         ### UPDATE DAILY TAG SPEND (separate scheduler job with longer interval) ###
         ## Reduces QPS as there are more tags for a single request
         tag_spend_update_interval: Final = int(batch_writing_interval * DAILY_TAG_SPEND_BATCH_MULTIPLIER)
@@ -18126,6 +18163,7 @@ app.include_router(debugging_endpoints_router)
 app.include_router(rust_control_plane_router)
 app.include_router(ui_crud_endpoints_router)
 app.include_router(user_banner_endpoints_router)
+app.include_router(audit_log_endpoints_router)
 app.include_router(team_callback_router)
 app.include_router(budget_management_router)
 app.include_router(model_management_router)

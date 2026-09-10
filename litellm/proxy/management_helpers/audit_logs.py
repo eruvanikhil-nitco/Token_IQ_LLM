@@ -35,9 +35,10 @@ def is_audit_logging_enabled(store_audit_logs: bool | None = None) -> bool:
     if environment_value is not None:
         return environment_value
 
-    from litellm.proxy.proxy_server import premium_user
-
-    return premium_user is True
+    # Off unless asked for. Recording who changed what is not something to switch on for a
+    # deployment that never chose it, but it is also not something to sell back to the
+    # operator of their own gateway, so there is no premium check here.
+    return False
 
 
 def _allows_litellm_changed_by_header(user_api_key_dict: UserAPIKeyAuth) -> bool:
@@ -211,10 +212,7 @@ async def create_audit_log_for_update(request_data: LiteLLM_AuditLogs):
     if not is_audit_logging_enabled():
         return
 
-    from litellm.proxy.proxy_server import premium_user, prisma_client
-
-    if premium_user is not True:
-        return
+    from litellm.proxy.proxy_server import prisma_client
 
     verbose_proxy_logger.debug("creating audit log for %s", request_data)
 
