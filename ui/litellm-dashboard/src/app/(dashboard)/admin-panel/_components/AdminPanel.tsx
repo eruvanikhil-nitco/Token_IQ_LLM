@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import TabScroller from "@/components/shared/TabScroller";
 import { Info, TriangleAlert } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useBaseUrl } from "@/components/constants";
@@ -419,13 +420,15 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ proxySettings }) => {
       <h2 className="mb-2 text-base font-semibold text-foreground">Admin Access</h2>
       <p className="mb-4 text-sm text-foreground">Go to &apos;Internal Users&apos; page to add other admins.</p>
       <Tabs defaultValue={tabItems[0].key}>
-        <TabsList variant="line" className="mb-4 h-auto w-full flex-nowrap justify-start overflow-x-auto">
-          {tabItems.map((item) => (
-            <TabsTrigger key={item.key} value={item.key} className="flex-none">
-              {item.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+        <TabScroller className="mb-4">
+          <TabsList variant="line" className="h-auto w-max flex-nowrap justify-start">
+            {tabItems.map((item) => (
+              <TabsTrigger key={item.key} value={item.key} className="flex-none">
+                {item.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </TabScroller>
         {tabItems.map((item) => (
           <TabsContent key={item.key} value={item.key}>
             {item.children}

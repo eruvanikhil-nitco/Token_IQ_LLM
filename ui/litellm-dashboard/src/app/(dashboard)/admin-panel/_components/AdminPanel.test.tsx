@@ -116,6 +116,15 @@ describe("AdminPanel", () => {
       expect(strip).not.toHaveClass("flex-wrap");
     });
 
+    it("offers arrows to reach the tabs a single row cannot show", () => {
+      render(<AdminPanel />);
+
+      // A single non-wrapping row means the later tabs sit off screen, and the scrollbar is
+      // hidden, so without these there is nothing to say they exist.
+      expect(screen.getByRole("button", { name: "Scroll tabs left" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Scroll tabs right" })).toBeInTheDocument();
+    });
+
     it("should display Security Settings content when Security Settings tab is clicked", async () => {
       const user = userEvent.setup();
       render(<AdminPanel />);
