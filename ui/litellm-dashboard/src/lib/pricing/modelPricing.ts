@@ -30,6 +30,20 @@ export const BACKEND_PARAM: Readonly<Record<PricingField, string>> = {
   cacheWrite: "cache_creation_input_token_cost",
 };
 
+/**
+ * The edit form's own names for the same four rates.
+ *
+ * Add Model names its fields after the wire format, so `BACKEND_PARAM` doubles as its form
+ * vocabulary. The edit form does not, and this is the only place that difference is written
+ * down; anywhere else would be a second copy of exactly the mapping this module exists to own.
+ */
+export const EDIT_FORM_FIELD: Readonly<Record<PricingField, string>> = {
+  input: "input_cost",
+  output: "output_cost",
+  cacheRead: "cache_read_cost",
+  cacheWrite: "cache_write_cost",
+};
+
 /** Per-second pricing is an alternative to the four per-token rates, and is stored as typed. */
 export const PER_SECOND_PARAM = "input_cost_per_second";
 
