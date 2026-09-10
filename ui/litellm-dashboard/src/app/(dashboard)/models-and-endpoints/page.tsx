@@ -20,11 +20,13 @@ import LlmCredentialsPanel from "@/app/(dashboard)/models-and-endpoints/panels/L
 import PassThroughPanel from "@/app/(dashboard)/models-and-endpoints/panels/PassThroughPanel";
 import HealthStatusPanel from "@/app/(dashboard)/models-and-endpoints/panels/HealthStatusPanel";
 import ModelRetrySettingsPanel from "@/app/(dashboard)/models-and-endpoints/panels/ModelRetrySettingsPanel";
+import ModelLimitsTab from "@/app/(dashboard)/models-and-endpoints/components/ModelLimitsTab";
 import ModelGroupAliasPanel from "@/app/(dashboard)/models-and-endpoints/panels/ModelGroupAliasPanel";
 import AccessGroupBudgetsPanel from "@/app/(dashboard)/models-and-endpoints/panels/AccessGroupBudgetsPanel";
 import PriceDataPanel from "@/app/(dashboard)/models-and-endpoints/panels/PriceDataPanel";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import TabScroller from "@/components/shared/TabScroller";
 
 type ModelTabSlug =
   | "add"
@@ -32,6 +34,7 @@ type ModelTabSlug =
   | "pass-through"
   | "health"
   | "retry-settings"
+  | "model-limits"
   | "model-group-alias"
   | "access-group-budgets"
   | "price-data";
@@ -44,6 +47,7 @@ const TAB_LABELS: Record<ModelTabSlug, string> = {
   "pass-through": "Pass-Through Endpoints",
   health: "Health Status",
   "retry-settings": "Model Retry Settings",
+  "model-limits": "Model Limits",
   "model-group-alias": "Model Group Alias",
   "access-group-budgets": "Model Access Group Budgets",
   "price-data": "Price Data Reload",
@@ -63,6 +67,8 @@ const renderPanel = (key: string) => {
       return <HealthStatusPanel />;
     case "retry-settings":
       return <ModelRetrySettingsPanel />;
+    case "model-limits":
+      return <ModelLimitsTab />;
     case "model-group-alias":
       return <ModelGroupAliasPanel />;
     case "access-group-budgets":
@@ -106,6 +112,7 @@ export default function ModelsAndEndpointsPage() {
             "pass-through",
             "health",
             "retry-settings",
+            "model-limits",
             "model-group-alias",
             "access-group-budgets",
             "price-data",
@@ -183,7 +190,7 @@ export default function ModelsAndEndpointsPage() {
         ) : (
           <Tabs value={activeKey} onValueChange={setActiveKey}>
             <div className="flex min-w-0 flex-nowrap items-center gap-3 border-b">
-              <div className="no-scrollbar scroll-fade-e -mb-1.5 min-w-0 flex-1 overflow-x-auto pb-1.5">
+              <TabScroller className="flex-1">
                 <TabsList variant="line" className="w-max justify-start">
                   {visibleSlugs.map((slug) => {
                     const key = slug || BASE_TAB_KEY;
@@ -194,7 +201,7 @@ export default function ModelsAndEndpointsPage() {
                     );
                   })}
                 </TabsList>
-              </div>
+              </TabScroller>
               <div className="flex shrink-0 items-center gap-2 pb-1">
                 {lastRefreshed && (
                   <span className="text-xs text-muted-foreground">Last Refreshed: {lastRefreshed}</span>

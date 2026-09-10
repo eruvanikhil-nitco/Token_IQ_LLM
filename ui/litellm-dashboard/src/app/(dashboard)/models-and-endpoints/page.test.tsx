@@ -13,6 +13,7 @@ vi.mock("./panels/HealthStatusPanel", () => ({ default: () => <div data-testid="
 vi.mock("./panels/ModelRetrySettingsPanel", () => ({ default: () => <div data-testid="panel-retry" /> }));
 vi.mock("./panels/ModelGroupAliasPanel", () => ({ default: () => <div data-testid="panel-alias" /> }));
 vi.mock("./panels/PriceDataPanel", () => ({ default: () => <div data-testid="panel-price" /> }));
+vi.mock("./components/ModelLimitsTab", () => ({ default: () => <div data-testid="panel-model-limits" /> }));
 
 const detailState = { modelId: null as string | null, teamId: null as string | null };
 vi.mock("./detailNavigation", () => ({
@@ -98,6 +99,30 @@ describe("ModelsAndEndpointsPage", () => {
     detailState.teamId = "team-9";
     renderPage();
     expect(screen.getByTestId("team-info")).toHaveTextContent("team:team-9");
+  });
+
+  it("offers every declared tab to an admin, so none is unreachable", () => {
+    renderPage();
+
+    // A tab can be declared in the label map and the panel switch yet never listed in
+    // visibleSlugs, in which case it simply does not exist. That is how Model Limits
+    // shipped invisible: three of the four places agreed and the fourth did not.
+    const declared = [
+      "All Models",
+      "Add Model",
+      "LLM Credentials",
+      "Pass-Through Endpoints",
+      "Health Status",
+      "Model Retry Settings",
+      "Model Limits",
+      "Model Group Alias",
+      "Model Access Group Budgets",
+      "Price Data Reload",
+    ];
+
+    for (const label of declared) {
+      expect(screen.getByRole("tab", { name: new RegExp(label, "i") })).toBeInTheDocument();
+    }
   });
 
   it("hides admin-only tabs for a non-admin user", () => {
