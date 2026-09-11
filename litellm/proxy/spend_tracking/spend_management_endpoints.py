@@ -23,7 +23,6 @@ from typing_extensions import ReadOnly
 
 import litellm
 from litellm._logging import verbose_proxy_logger
-from litellm.constants import LITTELM_INTERNAL_HEALTH_SERVICE_ACCOUNT_NAME
 from litellm.proxy._types import *
 from litellm.proxy._types import ProviderBudgetResponse, ProviderBudgetResponseObject
 from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
@@ -32,6 +31,7 @@ from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
 # module while common_utils may pull proxy_server during init, which can leave
 # those names undefined. Import the helpers locally where they are used.
 from litellm.proxy.spend_tracking.spend_tracking_utils import (
+    INTERNAL_HEALTH_CHECK_API_KEYS,
     get_spend_by_team,
     get_spend_by_team_and_customer,
 )
@@ -59,10 +59,8 @@ _SESSION_GROUP_KEY_SQL: Final = "COALESCE(NULLIF(session_id, ''), request_id), a
 _MCP_CALL_TYPES_SQL: Final = "('call_mcp_tool', 'list_mcp_tools')"
 _AGENT_CALL_TYPE_SQL: Final = "'asend_message'"
 
-_INTERNAL_HEALTH_CHECK_API_KEYS: Final = (
-    LITTELM_INTERNAL_HEALTH_SERVICE_ACCOUNT_NAME,
-    hash_token(token=LITTELM_INTERNAL_HEALTH_SERVICE_ACCOUNT_NAME),
-)
+_INTERNAL_HEALTH_CHECK_API_KEYS: Final = INTERNAL_HEALTH_CHECK_API_KEYS
+
 
 _RowT = TypeVar("_RowT")
 

@@ -12,6 +12,7 @@ from litellm._logging import verbose_proxy_logger
 from litellm.constants import PTU_SENTINEL_API_KEY
 from litellm.proxy._types import CommonProxyErrors
 from litellm.proxy.spend_tracking.ptu_feature_flag import is_ptu_cost_attribution_enabled
+from litellm.proxy.spend_tracking.spend_tracking_utils import INTERNAL_HEALTH_CHECK_API_KEYS
 from litellm.proxy.utils import PrismaClient
 from litellm.repositories.table_repositories import DeletedVerificationTokenRepository
 from litellm.repositories.verification_token_repository import (
@@ -582,6 +583,17 @@ def _build_where_conditions(
         current["not"] = {"in": exclude_entity_ids}
         where_conditions[entity_id_field] = current
 
+    # The gateway's own health probes bill to a synthetic service account. They are the
+    # gateway watching itself, not a tenant's traffic, and they run on a timer forever,
+    # so leaving them in makes usage and cost reporting drift up on an idle deployment.
+    # /spend/logs/v2 already lets an operator drop them; analytics is a reporting surface
+    # rather than a debugging one, so it drops them outright.
+    health_check_key: _WhereValue = where_conditions.get("api_key", {})
+    if isinstance(health_check_key, str):
+        health_check_key = {"equals": health_check_key}
+    health_check_key["notIn"] = list(INTERNAL_HEALTH_CHECK_API_KEYS)
+    where_conditions["api_key"] = health_check_key
+
     return where_conditions
 
 
@@ -650,6 +662,13 @@ def _build_aggregated_where_clause(
         sql_conditions.append(f"api_key = ${p}")
         sql_params.append(api_key)
         p += 1
+
+    # Same exclusion the prisma builder applies, so the aggregated and paginated
+    # reads of one window cannot disagree about what counts as tenant traffic.
+    health_placeholders: Final = ", ".join(f"${p + i}" for i in range(len(INTERNAL_HEALTH_CHECK_API_KEYS)))
+    sql_conditions.append(f"api_key NOT IN ({health_placeholders})")
+    sql_params.extend(INTERNAL_HEALTH_CHECK_API_KEYS)
+    p += len(INTERNAL_HEALTH_CHECK_API_KEYS)  # rebind-ok: advances the shared $N placeholder counter
 
     return " AND ".join(sql_conditions), sql_params
 

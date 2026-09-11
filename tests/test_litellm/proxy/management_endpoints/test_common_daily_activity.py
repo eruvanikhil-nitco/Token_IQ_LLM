@@ -17,6 +17,7 @@ from litellm.proxy.management_endpoints.common_daily_activity import (
     update_metrics,
 )
 from litellm.proxy.spend_tracking.ptu_feature_flag import PTU_COST_ATTRIBUTION_ENV_VAR
+from litellm.proxy.spend_tracking.spend_tracking_utils import INTERNAL_HEALTH_CHECK_API_KEYS
 from litellm.types.proxy.management_endpoints.common_daily_activity import (
     DailySpendMetadata,
     SpendMetrics,
@@ -1009,6 +1010,7 @@ class TestBuildAggregatedSqlQuery:
             "user-1",
             "bedrock/global.anthropic.claude-opus-4-8",
             "sk-test",
+            *INTERNAL_HEALTH_CHECK_API_KEYS,
         ]
         assert "model = $4" in sql
         assert "api_key = $5" in sql
@@ -1064,7 +1066,7 @@ class TestAggregatedEmptyEntityFilter:
         normalized = " ".join(sql.split())
         assert "IN ()" not in normalized
         assert '"team_id" IN' not in normalized
-        assert params == ["2026-08-01", "2026-08-19"]
+        assert params == ["2026-08-01", "2026-08-19", *INTERNAL_HEALTH_CHECK_API_KEYS]
 
     @pytest.mark.parametrize("build", _BUILDERS)
     def test_empty_entity_list_matches_nothing_rather_than_everything(self, build):
@@ -1095,7 +1097,7 @@ class TestAggregatedEmptyEntityFilter:
         normalized = " ".join(sql.split())
         assert '"team_id" IN ($3, $4)' in normalized
         assert "FALSE" not in normalized
-        assert params == ["2026-08-01", "2026-08-19", "team-alpha", "team-beta"]
+        assert params == ["2026-08-01", "2026-08-19", "team-alpha", "team-beta", *INTERNAL_HEALTH_CHECK_API_KEYS]
 
 
 @pytest.mark.asyncio
@@ -1866,7 +1868,7 @@ def test_entity_rollup_sql_query_and_api_key_list_filter():
     assert '(date, "team_id", api_key)' in sql
     assert "api_key IN ($3, $4)" in sql
     assert "SUM(ptu_flat_cost)::float" in sql
-    assert params == ["2024-01-01", "2024-01-31", "key-1", "key-2"]
+    assert params == ["2024-01-01", "2024-01-31", "key-1", "key-2", *INTERNAL_HEALTH_CHECK_API_KEYS]
 
     plain_sql, _ = _build_aggregated_sql_query(
         table_name="litellm_dailyteamspend",
@@ -1890,7 +1892,7 @@ def test_entity_rollup_sql_query_and_api_key_list_filter():
         api_key=[],
     )
     assert "FALSE" in empty_sql
-    assert empty_params == ["2024-01-01", "2024-01-31"]
+    assert empty_params == ["2024-01-01", "2024-01-31", *INTERNAL_HEALTH_CHECK_API_KEYS]
 
 
 @pytest.mark.asyncio
@@ -2040,3 +2042,65 @@ async def test_metadata_totals_describe_the_window_not_the_page():
     assert result.metadata.has_more is True
     assert len(result.results) == 1
     assert result.results[0].metrics.spend == 0.0
+
+
+def test_where_conditions_drop_the_internal_health_check_account():
+    """Regression: the gateway's own probes billed into tenant usage.
+
+    Health checks log under a synthetic service account and run on a timer forever,
+    so an idle deployment's usage and cost drifted upward on traffic no tenant sent.
+    /spend/logs/v2 already let an operator drop them; the analytics rollups had no
+    such control, and once aggregated the spend could not be separated out again.
+    """
+    from litellm.proxy.management_endpoints.common_daily_activity import _build_where_conditions
+    from litellm.proxy.spend_tracking.spend_tracking_utils import INTERNAL_HEALTH_CHECK_API_KEYS
+
+    where = _build_where_conditions(
+        entity_id_field="user_id",
+        entity_id=None,
+        start_date="2024-01-01",
+        end_date="2024-01-31",
+        model=None,
+        api_key=None,
+    )
+
+    assert where["api_key"]["notIn"] == list(INTERNAL_HEALTH_CHECK_API_KEYS)
+
+
+def test_health_check_exclusion_composes_with_an_explicit_api_key_filter():
+    """Filtering to one key must still exclude the probes, not replace the filter."""
+    from litellm.proxy.management_endpoints.common_daily_activity import _build_where_conditions
+    from litellm.proxy.spend_tracking.spend_tracking_utils import INTERNAL_HEALTH_CHECK_API_KEYS
+
+    where = _build_where_conditions(
+        entity_id_field="team_id",
+        entity_id="team-1",
+        start_date="2024-01-01",
+        end_date="2024-01-31",
+        model=None,
+        api_key="hashed-key-1",
+    )
+
+    assert where["api_key"]["equals"] == "hashed-key-1"
+    assert where["api_key"]["notIn"] == list(INTERNAL_HEALTH_CHECK_API_KEYS)
+
+
+def test_aggregated_where_clause_drops_the_internal_health_check_account():
+    """The SQL path serves the aggregated routes; it must agree with the prisma path
+    about what counts as tenant traffic, or the two reads of one window disagree."""
+    from litellm.proxy.management_endpoints.common_daily_activity import _build_aggregated_where_clause
+    from litellm.proxy.spend_tracking.spend_tracking_utils import INTERNAL_HEALTH_CHECK_API_KEYS
+
+    clause, params = _build_aggregated_where_clause(
+        entity_id_field="team_id",
+        entity_id=None,
+        adjusted_start="2024-01-01",
+        adjusted_end="2024-01-31",
+        model=None,
+        api_key=None,
+        exclude_entity_ids=None,
+    )
+
+    assert "api_key NOT IN" in clause
+    for key in INTERNAL_HEALTH_CHECK_API_KEYS:
+        assert key in params
