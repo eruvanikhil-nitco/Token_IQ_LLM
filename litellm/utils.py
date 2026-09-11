@@ -8778,6 +8778,12 @@ class ProviderConfigManager:
             )
 
             return VLLMModelInfo()
+        elif LlmProviders.OPENROUTER == provider:
+            from litellm.llms.openrouter.passthrough.transformation import (
+                OpenRouterPassthroughConfig,
+            )
+
+            return OpenRouterPassthroughConfig()
         elif LlmProviders.LEMONADE == provider:
             return litellm.LemonadeChatConfig()
         elif LlmProviders.CLARIFAI == provider:

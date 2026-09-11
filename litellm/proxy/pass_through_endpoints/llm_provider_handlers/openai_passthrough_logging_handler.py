@@ -43,7 +43,10 @@ from litellm.utils import ModelResponse, TextCompletionResponse, convert_to_mode
 # Cognitive Services-hosted Azure OpenAI deployments. Because the hostname alone
 # cannot tell Azure OpenAI apart from the other Cognitive Services on those
 # domains, requests there must additionally carry an OpenAI-style path segment.
-_OPENAI_HOSTNAMES: Final = ("api.openai.com",)
+# OpenRouter serves the OpenAI wire format, so its replies are read back by this
+# handler. Without it a courier request reaches OpenRouter, returns correctly, and
+# records zero tokens and zero cost against a charge OpenRouter actually billed.
+_OPENAI_HOSTNAMES: Final = ("api.openai.com", "openrouter.ai")
 _AZURE_OPENAI_HOSTNAMES: Final = ("openai.azure.com", "cognitiveservices.azure.com")
 # Path markers that identify an Azure request as Azure OpenAI rather than Speech
 # / Vision / Language / ... `/openai/` is the native Azure OpenAI path prefix;

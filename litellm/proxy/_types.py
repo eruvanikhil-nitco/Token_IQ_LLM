@@ -476,6 +476,7 @@ class LiteLLMRoutes(enum.Enum):
         "/milvus",
         "/gigachat",
         "/watsonx",
+        "/openrouter",
     ]
 
     #########################################################
