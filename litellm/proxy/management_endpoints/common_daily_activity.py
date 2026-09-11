@@ -166,7 +166,15 @@ def _reported_flat_cost(record: DailySpendRecord | _GroupingSetsRow) -> float:
     a shared endpoint that made none before. Only a row actually carrying flat cost, which
     is a sentinel row, reaches it now.
     """
-    raw: Final = getattr(record, "ptu_flat_cost", None) or 0.0
+    return _gated_flat_cost(getattr(record, "ptu_flat_cost", None) or 0.0)
+
+
+def _gated_flat_cost(raw: float) -> float:
+    """The opt-in gate `_reported_flat_cost` applies, over an already-summed value.
+
+    The gate is a global flag, so applying it once to a SUM() is the same answer as
+    applying it to each row before adding them up.
+    """
     if not raw:
         return 0.0
     if not is_ptu_cost_attribution_enabled():
@@ -644,6 +652,73 @@ def _build_aggregated_where_clause(
         p += 1
 
     return " AND ".join(sql_conditions), sql_params
+
+
+_PTU_FLAT_COST_TABLE: Final = "litellm_dailyteamspend"
+
+_WINDOW_TOTAL_FIELDS: Final = (
+    "spend",
+    "prompt_tokens",
+    "completion_tokens",
+    "cache_read_input_tokens",
+    "cache_creation_input_tokens",
+    "compression_saved_tokens",
+    "compression_savings_spend",
+    "prompt_caching_savings_spend",
+    "gateway_injected_caching_savings_spend",
+    "autorouter_savings_spend",
+    "api_requests",
+    "successful_requests",
+    "failed_requests",
+)
+
+
+async def _window_totals(
+    *,
+    prisma_client: PrismaClient,
+    table_name: str,
+    where_conditions: Mapping[str, "_WhereValue"],
+) -> SpendMetrics:
+    """Metric totals over every row the query matches, independent of the page served.
+
+    The summary the dashboard renders describes the whole window, so it cannot be
+    folded from the page's rows. Grouping by date keeps the result bounded by the
+    length of the window rather than by the tenant's row count, so this stays one
+    small query whether the range holds five rows or five million.
+    """
+    sum_fields: Final[Mapping[str, bool]] = {
+        **{field: True for field in _WINDOW_TOTAL_FIELDS},
+        **({"ptu_flat_cost": True} if table_name == _PTU_FLAT_COST_TABLE else {}),
+    }
+    rows: Final = await getattr(prisma_client.db, table_name).group_by(
+        by=["date"],
+        where=dict(where_conditions),
+        sum=dict(sum_fields),
+    )
+    sums: Final = tuple(row.get("_sum") or {} for row in rows)
+
+    def total(field: str) -> float:
+        return sum(float(entry.get(field) or 0) for entry in sums)
+
+    prompt_tokens: Final = int(total("prompt_tokens"))
+    completion_tokens: Final = int(total("completion_tokens"))
+    return SpendMetrics(
+        spend=total("spend"),
+        flat_cost=_gated_flat_cost(total("ptu_flat_cost")),
+        prompt_tokens=prompt_tokens,
+        completion_tokens=completion_tokens,
+        total_tokens=prompt_tokens + completion_tokens,
+        cache_read_input_tokens=int(total("cache_read_input_tokens")),
+        cache_creation_input_tokens=int(total("cache_creation_input_tokens")),
+        compression_saved_tokens=int(total("compression_saved_tokens")),
+        compression_savings_spend=total("compression_savings_spend"),
+        prompt_caching_savings_spend=total("prompt_caching_savings_spend"),
+        gateway_injected_caching_savings_spend=total("gateway_injected_caching_savings_spend"),
+        autorouter_savings_spend=total("autorouter_savings_spend"),
+        api_requests=int(total("api_requests")),
+        successful_requests=int(total("successful_requests")),
+        failed_requests=int(total("failed_requests")),
+    )
 
 
 def _ptu_flat_cost_select(table_name: str) -> str:
@@ -1190,7 +1265,11 @@ async def get_daily_activity(
             entity_metadata_field=resolved_entity_metadata,
         )
 
-        metadata_metrics = aggregated["totals"]
+        metadata_metrics = await _window_totals(
+            prisma_client=prisma_client,
+            table_name=table_name,
+            where_conditions=where_conditions,
+        )
         if metadata_metrics_func:
             metadata_metrics = metadata_metrics_func(daily_spend_data)
 
