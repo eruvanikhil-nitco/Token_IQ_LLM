@@ -7509,3 +7509,33 @@ async def test_key_budget_error_keeps_the_masked_key_name(key_name):
     names are just as valid as the alphanumeric ones."""
     message = await _run_key_budget_check(key_name)
     assert f"Key=prod-key ({key_name}) Current cost" in message
+
+
+def test_courier_team_is_refused_on_the_translating_route():
+    """Courier mode means this team's bodies are never repackaged. The translating
+    route repackages by definition, so it is closed for them, and the refusal has to
+    say where to go instead or the caller is left guessing."""
+    import pytest as _pytest
+
+    from litellm.proxy.auth.auth_checks import _courier_mode_route_check
+
+    with _pytest.raises(Exception) as exc:
+        _courier_mode_route_check(courier_mode=True, route="/v1/chat/completions")
+
+    message = str(exc.value).lower()
+    assert "courier" in message
+    assert "pass-through" in message or "/anthropic" in message
+
+
+def test_courier_team_is_allowed_on_the_pass_through_routes():
+    from litellm.proxy.auth.auth_checks import _courier_mode_route_check
+
+    _courier_mode_route_check(courier_mode=True, route="/anthropic/v1/messages")
+    _courier_mode_route_check(courier_mode=True, route="/openrouter/chat/completions")
+    _courier_mode_route_check(courier_mode=True, route="/bedrock/model/x/converse")
+
+
+def test_a_team_not_in_courier_mode_is_unaffected():
+    from litellm.proxy.auth.auth_checks import _courier_mode_route_check
+
+    _courier_mode_route_check(courier_mode=False, route="/v1/chat/completions")

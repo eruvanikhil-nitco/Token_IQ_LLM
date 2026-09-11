@@ -829,6 +829,32 @@ BUDGET_ENFORCED_SIDE_EFFECT_ROUTES: Final = frozenset(
 )
 
 
+def _courier_mode_route_check(courier_mode: bool, route: str) -> None:
+    """Close the translating routes for a team that has opted into courier mode.
+
+    Courier and translator are different addresses expecting differently shaped bodies,
+    so this setting cannot change how an existing request behaves; it changes which
+    addresses the team may use. The gateway speaks for itself only about its own
+    business, whose key this is and which addresses they may reach, so the message names
+    where to go and stops there.
+    """
+    if not courier_mode:
+        return
+    if any(route.startswith(prefix) for prefix in LiteLLMRoutes.mapped_pass_through_routes.value):
+        return
+    raise ProxyException(
+        message=(
+            f"This team is in courier mode, where request bodies reach the provider unread. "
+            f"{route} translates the body into the provider's format, so it is closed for "
+            f"this team. Send the provider's own request shape to its pass-through address "
+            f"instead, for example /anthropic/v1/messages or /openrouter/chat/completions."
+        ),
+        type=ProxyErrorTypes.auth_error,
+        param="route",
+        code=status.HTTP_403_FORBIDDEN,
+    )
+
+
 async def common_checks(
     request_body: dict,
     team_object: LiteLLM_TeamTable | None,
@@ -896,6 +922,12 @@ async def common_checks(
     # 1. If team is blocked
     if team_object is not None and team_object.blocked is True:
         raise Exception(f"Team={team_object.team_id} is blocked. Update via `/team/unblock` if you're an admin.")
+
+    # 1.1. If the team is in courier mode, only the pass-through routes are open to it
+    _courier_mode_route_check(
+        courier_mode=bool(getattr(team_object, "courier_mode", False)),
+        route=route,
+    )
 
     # 2. If team can call model (or key's access_group_ids grant it)
     if _model and team_object:
