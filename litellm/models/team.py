@@ -68,6 +68,7 @@ class TeamBase(LiteLLMPydanticObjectBase):
     members: list[str] = []
     members_with_roles: list[Member] = []
     team_member_permissions: list[str] | None = None
+    courier_mode: bool = False
     metadata: dict | None = None
     tpm_limit: int | None = None
     rpm_limit: int | None = None
@@ -93,7 +94,6 @@ class LiteLLM_TeamTable(TeamBase):
     model_max_budget: dict | None = {}
     policies: list[str] | None = None
     allow_team_guardrail_config: bool | None = False
-    courier_mode: bool = False
     litellm_model_table: LiteLLM_ModelTable | None = None
     object_permission: LiteLLM_ObjectPermissionTable | None = None
     object_permission_id: str | None = None

@@ -13536,3 +13536,13 @@ def test_courier_mode_defaults_to_off():
     from litellm.models.team import LiteLLM_TeamTable
 
     assert LiteLLM_TeamTable(team_id="t-default").courier_mode is False
+
+
+def test_courier_mode_survives_the_team_creation_request():
+    """Regression: the field lived only on the table model, so /team/new accepted
+    courier_mode=true, silently dropped it, and stored false. An admin would turn the
+    setting on and nothing would change."""
+    from litellm.proxy._types import NewTeamRequest
+
+    assert NewTeamRequest(team_alias="t", courier_mode=True).courier_mode is True
+    assert NewTeamRequest(team_alias="t").courier_mode is False
