@@ -6208,3 +6208,50 @@ async def get_team_daily_activity_aggregated(
         timezone_offset_minutes=timezone,
         include_entity_breakdown=True,
     )
+
+
+@router.get(
+    "/team/{team_id}/courier_coverage",
+    tags=["team management"],
+    dependencies=[Depends(user_api_key_auth)],
+)
+async def team_courier_coverage(team_id: str):
+    """What each of this team's providers will actually do in courier mode.
+
+    An admin turning courier mode on should not discover from a month-end invoice that
+    one of their providers carried traffic and recorded nothing. Coverage is derived
+    from the request path itself rather than a maintained list, so the answer cannot
+    drift from what the gateway does.
+    """
+    from litellm.proxy.management_endpoints.courier_coverage import (
+        deployment_readiness,
+        provider_courier_coverage,
+    )
+    from litellm.proxy.proxy_server import llm_router
+
+    deployments: Final = (llm_router.get_model_list() or ()) if llm_router is not None else ()
+    providers: Final = tuple(
+        sorted(
+            {
+                str(params.get("model", "")).split("/")[0]
+                for deployment in deployments
+                if isinstance(params := deployment.get("litellm_params"), dict) and "/" in str(params.get("model", ""))
+            }
+        )
+    )
+
+    return {
+        "team_id": team_id,
+        "providers": [
+            {
+                "provider": provider,
+                "has_route": (coverage := provider_courier_coverage(provider)).has_route,
+                "reads_usage": coverage.reads_usage,
+                "is_covered": coverage.is_covered,
+                "summary": coverage.summary,
+                "deployments_ready": list((readiness := deployment_readiness(deployments, provider)).ready),
+                "deployments_needing_opt_in": list(readiness.needs_opt_in),
+            }
+            for provider in providers
+        ],
+    }
