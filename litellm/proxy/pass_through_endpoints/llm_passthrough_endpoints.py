@@ -1144,6 +1144,7 @@ async def bedrock_proxy_route(
         custom_headers=prepped.headers,
         is_streaming_request=is_streaming_request,
         _forward_headers=True,
+        custom_llm_provider="bedrock",
     )  # dynamically construct pass-through endpoint based on incoming path
     setattr(request.state, LITELLM_PASS_THROUGH_CUSTOM_BODY_STATE_KEY, data)
     # SigV4 signs an exact payload; pass-through must send prepped.body, not json.dumps

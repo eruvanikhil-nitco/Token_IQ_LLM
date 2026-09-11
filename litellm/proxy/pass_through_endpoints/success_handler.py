@@ -236,6 +236,19 @@ class PassThroughEndpointLogging:
             )
             standard_logging_response_object = cursor_passthrough_logging_handler_result["result"]
             kwargs = cursor_passthrough_logging_handler_result["kwargs"]
+        elif self.is_bedrock_route(custom_llm_provider):
+            from litellm.llms.bedrock.passthrough.transformation import (
+                BedrockPassthroughConfig,
+            )
+
+            standard_logging_response_object = BedrockPassthroughConfig().logging_non_streaming_response(
+                model=logging_obj.model_call_details.get("model", ""),
+                custom_llm_provider="bedrock",
+                httpx_response=httpx_response,
+                request_data=request_body if isinstance(request_body, dict) else {},
+                logging_obj=logging_obj,
+                endpoint=url_route,
+            )
         elif self.is_comprehend_medical_route(custom_llm_provider):
             from .llm_provider_handlers.comprehend_medical_passthrough_logging_handler import (
                 ComprehendMedicalPassthroughLoggingHandler,
@@ -386,6 +399,12 @@ class PassThroughEndpointLogging:
 
     def is_comprehend_medical_route(self, custom_llm_provider: str | None) -> bool:
         return custom_llm_provider == "comprehendmedical"
+
+    def is_bedrock_route(self, custom_llm_provider: str | None = None) -> bool:
+        """Bedrock is identified by provider rather than hostname: its URL is regional
+        (`bedrock-runtime.<region>.amazonaws.com`) and the route signs an exact host, so
+        matching on the host would need a pattern per region."""
+        return custom_llm_provider == "bedrock"
 
     def is_langfuse_route(self, url_route: str):
         parsed_url: Final = urlparse(url_route)
