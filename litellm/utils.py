@@ -8827,6 +8827,12 @@ class ProviderConfigManager:
             )
 
             return GigaChatPassthroughConfig()
+        elif LlmProviders.OPENROUTER == provider:
+            from litellm.llms.openrouter.passthrough.transformation import (
+                OpenRouterPassthroughConfig,
+            )
+
+            return OpenRouterPassthroughConfig()
         elif LlmProviders.WATSONX == provider:
             from litellm.llms.watsonx.passthrough.transformation import (
                 WatsonxPassthroughConfig,

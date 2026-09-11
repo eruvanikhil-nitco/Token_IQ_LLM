@@ -3133,3 +3133,28 @@ async def watsonx_proxy_route(
         fastapi_response,
         user_api_key_dict,
     )
+
+
+@router.api_route(
+    "/openrouter/{endpoint:path}",
+    methods=["GET", "POST", "PUT", "DELETE", "PATCH"],
+    tags=["OpenRouter Pass-through", "pass-through"],
+)
+async def openrouter_proxy_route(
+    endpoint: str,
+    request: Request,
+    fastapi_response: Response,
+    user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
+):
+    """Forward a request to OpenRouter with its body untouched.
+
+    The key check, budgets and limits still run through `user_api_key_auth`; only the
+    payload is left alone.
+    """
+    return await llm_passthrough_factory_proxy_route(
+        endpoint=endpoint,
+        request=request,
+        fastapi_response=fastapi_response,
+        user_api_key_dict=user_api_key_dict,
+        custom_llm_provider="openrouter",
+    )
