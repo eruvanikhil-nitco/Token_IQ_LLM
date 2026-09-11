@@ -39,7 +39,37 @@ upstream catalogue contains:
 | Azure OpenAI | yes | yes, via the OpenAI handler | none, verify only |
 | Google Vertex | yes | yes | none, verify only |
 | Bedrock | yes | **no** | write the usage reader |
-| OpenRouter | **no** | n/a | declare its api base |
+| OpenRouter | yes | yes | done, see below |
+
+**What landing OpenRouter actually took.** The estimate above, "declare its api base", was
+wrong, and the way it was wrong is the useful part. Three defects stacked, and every unit test
+passed while all three were live. Only a real request found them.
+
+1. The route factory resolves its provider through `get_provider_model_info`, not
+   `get_provider_passthrough_config`. Registering in one of the two leaves the route returning
+   404 "Provider not found" with a green test suite.
+2. Pass-through paths are separately gated by `LiteLLMRoutes.mapped_pass_through_routes`, an
+   allow-list of prefixes. A route absent from it matches, enters the factory, and is then
+   rejected as an unregistered endpoint.
+3. The success handler prices courier traffic by dispatching on the target hostname, and the
+   OpenAI-compatible allow-list held only `api.openai.com` and the Azure hosts. OpenRouter
+   serves the OpenAI wire format but was not listed, so a courier request succeeded, returned
+   correctly, and wrote a spend row of zero tokens and zero cost against a charge OpenRouter
+   had actually billed.
+
+The third is the one that matters. It is the same failure this document describes on Bedrock,
+it was live on the provider carrying all of this fork's traffic, and nothing short of sending a
+real request and reading the spend row back would have surfaced it.
+
+**A deployment must be opted in.** Courier mode reads a provider credential from a deployment
+only when that deployment sets `use_in_pass_through: true`. This is a deliberate default: a
+credential added for ordinary use is not automatically usable by routes that forward a body
+unopened. Nobody would guess it, and an admin switching a team to courier would otherwise watch
+every call fail on credentials with no indication why, so the admin screen has to surface it.
+
+**Treat the remaining coverage claims as unproven.** The table above was built by reading code.
+OpenRouter read as "one missing api base" and was three bugs. Every row still marked covered
+needs a real request and a reconciled spend row before it is believed, Bedrock most of all.
 
 Explicitly out of scope: the remaining ~134 providers. Adding them all would cost months and
 rot faster than we could maintain it. The deliverable instead is that adding provider 7 is a
