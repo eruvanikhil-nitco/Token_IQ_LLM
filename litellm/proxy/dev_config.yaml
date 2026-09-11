@@ -212,7 +212,7 @@ general_settings:
   # Team wins because privacy rules follow people, not providers.
   store_prompts_in_spend_logs: true
   store_prompts_by_team:
-    only_key: false        # this team's traffic is never recorded
+    only_key: true         # this team's traffic is recorded
   store_prompts_by_provider:
     openrouter: true
   # Opt-in: let CheckBatchCost track cost for unmanaged batches created with a raw
