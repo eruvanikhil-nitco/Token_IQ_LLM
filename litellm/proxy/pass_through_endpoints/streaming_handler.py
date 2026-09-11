@@ -283,6 +283,20 @@ class PassThroughStreamingHandler:
             kwargs = (  # rebind-ok: branch bind in shared if/elif dispatch
                 gemini_passthrough_logging_handler_result["kwargs"]
             )
+        elif endpoint_type == EndpointType.BEDROCK:
+            from litellm.llms.bedrock.passthrough.transformation import (
+                BedrockPassthroughConfig,
+            )
+
+            standard_logging_response_object = (  # rebind-ok: branch bind in shared if/elif dispatch
+                BedrockPassthroughConfig().handle_logging_collected_chunks(
+                    all_chunks=all_chunks,
+                    litellm_logging_obj=litellm_logging_obj,
+                    model=litellm_logging_obj.model_call_details.get("model", ""),
+                    custom_llm_provider="bedrock",
+                    endpoint=url_route,
+                )
+            )
         elif endpoint_type == EndpointType.OPENAI:
             openai_passthrough_logging_handler_result: Final = (
                 OpenAIPassthroughLoggingHandler._handle_logging_openai_collected_chunks(

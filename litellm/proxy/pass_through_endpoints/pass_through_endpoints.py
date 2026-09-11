@@ -372,6 +372,10 @@ class HttpPassThroughEndpointHelpers(BasePassthroughUtils):
             or (parsed_url.hostname and "openai.com" in parsed_url.hostname)
         ):
             return EndpointType.OPENAI
+        elif parsed_url.hostname and parsed_url.hostname.startswith("bedrock-runtime."):
+            # Bedrock's host carries its region, so match the prefix rather than
+            # enumerating every region.
+            return EndpointType.BEDROCK
         return EndpointType.GENERIC
 
     @staticmethod

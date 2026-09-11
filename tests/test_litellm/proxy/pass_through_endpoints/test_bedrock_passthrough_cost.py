@@ -71,3 +71,51 @@ def test_usage_is_read_from_both_bedrock_response_shapes(endpoint, body, expecte
     assert result is not None, f"no usage read from the {endpoint.rsplit('/', 1)[-1]} shape"
     assert result.usage.prompt_tokens == expected_prompt
     assert result.usage.completion_tokens == expected_completion
+
+
+def test_bedrock_urls_resolve_to_their_own_endpoint_type():
+    """The streaming chain dispatches on EndpointType. Bedrock's regional host fell
+    through to GENERIC, which has no pricing branch, so streamed Bedrock traffic
+    billed nothing even once the non-streaming path was fixed."""
+    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import HttpPassThroughEndpointHelpers
+    from litellm.types.passthrough_endpoints.pass_through_endpoints import EndpointType
+
+    resolved = HttpPassThroughEndpointHelpers.get_endpoint_type(
+        "https://bedrock-runtime.us-east-1.amazonaws.com/model/anthropic.claude-3-5-sonnet-20241022-v2:0/converse-stream"
+    )
+    assert resolved == EndpointType.BEDROCK
+
+
+def test_unrelated_hosts_still_resolve_to_generic():
+    from litellm.proxy.pass_through_endpoints.pass_through_endpoints import HttpPassThroughEndpointHelpers
+    from litellm.types.passthrough_endpoints.pass_through_endpoints import EndpointType
+
+    assert HttpPassThroughEndpointHelpers.get_endpoint_type("https://example.com/v1/chat") == EndpointType.GENERIC
+
+
+def test_streamed_bedrock_usage_is_read_from_the_collected_chunks():
+    """A streamed reply never reaches logging_non_streaming_response."""
+    from litellm.llms.bedrock.passthrough.transformation import BedrockPassthroughConfig
+
+    chunks = [
+        json.dumps({"role": "assistant"}),
+        json.dumps({"contentBlockDelta": {"delta": {"text": "hello"}, "contentBlockIndex": 0}}),
+        json.dumps(
+            {
+                "usage": {"inputTokens": 11, "outputTokens": 4, "totalTokens": 15},
+                "metrics": {"latencyMs": 420},
+            }
+        ),
+    ]
+
+    result = BedrockPassthroughConfig().handle_logging_collected_chunks(
+        all_chunks=chunks,
+        litellm_logging_obj=_logging_obj("test-bedrock-stream-cost", stream=True),
+        model="anthropic.claude-3-5-sonnet-20241022-v2:0",
+        custom_llm_provider="bedrock",
+        endpoint="model/anthropic.claude-3-5-sonnet-20241022-v2:0/converse-stream",
+    )
+
+    assert result is not None, "streamed Bedrock chunks produced no usage"
+    assert result.usage.prompt_tokens == 11
+    assert result.usage.completion_tokens == 4
