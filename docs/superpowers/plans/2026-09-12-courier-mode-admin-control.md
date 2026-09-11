@@ -338,6 +338,24 @@ git commit -m "feat(teams): report courier coverage from the runtime registries"
 
 ---
 
+### Model permissions are named differently in courier mode
+
+Found while proving Task 2 live, and the admin screen has to say it.
+
+A team's `models` allow-list is written against the proxy's deployment names, for
+example `openrouter/openai/gpt-4o-mini`. On a courier route the caller names the
+*provider's* model, `openai/gpt-4o-mini`, because the body is the provider's own. The
+allow-list therefore stops matching the moment a team switches to courier, and every
+call is refused with `team_model_access_denied` naming a model the admin believes they
+granted.
+
+This is correct behaviour, not a bug: courier mode means the provider's names, by
+definition. But it is invisible, it looks like a permissions failure rather than a
+naming mismatch, and it cost a debugging step to spot even knowing the feature
+intimately. Task 4's panel must show, for a team being switched, which of its granted
+models will no longer match, and Task 3's coverage endpoint is the natural place to
+compute that.
+
 ### Task 4: The admin screen
 
 **Files:**
