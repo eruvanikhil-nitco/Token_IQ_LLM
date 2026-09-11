@@ -141,7 +141,7 @@ def _commit_all(repo: Path, message: str) -> None:
 
 def _set_base_ref(repo: Path) -> None:
     subprocess.run(
-        ["git", "update-ref", "refs/remotes/origin/litellm_internal_staging", "HEAD"],
+        ["git", "update-ref", "refs/remotes/origin/main", "HEAD"],
         cwd=repo,
         check=True,
     )
@@ -235,7 +235,7 @@ def test_nothing_staged_without_a_base_ref_fails_with_a_fetch_hint(tmp_path: Pat
     proc = _run(repo, bin_dir, {})
     assert proc.returncode == 1
     assert "cannot resolve the merge base" in proc.stdout
-    assert "git fetch origin litellm_internal_staging" in proc.stdout
+    assert "git fetch origin main" in proc.stdout
     assert "check: FAIL" in proc.stdout
 
 

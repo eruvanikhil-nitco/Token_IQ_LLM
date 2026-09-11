@@ -5,9 +5,6 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from litellm.proxy.spend_tracking.ptu_feature_flag import PTU_COST_ATTRIBUTION_ENV_VAR
-
-
 from litellm.proxy.management_endpoints.common_daily_activity import (
     _adjust_dates_for_timezone,
     _build_aggregated_sql_query,
@@ -19,10 +16,43 @@ from litellm.proxy.management_endpoints.common_daily_activity import (
     get_daily_activity_aggregated,
     update_metrics,
 )
+from litellm.proxy.spend_tracking.ptu_feature_flag import PTU_COST_ATTRIBUTION_ENV_VAR
+from litellm.proxy.spend_tracking.spend_tracking_utils import INTERNAL_HEALTH_CHECK_API_KEYS
 from litellm.types.proxy.management_endpoints.common_daily_activity import (
     DailySpendMetadata,
     SpendMetrics,
 )
+
+_WINDOW_TOTAL_STUB_FIELDS = (
+    "spend",
+    "prompt_tokens",
+    "completion_tokens",
+    "cache_read_input_tokens",
+    "cache_creation_input_tokens",
+    "compression_saved_tokens",
+    "compression_savings_spend",
+    "prompt_caching_savings_spend",
+    "gateway_injected_caching_savings_spend",
+    "autorouter_savings_spend",
+    "api_requests",
+    "successful_requests",
+    "failed_requests",
+    "ptu_flat_cost",
+)
+
+
+def _stub_window_totals(mock_table, records):
+    """Serve the window-totals group_by from the same rows find_many hands back.
+
+    get_daily_activity reads its metadata totals over the whole query rather than
+    the page it serves, so a stub that answers only find_many leaves that read
+    unmocked. Deriving the sums from the stub's own records keeps a fixture from
+    claiming totals its rows disagree with.
+    """
+    totals = {
+        field: sum(float(getattr(record, field, 0) or 0) for record in records) for field in _WINDOW_TOTAL_STUB_FIELDS
+    }
+    mock_table.group_by = AsyncMock(return_value=[{"_sum": totals}] if records else [])
 
 
 @pytest.mark.asyncio
@@ -35,6 +65,7 @@ async def test_get_daily_activity_empty_entity_id_list():
     mock_table = MagicMock()
     mock_table.count = AsyncMock(return_value=0)
     mock_table.find_many = AsyncMock(return_value=[])
+    _stub_window_totals(mock_table, [])
     mock_prisma.db.litellm_verificationtoken = MagicMock()
     mock_prisma.db.litellm_verificationtoken.find_many = AsyncMock(return_value=[])
 
@@ -85,6 +116,7 @@ async def test_get_daily_activity_order_has_id_tiebreaker():
     mock_table = MagicMock()
     mock_table.count = AsyncMock(return_value=0)
     mock_table.find_many = AsyncMock(return_value=[])
+    _stub_window_totals(mock_table, [])
     mock_prisma.db.litellm_verificationtoken = MagicMock()
     mock_prisma.db.litellm_verificationtoken.find_many = AsyncMock(return_value=[])
     mock_prisma.db.litellm_dailyspend = mock_table
@@ -519,6 +551,7 @@ async def test_tag_daily_activity_metadata_totals_not_zero():
     mock_table = MagicMock()
     mock_table.count = AsyncMock(return_value=2)
     mock_table.find_many = AsyncMock(return_value=[mock_record_1, mock_record_2])
+    _stub_window_totals(mock_table, [mock_record_1, mock_record_2])
     mock_prisma.db.litellm_dailytagspend = mock_table
     mock_prisma.db.litellm_verificationtoken = MagicMock()
     mock_prisma.db.litellm_verificationtoken.find_many = AsyncMock(return_value=[])
@@ -690,6 +723,7 @@ async def test_get_daily_activity_applies_resolve_entity_metadata_to_breakdown()
     mock_table = MagicMock()
     mock_table.count = AsyncMock(return_value=len(records))
     mock_table.find_many = AsyncMock(return_value=records)
+    _stub_window_totals(mock_table, records)
     mock_prisma.db.litellm_dailyuserspend = mock_table
     mock_prisma.db.litellm_verificationtoken = MagicMock()
     mock_prisma.db.litellm_verificationtoken.find_many = AsyncMock(return_value=[])
@@ -746,6 +780,7 @@ async def test_model_groups_breakdown_keys_by_public_name_with_model_fallback():
     mock_table = MagicMock()
     mock_table.count = AsyncMock(return_value=len(records))
     mock_table.find_many = AsyncMock(return_value=records)
+    _stub_window_totals(mock_table, records)
     mock_prisma.db.litellm_dailyuserspend = mock_table
     mock_prisma.db.litellm_verificationtoken = MagicMock()
     mock_prisma.db.litellm_verificationtoken.find_many = AsyncMock(return_value=[])
@@ -975,6 +1010,7 @@ class TestBuildAggregatedSqlQuery:
             "user-1",
             "bedrock/global.anthropic.claude-opus-4-8",
             "sk-test",
+            *INTERNAL_HEALTH_CHECK_API_KEYS,
         ]
         assert "model = $4" in sql
         assert "api_key = $5" in sql
@@ -1030,7 +1066,7 @@ class TestAggregatedEmptyEntityFilter:
         normalized = " ".join(sql.split())
         assert "IN ()" not in normalized
         assert '"team_id" IN' not in normalized
-        assert params == ["2026-08-01", "2026-08-19"]
+        assert params == ["2026-08-01", "2026-08-19", *INTERNAL_HEALTH_CHECK_API_KEYS]
 
     @pytest.mark.parametrize("build", _BUILDERS)
     def test_empty_entity_list_matches_nothing_rather_than_everything(self, build):
@@ -1061,7 +1097,7 @@ class TestAggregatedEmptyEntityFilter:
         normalized = " ".join(sql.split())
         assert '"team_id" IN ($3, $4)' in normalized
         assert "FALSE" not in normalized
-        assert params == ["2026-08-01", "2026-08-19", "team-alpha", "team-beta"]
+        assert params == ["2026-08-01", "2026-08-19", "team-alpha", "team-beta", *INTERNAL_HEALTH_CHECK_API_KEYS]
 
 
 @pytest.mark.asyncio
@@ -1701,12 +1737,12 @@ class TestPtuCostAttributionDisabled:
         mock_prisma.db = MagicMock()
         mock_table = MagicMock()
         mock_table.count = AsyncMock(return_value=2)
-        mock_table.find_many = AsyncMock(
-            return_value=[
-                _daily_team_row("real-key", spend=5.0),
-                _daily_team_row(PTU_SENTINEL_API_KEY, ptu_flat_cost=240.0),
-            ]
-        )
+        team_rows = [
+            _daily_team_row("real-key", spend=5.0),
+            _daily_team_row(PTU_SENTINEL_API_KEY, ptu_flat_cost=240.0),
+        ]
+        mock_table.find_many = AsyncMock(return_value=team_rows)
+        _stub_window_totals(mock_table, team_rows)
         mock_prisma.db.litellm_verificationtoken = MagicMock()
         mock_prisma.db.litellm_verificationtoken.find_many = AsyncMock(return_value=[])
         mock_prisma.db.litellm_dailyteamspend = mock_table
@@ -1739,12 +1775,12 @@ class TestPtuCostAttributionDisabled:
         mock_prisma.db = MagicMock()
         mock_table = MagicMock()
         mock_table.count = AsyncMock(return_value=2)
-        mock_table.find_many = AsyncMock(
-            return_value=[
-                _daily_team_row("real-key", spend=5.0),
-                _daily_team_row(PTU_SENTINEL_API_KEY, ptu_flat_cost=240.0),
-            ]
-        )
+        team_rows = [
+            _daily_team_row("real-key", spend=5.0),
+            _daily_team_row(PTU_SENTINEL_API_KEY, ptu_flat_cost=240.0),
+        ]
+        mock_table.find_many = AsyncMock(return_value=team_rows)
+        _stub_window_totals(mock_table, team_rows)
         mock_prisma.db.litellm_verificationtoken = MagicMock()
         mock_prisma.db.litellm_verificationtoken.find_many = AsyncMock(return_value=[])
         mock_prisma.db.litellm_dailyteamspend = mock_table
@@ -1832,7 +1868,7 @@ def test_entity_rollup_sql_query_and_api_key_list_filter():
     assert '(date, "team_id", api_key)' in sql
     assert "api_key IN ($3, $4)" in sql
     assert "SUM(ptu_flat_cost)::float" in sql
-    assert params == ["2024-01-01", "2024-01-31", "key-1", "key-2"]
+    assert params == ["2024-01-01", "2024-01-31", "key-1", "key-2", *INTERNAL_HEALTH_CHECK_API_KEYS]
 
     plain_sql, _ = _build_aggregated_sql_query(
         table_name="litellm_dailyteamspend",
@@ -1856,7 +1892,7 @@ def test_entity_rollup_sql_query_and_api_key_list_filter():
         api_key=[],
     )
     assert "FALSE" in empty_sql
-    assert empty_params == ["2024-01-01", "2024-01-31"]
+    assert empty_params == ["2024-01-01", "2024-01-31", *INTERNAL_HEALTH_CHECK_API_KEYS]
 
 
 @pytest.mark.asyncio
@@ -1960,3 +1996,111 @@ async def test_get_daily_activity_aggregated_with_entity_breakdown():
     # Rollups with the entity bit set must still land in their usual buckets
     assert daily.breakdown.models["gpt-4o"].metrics.spend == 18.0
     assert daily.breakdown.api_keys["key-1"].metrics.spend == 12.0
+
+
+@pytest.mark.asyncio
+async def test_metadata_totals_describe_the_window_not_the_page():
+    """Regression: the summary totals were folded from the page's rows.
+
+    get_daily_activity aggregated ``daily_spend_data`` (one page, fetched with
+    skip/take) into ``metadata``, while ``total_pages`` came from the unpaginated
+    count. The Usage dashboard renders those totals as its headline figure, so it
+    moved with page size, and read $0 whenever page one happened to hold a
+    zero-spend row against a tenant that had spent money.
+    """
+    served_page = _daily_user_spend_record(user_id="u1", api_key="key-1", spend=0.0)
+    whole_window = [served_page, _daily_user_spend_record(user_id="u1", api_key="key-2", spend=12.0)]
+
+    mock_prisma = MagicMock()
+    mock_prisma.db = MagicMock()
+    mock_table = MagicMock()
+    mock_table.count = AsyncMock(return_value=len(whole_window))
+    mock_table.find_many = AsyncMock(return_value=[served_page])
+    _stub_window_totals(mock_table, whole_window)
+    mock_prisma.db.litellm_dailyuserspend = mock_table
+    mock_prisma.db.litellm_verificationtoken = MagicMock()
+    mock_prisma.db.litellm_verificationtoken.find_many = AsyncMock(return_value=[])
+
+    result = await get_daily_activity(
+        prisma_client=mock_prisma,
+        table_name="litellm_dailyuserspend",
+        entity_id_field="user_id",
+        entity_id=None,
+        entity_metadata_field=None,
+        start_date="2024-01-01",
+        end_date="2024-01-01",
+        model=None,
+        api_key=None,
+        page=1,
+        page_size=1,
+    )
+
+    assert result.metadata.total_spend == 12.0
+    assert result.metadata.total_api_requests == 2
+    assert result.metadata.total_tokens == 30
+    assert result.metadata.total_pages == 2
+    assert result.metadata.has_more is True
+    assert len(result.results) == 1
+    assert result.results[0].metrics.spend == 0.0
+
+
+def test_where_conditions_drop_the_internal_health_check_account():
+    """Regression: the gateway's own probes billed into tenant usage.
+
+    Health checks log under a synthetic service account and run on a timer forever,
+    so an idle deployment's usage and cost drifted upward on traffic no tenant sent.
+    /spend/logs/v2 already let an operator drop them; the analytics rollups had no
+    such control, and once aggregated the spend could not be separated out again.
+    """
+    from litellm.proxy.management_endpoints.common_daily_activity import _build_where_conditions
+    from litellm.proxy.spend_tracking.spend_tracking_utils import INTERNAL_HEALTH_CHECK_API_KEYS
+
+    where = _build_where_conditions(
+        entity_id_field="user_id",
+        entity_id=None,
+        start_date="2024-01-01",
+        end_date="2024-01-31",
+        model=None,
+        api_key=None,
+    )
+
+    assert where["api_key"]["notIn"] == list(INTERNAL_HEALTH_CHECK_API_KEYS)
+
+
+def test_health_check_exclusion_composes_with_an_explicit_api_key_filter():
+    """Filtering to one key must still exclude the probes, not replace the filter."""
+    from litellm.proxy.management_endpoints.common_daily_activity import _build_where_conditions
+    from litellm.proxy.spend_tracking.spend_tracking_utils import INTERNAL_HEALTH_CHECK_API_KEYS
+
+    where = _build_where_conditions(
+        entity_id_field="team_id",
+        entity_id="team-1",
+        start_date="2024-01-01",
+        end_date="2024-01-31",
+        model=None,
+        api_key="hashed-key-1",
+    )
+
+    assert where["api_key"]["equals"] == "hashed-key-1"
+    assert where["api_key"]["notIn"] == list(INTERNAL_HEALTH_CHECK_API_KEYS)
+
+
+def test_aggregated_where_clause_drops_the_internal_health_check_account():
+    """The SQL path serves the aggregated routes; it must agree with the prisma path
+    about what counts as tenant traffic, or the two reads of one window disagree."""
+    from litellm.proxy.management_endpoints.common_daily_activity import _build_aggregated_where_clause
+    from litellm.proxy.spend_tracking.spend_tracking_utils import INTERNAL_HEALTH_CHECK_API_KEYS
+
+    clause, params = _build_aggregated_where_clause(
+        entity_id_field="team_id",
+        entity_id=None,
+        adjusted_start="2024-01-01",
+        adjusted_end="2024-01-31",
+        model=None,
+        api_key=None,
+        exclude_entity_ids=None,
+    )
+
+    assert "api_key NOT IN" in clause
+    for key in INTERNAL_HEALTH_CHECK_API_KEYS:
+        assert key in params

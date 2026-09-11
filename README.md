@@ -1,8 +1,22 @@
 # Token IQ
 
-An observer-only LLM gateway. Clients call one OpenAI-compatible endpoint, Token IQ forwards
-the request to the provider unchanged, and returns the provider's answer unchanged. It watches
-traffic and accounts for it. It does not rewrite it.
+An observer-only LLM gateway. Token IQ never decides where a request goes or what comes back:
+the provider and model are the ones the caller named, the answer is the one that provider
+produced, and nothing is served from a cache or retried somewhere else. It watches traffic and
+accounts for it.
+
+It offers two ways in, and the difference is worth understanding before you pick one.
+
+On the OpenAI-compatible endpoint, a request is **translated** into the target provider's own
+format and the answer is translated back. The content is untouched, but the envelope around it
+is not: send an OpenAI-style system message to Anthropic and it arrives in Anthropic's own
+`system` field. That translation is the point of a compatible endpoint, it is what lets a
+caller switch providers by changing one string.
+
+On the pass-through endpoints, the request body reaches the provider **byte for byte as sent**,
+and the provider's reply is returned the same way, errors included. Token IQ still verifies the
+key, applies budgets and limits, and records the cost, but it never reads or rewrites the
+payload. A caller who wants the stronger guarantee uses these.
 
 Built on [LiteLLM](https://github.com/BerriAI/litellm), which does the provider translation.
 Token IQ is a fork that removes the parts of that gateway which alter a request or silently
@@ -18,7 +32,7 @@ flowchart LR
         direction TB
         AUTH["Verify virtual key<br/>SHA-256 lookup"]
         CHECK["Apply key and team limits<br/>models, budget, rate"]
-        FWD["Forward request<br/>unchanged"]
+        FWD["Forward to the provider<br/>the caller named"]
         AUTH --> CHECK --> FWD
     end
 
@@ -56,6 +70,10 @@ receives is not the one their chosen provider produced. Token IQ closes those pa
 - **Retries are limited to cases where nothing was processed**: 429, 502, 503, 504, and
   connection failures. A read timeout is not retried, because the provider may already have run
   the request and billed for it.
+- **Content is never rewritten, on either endpoint.** The compatible endpoint restructures the
+  envelope so one client can address many providers, and says so above. What it will not do is
+  edit, summarise, compress or inject anything into what the caller wrote or what the provider
+  answered. The pass-through endpoints go further and leave the bytes alone entirely.
 
 Enterprise-gated features are removed rather than shown as upsells.
 
@@ -72,9 +90,9 @@ sequenceDiagram
     T->>D: look up SHA-256 of the key
     D-->>T: models, budget, rate limits, team
     Note over T: refuse if expired, blocked,<br/>over budget, or model not allowed
-    T->>P: the same request, unchanged
+    T->>P: the request, translated into the provider's format
     P-->>T: the provider's response
-    T-->>C: the same response, unchanged
+    T-->>C: that same response, translated back
     T->>D: record spend, batched
 ```
 
