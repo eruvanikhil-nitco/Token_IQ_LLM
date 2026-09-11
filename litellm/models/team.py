@@ -93,6 +93,7 @@ class LiteLLM_TeamTable(TeamBase):
     model_max_budget: dict | None = {}
     policies: list[str] | None = None
     allow_team_guardrail_config: bool | None = False
+    courier_mode: bool = False
     litellm_model_table: LiteLLM_ModelTable | None = None
     object_permission: LiteLLM_ObjectPermissionTable | None = None
     object_permission_id: str | None = None

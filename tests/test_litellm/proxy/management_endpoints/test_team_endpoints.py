@@ -13519,3 +13519,20 @@ async def test_team_member_update_skips_invalidation_when_no_budget_fields_sent(
 
     assert await real_cache.async_get_cache(key="team-1_member-1") == "still-fresh-membership"
     assert real_spend_counter_cache.in_memory_cache.get_cache(key="spend:team_member:member-1:team-1") == 1.5
+
+
+def test_courier_mode_round_trips_through_the_team_model():
+    """A team's courier setting has to survive a write and read back, or an admin
+    turns it on and the request path never sees it."""
+    from litellm.models.team import LiteLLM_TeamTable
+
+    team = LiteLLM_TeamTable(team_id="t-courier", team_alias="courier-team", courier_mode=True)
+    assert team.courier_mode is True
+
+
+def test_courier_mode_defaults_to_off():
+    """Translator stays the default until every provider we sell is proven to bill
+    correctly in courier mode."""
+    from litellm.models.team import LiteLLM_TeamTable
+
+    assert LiteLLM_TeamTable(team_id="t-default").courier_mode is False

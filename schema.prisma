@@ -147,6 +147,7 @@ model LiteLLM_TeamTable {
     budget_limits Json? // per-model budget limits for the team
     model_id Int? @unique // id for LiteLLM_ModelTable -> stores team-level model aliases
     allow_team_guardrail_config Boolean @default(false) // if true, team admin can configure guardrails for this team
+    courier_mode Boolean @default(false) // if true, this team may only use the pass-through routes, where the request body reaches the provider unread
     litellm_organization_table LiteLLM_OrganizationTable?   @relation(fields: [organization_id], references: [organization_id])
     litellm_model_table LiteLLM_ModelTable? @relation(fields: [model_id], references: [id])
     object_permission LiteLLM_ObjectPermissionTable?   @relation(fields: [object_permission_id], references: [object_permission_id])

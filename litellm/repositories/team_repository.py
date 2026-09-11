@@ -306,6 +306,7 @@ class TeamRepository(BaseRepository[LiteLLM_TeamTable]):
         if team.model_id is not None:
             data["model_id"] = team.model_id
         data["allow_team_guardrail_config"] = team.allow_team_guardrail_config
+        data["courier_mode"] = team.courier_mode
         return data
 
     async def update_spend(self, team_id: str, spend: float) -> LiteLLM_TeamTable | None:
