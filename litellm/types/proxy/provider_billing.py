@@ -1,0 +1,64 @@
+"""What a provider says our usage cost, in one shape for every provider.
+
+A leaf module on purpose: the connectors, the repository and the read endpoint all need
+these names, and anything heavier here would close a circular import between them.
+
+`evidence` is the honest part. Providers answer at different grains and with different
+authority, and blending those into one number would hide which figures the provider
+asserted and which we derived ourselves.
+"""
+
+from __future__ import annotations
+
+from collections.abc import Mapping
+from dataclasses import dataclass
+from datetime import datetime
+from decimal import Decimal
+from typing import Literal
+
+UsageGrain = Literal["request", "day"]
+
+EvidenceLevel = Literal["reconciled", "priced", "allocated"]
+"""reconciled: the provider asserted dollars at this scope.
+priced: the provider asserted tokens and we applied rates.
+allocated: only our own gateway events exist here."""
+
+
+@dataclass(frozen=True, slots=True)
+class ProviderUsageFact:
+    fact_key: str
+    provider: str
+    credential_name: str
+    grain: UsageGrain
+    bucket_start: datetime
+    evidence: EvidenceLevel
+    billed_cost: Decimal
+    billing_currency: str = "USD"
+    provider_request_id: str | None = None
+    provider_api_key_id: str | None = None
+    model: str | None = None
+    input_tokens: int | None = None
+    output_tokens: int | None = None
+    cached_input_tokens: int | None = None
+    cache_write_tokens: int | None = None
+    raw: Mapping[str, object] | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class Fetched:
+    facts: tuple[ProviderUsageFact, ...]
+    watermark: datetime
+
+
+@dataclass(frozen=True, slots=True)
+class NotConfigured:
+    reason: str
+
+
+@dataclass(frozen=True, slots=True)
+class FetchFailed:
+    reason: str
+    retryable: bool
+
+
+FetchResult = Fetched | NotConfigured | FetchFailed
