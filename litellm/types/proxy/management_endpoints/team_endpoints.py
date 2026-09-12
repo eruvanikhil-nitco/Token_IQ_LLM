@@ -169,3 +169,29 @@ class TeamCourierCoverageResponse(BaseModel):
     """Keys on this team that do not name the provider account they spend against"""
 
     providers: list[ProviderCourierCoverageResponse]
+
+
+class ReconciliationRow(BaseModel):
+    """One request, priced twice"""
+
+    request_id: str
+    model: str | None
+    credential_name: str
+    our_cost: str
+    their_cost: str | None
+    delta: str | None
+    evidence: str
+    """reconciled, priced, or allocated — how much of this row the provider actually asserted"""
+
+
+class ReconciliationResponse(BaseModel):
+    """What we recorded against what the provider charged, over a window"""
+
+    provider: str
+    rows: list[ReconciliationRow]
+    our_total: str
+    their_total: str
+    delta: str
+    unmatched_our_rows: int
+    """Requests we recorded that the provider has not priced. Either a polling backlog, or
+    spend the provider never billed us for."""
