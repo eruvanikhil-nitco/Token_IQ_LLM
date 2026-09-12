@@ -20,7 +20,7 @@ def _team(**overrides):
     row = {
         "team_id": "t1",
         "models": [],
-        "courier_mode": False,
+        "api_access_mode": "both",
         "blocked": False,
         **overrides,
     }
@@ -73,9 +73,9 @@ async def test_keys_that_name_no_account_are_counted():
 async def test_the_teams_stored_setting_is_returned_rather_than_assumed():
     """The panel renders the switch from this. Defaulting it would show an admin the
     opposite of what their team is actually doing."""
-    result = await _call(_team(courier_mode=True))
+    result = await _call(_team(api_access_mode="courier"))
 
-    assert result.courier_mode is True
+    assert result.api_access_mode == "courier"
 
 
 @pytest.mark.asyncio
@@ -122,17 +122,17 @@ class TestCourierModeSurvivesTheUpdateEndpoint:
     request through the endpoint showed the stored value unchanged. The admin panel's
     switch calls /team/update, so without this the switch is decorative."""
 
-    def test_the_update_request_carries_courier_mode(self):
+    def test_the_update_request_carries_the_mode(self):
         from litellm.proxy._types import UpdateTeamRequest
 
-        assert UpdateTeamRequest(team_id="t1", courier_mode=True).courier_mode is True
+        assert UpdateTeamRequest(team_id="t1", api_access_mode="courier").api_access_mode == "courier"
 
     def test_an_update_that_does_not_mention_it_leaves_it_alone(self):
         """None and False mean different things here: not mentioned versus turn it off.
         Collapsing them would switch a team back to translating mode on any unrelated edit."""
         from litellm.proxy._types import UpdateTeamRequest
 
-        assert UpdateTeamRequest(team_id="t1").courier_mode is None
+        assert UpdateTeamRequest(team_id="t1").api_access_mode is None
 
     def test_the_field_reaches_the_bytes_the_update_writes(self):
         """The model accepting it is not enough. /team/update writes whatever
@@ -140,13 +140,13 @@ class TestCourierModeSurvivesTheUpdateEndpoint:
         that call is exactly the 200-and-drop this bug was."""
         from litellm.proxy._types import UpdateTeamRequest
 
-        written = UpdateTeamRequest(team_id="t1", courier_mode=True).json(exclude_unset=True)
+        written = UpdateTeamRequest(team_id="t1", api_access_mode="courier").json(exclude_unset=True)
 
-        assert written["courier_mode"] is True
+        assert written["api_access_mode"] == "courier"
 
-    def test_an_unrelated_edit_writes_nothing_about_courier_mode(self):
+    def test_an_unrelated_edit_writes_nothing_about_api_access_mode(self):
         from litellm.proxy._types import UpdateTeamRequest
 
         written = UpdateTeamRequest(team_id="t1", team_alias="renamed").json(exclude_unset=True)
 
-        assert "courier_mode" not in written
+        assert "api_access_mode" not in written

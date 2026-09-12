@@ -3,7 +3,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { toast } from "@/lib/toast";
 import { teamCourierCoverageCall, teamUpdateCall } from "@/components/networking";
-import CourierModeSettings, { TeamCourierCoverage } from "./CourierModeSettings";
+import CourierModeSettings, { ApiAccessMode, TeamCourierCoverage } from "./CourierModeSettings";
+
+const MODE_TOAST: Record<ApiAccessMode, string> = {
+  both: "either address",
+  courier: "each provider's own address only",
+  translator: "the shared address only",
+};
 
 export interface TeamCourierModeCardProps {
   accessToken: string | null;
@@ -23,10 +29,10 @@ const TeamCourierModeCard: React.FC<TeamCourierModeCardProps> = ({ accessToken, 
     enabled: Boolean(accessToken),
   });
 
-  const { mutate: setCourierMode, isPending } = useMutation({
-    mutationFn: (enabled: boolean) => teamUpdateCall(accessToken!, { team_id: teamId, courier_mode: enabled }),
-    onSuccess: async (_result, enabled) => {
-      toast.success(enabled ? "Courier mode enabled" : "Courier mode disabled");
+  const { mutate: setApiAccessMode, isPending } = useMutation({
+    mutationFn: (mode: ApiAccessMode) => teamUpdateCall(accessToken!, { team_id: teamId, api_access_mode: mode }),
+    onSuccess: async (_result, mode) => {
+      toast.success(`Saved: this team may use ${MODE_TOAST[mode]}`);
       onSaved?.();
     },
     onError: (error: unknown) => toast.fromError(error),
@@ -37,9 +43,9 @@ const TeamCourierModeCard: React.FC<TeamCourierModeCardProps> = ({ accessToken, 
   if (error) {
     return (
       <Card className="mt-4 block p-6">
-        <h3 className="text-base font-semibold">Courier mode</h3>
+        <h3 className="text-base font-semibold">How this team reaches the models</h3>
         <p className="mt-1 text-sm text-destructive">
-          Could not read this team&apos;s courier mode settings, so the switch is not shown. Reload to try again.
+          Could not read this team&apos;s settings, so the options are not shown. Reload to try again.
         </p>
       </Card>
     );
@@ -48,7 +54,7 @@ const TeamCourierModeCard: React.FC<TeamCourierModeCardProps> = ({ accessToken, 
   if (coverage === undefined) {
     return (
       <Card className="mt-4 block p-6">
-        <p className="text-sm text-muted-foreground">Loading courier mode settings...</p>
+        <p className="text-sm text-muted-foreground">Loading access settings...</p>
       </Card>
     );
   }
@@ -56,8 +62,8 @@ const TeamCourierModeCard: React.FC<TeamCourierModeCardProps> = ({ accessToken, 
   return (
     <div className="mt-4">
       <CourierModeSettings
-        courierMode={coverage.courier_mode}
-        onCourierModeChange={setCourierMode}
+        apiAccessMode={coverage.api_access_mode}
+        onApiAccessModeChange={setApiAccessMode}
         coverage={coverage.providers}
         unboundKeyCount={coverage.unbound_key_count}
         disabled={!canEditTeam || isPending}

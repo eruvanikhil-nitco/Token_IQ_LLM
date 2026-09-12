@@ -2390,34 +2390,34 @@ class TestCountBillableUsers:
 
 
 class TestArchiveDataMatchesTheSchemaItWritesTo:
-    """The archive builder writes a dict straight into LiteLLM_DeletedTeamTable, so a key
-    naming a column that does not exist is a 500 on every team delete, not a bad value in
-    one row.
+    """An archive builder writes its dict straight into a Deleted* table, so a key naming
+    a column that does not exist is a 500 on every delete, not a bad value in one row.
 
-    That happened: `courier_mode` was added to the builder and not to the table, and team
-    deletion was broken until a real delete was attempted. The tests around it hand-list
-    which fields must be excluded, so a newly added one is absent from the list by
-    definition and passes. This reads the schema instead, so the next field to go in
-    without a column fails here rather than in production.
+    It has happened twice in a week, once per table. `courier_mode` went onto the team and
+    not onto the team archive, and `provider_credentials` went onto the key and not onto
+    the key archive, so team deletion and then key deletion were broken until a real delete
+    was attempted. The hand-written tests around these builders list which fields must be
+    excluded, so a newly added field is absent from that list by definition and passes.
+
+    These read the schema instead. Both archive tables are covered, because covering only
+    the one that broke first is what let the second one through.
     """
 
     @staticmethod
-    def _deleted_team_columns() -> frozenset[str]:
+    def _columns_of(model: str) -> frozenset[str]:
         import re
         from pathlib import Path
 
         schema = Path(__file__).resolve().parents[3] / "schema.prisma"
-        body = re.search(
-            r"model LiteLLM_DeletedTeamTable \{(.*?)\n\}", schema.read_text(encoding="utf-8"), re.DOTALL
-        )
-        assert body is not None, "LiteLLM_DeletedTeamTable not found in schema.prisma"
+        body = re.search(rf"model {model} \{{(.*?)\n\}}", schema.read_text(encoding="utf-8"), re.DOTALL)
+        assert body is not None, f"{model} not found in schema.prisma"
         return frozenset(
             match.group(1)
             for line in body.group(1).splitlines()
             if (match := re.match(r"\s*([a-zA-Z_][a-zA-Z0-9_]*)\s+\S", line)) and not line.strip().startswith("//")
         )
 
-    def test_every_archived_key_is_a_real_column(self):
+    def test_every_archived_team_key_is_a_real_column(self):
         from datetime import datetime
 
         from litellm.models.team import Member
@@ -2446,9 +2446,30 @@ class TestArchiveDataMatchesTheSchemaItWritesTo:
             model_max_budget={"gpt-4": 100.0},
             router_settings={"x": 1},
             model_id=1,
-            courier_mode=True,
+            api_access_mode="courier",
         )
 
         archived = TeamRepository(MockPrismaClient())._build_archive_data(team)
 
-        assert set(archived) <= self._deleted_team_columns()
+        assert set(archived) <= self._columns_of("LiteLLM_DeletedTeamTable")
+
+
+    def test_every_archived_verification_token_key_is_a_real_column(self):
+        """The second instance. A key carrying provider_credentials could not be deleted
+        at all: the archive write named a column the table did not have."""
+        from litellm.models.verification_token import LiteLLM_VerificationToken
+        from litellm.repositories.verification_token_repository import VerificationTokenRepository
+
+        token = LiteLLM_VerificationToken(
+            token="hashed",
+            key_alias="a-key",
+            team_id="t1",
+            user_id="u1",
+            spend=1.0,
+            provider_credentials=["acme-openai-production"],
+        )
+
+        archived = VerificationTokenRepository(MockPrismaClient())._build_archive_data(token)
+
+        assert set(archived) <= self._columns_of("LiteLLM_DeletedVerificationToken")
+

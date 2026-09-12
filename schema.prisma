@@ -147,7 +147,7 @@ model LiteLLM_TeamTable {
     budget_limits Json? // per-model budget limits for the team
     model_id Int? @unique // id for LiteLLM_ModelTable -> stores team-level model aliases
     allow_team_guardrail_config Boolean @default(false) // if true, team admin can configure guardrails for this team
-    courier_mode Boolean @default(false) // if true, this team may only use the pass-through routes, where the request body reaches the provider unread
+    api_access_mode String @default("both") // courier | translator | both: which addresses this team may send model requests to
     litellm_organization_table LiteLLM_OrganizationTable?   @relation(fields: [organization_id], references: [organization_id])
     litellm_model_table LiteLLM_ModelTable? @relation(fields: [model_id], references: [id])
     object_permission LiteLLM_ObjectPermissionTable?   @relation(fields: [object_permission_id], references: [object_permission_id])
@@ -214,7 +214,7 @@ model LiteLLM_DeletedTeamTable {
     policies                String[] @default([])
     model_id                Int?     // id for LiteLLM_ModelTable -> stores team-level model aliases
     allow_team_guardrail_config Boolean @default(false)
-    courier_mode            Boolean  @default(false)
+    api_access_mode         String   @default("both")
 
     // Original timestamps from team creation/updates
     created_at              DateTime? @map("created_at")
@@ -560,6 +560,7 @@ model LiteLLM_DeletedVerificationToken {
     rotation_interval       String?
     last_rotation_at        DateTime?
     key_rotation_at         DateTime?
+    provider_credentials    String[]  @default([])
     
     // Deletion metadata
     deleted_at              DateTime  @default(now()) @map("deleted_at")

@@ -28205,6 +28205,12 @@ export interface components {
              */
             allow_team_guardrail_config: boolean | null;
             /**
+             * Api Access Mode
+             * @default both
+             * @enum {string}
+             */
+            api_access_mode: "courier" | "translator" | "both";
+            /**
              * Blocked
              * @default false
              */
@@ -28215,11 +28221,6 @@ export interface components {
             budget_limits?: components["schemas"]["BudgetLimitEntry"][] | null;
             /** Budget Reset At */
             budget_reset_at?: string | null;
-            /**
-             * Courier Mode
-             * @default false
-             */
-            courier_mode: boolean;
             /** Created At */
             created_at?: string | null;
             /** Default Team Member Models */
@@ -29491,6 +29492,12 @@ export interface components {
              */
             allow_team_guardrail_config: boolean | null;
             /**
+             * Api Access Mode
+             * @default both
+             * @enum {string}
+             */
+            api_access_mode: "courier" | "translator" | "both";
+            /**
              * Blocked
              * @default false
              */
@@ -29501,11 +29508,6 @@ export interface components {
             budget_limits?: components["schemas"]["BudgetLimitEntry"][] | null;
             /** Budget Reset At */
             budget_reset_at?: string | null;
-            /**
-             * Courier Mode
-             * @default false
-             */
-            courier_mode: boolean;
             /** Created At */
             created_at?: string | null;
             /** Default Team Member Models */
@@ -31930,6 +31932,12 @@ export interface components {
             /** Allowed Vector Store Indexes */
             allowed_vector_store_indexes?: components["schemas"]["AllowedVectorStoreIndexItem"][] | null;
             /**
+             * Api Access Mode
+             * @default both
+             * @enum {string}
+             */
+            api_access_mode: "courier" | "translator" | "both";
+            /**
              * Blocked
              * @default false
              */
@@ -31938,11 +31946,6 @@ export interface components {
             budget_duration?: string | null;
             /** Budget Limits */
             budget_limits?: components["schemas"]["BudgetLimitEntry"][] | null;
-            /**
-             * Courier Mode
-             * @default false
-             */
-            courier_mode: boolean;
             /** Default Estimated Output Tokens */
             default_estimated_output_tokens?: number | null;
             /** Default Estimated Output Tokens Per Model */
@@ -32679,6 +32682,8 @@ export interface components {
             allowed_passthrough_routes?: unknown[] | null;
             /** Allowed Vector Store Indexes */
             allowed_vector_store_indexes?: components["schemas"]["AllowedVectorStoreIndexItem"][] | null;
+            /** Api Access Mode */
+            api_access_mode?: ("courier" | "translator" | "both") | null;
             /** Blocked */
             blocked?: boolean | null;
             /** Budget Duration */
@@ -36108,6 +36113,12 @@ export interface components {
              */
             allow_team_guardrail_config: boolean | null;
             /**
+             * Api Access Mode
+             * @default both
+             * @enum {string}
+             */
+            api_access_mode: "courier" | "translator" | "both";
+            /**
              * Blocked
              * @default false
              */
@@ -36118,11 +36129,6 @@ export interface components {
             budget_limits?: components["schemas"]["BudgetLimitEntry"][] | null;
             /** Budget Reset At */
             budget_reset_at?: string | null;
-            /**
-             * Courier Mode
-             * @default false
-             */
-            courier_mode: boolean;
             /** Created At */
             created_at?: string | null;
             /** Default Team Member Models */
@@ -36224,8 +36230,11 @@ export interface components {
          * @description Everything the courier mode panel needs to tell an admin what switching would do
          */
         TeamCourierCoverageResponse: {
-            /** Courier Mode */
-            courier_mode: boolean;
+            /**
+             * Api Access Mode
+             * @enum {string}
+             */
+            api_access_mode: "courier" | "translator" | "both";
             /** Providers */
             providers: components["schemas"]["ProviderCourierCoverageResponse"][];
             /** Team Id */
@@ -36257,6 +36266,12 @@ export interface components {
              */
             allow_team_guardrail_config: boolean | null;
             /**
+             * Api Access Mode
+             * @default both
+             * @enum {string}
+             */
+            api_access_mode: "courier" | "translator" | "both";
+            /**
              * Blocked
              * @default false
              */
@@ -36267,11 +36282,6 @@ export interface components {
             budget_limits?: components["schemas"]["BudgetLimitEntry"][] | null;
             /** Budget Reset At */
             budget_reset_at?: string | null;
-            /**
-             * Courier Mode
-             * @default false
-             */
-            courier_mode: boolean;
             /** Created At */
             created_at?: string | null;
             /** Default Team Member Models */
@@ -37657,6 +37667,8 @@ export interface components {
             allowed_passthrough_routes?: unknown[] | null;
             /** Allowed Vector Store Indexes */
             allowed_vector_store_indexes?: components["schemas"]["AllowedVectorStoreIndexItem"][] | null;
+            /** Api Access Mode */
+            api_access_mode?: ("courier" | "translator" | "both") | null;
             /** Blocked */
             blocked?: boolean | null;
             /** Budget Duration */

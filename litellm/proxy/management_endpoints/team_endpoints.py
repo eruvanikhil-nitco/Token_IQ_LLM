@@ -6267,7 +6267,7 @@ async def team_courier_coverage(
 
     return TeamCourierCoverageResponse(
         team_id=team_id,
-        courier_mode=team.courier_mode,
+        api_access_mode=team.api_access_mode,
         unbound_key_count=unbound_key_count,
         providers=[
             ProviderCourierCoverageResponse(

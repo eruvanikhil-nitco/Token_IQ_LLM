@@ -381,11 +381,11 @@ describe("TeamInfoView", () => {
       expect(screen.queryByText("RPM Limit: No Limit")).not.toBeInTheDocument();
     });
 
-    it("puts the courier mode panel on the Settings tab, where an admin can find it", async () => {
+    it("puts the access mode panel on the Settings tab, where an admin can find it", async () => {
       vi.mocked(networking.teamInfoCall).mockResolvedValue(createMockTeamData({}));
       vi.mocked(networking.teamCourierCoverageCall).mockResolvedValue({
         team_id: "team-123",
-        courier_mode: true,
+        api_access_mode: "courier",
         unbound_key_count: 0,
         providers: [
           {
@@ -403,7 +403,7 @@ describe("TeamInfoView", () => {
       await userEvent.setup({ delay: null }).click(screen.getByRole("tab", { name: "Settings" }));
 
       const settings = await screen.findByRole("tabpanel", { name: "Settings" });
-      expect(await within(settings).findByRole("switch", { name: /courier mode/i })).toBeChecked();
+      expect(await within(settings).findByRole("radio", { name: /courier only/i })).toBeChecked();
     });
 
     it("should display guardrails in overview when present", async () => {

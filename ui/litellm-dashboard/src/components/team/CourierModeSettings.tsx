@@ -3,20 +3,41 @@ import type { components } from "@/lib/http/schema";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Switch } from "@/components/ui/switch";
 import { AlertTriangle, CheckCircle2, Info, XCircle } from "lucide-react";
 
 export type ProviderCoverage = components["schemas"]["ProviderCourierCoverageResponse"];
 export type TeamCourierCoverage = components["schemas"]["TeamCourierCoverageResponse"];
+export type ApiAccessMode = TeamCourierCoverage["api_access_mode"];
 
 export interface CourierModeSettingsProps {
-  courierMode: boolean;
-  onCourierModeChange: (enabled: boolean) => void;
+  apiAccessMode: ApiAccessMode;
+  onApiAccessModeChange: (mode: ApiAccessMode) => void;
   coverage: ProviderCoverage[];
   /** How many of this team's keys do not name the account they spend against. */
   unboundKeyCount: number;
   disabled?: boolean;
 }
+
+const MODES: ReadonlyArray<{ value: ApiAccessMode; label: string; blurb: string }> = [
+  {
+    value: "both",
+    label: "Either",
+    blurb:
+      "Apps may use each provider's own address or the shared one. Use this to move applications across a few at a time.",
+  },
+  {
+    value: "courier",
+    label: "Courier only",
+    blurb:
+      "Only each provider's own address. Every request from this team is one the gateway never opened, and the shared address is refused.",
+  },
+  {
+    value: "translator",
+    label: "Translating only",
+    blurb:
+      "Only the shared address, where apps write one common format and the gateway converts it. The provider addresses are refused.",
+  },
+];
 
 type CoverageState = "blocked" | "billingGap" | "covered";
 
@@ -49,39 +70,57 @@ const CoverageRow: React.FC<{ entry: ProviderCoverage }> = ({ entry }) => {
 };
 
 const CourierModeSettings: React.FC<CourierModeSettingsProps> = ({
-  courierMode,
-  onCourierModeChange,
+  apiAccessMode,
+  onApiAccessModeChange,
   coverage,
   unboundKeyCount,
   disabled = false,
 }) => {
+  const showsCourierDetail = apiAccessMode !== "translator";
+
   return (
     <Card className="p-4">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h3 className="text-base font-semibold">Courier mode</h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            This team&apos;s requests reach the provider exactly as written, and the provider&apos;s reply is returned
-            unchanged. Nothing is repackaged.
+      <h3 className="text-base font-semibold">How this team reaches the models</h3>
+      <p className="mt-1 text-sm text-muted-foreground">
+        A request is translated or not according to the address it arrives at. This chooses which of those addresses
+        this team may use. Spend, tokens and logs are recorded either way.
+      </p>
+
+      <fieldset className="mt-3 flex flex-col gap-2" disabled={disabled}>
+        <legend className="sr-only">How this team reaches the models</legend>
+        {MODES.map((mode) => (
+          <label
+            key={mode.value}
+            className="flex cursor-pointer items-start gap-3 rounded-md border p-3 has-checked:border-primary has-disabled:cursor-not-allowed has-disabled:opacity-60"
+          >
+            <input
+              type="radio"
+              name="api-access-mode"
+              className="mt-1"
+              value={mode.value}
+              checked={apiAccessMode === mode.value}
+              disabled={disabled}
+              onChange={() => onApiAccessModeChange(mode.value)}
+            />
+            <span className="text-sm">
+              <span className="font-medium">{mode.label}</span>
+              <span className="mt-0.5 block text-muted-foreground">{mode.blurb}</span>
+            </span>
+          </label>
+        ))}
+      </fieldset>
+
+      {apiAccessMode === "courier" && (
+        <div className="mt-3 flex items-start gap-2 rounded-md bg-muted p-3">
+          <Info className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">
+            This one is not a silent change. Applications written against the shared address will be refused until they
+            are updated. Pick Either instead if this team still has apps to move.
           </p>
         </div>
-        <Switch
-          checked={courierMode}
-          onCheckedChange={onCourierModeChange}
-          disabled={disabled}
-          aria-label="Courier mode"
-        />
-      </div>
+      )}
 
-      <div className="mt-3 flex items-start gap-2 rounded-md bg-muted p-3">
-        <Info className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-        <p className="text-sm text-muted-foreground">
-          This is not a silent change. Courier mode uses different addresses that expect the provider&apos;s own request
-          format, so applications written against the standard address will be refused until they are updated.
-        </p>
-      </div>
-
-      {courierMode && (
+      {showsCourierDetail && (
         <>
           <Separator className="my-4" />
           <h4 className="text-sm font-semibold">What each provider will do</h4>

@@ -25,7 +25,7 @@ import TeamCourierModeCard from "./TeamCourierModeCard";
 
 const coverage = (overrides: Record<string, unknown> = {}) => ({
   team_id: "t1",
-  courier_mode: false,
+  api_access_mode: "both",
   unbound_key_count: 0,
   providers: [
     {
@@ -55,53 +55,53 @@ describe("TeamCourierModeCard", () => {
     teamUpdateCall.mockResolvedValue({});
   });
 
-  it("shows the switch set to what is actually stored for the team", async () => {
-    teamCourierCoverageCall.mockResolvedValue(coverage({ courier_mode: true }));
+  it("shows the mode actually stored for the team", async () => {
+    teamCourierCoverageCall.mockResolvedValue(coverage({ api_access_mode: "courier" }));
     renderCard();
 
-    expect(await screen.findByRole("switch", { name: /courier mode/i })).toBeChecked();
+    expect(await screen.findByRole("radio", { name: /courier only/i })).toBeChecked();
   });
 
   it("saves the change against this team rather than a default", async () => {
     renderCard();
 
-    await userEvent.click(await screen.findByRole("switch", { name: /courier mode/i }));
+    await userEvent.click(await screen.findByRole("radio", { name: /courier only/i }));
 
     await waitFor(() =>
-      expect(teamUpdateCall).toHaveBeenCalledWith("sk-1", { team_id: "t1", courier_mode: true }),
+      expect(teamUpdateCall).toHaveBeenCalledWith("sk-1", { team_id: "t1", api_access_mode: "courier" }),
     );
   });
 
   it("re-reads the team after saving, so the panel shows the stored value and not the attempt", async () => {
     renderCard();
-    await screen.findByRole("switch", { name: /courier mode/i });
-    teamCourierCoverageCall.mockResolvedValue(coverage({ courier_mode: true }));
+    await screen.findByRole("radio", { name: /courier only/i });
+    teamCourierCoverageCall.mockResolvedValue(coverage({ api_access_mode: "courier" }));
 
-    await userEvent.click(screen.getByRole("switch", { name: /courier mode/i }));
+    await userEvent.click(screen.getByRole("radio", { name: /courier only/i }));
 
-    await waitFor(() => expect(screen.getByRole("switch", { name: /courier mode/i })).toBeChecked());
+    await waitFor(() => expect(screen.getByRole("radio", { name: /courier only/i })).toBeChecked());
   });
 
   it("leaves the switch showing the stored value when the save is rejected", async () => {
     teamUpdateCall.mockRejectedValue(new Error("nope"));
     renderCard();
 
-    await userEvent.click(await screen.findByRole("switch", { name: /courier mode/i }));
+    await userEvent.click(await screen.findByRole("radio", { name: /courier only/i }));
 
     await waitFor(() => expect(toastError).toHaveBeenCalled());
-    expect(screen.getByRole("switch", { name: /courier mode/i })).not.toBeChecked();
+    expect(screen.getByRole("radio", { name: /courier only/i })).not.toBeChecked();
   });
 
   it("does not let a member without edit rights change the team's mode", async () => {
     renderCard({ canEditTeam: false });
 
-    await userEvent.click(await screen.findByRole("switch", { name: /courier mode/i }));
+    await userEvent.click(await screen.findByRole("radio", { name: /courier only/i }));
 
     expect(teamUpdateCall).not.toHaveBeenCalled();
   });
 
   it("surfaces the count of keys that name no provider account", async () => {
-    teamCourierCoverageCall.mockResolvedValue(coverage({ courier_mode: true, unbound_key_count: 2 }));
+    teamCourierCoverageCall.mockResolvedValue(coverage({ api_access_mode: "courier", unbound_key_count: 2 }));
     renderCard();
 
     expect(await screen.findByText(/2 keys on this team name no account/i)).toBeInTheDocument();
@@ -111,7 +111,7 @@ describe("TeamCourierModeCard", () => {
     teamCourierCoverageCall.mockRejectedValue(new Error("boom"));
     renderCard();
 
-    expect(await screen.findByText(/could not read this team's courier mode settings/i)).toBeInTheDocument();
-    expect(screen.queryByRole("switch", { name: /courier mode/i })).not.toBeInTheDocument();
+    expect(await screen.findByText(/could not read this team's settings/i)).toBeInTheDocument();
+    expect(screen.queryByRole("radio", { name: /courier only/i })).not.toBeInTheDocument();
   });
 });

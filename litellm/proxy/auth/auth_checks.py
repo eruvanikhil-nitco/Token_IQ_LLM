@@ -71,6 +71,7 @@ from litellm.proxy.auth.budget_throttle import (
     should_throttle_budget_exceeded,
 )
 from litellm.proxy.auth.route_checks import RouteChecks
+from litellm.proxy.auth.team_api_access import DEFAULT_API_ACCESS_MODE, assert_route_allowed
 from litellm.proxy.common_utils.auth_cache_invalidation_pubsub import publish_auth_cache_invalidation
 from litellm.proxy.common_utils.http_parsing_utils import (
     _safe_get_request_headers,
@@ -829,32 +830,6 @@ BUDGET_ENFORCED_SIDE_EFFECT_ROUTES: Final = frozenset(
 )
 
 
-def _courier_mode_route_check(courier_mode: bool, route: str) -> None:
-    """Close the translating routes for a team that has opted into courier mode.
-
-    Courier and translator are different addresses expecting differently shaped bodies,
-    so this setting cannot change how an existing request behaves; it changes which
-    addresses the team may use. The gateway speaks for itself only about its own
-    business, whose key this is and which addresses they may reach, so the message names
-    where to go and stops there.
-    """
-    if not courier_mode:
-        return
-    if any(route.startswith(prefix) for prefix in LiteLLMRoutes.mapped_pass_through_routes.value):
-        return
-    raise ProxyException(
-        message=(
-            f"This team is in courier mode, where request bodies reach the provider unread. "
-            f"{route} translates the body into the provider's format, so it is closed for "
-            f"this team. Send the provider's own request shape to its pass-through address "
-            f"instead, for example /anthropic/v1/messages or /openrouter/chat/completions."
-        ),
-        type=ProxyErrorTypes.auth_error,
-        param="route",
-        code=status.HTTP_403_FORBIDDEN,
-    )
-
-
 async def common_checks(
     request_body: dict,
     team_object: LiteLLM_TeamTable | None,
@@ -923,9 +898,9 @@ async def common_checks(
     if team_object is not None and team_object.blocked is True:
         raise Exception(f"Team={team_object.team_id} is blocked. Update via `/team/unblock` if you're an admin.")
 
-    # 1.1. If the team is in courier mode, only the pass-through routes are open to it
-    _courier_mode_route_check(
-        courier_mode=bool(getattr(team_object, "courier_mode", False)),
+    # 1.1. Which addresses this team may send model requests to
+    assert_route_allowed(
+        mode=getattr(team_object, "api_access_mode", DEFAULT_API_ACCESS_MODE),
         route=route,
     )
 

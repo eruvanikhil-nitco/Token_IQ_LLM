@@ -626,7 +626,7 @@ describe("Teams - access_group_ids in team create", () => {
     });
   });
 
-  it("creates the team in courier mode by default, because that is the mode this gateway leads with", async () => {
+  it("creates the team able to use either address, which is what every team could do before this setting", async () => {
     renderWithQueryClient(<Teams accessToken="test-token" userID="user-123" userRole="Admin" />);
 
     const createButton = screen.getAllByRole("button", { name: /create team/i })[0];
@@ -642,11 +642,11 @@ describe("Teams - access_group_ids in team create", () => {
     fireEvent.click(submits[submits.length - 1]);
 
     await waitFor(() =>
-      expect(teamCreateCall).toHaveBeenCalledWith("test-token", expect.objectContaining({ courier_mode: true })),
+      expect(teamCreateCall).toHaveBeenCalledWith("test-token", expect.objectContaining({ api_access_mode: "both" })),
     );
   });
 
-  it("sends the admin's choice of translating mode rather than dropping the field", async () => {
+  it("sends the admin's chosen mode rather than dropping the field", async () => {
     renderWithQueryClient(<Teams accessToken="test-token" userID="user-123" userRole="Admin" />);
 
     const createButton = screen.getAllByRole("button", { name: /create team/i })[0];
@@ -657,13 +657,13 @@ describe("Teams - access_group_ids in team create", () => {
 
     fireEvent.change(screen.getByLabelText(/team name/i), { target: { value: "Test Team" } });
     fireEvent.change(screen.getByTestId("create-team-models-select"), { target: { value: "gpt-4" } });
-    fireEvent.click(screen.getByTestId("create-team-courier-mode"));
+    fireEvent.click(screen.getByRole("radio", { name: /courier only/i }));
 
     const submits = screen.getAllByRole("button", { name: /create team/i });
     fireEvent.click(submits[submits.length - 1]);
 
     await waitFor(() =>
-      expect(teamCreateCall).toHaveBeenCalledWith("test-token", expect.objectContaining({ courier_mode: false })),
+      expect(teamCreateCall).toHaveBeenCalledWith("test-token", expect.objectContaining({ api_access_mode: "courier" })),
     );
   });
 
@@ -1197,8 +1197,8 @@ describe("Teams - which fields reach the create payload depends on the open sect
     const payload = await submit();
 
     expect(Object.keys(payload).sort()).toEqual([
+      "api_access_mode",
       "budget_duration",
-      "courier_mode",
       "max_budget",
       "metadata",
       "models",
@@ -1328,7 +1328,7 @@ describe("Teams - the exact bytes the create call sends", () => {
       team_alias: "Byte Contract Team",
       organization_id: null,
       models: ["no-default-models"],
-      courier_mode: true,
+      api_access_mode: "both",
       max_budget: undefined,
       budget_duration: undefined,
       tpm_limit: undefined,
@@ -1339,7 +1339,7 @@ describe("Teams - the exact bytes the create call sends", () => {
       team_alias: "Byte Contract Team",
       organization_id: null,
       models: ["no-default-models"],
-      courier_mode: true,
+      api_access_mode: "both",
     });
   });
 
@@ -1357,7 +1357,7 @@ describe("Teams - the exact bytes the create call sends", () => {
       team_alias: "Byte Contract Team",
       organization_id: null,
       models: ["no-default-models"],
-      courier_mode: true,
+      api_access_mode: "both",
       max_budget: undefined,
       budget_duration: undefined,
       tpm_limit: undefined,
@@ -1384,7 +1384,7 @@ describe("Teams - the exact bytes the create call sends", () => {
       team_alias: "Byte Contract Team",
       organization_id: null,
       models: ["no-default-models"],
-      courier_mode: true,
+      api_access_mode: "both",
       mcp_tool_permissions: {},
     });
   });
@@ -1500,7 +1500,7 @@ describe("Teams - the exact bytes the create call sends", () => {
       team_alias: "Byte Contract Team",
       organization_id: null,
       models: ["no-default-models"],
-      courier_mode: true,
+      api_access_mode: "both",
       max_budget: undefined,
       budget_duration: undefined,
       tpm_limit: undefined,

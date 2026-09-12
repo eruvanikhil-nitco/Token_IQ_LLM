@@ -231,3 +231,29 @@ OpenRouter by three defects. Each needs one real request and a reconciled spend 
 The pattern worth carrying forward: every defect found this week returned a correct answer
 to the caller and passed the unit suite. Only sending a real request and reading back what
 the database recorded exposed them.
+
+## The setting became three-way
+
+`courier_mode` was a boolean, so it could say "only the provider addresses" or say nothing.
+It could not say "either, while this team moves one application at a time", and a customer
+migrating had to move everything on the day the switch flipped or not at all. It is now
+`api_access_mode`, one of `courier`, `translator` or `both`, defaulting to `both`, which is
+what every team behaved as before the setting existed.
+
+`courier` is still worth having as an enforced mode rather than a label. A customer buying
+the promise that their request bodies are never opened wants it refused at the door, not
+intended.
+
+Two defects came out of building it, both proven against a running proxy rather than
+reasoned about:
+
+The boolean refused every address that was not a provider address, so a courier team's own
+keys got 403 on `/team/info`, `/key/info` and `/models`. Which way a team writes its model
+requests says nothing about whether it may read its own key. Only the model-serving routes
+are gated now, and the info routes are excluded before anything else is considered.
+
+Deleting a key returned 500 for every key, because `provider_credentials` went onto the key
+and not onto the record a deleted key is archived into. That is the same omission as
+`courier_mode` and the team archive, one table over, found the same way: by deleting
+something. The schema-reading guard now covers both archive tables, since covering only the
+one that broke first is exactly what let the second one through.

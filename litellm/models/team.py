@@ -14,6 +14,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from litellm.models.object_permission import LiteLLM_ObjectPermissionTable
 from litellm.types.llms.base import LiteLLMPydanticObjectBase
+from litellm.types.proxy.team_api_access import DEFAULT_API_ACCESS_MODE, TeamApiAccessMode
 
 
 class MemberBase(LiteLLMPydanticObjectBase):
@@ -68,7 +69,7 @@ class TeamBase(LiteLLMPydanticObjectBase):
     members: list[str] = []
     members_with_roles: list[Member] = []
     team_member_permissions: list[str] | None = None
-    courier_mode: bool = False
+    api_access_mode: TeamApiAccessMode = DEFAULT_API_ACCESS_MODE
     metadata: dict | None = None
     tpm_limit: int | None = None
     rpm_limit: int | None = None

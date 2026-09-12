@@ -13521,28 +13521,40 @@ async def test_team_member_update_skips_invalidation_when_no_budget_fields_sent(
     assert real_spend_counter_cache.in_memory_cache.get_cache(key="spend:team_member:member-1:team-1") == 1.5
 
 
-def test_courier_mode_round_trips_through_the_team_model():
-    """A team's courier setting has to survive a write and read back, or an admin
-    turns it on and the request path never sees it."""
+def test_api_access_mode_round_trips_through_the_team_model():
+    """The setting has to survive a write and read back, or an admin changes it and the
+    request path never sees it."""
     from litellm.models.team import LiteLLM_TeamTable
 
-    team = LiteLLM_TeamTable(team_id="t-courier", team_alias="courier-team", courier_mode=True)
-    assert team.courier_mode is True
+    assert LiteLLM_TeamTable(team_id="t1", api_access_mode="courier").api_access_mode == "courier"
+    assert LiteLLM_TeamTable(team_id="t2", api_access_mode="translator").api_access_mode == "translator"
 
 
-def test_courier_mode_defaults_to_off():
-    """Translator stays the default until every provider we sell is proven to bill
-    correctly in courier mode."""
+def test_api_access_mode_defaults_to_both():
+    """Every team that existed before this setting could reach either kind of address.
+    Anything narrower as a default would refuse traffic that works today."""
     from litellm.models.team import LiteLLM_TeamTable
 
-    assert LiteLLM_TeamTable(team_id="t-default").courier_mode is False
+    assert LiteLLM_TeamTable(team_id="t-default").api_access_mode == "both"
 
 
-def test_courier_mode_survives_the_team_creation_request():
-    """Regression: the field lived only on the table model, so /team/new accepted
-    courier_mode=true, silently dropped it, and stored false. An admin would turn the
-    setting on and nothing would change."""
+def test_api_access_mode_survives_the_team_creation_request():
+    """Regression: the field lived only on the table model, so /team/new accepted it,
+    silently dropped it, and stored the default. An admin would choose a mode at creation
+    and nothing would change."""
     from litellm.proxy._types import NewTeamRequest
 
-    assert NewTeamRequest(team_alias="t", courier_mode=True).courier_mode is True
-    assert NewTeamRequest(team_alias="t").courier_mode is False
+    assert NewTeamRequest(team_alias="t", api_access_mode="courier").api_access_mode == "courier"
+    assert NewTeamRequest(team_alias="t").api_access_mode == "both"
+
+
+def test_an_unknown_api_access_mode_is_refused_rather_than_stored():
+    """A typo that reaches the column would be read back as a mode nothing matches, and
+    the team would silently behave as though unrestricted."""
+    import pytest as _pytest
+    from pydantic import ValidationError
+
+    from litellm.proxy._types import NewTeamRequest
+
+    with _pytest.raises(ValidationError):
+        NewTeamRequest(team_alias="t", api_access_mode="couriar")

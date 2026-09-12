@@ -99,7 +99,7 @@ const teamCreateFieldsSchema = z.object({
   mcp_tool_permissions: z.record(z.string(), z.array(z.string())).optional(),
   allowed_agents_and_groups: z.object({ agents: z.array(z.string()), accessGroups: z.array(z.string()) }).optional(),
   object_permission_search_tools: z.array(z.string()).optional(),
-  courier_mode: z.boolean().optional(),
+  api_access_mode: z.enum(["courier", "translator", "both"]).optional(),
 });
 
 type TeamCreateFormValues = z.infer<typeof teamCreateFieldsSchema>;
@@ -129,8 +129,29 @@ const EMPTY_TEAM_CREATE_VALUES: TeamCreateFormValues = {
   mcp_tool_permissions: {},
   allowed_agents_and_groups: undefined,
   object_permission_search_tools: undefined,
-  courier_mode: true,
+  api_access_mode: "both",
 };
+
+const CREATE_TEAM_ACCESS_MODES = [
+  {
+    value: "both",
+    label: "Either",
+    blurb:
+      "Apps may use each provider's own address or the shared /v1/chat/completions. Pick this when applications will move across a few at a time.",
+  },
+  {
+    value: "courier",
+    label: "Courier only",
+    blurb:
+      "Only each provider's own address, such as /anthropic or /openai. Every request is one this gateway never opened, and the shared address is refused.",
+  },
+  {
+    value: "translator",
+    label: "Translating only",
+    blurb:
+      "Only the shared /v1/chat/completions, where apps write one common format and this gateway converts it for each provider.",
+  },
+] as const;
 
 const ADDITIONAL_SETTINGS_FIELDS = [
   "team_id",
@@ -778,27 +799,35 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
 
                   <FormField
                     control={form.control}
-                    name="courier_mode"
+                    name="api_access_mode"
                     label={labelWithHint(
-                      "Courier mode",
-                      "Which way this team's apps talk to the gateway. Courier mode means they keep each provider's own format and send it to that provider's address, where the body reaches the provider unread. Translating mode means they write one common format to a single shared address and the gateway converts it. Spend, tokens and logs are recorded either way.",
+                      "How this team reaches the models",
+                      "A request is translated or not according to the address it arrives at. This chooses which of those addresses the team may use. Spend, tokens and logs are recorded either way, and this can be changed later from the team's Settings tab.",
                     )}
                   >
                     {({ id, value, onChange }) => (
-                      <div className="flex items-start gap-3">
-                        <Switch
-                          id={id}
-                          checked={value ?? true}
-                          onCheckedChange={onChange}
-                          aria-label="Courier mode"
-                          data-testid="create-team-courier-mode"
-                        />
-                        <p className="text-sm text-muted-foreground">
-                          {value ?? true
-                            ? "Apps keep the provider libraries and request format they already use, and change only the address they send to. This team sends to each provider's own address, such as /anthropic or /openai. The shared /v1/chat/completions address is closed for it."
-                            : "Apps write one common request format to the shared /v1/chat/completions address, and this gateway converts it for whichever provider serves the model."}
-                        </p>
-                      </div>
+                      <fieldset id={id} className="flex flex-col gap-2" data-testid="create-team-api-access-mode">
+                        <legend className="sr-only">How this team reaches the models</legend>
+                        {CREATE_TEAM_ACCESS_MODES.map((mode) => (
+                          <label
+                            key={mode.value}
+                            className="flex cursor-pointer items-start gap-3 rounded-md border p-3 has-checked:border-primary"
+                          >
+                            <input
+                              type="radio"
+                              name="create-team-api-access-mode"
+                              className="mt-1"
+                              value={mode.value}
+                              checked={(value ?? "both") === mode.value}
+                              onChange={() => onChange(mode.value)}
+                            />
+                            <span className="text-sm">
+                              <span className="font-medium">{mode.label}</span>
+                              <span className="mt-0.5 block text-muted-foreground">{mode.blurb}</span>
+                            </span>
+                          </label>
+                        ))}
+                      </fieldset>
                     )}
                   </FormField>
 

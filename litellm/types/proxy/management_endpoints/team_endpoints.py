@@ -9,6 +9,7 @@ from litellm.proxy._types import (
     LiteLLM_TeamTable,
     Member,
 )
+from litellm.types.proxy.team_api_access import TeamApiAccessMode
 
 TeamIdSearchMatch = Literal["exact", "prefix"]
 
@@ -163,7 +164,7 @@ class TeamCourierCoverageResponse(BaseModel):
     """Everything the courier mode panel needs to tell an admin what switching would do"""
 
     team_id: str
-    courier_mode: bool
+    api_access_mode: TeamApiAccessMode
     unbound_key_count: int
     """Keys on this team that do not name the provider account they spend against"""
 
