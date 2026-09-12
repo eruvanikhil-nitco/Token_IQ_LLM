@@ -23,6 +23,8 @@ from litellm.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKey
 from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
 from litellm.types.proxy.management_endpoints.team_endpoints import (
     BillingProbeResponse,
+    DailyReconciliationResponse,
+    DailyReconciliationRow,
     ReconciliationResponse,
     ReconciliationRow,
 )
@@ -225,4 +227,89 @@ async def provider_billing_probe(
         provider=provider,
         connectors=registered_connectors(),
         credentials_for=build_billing_credential_lookup(prisma_client=prisma_client),
+    )
+
+
+_DAILY_SQL: Final = """
+WITH ours AS (
+    SELECT date_trunc('day', s."startTime") AS day, SUM(s.spend)::numeric AS our_cost
+      FROM "LiteLLM_SpendLogs" s
+     WHERE s.custom_llm_provider = $1
+       AND s."startTime" >= NOW() - ($2 || ' days')::interval
+     GROUP BY 1
+), theirs AS (
+    SELECT date_trunc('day', f.bucket_start) AS day, SUM(f.billed_cost::numeric) AS their_cost
+      FROM "LiteLLM_ProviderUsageFact" f
+     WHERE f.provider = $1
+       AND f.grain = 'day'
+       AND f.bucket_start >= NOW() - ($2 || ' days')::interval
+     GROUP BY 1
+)
+SELECT to_char(COALESCE(ours.day, theirs.day), 'YYYY-MM-DD') AS day,
+       ours.our_cost,
+       theirs.their_cost
+  FROM ours FULL OUTER JOIN theirs ON ours.day = theirs.day
+ ORDER BY 1 DESC
+"""
+
+
+@router.get(
+    "/provider/reconciliation/daily",
+    tags=["provider billing"],
+    dependencies=[Depends(user_api_key_auth)],
+    response_model=DailyReconciliationResponse,
+)
+async def daily_reconciliation(
+    provider: str = fastapi.Query(description="Which provider to reconcile, for example anthropic"),
+    days: int = fastapi.Query(default=7, ge=1, le=31),
+    user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
+) -> DailyReconciliationResponse:
+    """Daily totals for a provider that reports aggregates rather than single requests.
+
+    A full outer join, because a day the provider charged for and this gateway never saw
+    is the single most valuable row here: it is spend that bypassed the gateway entirely.
+    """
+    from litellm.proxy.proxy_server import prisma_client
+
+    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={"error": "Only a proxy admin may read cross-team provider reconciliation."},
+        )
+    if prisma_client is None:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"error": CommonProxyErrors.db_not_connected_error.value},
+        )
+
+    raw: Final[Sequence[Mapping[str, object]]] = await prisma_client.db.query_raw(_DAILY_SQL, provider, str(days))
+
+    days_seen: Final = tuple(
+        (
+            str(row.get("day") or ""),
+            _decimal(row.get("our_cost")) or Decimal(0),
+            _decimal(row.get("their_cost")),
+        )
+        for row in raw
+    )
+
+    our_total: Final = sum((ours for _, ours, _ in days_seen), Decimal(0))
+    their_total: Final = sum((theirs for *_, theirs in days_seen if theirs is not None), Decimal(0))
+
+    return DailyReconciliationResponse(
+        provider=provider,
+        rows=[
+            DailyReconciliationRow(
+                day=day,
+                our_cost=_plain(ours),
+                their_cost=None if theirs is None else _plain(theirs),
+                delta=None if theirs is None else _plain(ours - theirs),
+                escaped_spend=theirs is not None and theirs > ours,
+            )
+            for day, ours, theirs in days_seen
+        ],
+        our_total=_plain(our_total),
+        their_total=_plain(their_total),
+        delta=_plain(our_total - their_total),
+        days_provider_charged_more=sum(1 for _, ours, theirs in days_seen if theirs is not None and theirs > ours),
     )

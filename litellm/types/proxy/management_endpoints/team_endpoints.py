@@ -207,3 +207,26 @@ class BillingProbeResponse(BaseModel):
     facts_found: int
     sample_cost: str | None
     detail: str | None
+
+
+class DailyReconciliationRow(BaseModel):
+    """One day, charged twice"""
+
+    day: str
+    our_cost: str
+    their_cost: str | None
+    delta: str | None
+    escaped_spend: bool
+    """True when the provider charged more than this gateway recorded, meaning traffic
+    reached the provider without passing through here."""
+
+
+class DailyReconciliationResponse(BaseModel):
+    """Daily totals from a provider that reports aggregates rather than single requests"""
+
+    provider: str
+    rows: list[DailyReconciliationRow]
+    our_total: str
+    their_total: str
+    delta: str
+    days_provider_charged_more: int
