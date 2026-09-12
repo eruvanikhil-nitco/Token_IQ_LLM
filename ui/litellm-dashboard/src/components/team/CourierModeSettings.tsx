@@ -19,25 +19,10 @@ export interface CourierModeSettingsProps {
   courierMode: boolean;
   onCourierModeChange: (enabled: boolean) => void;
   coverage: ProviderCoverage[];
-  /** The team's permitted models, which are named differently on a courier route. */
-  teamModels: string[];
+  /** How many of this team's keys do not name the account they spend against. */
+  unboundKeyCount: number;
   disabled?: boolean;
 }
-
-const providerOf = (model: string): string => (model.includes("/") ? model.split("/")[0] : "");
-
-/**
- * Models a courier request will not match.
- *
- * A team's permitted models are the gateway's deployment names. A courier request
- * carries the provider's own model name, because the body is the provider's own, so
- * these entries stop matching the moment the team is switched and every call is refused
- * naming a model the admin believes they granted.
- */
-export const modelsThatStopMatching = (teamModels: string[], coverage: ProviderCoverage[]): string[] => {
-  const courierProviders = new Set(coverage.filter((c) => c.has_route).map((c) => c.provider));
-  return teamModels.filter((model) => courierProviders.has(providerOf(model)));
-};
 
 const CoverageRow: React.FC<{ entry: ProviderCoverage }> = ({ entry }) => {
   const blocked = !entry.has_route;
@@ -58,14 +43,6 @@ const CoverageRow: React.FC<{ entry: ProviderCoverage }> = ({ entry }) => {
         {blocked && <Badge variant="secondary">Unavailable</Badge>}
       </div>
       <p className="pl-6 text-sm text-muted-foreground">{entry.summary}</p>
-      {entry.deployments_needing_opt_in.length > 0 && (
-        <p className="pl-6 text-sm text-muted-foreground">
-          {entry.deployments_needing_opt_in.length} model
-          {entry.deployments_needing_opt_in.length === 1 ? "" : "s"} will fail on credentials until pass-through is
-          enabled on {entry.deployments_needing_opt_in.length === 1 ? "it" : "them"}:{" "}
-          {entry.deployments_needing_opt_in.join(", ")}
-        </p>
-      )}
     </div>
   );
 };
@@ -74,11 +51,9 @@ const CourierModeSettings: React.FC<CourierModeSettingsProps> = ({
   courierMode,
   onCourierModeChange,
   coverage,
-  teamModels,
+  unboundKeyCount,
   disabled = false,
 }) => {
-  const losingModels = modelsThatStopMatching(teamModels, coverage);
-
   return (
     <Card className="p-4">
       <div className="flex items-start justify-between gap-4">
@@ -115,15 +90,18 @@ const CourierModeSettings: React.FC<CourierModeSettingsProps> = ({
             ))}
           </div>
 
-          {losingModels.length > 0 && (
+          {unboundKeyCount > 0 && (
             <div className="mt-4 flex items-start gap-2 rounded-md border border-warning p-3">
               <AlertTriangle className="mt-0.5 size-4 shrink-0 text-warning" />
               <div className="text-sm">
-                <p className="font-medium">These permitted models will stop matching</p>
+                <p className="font-medium">
+                  {unboundKeyCount} key{unboundKeyCount === 1 ? "" : "s"} on this team name no account
+                </p>
                 <p className="mt-1 text-muted-foreground">
-                  Courier requests name the provider&apos;s model, not this gateway&apos;s. Until this team&apos;s
-                  permitted models are updated, its calls will be refused as not allowed even though the models appear
-                  granted: {losingModels.join(", ")}
+                  A key that names the account it spends against is charged to exactly that one, and its spend records
+                  say so. A key that names none is charged to whichever account this gateway finds first for the
+                  provider, which for a customer holding more than one account at a provider may not be the intended
+                  one.
                 </p>
               </div>
             </div>
