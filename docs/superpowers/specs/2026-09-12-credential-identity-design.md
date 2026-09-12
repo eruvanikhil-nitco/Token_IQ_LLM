@@ -68,24 +68,33 @@ Everything that has gone wrong is a consequence:
 - A team's permitted models are our names, so they stop matching on switch and every call is
   refused for a model the admin can see granted.
 
-## The defect none of the plans mention
+## Connection details, and a claim withdrawn
 
-Connection details are resolved inconsistently on the courier routes, and one of them is not
-multi-tenant.
+An earlier version of this document said every customer's Bedrock courier traffic used a
+server-wide region. That was wrong, and reading the resolution chain rather than one call
+site corrected it.
 
-The Vertex courier route reads `vertex_project` from the deployment, which is correct.
+The model pass-through path resolves the region from the request's own parameters first,
+then from the model ARN, and only then from the environment. That is correct multi-tenant
+behaviour and nothing needs changing there.
 
-The Bedrock courier route reads the region from process environment variables:
-`AWS_REGION_NAME`, then `AWS_REGION`, then `AWS_DEFAULT_REGION`. Not from the customer's
-deployment, and not from their credential.
+Only `bedrock-agent-runtime` fell back to the environment, and it had no alternative: such
+a request names an agent, not a model or a deployment, so nothing in it identifies a
+customer's region. Two real defects were fixed there separately: it read only
+`AWS_REGION_NAME` while every neighbouring path also accepts `AWS_REGION` and
+`AWS_DEFAULT_REGION`, and an unresolved region was interpolated into the hostname producing
+`bedrock-agent-runtime.None.amazonaws.com`, turning a configuration problem into a DNS
+failure.
 
-So every customer's Bedrock courier traffic goes to whichever region the server was started
-with. A customer in eu-west-1 has their requests sent to us-east-1 because another customer
-was configured first. Depending on the provider that is a latency problem, a cost problem,
-or a data residency violation.
+What remains true, and is what this document is for: agent-runtime still cannot serve two
+customers in different regions, because there is nowhere for a per-customer region to come
+from. That is the argument for a credential carrying its own connection details rather than
+a bug to patch. Once a key binds to a credential, the region arrives with the credential and
+the environment fallback stops being load-bearing.
 
-This is not a courier-mode design question. It is a live multi-tenancy bug in code that
-already ships, and it is more urgent than anything else in this document.
+Vertex already reads its project from the deployment, so the two courier paths differ in how
+much of the customer's configuration they can see. Making the credential self-sufficient
+removes that inconsistency rather than papering over it.
 
 ## Decisions
 
@@ -194,8 +203,7 @@ additive.
 
 ## Sequencing
 
-1. **Fix the Bedrock region.** A live multi-tenancy defect, independent of everything else
-   here, and the only item that is a bug rather than a design change.
+1. ~~Fix the Bedrock agent-runtime region.~~ Done. Narrower than first claimed, see above.
 2. **Record the serving credential on every spend row.** Independently valuable, and it
    provides the evidence to verify every step after it.
 3. **Let a credential carry its provider connection details.** Additive; nothing reads them
