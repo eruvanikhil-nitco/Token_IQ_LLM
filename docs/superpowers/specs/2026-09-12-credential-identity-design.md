@@ -203,17 +203,31 @@ additive.
 
 ## Sequencing
 
-1. ~~Fix the Bedrock agent-runtime region.~~ Done. Narrower than first claimed, see above.
-2. **Record the serving credential on every spend row.** Independently valuable, and it
-   provides the evidence to verify every step after it.
-3. **Let a credential carry its provider connection details.** Additive; nothing reads them
-   yet.
-4. **Bind keys to credentials.** Additive; defaults to today's behaviour.
-5. **Resolve courier requests from the binding**, falling back to current behaviour for
-   unbound keys.
-6. **Remove the opt-in flag** once nothing depends on it.
-7. **Update the admin screen**: drop the opt-in warning, add one for unbound keys.
+All of it is built and pushed.
 
-Each step ends with a real request through a real provider and the spend row read back.
-Every credential defect found this week returned a correct answer to the caller and was
-invisible until someone looked at what the database recorded.
+1. ~~Bedrock agent-runtime region.~~ Done. Narrower than first claimed, see above.
+2. ~~Record the serving credential on every spend row.~~ Done, both modes.
+3. ~~A credential carries its provider connection details.~~ Not needed as a separate step:
+   credentials created from an existing deployment already carry what they need, and the
+   binding made the courier path work without duplicating connection fields. Revisit only
+   if a customer needs a credential with no deployment behind it.
+4. ~~Bind keys to credentials.~~ Done.
+5. ~~Resolve courier requests from the binding.~~ Done, unbound keys unchanged.
+6. ~~Remove the opt-in flag.~~ Done, proven with the flag switched off.
+7. ~~Update the admin screen.~~ Done.
+
+Also fixed along the way, found only by driving real requests: a team's permitted models
+stopped matching in courier mode because they are named differently, which refused every
+call for models the admin could see granted. `courier_model_names` translates between the
+two schemes.
+
+## What is still not proven
+
+Bedrock's cost reader is wired and unit-tested and has never carried a real request,
+because this machine has no AWS credentials. Anthropic, OpenAI, Azure and Vertex courier
+routes are believed covered on the strength of reading code, which was wrong about
+OpenRouter by three defects. Each needs one real request and a reconciled spend row.
+
+The pattern worth carrying forward: every defect found this week returned a correct answer
+to the caller and passed the unit suite. Only sending a real request and reading back what
+the database recorded exposed them.
