@@ -781,7 +781,7 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
                     name="courier_mode"
                     label={labelWithHint(
                       "Courier mode",
-                      "On: this team sends each provider's own request shape to that provider's address, and the body reaches the provider unread. Off: the team writes one common shape to /v1/chat/completions and the gateway translates it. Either way spend and usage are recorded.",
+                      "Which way this team's apps talk to the gateway. Courier mode means they keep each provider's own format and send it to that provider's address, where the body reaches the provider unread. Translating mode means they write one common format to a single shared address and the gateway converts it. Spend, tokens and logs are recorded either way.",
                     )}
                   >
                     {({ id, value, onChange }) => (
@@ -795,8 +795,8 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
                         />
                         <p className="text-sm text-muted-foreground">
                           {value ?? true
-                            ? "This team keeps the code it already has and points it at this gateway. /v1/chat/completions is closed for it."
-                            : "This team writes to /v1/chat/completions and the gateway translates for each provider."}
+                            ? "Apps keep the provider libraries and request format they already use, and change only the address they send to. This team sends to each provider's own address, such as /anthropic or /openai. The shared /v1/chat/completions address is closed for it."
+                            : "Apps write one common request format to the shared /v1/chat/completions address, and this gateway converts it for whichever provider serves the model."}
                         </p>
                       </div>
                     )}
