@@ -503,7 +503,7 @@ from litellm.proxy.management_endpoints.team_callback_endpoints import (
 )
 from litellm.provider_billing.scheduled import INTERVAL_SECONDS as PROVIDER_BILLING_INTERVAL_SECONDS
 from litellm.provider_billing.scheduled import build_provider_billing_job
-from litellm.provider_billing.startup import register_openrouter_billing_connector
+from litellm.provider_billing.startup import register_billing_connectors
 from litellm.proxy.management_endpoints.provider_reconciliation import (
     router as provider_reconciliation_router,
 )
@@ -9322,7 +9322,7 @@ class ProxyStartupEvent:
 
         ### PROVIDER BILLING INGESTION ###
         # What the provider says a request cost, alongside what this gateway measured.
-        register_openrouter_billing_connector(prisma_client=prisma_client)
+        register_billing_connectors(prisma_client=prisma_client)
         scheduler.add_job(
             build_provider_billing_job(prisma_client=prisma_client, proxy_logging_obj=proxy_logging_obj),
             "interval",

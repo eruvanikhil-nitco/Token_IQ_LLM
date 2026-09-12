@@ -8,19 +8,25 @@ spend the provider never billed, and an operator needs to be able to tell which.
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Awaitable, Callable, Mapping, Sequence
+from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 from typing import Final
 
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 
+from litellm.provider_billing.connector import BillingConnector, registered_connectors
+from litellm.provider_billing.runner import LOOKBACK
+from litellm.provider_billing.scheduled import build_billing_credential_lookup
 from litellm.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
 from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
 from litellm.types.proxy.management_endpoints.team_endpoints import (
+    BillingProbeResponse,
     ReconciliationResponse,
     ReconciliationRow,
 )
+from litellm.types.proxy.provider_billing import Fetched, FetchFailed, NotConfigured
 
 router: Final = APIRouter()
 
@@ -126,4 +132,97 @@ async def provider_reconciliation(
         their_total=_plain(their_total),
         delta=_plain(our_total - their_total),
         unmatched_our_rows=sum(1 for *_, theirs, _ in priced if theirs is None),
+    )
+
+
+async def run_billing_probe(
+    *,
+    provider: str,
+    connectors: Sequence[BillingConnector],
+    credentials_for: Callable[[str], Awaitable[tuple[str, Mapping[str, str]] | None]],
+) -> BillingProbeResponse:
+    """One fetch from a provider's billing API, reported without storing anything.
+
+    Split out of the route so it can be exercised directly: the Anthropic and OpenAI
+    connectors could not be verified against a live provider when they were written,
+    because this deployment had no organisation admin key.
+    """
+    connector: Final = next((entry for entry in connectors if entry.provider == provider), None)
+    if connector is None:
+        return BillingProbeResponse(
+            provider=provider,
+            outcome="no_connector",
+            facts_found=0,
+            sample_cost=None,
+            detail="This build ships no billing connector for that provider.",
+        )
+
+    credential: Final = await credentials_for(provider)
+    if credential is None:
+        return BillingProbeResponse(
+            provider=provider,
+            outcome="not_configured",
+            facts_found=0,
+            sample_cost=None,
+            detail=(
+                "No stored credential is marked for this provider. Create one whose "
+                f'credential_info is {{"purpose": "billing_ingestion", "provider": "{provider}"}}.'
+            ),
+        )
+    credential_name, credential_values = credential
+
+    now: Final = datetime.now(timezone.utc)
+    result: Final = await connector.fetch(
+        since=now - LOOKBACK,
+        until=now,
+        credential_name=credential_name,
+        credential_values=credential_values,
+    )
+
+    match result:
+        case Fetched(facts=facts):
+            return BillingProbeResponse(
+                provider=provider,
+                outcome="fetched",
+                facts_found=len(facts),
+                sample_cost=_plain(facts[0].billed_cost) if facts else None,
+                detail=None if facts else "The provider answered but reported nothing in this window.",
+            )
+        case NotConfigured(reason=reason):
+            return BillingProbeResponse(
+                provider=provider, outcome="not_configured", facts_found=0, sample_cost=None, detail=reason
+            )
+        case FetchFailed(reason=reason, retryable=retryable):
+            return BillingProbeResponse(
+                provider=provider,
+                outcome="failed",
+                facts_found=0,
+                sample_cost=None,
+                detail=f"{reason} (retryable={retryable})",
+            )
+
+
+@router.post(
+    "/provider/billing/probe",
+    tags=["provider billing"],
+    dependencies=[Depends(user_api_key_auth)],
+    response_model=BillingProbeResponse,
+)
+async def provider_billing_probe(
+    provider: str = fastapi.Query(description="Which provider's billing API to try"),
+    user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
+) -> BillingProbeResponse:
+    """Try one provider's billing API now and report what came back."""
+    from litellm.proxy.proxy_server import prisma_client
+
+    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={"error": "Only a proxy admin may probe a provider's billing API."},
+        )
+
+    return await run_billing_probe(
+        provider=provider,
+        connectors=registered_connectors(),
+        credentials_for=build_billing_credential_lookup(prisma_client=prisma_client),
     )

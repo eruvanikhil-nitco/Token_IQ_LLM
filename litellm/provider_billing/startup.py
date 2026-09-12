@@ -11,28 +11,32 @@ from typing import Any, Final
 from litellm._logging import verbose_proxy_logger
 
 
-def register_openrouter_billing_connector(*, prisma_client: Any) -> None:  # any-ok: untyped runtime wrapper
+def register_billing_connectors(*, prisma_client: Any) -> None:  # any-ok: untyped runtime wrapper
     """Idempotent: a worker that restarts its scheduler must not fail on a second call."""
     from litellm.llms.custom_httpx.http_handler import get_async_httpx_client
+    from litellm.provider_billing.anthropic import AnthropicBillingConnector
     from litellm.provider_billing.connector import register_connector, registered_connectors
+    from litellm.provider_billing.openai import OpenAIBillingConnector
     from litellm.provider_billing.openrouter import (
         OpenRouterBillingConnector,
         build_unpriced_openrouter_lookup,
     )
     from litellm.types.llms.custom_http import httpxSpecialProvider
 
-    if any(connector.provider == "openrouter" for connector in registered_connectors()):
-        return
+    def http() -> Any:  # any-ok: the proxy's httpx wrapper is untyped
+        return get_async_httpx_client(llm_provider=httpxSpecialProvider.LoggingCallback)
 
-    register_connector(
+    already: Final = {connector.provider for connector in registered_connectors()}
+    candidates: Final = (
         OpenRouterBillingConnector(
             unpriced_request_ids=build_unpriced_openrouter_lookup(prisma_client),
-            http_client_factory=lambda: get_async_httpx_client(
-                llm_provider=httpxSpecialProvider.LoggingCallback
-            ),
-        )
+            http_client_factory=http,
+        ),
+        AnthropicBillingConnector(http_client_factory=http),
+        OpenAIBillingConnector(http_client_factory=http),
     )
-    verbose_proxy_logger.debug("registered the openrouter billing connector")
 
-
-_REGISTERED: Final = ("openrouter",)
+    for connector in candidates:
+        if connector.provider not in already:
+            register_connector(connector)
+            verbose_proxy_logger.debug("registered the %s billing connector", connector.provider)

@@ -195,3 +195,15 @@ class ReconciliationResponse(BaseModel):
     unmatched_our_rows: int
     """Requests we recorded that the provider has not priced. Either a polling backlog, or
     spend the provider never billed us for."""
+
+
+class BillingProbeResponse(BaseModel):
+    """One on-demand fetch from a provider's billing API, reported without storing anything"""
+
+    provider: str
+    outcome: str
+    """fetched, not_configured, failed, or no_connector"""
+
+    facts_found: int
+    sample_cost: str | None
+    detail: str | None

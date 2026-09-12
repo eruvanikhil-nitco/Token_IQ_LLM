@@ -51,15 +51,15 @@ async def _guarded(run: Callable[..., Awaitable[object]], now: datetime) -> None
         verbose_proxy_logger.exception("provider billing ingestion failed: %s", exc)
 
 
-def build_provider_billing_job(
-    *, prisma_client: Any, proxy_logging_obj: Any  # any-ok: both are untyped runtime collaborators
-) -> Callable[[], Awaitable[None]]:
-    """Compose the repository, the registered connectors and the credential lookup."""
-    from litellm.provider_billing.connector import registered_connectors
-    from litellm.provider_billing.runner import run_ingestion
-    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+def build_billing_credential_lookup(
+    *, prisma_client: Any  # any-ok: PrismaClient is an untyped runtime wrapper
+) -> Callable[[str], Awaitable[tuple[str, Mapping[str, str]] | None]]:
+    """The stored credential marked for reading a provider's bill.
 
-    repository: Final = ProviderUsageFactRepository(prisma_client)
+    Rows come through CredentialsRepository, which that module documents as the only place
+    that talks to its table. Values come through CredentialAccessor rather than off the
+    row, so the decryption this needs is the same code path the request router uses.
+    """
 
     async def credentials_for(provider: str) -> tuple[str, Mapping[str, str]] | None:
         """The stored credential marked for reading this provider's bill.
@@ -84,6 +84,21 @@ def build_provider_billing_job(
             if values:
                 return (name, {key: str(value) for key, value in values.items()})
         return None
+
+    return credentials_for
+
+
+def build_provider_billing_job(
+    *, prisma_client: Any, proxy_logging_obj: Any  # any-ok: both are untyped runtime collaborators
+) -> Callable[[], Awaitable[None]]:
+    """Compose the repository, the registered connectors and the credential lookup."""
+    from litellm.provider_billing.connector import registered_connectors
+    from litellm.provider_billing.runner import run_ingestion
+    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+
+    repository: Final = ProviderUsageFactRepository(prisma_client)
+
+    credentials_for: Final = build_billing_credential_lookup(prisma_client=prisma_client)
 
     async def job() -> None:
         await ingest_provider_billing(

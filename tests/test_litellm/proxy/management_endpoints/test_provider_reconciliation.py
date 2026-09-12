@@ -111,3 +111,122 @@ async def test_a_tiny_delta_is_readable_rather_than_scientific():
 
     assert "E" not in result.delta
     assert "E" not in result.rows[0].our_cost
+
+
+def _connector_returning(result: object, provider: str = "anthropic"):
+    class _Connector:
+        def __init__(self) -> None:
+            self.provider = provider
+
+        async def fetch(self, **_: object):
+            return result
+
+    return _Connector()
+
+
+async def _creds(_provider: str):
+    return ("acme", {"api_key": "sk-ant-admin01-x"})
+
+
+async def _no_creds(_provider: str):
+    return None
+
+
+@pytest.mark.asyncio
+async def test_the_probe_reports_a_working_connector_without_writing_anything():
+    """Neither Anthropic nor OpenAI could be verified on a machine with no admin key. The
+    probe is how the first real key gets checked, in one command."""
+    from datetime import datetime, timezone
+
+    from litellm.proxy.management_endpoints.provider_reconciliation import run_billing_probe
+    from litellm.types.proxy.provider_billing import Fetched, ProviderUsageFact
+
+    fact = ProviderUsageFact(
+        fact_key="anthropic:2026-09-12:claude-opus-5",
+        provider="anthropic",
+        credential_name="acme",
+        grain="day",
+        bucket_start=datetime.now(timezone.utc),
+        evidence="reconciled",
+        billed_cost=Decimal("1.25"),
+    )
+
+    result = await run_billing_probe(
+        provider="anthropic",
+        connectors=(_connector_returning(Fetched(facts=(fact,), watermark=datetime.now(timezone.utc))),),
+        credentials_for=_creds,
+    )
+
+    assert result.outcome == "fetched"
+    assert result.facts_found == 1
+    assert result.sample_cost == "1.25"
+
+
+@pytest.mark.asyncio
+async def test_the_probe_names_a_missing_credential_rather_than_failing():
+    from litellm.proxy.management_endpoints.provider_reconciliation import run_billing_probe
+
+    result = await run_billing_probe(
+        provider="anthropic", connectors=(_connector_returning(None),), credentials_for=_no_creds
+    )
+
+    assert result.outcome == "not_configured"
+    assert "billing_ingestion" in (result.detail or "")
+
+
+@pytest.mark.asyncio
+async def test_the_probe_reports_a_refused_key_as_a_failure_with_the_reason():
+    """The whole point on the day a key arrives: say why, not just that it did not work."""
+    from litellm.proxy.management_endpoints.provider_reconciliation import run_billing_probe
+    from litellm.types.proxy.provider_billing import FetchFailed
+
+    result = await run_billing_probe(
+        provider="anthropic",
+        connectors=(_connector_returning(FetchFailed(reason="anthropic refused credential acme", retryable=False)),),
+        credentials_for=_creds,
+    )
+
+    assert result.outcome == "failed"
+    assert "refused" in (result.detail or "")
+    assert "retryable=False" in (result.detail or "")
+
+
+@pytest.mark.asyncio
+async def test_the_probe_says_so_when_no_connector_exists_for_a_provider():
+    from litellm.proxy.management_endpoints.provider_reconciliation import run_billing_probe
+
+    result = await run_billing_probe(provider="bedrock", connectors=(), credentials_for=_no_creds)
+
+    assert result.outcome == "no_connector"
+
+
+@pytest.mark.asyncio
+async def test_a_provider_that_answers_with_nothing_is_not_reported_as_broken():
+    """An empty window is a healthy answer, and a customer with no spend yesterday would
+    otherwise see a failure."""
+    from datetime import datetime, timezone
+
+    from litellm.proxy.management_endpoints.provider_reconciliation import run_billing_probe
+    from litellm.types.proxy.provider_billing import Fetched
+
+    result = await run_billing_probe(
+        provider="anthropic",
+        connectors=(_connector_returning(Fetched(facts=(), watermark=datetime.now(timezone.utc))),),
+        credentials_for=_creds,
+    )
+
+    assert result.outcome == "fetched"
+    assert result.facts_found == 0
+
+
+@pytest.mark.asyncio
+async def test_only_an_admin_may_probe():
+    from fastapi import HTTPException
+
+    from litellm.proxy.management_endpoints.provider_reconciliation import provider_billing_probe
+
+    member = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-u", user_id="u")
+    with pytest.raises(HTTPException) as exc:
+        await provider_billing_probe(provider="anthropic", user_api_key_dict=member)
+
+    assert exc.value.status_code == 403
