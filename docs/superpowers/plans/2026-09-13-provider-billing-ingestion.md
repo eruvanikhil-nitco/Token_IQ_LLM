@@ -72,7 +72,7 @@ model LiteLLM_ProviderUsageFact {
     provider_request_id  String?
     provider_api_key_id  String?
     model                String?
-    billed_cost          Decimal  @default(0.0)
+    billed_cost          String   @default("0") // exact digits as text; see the deviation note
     billing_currency     String   @default("USD")
     input_tokens         BigInt?
     output_tokens        BigInt?
@@ -86,6 +86,14 @@ model LiteLLM_ProviderUsageFact {
     @@index([credential_name, bucket_start])
 }
 ```
+
+**Deviation from the first draft of this plan, found during Task 1.** `billed_cost` was
+specified as a Prisma `Decimal`. prisma-client-py gates that scalar behind an
+`enable_experimental_decimal` generator flag, and turning it on changes client generation
+for every developer, CI job and self-hosted install, which is too much blast radius for one
+column. A float would round away exactly the precision this table exists to record, since
+OpenRouter reports costs to twelve decimal places. The column is TEXT and holds the
+provider's digits verbatim; cast with `billed_cost::numeric` wherever arithmetic is needed.
 
 `billed_cost` and `billing_currency` are FOCUS's `BilledCost` and `BillingCurrency`. Keep
 them: `litellm/integrations/focus/transformer.py` already emits those columns, and plan 5
@@ -112,7 +120,7 @@ CREATE TABLE IF NOT EXISTS "LiteLLM_ProviderUsageFact" (
     "provider_request_id" TEXT,
     "provider_api_key_id" TEXT,
     "model"               TEXT,
-    "billed_cost"         DECIMAL(65,30) NOT NULL DEFAULT 0.0,
+    "billed_cost"         TEXT NOT NULL DEFAULT '0',
     "billing_currency"    TEXT NOT NULL DEFAULT 'USD',
     "input_tokens"        BIGINT,
     "output_tokens"       BIGINT,
@@ -1435,7 +1443,7 @@ SELECT s.request_id,
        s.model,
        COALESCE(s.provider_credential, '') AS credential_name,
        s.spend::numeric      AS our_cost,
-       f.billed_cost         AS their_cost,
+       f.billed_cost::numeric AS their_cost,
        COALESCE(f.evidence, 'allocated') AS evidence
   FROM "LiteLLM_SpendLogs" s
   LEFT JOIN "LiteLLM_ProviderUsageFact" f

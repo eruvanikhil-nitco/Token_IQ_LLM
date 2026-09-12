@@ -46,6 +46,31 @@ model LiteLLM_CredentialsTable {
   updated_by String
 }
 
+model LiteLLM_ProviderUsageFact {
+    id                   String   @id @default(uuid())
+    fact_key             String   @unique // connector-computed, makes re-fetching idempotent
+    provider             String
+    credential_name      String
+    grain                String   // request | day
+    bucket_start         DateTime
+    evidence             String   // reconciled | priced | allocated
+    provider_request_id  String?
+    provider_api_key_id  String?
+    model                String?
+    billed_cost          String   @default("0") // exact digits as text; prisma-client-py gates Decimal behind an experimental flag
+    billing_currency     String   @default("USD")
+    input_tokens         BigInt?
+    output_tokens        BigInt?
+    cached_input_tokens  BigInt?
+    cache_write_tokens   BigInt?
+    raw                  Json?
+    fetched_at           DateTime @default(now())
+
+    @@index([provider, bucket_start])
+    @@index([provider_request_id])
+    @@index([credential_name, bucket_start])
+}
+
 // Models on proxy
 model LiteLLM_ProxyModelTable {
   model_id String @id @default(uuid())
