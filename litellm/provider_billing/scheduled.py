@@ -64,12 +64,15 @@ def build_provider_billing_job(
     async def credentials_for(provider: str) -> tuple[str, Mapping[str, str]] | None:
         """The stored credential marked for reading this provider's bill.
 
-        Values come back through CredentialAccessor rather than off the row, so the
-        decryption this needs is the same code path the request router already uses.
+        Rows come through CredentialsRepository, which that module documents as the only
+        place that talks to its table. Values come through CredentialAccessor rather than
+        off the row, so the decryption this needs is the same code path the request router
+        already uses.
         """
         from litellm.litellm_core_utils.credential_accessor import CredentialAccessor
+        from litellm.repositories.credentials_repository import CredentialsRepository
 
-        rows = await prisma_client.db.litellm_credentialstable.find_many()
+        rows = await CredentialsRepository(prisma_client).find_all()
         for row in rows:
             info = getattr(row, "credential_info", None)
             if not isinstance(info, Mapping):
