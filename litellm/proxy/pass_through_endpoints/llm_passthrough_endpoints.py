@@ -1087,7 +1087,6 @@ async def bedrock_proxy_route(
     except ImportError:
         raise ImportError("Missing boto3 to call bedrock. Run 'pip install boto3'.")
 
-    aws_region_name: Final = get_secret_str(secret_name="AWS_REGION_NAME")
     if not _is_bedrock_agent_runtime_route(endpoint=endpoint):
         return await bedrock_llm_proxy_route(
             endpoint=endpoint,
@@ -1102,6 +1101,7 @@ async def bedrock_proxy_route(
             detail="bedrock-agent-runtime pass-through is disabled on this proxy.",
         )
 
+    aws_region_name: Final = _resolve_bedrock_agent_runtime_region()
     base_target_url: Final = f"https://bedrock-agent-runtime.{aws_region_name}.{get_aws_dns_suffix(aws_region_name)}"
     encoded_endpoint = httpx.URL(endpoint).path
 
@@ -1359,6 +1359,44 @@ def _resolve_vertex_model_from_router(
         verbose_proxy_logger.debug("Error resolving vertex model from router for model %s: %s", model_id, e)
 
     return encoded_endpoint, endpoint, vertex_project, vertex_location
+
+
+def _resolve_bedrock_agent_runtime_region() -> str:
+    """The region for a bedrock-agent-runtime pass-through request.
+
+    An agent-runtime request names an agent, not a model or a deployment, so unlike the
+    model pass-through path there is nothing in the request to resolve a region from and
+    this falls back to the process environment. It reads the same three variables the
+    model path and the comprehend-medical path already accept, rather than only the
+    litellm-specific one, so a deployment configured the standard AWS way is not left
+    without a region.
+
+    Raises rather than returning None: the caller interpolates this straight into a
+    hostname, and an unset region previously produced
+    `bedrock-agent-runtime.None.amazonaws.com`, surfacing a configuration problem as a
+    DNS failure.
+    """
+    region: Final = next(
+        (
+            candidate
+            for candidate in (
+                get_secret_str(secret_name="AWS_REGION_NAME"),
+                get_secret_str(secret_name="AWS_REGION"),
+                get_secret_str(secret_name="AWS_DEFAULT_REGION"),
+            )
+            if candidate
+        ),
+        None,
+    )
+    if region is None:
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                "No AWS region configured for bedrock-agent-runtime pass-through. "
+                "Set AWS_REGION_NAME, AWS_REGION or AWS_DEFAULT_REGION on the proxy."
+            ),
+        )
+    return region
 
 
 def _is_bedrock_agent_runtime_route(endpoint: str) -> bool:
