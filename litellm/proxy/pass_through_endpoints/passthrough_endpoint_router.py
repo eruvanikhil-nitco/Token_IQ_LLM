@@ -143,8 +143,12 @@ class PassthroughEndpointRouter:
         custom_llm_provider: str,
         region_name: str | None,
     ) -> str | None:
-        if litellm_params.get("use_in_pass_through") is not True:
-            return None
+        # No opt-in check. It guarded a scan the gateway no longer has to justify: the
+        # credential belongs to the customer and so does the traffic. Requiring it meant a
+        # customer entered correct credentials, switched to courier, and saw every call
+        # fail reporting a missing credential while the dashboard showed it present, with
+        # nothing in the error naming the setting. A key that names its credentials
+        # bypasses this path entirely and is the precise answer.
         if self._get_deployment_provider(litellm_params) != custom_llm_provider:
             return None
         credential_name: Final = litellm_params.get("litellm_credential_name")
