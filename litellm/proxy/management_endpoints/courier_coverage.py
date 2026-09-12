@@ -113,33 +113,20 @@ def provider_courier_coverage(provider: str) -> ProviderCourierCoverage:
     )
 
 
-@dataclass(frozen=True, slots=True)
-class DeploymentReadiness:
-    """Which of a provider's deployments may lend their credential to courier mode."""
+def providers_of(deployments: Sequence[Mapping[str, object]]) -> tuple[str, ...]:
+    """The providers these deployments actually reach.
 
-    ready: tuple[str, ...]
-    needs_opt_in: tuple[str, ...]
-
-
-def deployment_readiness(
-    deployments: Sequence[Mapping[str, object]],
-    provider: str,
-) -> DeploymentReadiness:
-    """Split a provider's deployments by whether they carry the pass-through opt-in.
-
-    A deployment lends its credential to the courier routes only when it sets
-    `use_in_pass_through`. That default is deliberate, since those routes forward a body
-    unopened, but it is invisible: without it every call fails on credentials with
-    nothing naming the cause.
+    A deployment's model is written `provider/their-model-name`, and the prefix is how we
+    reach the provider rather than part of what the provider calls the model.
     """
-    matching: Final = tuple(
-        (name, params)
-        for deployment in deployments
-        if isinstance(params := deployment.get("litellm_params"), Mapping)
-        and isinstance(name := deployment.get("model_name"), str)
-        and str(params.get("model", "")).startswith(f"{provider}/")
-    )
-    return DeploymentReadiness(
-        ready=tuple(name for name, params in matching if params.get("use_in_pass_through") is True),
-        needs_opt_in=tuple(name for name, params in matching if params.get("use_in_pass_through") is not True),
+    return tuple(
+        sorted(
+            {
+                model.split("/", 1)[0]
+                for deployment in deployments
+                if isinstance(params := deployment.get("litellm_params"), Mapping)
+                and isinstance(model := params.get("model"), str)
+                and "/" in model
+            }
+        )
     )

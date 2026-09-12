@@ -1987,6 +1987,7 @@ class UpdateTeamRequest(LiteLLMPydanticObjectBase):
     access_group_ids: list[str] | None = None
     budget_limits: list[BudgetLimitEntry] | None = None  # multiple concurrent budget windows
     default_team_member_models: list[str] | None = None  # default allowed_models seeded onto new team members
+    courier_mode: bool | None = None
 
 
 class PatchTeamRequest(UpdateTeamRequest):

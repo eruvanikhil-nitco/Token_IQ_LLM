@@ -55,29 +55,22 @@ def test_bedrock_is_reported_covered_now_that_its_reader_is_wired():
     assert coverage.reads_usage is True
 
 
-def test_a_deployment_without_the_opt_in_is_reported_as_not_ready():
-    """Courier mode uses a deployment's credential only when that deployment is opted
-    in. Without it every call fails on credentials with nothing explaining why, so the
-    report has to name the deployments that still need it."""
-    from litellm.proxy.management_endpoints.courier_coverage import deployment_readiness
+def test_the_providers_a_team_reaches_come_from_its_deployments():
+    """The panel warns per provider, so it has to know which providers are in play. A
+    warning about a provider the team was never granted is noise, and noise teaches
+    admins to skim the one warning that mattered."""
+    from litellm.proxy.management_endpoints.courier_coverage import providers_of
 
     deployments = [
-        {"model_name": "a", "litellm_params": {"model": "openrouter/openai/gpt-4o-mini", "use_in_pass_through": True}},
-        {"model_name": "b", "litellm_params": {"model": "openrouter/anthropic/claude-haiku-4.5"}},
+        {"model_name": "a", "litellm_params": {"model": "openrouter/openai/gpt-4o-mini"}},
+        {"model_name": "b", "litellm_params": {"model": "anthropic/claude-haiku-4-5"}},
+        {"model_name": "c", "litellm_params": {"model": "openrouter/meta/llama-3"}},
     ]
 
-    readiness = deployment_readiness(deployments, provider="openrouter")
-
-    assert readiness.ready == ("a",)
-    assert readiness.needs_opt_in == ("b",)
+    assert providers_of(deployments) == ("anthropic", "openrouter")
 
 
-def test_deployments_for_other_providers_are_ignored():
-    from litellm.proxy.management_endpoints.courier_coverage import deployment_readiness
+def test_a_deployment_naming_no_provider_is_not_guessed_at():
+    from litellm.proxy.management_endpoints.courier_coverage import providers_of
 
-    deployments = [{"model_name": "x", "litellm_params": {"model": "anthropic/claude-haiku-4-5"}}]
-
-    readiness = deployment_readiness(deployments, provider="openrouter")
-
-    assert readiness.ready == ()
-    assert readiness.needs_opt_in == ()
+    assert providers_of([{"model_name": "a", "litellm_params": {"model": "gpt-4o-mini"}}]) == ()

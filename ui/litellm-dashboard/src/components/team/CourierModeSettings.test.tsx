@@ -9,8 +9,6 @@ const covered: ProviderCoverage = {
   reads_usage: true,
   is_covered: true,
   summary: "Supported: the courier route exists and usage is read back for billing.",
-  deployments_ready: ["openrouter/openai/gpt-4o-mini"],
-  deployments_needing_opt_in: [],
 };
 
 const billsNothing: ProviderCoverage = {
@@ -19,8 +17,6 @@ const billsNothing: ProviderCoverage = {
   reads_usage: false,
   is_covered: false,
   summary: "Carries traffic but records no cost. Spend for this provider would be missing.",
-  deployments_ready: [],
-  deployments_needing_opt_in: [],
 };
 
 const unavailable: ProviderCoverage = {
@@ -29,16 +25,8 @@ const unavailable: ProviderCoverage = {
   reads_usage: false,
   is_covered: false,
   summary: "No courier route. This provider cannot be used in courier mode.",
-  deployments_ready: [],
-  deployments_needing_opt_in: [],
 };
 
-const needsOptIn: ProviderCoverage = {
-  ...covered,
-  provider: "anthropic",
-  deployments_ready: [],
-  deployments_needing_opt_in: ["anthropic-haiku-4-5", "anthropic-sonnet-5"],
-};
 
 const renderPanel = (props: Partial<React.ComponentProps<typeof CourierModeSettings>> = {}) =>
   render(

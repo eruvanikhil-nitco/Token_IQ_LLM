@@ -38,6 +38,7 @@ vi.mock("@/components/networking", () => ({
   organizationInfoCall: vi.fn(),
   getRouterSettingsCall: vi.fn().mockResolvedValue({ fields: [] }),
   getPassThroughEndpointsCall: vi.fn(),
+  teamCourierCoverageCall: vi.fn(),
 }));
 
 const can = vi.fn();
@@ -378,6 +379,31 @@ describe("TeamInfoView", () => {
       expect(screen.queryByText("RPM: Unlimited")).not.toBeInTheDocument();
       expect(screen.queryByText("TPM Limit: No Limit")).not.toBeInTheDocument();
       expect(screen.queryByText("RPM Limit: No Limit")).not.toBeInTheDocument();
+    });
+
+    it("puts the courier mode panel on the Settings tab, where an admin can find it", async () => {
+      vi.mocked(networking.teamInfoCall).mockResolvedValue(createMockTeamData({}));
+      vi.mocked(networking.teamCourierCoverageCall).mockResolvedValue({
+        team_id: "team-123",
+        courier_mode: true,
+        unbound_key_count: 0,
+        providers: [
+          {
+            provider: "openrouter",
+            has_route: true,
+            reads_usage: true,
+            is_covered: true,
+            summary: "Supported: the courier route exists and usage is read back for billing.",
+          },
+        ],
+      });
+
+      renderWithProviders(<TeamInfoView {...defaultProps} />);
+      await screen.findByRole("tabpanel", { name: "Overview" });
+      await userEvent.setup({ delay: null }).click(screen.getByRole("tab", { name: "Settings" }));
+
+      const settings = await screen.findByRole("tabpanel", { name: "Settings" });
+      expect(await within(settings).findByRole("switch", { name: /courier mode/i })).toBeChecked();
     });
 
     it("should display guardrails in overview when present", async () => {

@@ -163,6 +163,8 @@ from litellm.types.proxy.management_endpoints.team_endpoints import (
     BulkUpdateTeamMemberPermissionsRequest,
     BulkUpdateTeamMemberPermissionsResponse,
     GetTeamMemberPermissionsResponse,
+    ProviderCourierCoverageResponse,
+    TeamCourierCoverageResponse,
     TeamIdSearchMatch,
     TeamListItem,
     TeamListResponse,
@@ -6214,44 +6216,67 @@ async def get_team_daily_activity_aggregated(
     "/team/{team_id}/courier_coverage",
     tags=["team management"],
     dependencies=[Depends(user_api_key_auth)],
+    response_model=TeamCourierCoverageResponse,
 )
-async def team_courier_coverage(team_id: str):
-    """What each of this team's providers will actually do in courier mode.
+async def team_courier_coverage(
+    team_id: str,
+    user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
+) -> TeamCourierCoverageResponse:
+    """What courier mode would actually do for this team, and what it would cost them to be wrong.
 
-    An admin turning courier mode on should not discover from a month-end invoice that
-    one of their providers carried traffic and recorded nothing. Coverage is derived
-    from the request path itself rather than a maintained list, so the answer cannot
-    drift from what the gateway does.
+    An admin turning courier mode on should not discover from a month-end invoice that one
+    of their providers carried traffic and recorded nothing, or that a key spent against
+    an account they did not choose. Both answers are derived from the request path itself
+    rather than a maintained list, so neither can drift from what the gateway does.
+
+    Providers are narrowed to the ones this team can actually reach, because a warning
+    about a provider the team was never granted is noise that teaches admins to skim.
     """
     from litellm.proxy.management_endpoints.courier_coverage import (
-        deployment_readiness,
         provider_courier_coverage,
+        providers_of,
     )
-    from litellm.proxy.proxy_server import llm_router
+    from litellm.proxy.proxy_server import llm_router, prisma_client
 
-    deployments: Final = (llm_router.get_model_list() or ()) if llm_router is not None else ()
-    providers: Final = tuple(
-        sorted(
-            {
-                str(params.get("model", "")).split("/")[0]
-                for deployment in deployments
-                if isinstance(params := deployment.get("litellm_params"), dict) and "/" in str(params.get("model", ""))
-            }
+    if prisma_client is None:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"error": CommonProxyErrors.db_not_connected_error.value},
         )
+
+    team_row: Final = await _team_db(prisma_client).find_unique(where={"team_id": team_id})
+    if team_row is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"message": f"Team not found, passed team id: {team_id}."},
+        )
+    team: Final = LiteLLM_TeamTable.model_validate(team_row.model_dump())
+    await validate_membership(user_api_key_dict=user_api_key_dict, team_table=team)
+
+    all_deployments: Final = (llm_router.get_model_list() or ()) if llm_router is not None else ()
+    granted: Final = frozenset(team.models or ())
+    reachable: Final = (
+        all_deployments
+        if not granted or "*" in granted
+        else tuple(d for d in all_deployments if d.get("model_name") in granted)
     )
 
-    return {
-        "team_id": team_id,
-        "providers": [
-            {
-                "provider": provider,
-                "has_route": (coverage := provider_courier_coverage(provider)).has_route,
-                "reads_usage": coverage.reads_usage,
-                "is_covered": coverage.is_covered,
-                "summary": coverage.summary,
-                "deployments_ready": list((readiness := deployment_readiness(deployments, provider)).ready),
-                "deployments_needing_opt_in": list(readiness.needs_opt_in),
-            }
-            for provider in providers
+    unbound_key_count: Final = await prisma_client.db.litellm_verificationtoken.count(
+        where={"team_id": team_id, "provider_credentials": {"isEmpty": True}}
+    )
+
+    return TeamCourierCoverageResponse(
+        team_id=team_id,
+        courier_mode=team.courier_mode,
+        unbound_key_count=unbound_key_count,
+        providers=[
+            ProviderCourierCoverageResponse(
+                provider=provider,
+                has_route=(coverage := provider_courier_coverage(provider)).has_route,
+                reads_usage=coverage.reads_usage,
+                is_covered=coverage.is_covered,
+                summary=coverage.summary,
+            )
+            for provider in providers_of(reachable)
         ],
-    }
+    )

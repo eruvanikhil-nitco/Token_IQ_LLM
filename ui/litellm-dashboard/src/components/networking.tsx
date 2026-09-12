@@ -81,6 +81,7 @@ import { EmailEventSettingsResponse, EmailEventSettingsUpdateRequest } from "./e
 import type { SkillRegisterRequest } from "./claude_code_plugins/types";
 import type { ModelBudgetUsage, ModelMaxBudget } from "./key_team_helpers/ModelMaxBudgetEditor";
 import type { ObjectPermission } from "./object_permission_types";
+import type { TeamCourierCoverage } from "./team/CourierModeSettings";
 import { jsonFields } from "./common_components/check_openapi_schema";
 import type { MCPUserEnvVarsStatus } from "./mcp_tools/types";
 import type {
@@ -1126,6 +1127,18 @@ export const userInfoCall = async (
     });
   } catch (error) {
     console.error("Failed to fetch user data:", error);
+    throw error;
+  }
+};
+
+export const teamCourierCoverageCall = async (
+  accessToken: string,
+  teamID: string,
+): Promise<TeamCourierCoverage> => {
+  try {
+    return await apiClient.get(`/team/${encodeURIComponent(teamID)}/courier_coverage`, { accessToken });
+  } catch (error) {
+    console.error("Failed to fetch courier coverage:", error);
     throw error;
   }
 };

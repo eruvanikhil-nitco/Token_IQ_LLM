@@ -143,3 +143,28 @@ class TeamMetadataSchemaResponse(BaseModel):
     """Response for GET /team/metadata_schema; ``fields`` is empty when no schema is configured."""
 
     fields: tuple[TeamMetadataFieldSchema, ...]
+
+
+class ProviderCourierCoverageResponse(BaseModel):
+    """What one provider will do for a team running in courier mode"""
+
+    provider: str
+    has_route: bool
+    """Whether a courier route exists for this provider at all"""
+
+    reads_usage: bool
+    """Whether the provider's reply is read for token usage, which is what makes the request billable"""
+
+    is_covered: bool
+    summary: str
+
+
+class TeamCourierCoverageResponse(BaseModel):
+    """Everything the courier mode panel needs to tell an admin what switching would do"""
+
+    team_id: str
+    courier_mode: bool
+    unbound_key_count: int
+    """Keys on this team that do not name the provider account they spend against"""
+
+    providers: list[ProviderCourierCoverageResponse]

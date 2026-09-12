@@ -54,7 +54,10 @@ try {
     stdio: "inherit",
   });
 
-  execFileSync(join(dashboardDir, "node_modules", ".bin", "openapi-typescript"), [specPath, "-o", outPath], {
+  // The .bin shim is extensionless on POSIX and a .cmd on Windows, and spawn does not
+  // resolve either from the other's name. Run the package's own entry point instead, so
+  // the same command works on both.
+  execFileSync(process.execPath, [join(dashboardDir, "node_modules", "openapi-typescript", "bin", "cli.js"), specPath, "-o", outPath], {
     cwd: dashboardDir,
     stdio: "inherit",
   });

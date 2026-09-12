@@ -84,6 +84,7 @@ import RouterSettingsAccordion, { RouterSettingsAccordionRef } from "../common_c
 import MemberModal from "./EditMembership";
 import MemberPermissions from "./member_permissions";
 import MyUserTab from "./MyUserTab";
+import TeamCourierModeCard from "./TeamCourierModeCard";
 import {
   getTeamInfoDefaultTab,
   getTeamInfoVisibleTabs,
@@ -1116,6 +1117,7 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
       key: TEAM_INFO_TAB_KEYS.SETTINGS,
       label: TEAM_INFO_TAB_LABELS[TEAM_INFO_TAB_KEYS.SETTINGS],
       children: (
+        <>
         <Card className="block p-6 overflow-y-auto max-h-[65vh]">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-medium">Team Settings</h3>
@@ -1919,6 +1921,13 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
             </div>
           )}
         </Card>
+        <TeamCourierModeCard
+          accessToken={accessToken}
+          teamId={teamId}
+          canEditTeam={canEditTeam}
+          onSaved={() => void fetchTeamInfo()}
+        />
+        </>
       ),
     },
   ].filter((tab) => visibleTabs.includes(tab.key));

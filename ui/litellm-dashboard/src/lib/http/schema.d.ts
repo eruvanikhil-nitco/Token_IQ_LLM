@@ -1073,6 +1073,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/audit/list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Audit Logs
+         * @description Recorded changes to keys, teams, models and users, newest first
+         */
+        get: operations["list_audit_logs_audit_list_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/authorize": {
         parameters: {
             query?: never;
@@ -10115,6 +10135,57 @@ export interface paths {
         patch: operations["openai_proxy_route_openai_passthrough__endpoint__patch"];
         trace?: never;
     };
+    "/openrouter/{endpoint}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Openrouter Proxy Route
+         * @description Forward a request to OpenRouter with its body untouched.
+         *
+         *     The key check, budgets and limits still run through `user_api_key_auth`; only the
+         *     payload is left alone.
+         */
+        get: operations["openrouter_proxy_route_openrouter__endpoint__get"];
+        /**
+         * Openrouter Proxy Route
+         * @description Forward a request to OpenRouter with its body untouched.
+         *
+         *     The key check, budgets and limits still run through `user_api_key_auth`; only the
+         *     payload is left alone.
+         */
+        put: operations["openrouter_proxy_route_openrouter__endpoint__put"];
+        /**
+         * Openrouter Proxy Route
+         * @description Forward a request to OpenRouter with its body untouched.
+         *
+         *     The key check, budgets and limits still run through `user_api_key_auth`; only the
+         *     payload is left alone.
+         */
+        post: operations["openrouter_proxy_route_openrouter__endpoint__post"];
+        /**
+         * Openrouter Proxy Route
+         * @description Forward a request to OpenRouter with its body untouched.
+         *
+         *     The key check, budgets and limits still run through `user_api_key_auth`; only the
+         *     payload is left alone.
+         */
+        delete: operations["openrouter_proxy_route_openrouter__endpoint__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Openrouter Proxy Route
+         * @description Forward a request to OpenRouter with its body untouched.
+         *
+         *     The key check, budgets and limits still run through `user_api_key_auth`; only the
+         *     payload is left alone.
+         */
+        patch: operations["openrouter_proxy_route_openrouter__endpoint__patch"];
+        trace?: never;
+    };
     "/organization/daily/activity": {
         parameters: {
             query?: never;
@@ -15514,6 +15585,34 @@ export interface paths {
          *     Returns 404 if the team does not exist, or if callback_name is not registered for the team.
          */
         delete: operations["delete_team_callback_team__team_id__callback__callback_name__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/team/{team_id}/courier_coverage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Team Courier Coverage
+         * @description What courier mode would actually do for this team, and what it would cost them to be wrong.
+         *
+         *     An admin turning courier mode on should not discover from a month-end invoice that one
+         *     of their providers carried traffic and recorded nothing, or that a key spent against
+         *     an account they did not choose. Both answers are derived from the request path itself
+         *     rather than a maintained list, so neither can drift from what the gateway does.
+         *
+         *     Providers are narrowed to the ones this team can actually reach, because a warning
+         *     about a provider the team was never granted is noise that teaches admins to skim.
+         */
+        get: operations["team_courier_coverage_team__team_id__courier_coverage_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -22870,6 +22969,63 @@ export interface components {
             unnamed_teams_count: number;
         };
         /**
+         * AuditEntry
+         * @description One recorded change, as the table renders it.
+         */
+        AuditEntry: {
+            /**
+             * Action
+             * @description created, updated or deleted
+             */
+            action: string;
+            /**
+             * Changed At
+             * Format: date-time
+             */
+            changed_at: string;
+            /**
+             * Changed By
+             * @description Who made the change
+             */
+            changed_by: string;
+            /**
+             * Changes
+             * @description Field level before and after, with secrets redacted
+             */
+            changes?: components["schemas"]["FieldChange"][];
+            /** Id */
+            id: string;
+            /**
+             * Object Id
+             * @description The id of the object that changed
+             */
+            object_id: string;
+            /**
+             * Summary
+             * @description One line naming the fields that moved
+             */
+            summary: string;
+            /**
+             * Table Name
+             * @description Which kind of object changed
+             */
+            table_name: string;
+        };
+        /** AuditListResponse */
+        AuditListResponse: {
+            /** Entries */
+            entries: components["schemas"]["AuditEntry"][];
+            /** Page */
+            page: number;
+            /** Size */
+            size: number;
+            /**
+             * Total
+             * @description Rows matching the filters, before paging
+             */
+            total: number;
+        };
+        /**
          * AutoRouterBenchmarkGroup
          * @description One auto-router's slice of the benchmarks.
          */
@@ -26845,6 +27001,24 @@ export interface components {
              */
             model: string;
         };
+        /**
+         * FieldChange
+         * @description One field that differs between the two snapshots.
+         */
+        FieldChange: {
+            /**
+             * After
+             * @description Value after the change, rendered for display
+             */
+            after?: string | null;
+            /**
+             * Before
+             * @description Value before the change, rendered for display
+             */
+            before?: string | null;
+            /** Field */
+            field: string;
+        };
         /** FieldDetail */
         FieldDetail: {
             /** Field Default Value */
@@ -27058,6 +27232,8 @@ export interface components {
             project_id?: string | null;
             /** Prompts */
             prompts?: string[] | null;
+            /** Provider Credentials */
+            provider_credentials?: string[] | null;
             /**
              * Rotation Interval
              * @description How often to rotate this key (e.g., '30d', '90d'). Required if auto_rotate=True
@@ -27223,6 +27399,8 @@ export interface components {
             project_id?: string | null;
             /** Prompts */
             prompts?: string[] | null;
+            /** Provider Credentials */
+            provider_credentials?: string[] | null;
             router_settings?: components["schemas"]["UpdateRouterConfig"] | null;
             /** Rpm Limit */
             rpm_limit?: number | null;
@@ -28037,6 +28215,11 @@ export interface components {
             budget_limits?: components["schemas"]["BudgetLimitEntry"][] | null;
             /** Budget Reset At */
             budget_reset_at?: string | null;
+            /**
+             * Courier Mode
+             * @default false
+             */
+            courier_mode: boolean;
             /** Created At */
             created_at?: string | null;
             /** Default Team Member Models */
@@ -28252,6 +28435,11 @@ export interface components {
             };
             /** Project Id */
             project_id?: string | null;
+            /**
+             * Provider Credentials
+             * @default []
+             */
+            provider_credentials: string[];
             /**
              * Rotation Count
              * @default 0
@@ -29313,6 +29501,11 @@ export interface components {
             budget_limits?: components["schemas"]["BudgetLimitEntry"][] | null;
             /** Budget Reset At */
             budget_reset_at?: string | null;
+            /**
+             * Courier Mode
+             * @default false
+             */
+            courier_mode: boolean;
             /** Created At */
             created_at?: string | null;
             /** Default Team Member Models */
@@ -29727,6 +29920,11 @@ export interface components {
             };
             /** Project Id */
             project_id?: string | null;
+            /**
+             * Provider Credentials
+             * @default []
+             */
+            provider_credentials: string[];
             /**
              * Rotation Count
              * @default 0
@@ -31740,6 +31938,11 @@ export interface components {
             budget_duration?: string | null;
             /** Budget Limits */
             budget_limits?: components["schemas"]["BudgetLimitEntry"][] | null;
+            /**
+             * Courier Mode
+             * @default false
+             */
+            courier_mode: boolean;
             /** Default Estimated Output Tokens */
             default_estimated_output_tokens?: number | null;
             /** Default Estimated Output Tokens Per Model */
@@ -31934,6 +32137,8 @@ export interface components {
             policies?: string[] | null;
             /** Prompts */
             prompts?: string[] | null;
+            /** Provider Credentials */
+            provider_credentials?: string[] | null;
             /** Rpm Limit */
             rpm_limit?: number | null;
             /** Send Invite Email */
@@ -32103,6 +32308,8 @@ export interface components {
             project_id?: string | null;
             /** Prompts */
             prompts?: string[] | null;
+            /** Provider Credentials */
+            provider_credentials?: string[] | null;
             router_settings?: components["schemas"]["UpdateRouterConfig"] | null;
             /** Rpm Limit */
             rpm_limit?: number | null;
@@ -33543,6 +33750,22 @@ export interface components {
             /** Time Period */
             time_period: string | null;
         };
+        /**
+         * ProviderCourierCoverageResponse
+         * @description What one provider will do for a team running in courier mode
+         */
+        ProviderCourierCoverageResponse: {
+            /** Has Route */
+            has_route: boolean;
+            /** Is Covered */
+            is_covered: boolean;
+            /** Provider */
+            provider: string;
+            /** Reads Usage */
+            reads_usage: boolean;
+            /** Summary */
+            summary: string;
+        };
         /** ProviderCreateInfo */
         ProviderCreateInfo: {
             /** Credential Fields */
@@ -34019,6 +34242,8 @@ export interface components {
             project_id?: string | null;
             /** Prompts */
             prompts?: string[] | null;
+            /** Provider Credentials */
+            provider_credentials?: string[] | null;
             /**
              * Rotation Interval
              * @description How often to rotate this key (e.g., '30d', '90d'). Required if auto_rotate=True
@@ -35893,6 +36118,11 @@ export interface components {
             budget_limits?: components["schemas"]["BudgetLimitEntry"][] | null;
             /** Budget Reset At */
             budget_reset_at?: string | null;
+            /**
+             * Courier Mode
+             * @default false
+             */
+            courier_mode: boolean;
             /** Created At */
             created_at?: string | null;
             /** Default Team Member Models */
@@ -35990,6 +36220,20 @@ export interface components {
             team_id: string;
         };
         /**
+         * TeamCourierCoverageResponse
+         * @description Everything the courier mode panel needs to tell an admin what switching would do
+         */
+        TeamCourierCoverageResponse: {
+            /** Courier Mode */
+            courier_mode: boolean;
+            /** Providers */
+            providers: components["schemas"]["ProviderCourierCoverageResponse"][];
+            /** Team Id */
+            team_id: string;
+            /** Unbound Key Count */
+            unbound_key_count: number;
+        };
+        /**
          * TeamListItem
          * @description A team item in the paginated list response, enriched with computed fields.
          */
@@ -36023,6 +36267,11 @@ export interface components {
             budget_limits?: components["schemas"]["BudgetLimitEntry"][] | null;
             /** Budget Reset At */
             budget_reset_at?: string | null;
+            /**
+             * Courier Mode
+             * @default false
+             */
+            courier_mode: boolean;
             /** Created At */
             created_at?: string | null;
             /** Default Team Member Models */
@@ -37080,6 +37329,8 @@ export interface components {
             policies?: string[] | null;
             /** Prompts */
             prompts?: string[] | null;
+            /** Provider Credentials */
+            provider_credentials?: string[] | null;
             /** Rotation Interval */
             rotation_interval?: string | null;
             router_settings?: components["schemas"]["UpdateRouterConfig"] | null;
@@ -37594,6 +37845,8 @@ export interface components {
             policies?: string[] | null;
             /** Prompts */
             prompts?: string[] | null;
+            /** Provider Credentials */
+            provider_credentials?: string[] | null;
             /** Rpm Limit */
             rpm_limit?: number | null;
             /** Spend */
@@ -37700,6 +37953,8 @@ export interface components {
             policies?: string[] | null;
             /** Prompts */
             prompts?: string[] | null;
+            /** Provider Credentials */
+            provider_credentials?: string[] | null;
             /** Rpm Limit */
             rpm_limit?: number | null;
             /** Spend */
@@ -38046,6 +38301,11 @@ export interface components {
             project_metadata?: {
                 [key: string]: unknown;
             } | null;
+            /**
+             * Provider Credentials
+             * @default []
+             */
+            provider_credentials: string[];
             /** Request Route */
             request_route?: string | null;
             /**
@@ -40414,6 +40674,49 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_audit_logs_audit_list_get: {
+        parameters: {
+            query?: {
+                /** @description Only changes to this kind of object */
+                table_name?: string | null;
+                action?: ("created" | "updated" | "deleted") | null;
+                /** @description Only changes to this object */
+                object_id?: string | null;
+                /** @description Only changes made by this user */
+                changed_by?: string | null;
+                start_date?: string | null;
+                end_date?: string | null;
+                page?: number;
+                size?: number;
+                /** @description Include fields that move on every write, such as updated_at */
+                include_noise?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditListResponse"];
                 };
             };
             /** @description Validation Error */
@@ -52178,6 +52481,161 @@ export interface operations {
             };
         };
     };
+    openrouter_proxy_route_openrouter__endpoint__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                endpoint: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    openrouter_proxy_route_openrouter__endpoint__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                endpoint: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    openrouter_proxy_route_openrouter__endpoint__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                endpoint: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    openrouter_proxy_route_openrouter__endpoint__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                endpoint: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    openrouter_proxy_route_openrouter__endpoint__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                endpoint: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_organization_daily_activity_organization_daily_activity_get: {
         parameters: {
             query?: {
@@ -58001,6 +58459,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TeamCallbackDeleteResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    team_courier_coverage_team__team_id__courier_coverage_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                team_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeamCourierCoverageResponse"];
                 };
             };
             /** @description Validation Error */

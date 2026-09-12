@@ -1,19 +1,13 @@
 import React from "react";
+import type { components } from "@/lib/http/schema";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { AlertTriangle, CheckCircle2, Info, XCircle } from "lucide-react";
 
-export interface ProviderCoverage {
-  provider: string;
-  has_route: boolean;
-  reads_usage: boolean;
-  is_covered: boolean;
-  summary: string;
-  deployments_ready: string[];
-  deployments_needing_opt_in: string[];
-}
+export type ProviderCoverage = components["schemas"]["ProviderCourierCoverageResponse"];
+export type TeamCourierCoverage = components["schemas"]["TeamCourierCoverageResponse"];
 
 export interface CourierModeSettingsProps {
   courierMode: boolean;
@@ -24,23 +18,30 @@ export interface CourierModeSettingsProps {
   disabled?: boolean;
 }
 
+type CoverageState = "blocked" | "billingGap" | "covered";
+
+const coverageState = (entry: ProviderCoverage): CoverageState => {
+  if (!entry.has_route) return "blocked";
+  if (!entry.reads_usage) return "billingGap";
+  return "covered";
+};
+
+const STATE_ICON: Record<CoverageState, React.ReactNode> = {
+  blocked: <XCircle className="size-4 shrink-0 text-destructive" />,
+  billingGap: <AlertTriangle className="size-4 shrink-0 text-warning" />,
+  covered: <CheckCircle2 className="size-4 shrink-0 text-success" />,
+};
+
 const CoverageRow: React.FC<{ entry: ProviderCoverage }> = ({ entry }) => {
-  const blocked = !entry.has_route;
-  const billingGap = entry.has_route && !entry.reads_usage;
+  const state = coverageState(entry);
 
   return (
     <div className="flex flex-col gap-1 py-2">
       <div className="flex items-center gap-2">
-        {blocked ? (
-          <XCircle className="size-4 shrink-0 text-destructive" />
-        ) : billingGap ? (
-          <AlertTriangle className="size-4 shrink-0 text-warning" />
-        ) : (
-          <CheckCircle2 className="size-4 shrink-0 text-success" />
-        )}
+        {STATE_ICON[state]}
         <span className="font-medium">{entry.provider}</span>
-        {billingGap && <Badge variant="destructive">Records no cost</Badge>}
-        {blocked && <Badge variant="secondary">Unavailable</Badge>}
+        {state === "billingGap" && <Badge variant="destructive">Records no cost</Badge>}
+        {state === "blocked" && <Badge variant="secondary">Unavailable</Badge>}
       </div>
       <p className="pl-6 text-sm text-muted-foreground">{entry.summary}</p>
     </div>
