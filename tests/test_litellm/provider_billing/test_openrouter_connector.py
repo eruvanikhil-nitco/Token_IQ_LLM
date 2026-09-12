@@ -145,3 +145,49 @@ async def test_the_key_is_sent_as_a_bearer_token():
 
     assert client.get.await_args.kwargs["headers"]["Authorization"] == "Bearer sk-or-test"
     assert client.get.await_args.kwargs["params"] == {"id": "gen-1"}
+
+
+@pytest.mark.asyncio
+async def test_the_native_token_counts_are_preferred_over_the_normalised_ones():
+    """OpenRouter reports tokens twice: tokens_prompt normalised to a GPT tokenizer for
+    comparability, and native_tokens_prompt as the underlying provider actually counted
+    them. The cost is computed from the native ones, so storing the normalised counts
+    beside a native cost would invent a discrepancy that does not exist. Observed live:
+    our record said 14 prompt tokens for a Claude call where OpenRouter's normalised
+    figure was 10, while the two costs agreed exactly."""
+    from litellm.types.proxy.provider_billing import Fetched
+
+    result = await _fetch(
+        ["gen-4"],
+        _http(
+            {
+                "data": {
+                    "id": "gen-4",
+                    "total_cost": 0.000044,
+                    "tokens_prompt": 10,
+                    "tokens_completion": 5,
+                    "native_tokens_prompt": 14,
+                    "native_tokens_completion": 6,
+                }
+            }
+        ),
+    )
+
+    assert isinstance(result, Fetched)
+    assert result.facts[0].input_tokens == 14
+    assert result.facts[0].output_tokens == 6
+
+
+@pytest.mark.asyncio
+async def test_the_normalised_counts_are_used_when_no_native_ones_are_given():
+    """Not every provider behind OpenRouter reports native counts."""
+    from litellm.types.proxy.provider_billing import Fetched
+
+    result = await _fetch(
+        ["gen-5"],
+        _http({"data": {"id": "gen-5", "total_cost": 0.1, "tokens_prompt": 10, "tokens_completion": 5}}),
+    )
+
+    assert isinstance(result, Fetched)
+    assert result.facts[0].input_tokens == 10
+    assert result.facts[0].output_tokens == 5

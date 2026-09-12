@@ -51,6 +51,18 @@ def _str(value: object) -> str | None:
     return value if isinstance(value, str) else None
 
 
+def _tokens(data: Mapping[str, object], native_key: str, normalised_key: str) -> int | None:
+    """The provider's own count, falling back to OpenRouter's normalised one.
+
+    OpenRouter reports tokens twice: `tokens_prompt` normalised to a GPT tokenizer so
+    models can be compared, and `native_tokens_prompt` as the underlying provider counted
+    them. Cost is computed from the native figures, so storing the normalised ones beside
+    a native cost invents a discrepancy that does not exist. Not every provider behind
+    OpenRouter reports native counts, hence the fallback.
+    """
+    return _int(data.get(native_key)) if _int(data.get(native_key)) is not None else _int(data.get(normalised_key))
+
+
 class OpenRouterBillingConnector:
     def __init__(
         self,
@@ -113,8 +125,8 @@ class OpenRouterBillingConnector:
                     billed_cost=cost,
                     provider_request_id=generation_id,
                     model=_str(data.get("model")),
-                    input_tokens=_int(data.get("tokens_prompt")),
-                    output_tokens=_int(data.get("tokens_completion")),
+                    input_tokens=_tokens(data, "native_tokens_prompt", "tokens_prompt"),
+                    output_tokens=_tokens(data, "native_tokens_completion", "tokens_completion"),
                 )
             )
 
