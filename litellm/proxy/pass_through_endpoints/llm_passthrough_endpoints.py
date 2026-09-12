@@ -208,6 +208,7 @@ async def llm_passthrough_factory_proxy_route(
     provider_api_key: Final = passthrough_endpoint_router.get_credentials(
         custom_llm_provider=custom_llm_provider,
         region_name=None,
+        bound_credentials=user_api_key_dict.provider_credentials or None,
     )
 
     auth_headers: Final = provider_config.validate_environment(

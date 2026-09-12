@@ -2012,7 +2012,9 @@ class TestLLMPassthroughFactoryProxyRoute:
                 provider=litellm.LlmProviders(LlmProviders.VLLM), model=None
             )
             mock_get_creds.assert_called_once_with(
-                custom_llm_provider=LlmProviders.VLLM, region_name=None
+                custom_llm_provider=LlmProviders.VLLM,
+                region_name=None,
+                bound_credentials=mock_user_api_key_dict.provider_credentials,
             )
             mock_create_route.assert_called_once_with(
                 endpoint="/chat/completions",

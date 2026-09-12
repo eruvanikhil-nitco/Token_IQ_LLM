@@ -21,6 +21,7 @@ class LiteLLM_VerificationToken(LiteLLMPydanticObjectBase):
     max_budget: float | None = None
     expires: str | datetime | None = None
     models: list = []
+    provider_credentials: list[str] = []
     aliases: dict = {}
     config: dict = {}
     user_id: str | None = None

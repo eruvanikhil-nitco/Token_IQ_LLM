@@ -1125,6 +1125,7 @@ class GenerateRequestBase(LiteLLMPydanticObjectBase):
     key_alias: str | None = None
     duration: str | None = None
     models: list | None = []
+    provider_credentials: list[str] | None = None
     spend: float | None = 0
     max_budget: float | None = None
     user_id: str | None = None

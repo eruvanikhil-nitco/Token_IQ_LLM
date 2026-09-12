@@ -1,5 +1,5 @@
 import json
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Final
 
 import litellm
@@ -54,7 +54,23 @@ class PassthroughEndpointRouter:
         self,
         custom_llm_provider: str,
         region_name: str | None,
+        bound_credentials: Sequence[str] | None = None,
     ) -> str | None:
+        """The provider credential this request should be charged to.
+
+        A courier request never names one of our model entries, so the credential cannot
+        be looked up from the request itself. Where the calling key names the credentials
+        it may spend against, that is the answer and it is exact.
+
+        Without a binding the old behaviour stands: take the first opted-in deployment for
+        this provider, then the environment. That is how a customer's production traffic
+        could be billed to their test account, and the binding is what removes the guess.
+        """
+        if bound_credentials:
+            return self._get_bound_credential_api_key(
+                bound_credentials=bound_credentials,
+                custom_llm_provider=custom_llm_provider,
+            )
         deployment_api_key: Final = self._get_deployment_api_key(
             custom_llm_provider=custom_llm_provider,
             region_name=region_name,
@@ -68,6 +84,33 @@ class PassthroughEndpointRouter:
             custom_llm_provider=custom_llm_provider,
         )
         return get_secret_str(_env_variable_name)
+
+    def _get_bound_credential_api_key(
+        self,
+        bound_credentials: Sequence[str],
+        custom_llm_provider: str,
+    ) -> str:
+        """Read the secret from the first named credential that holds one.
+
+        Falling back to scanning when a named credential is missing would bill an account
+        the operator did not choose, which is worse than refusing, so this raises instead.
+        """
+        from litellm.litellm_core_utils.credential_accessor import CredentialAccessor
+
+        resolved: Final = next(
+            (
+                api_key
+                for name in bound_credentials
+                if isinstance(api_key := CredentialAccessor.get_credential_values(name).get("api_key"), str) and api_key
+            ),
+            None,
+        )
+        if resolved is None:
+            raise ValueError(
+                f"Key is bound to provider credential(s) {list(bound_credentials)} for {custom_llm_provider}, "
+                "but none of them exist or carry an api_key. Create the credential, or remove the binding."
+            )
+        return resolved
 
     def _get_deployment_api_key(
         self,

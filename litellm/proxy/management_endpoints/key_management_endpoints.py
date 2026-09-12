@@ -3941,6 +3941,7 @@ async def generate_key_helper_fn(
     request_type: Literal["user", "key"],  # identifies if this request is from /user/new or /key/generate
     duration: str | None = None,
     models: list = [],
+    provider_credentials: list | None = None,
     aliases: dict = {},
     config: dict = {},
     spend: float = 0.0,
@@ -4106,6 +4107,7 @@ async def generate_key_helper_fn(
             "key_alias": key_alias,
             "expires": expires,
             "models": models,
+            "provider_credentials": provider_credentials or [],
             "aliases": aliases_json,
             "config": config_json,
             "spend": spend,
