@@ -321,6 +321,24 @@ def get_request_model_access_groups(kwargs: Mapping[str, object] | None) -> tupl
     return request_model_access_groups_from_litellm_params(litellm_params)
 
 
+def _provider_credential_that_paid(litellm_params: Mapping[str, object], model_id: str) -> str:
+    """Which of the customer's provider credentials was charged for this request.
+
+    A spend row otherwise records our own virtual key and the provider's address, neither
+    of which identifies the customer's account. A customer holding two accounts at one
+    provider, commonly production and test, cannot then be told which one a charge landed
+    on, which is the question a cost-attribution product exists to answer.
+
+    A named stored credential is the precise answer. Where a deployment embeds its key
+    inline there is no such name, and the deployment is then the finest-grained identity
+    available.
+    """
+    credential_name: Final = litellm_params.get("litellm_credential_name")
+    if isinstance(credential_name, str) and credential_name:
+        return credential_name
+    return model_id
+
+
 def _sl_attribution_fallback(
     standard_logging_payload: StandardLoggingPayload | None,
     field: Literal["model_id", "model_group", "api_base", "custom_llm_provider"],
@@ -579,6 +597,7 @@ def get_logging_payload(kwargs, response_obj, start_time, end_time) -> SpendLogs
             api_base=_api_base,
             model_group=_model_group,
             model_id=_model_id,
+            provider_credential=_provider_credential_that_paid(litellm_params, _model_id),
             mcp_namespaced_tool_name=mcp_namespaced_tool_name,
             agent_id=agent_id,
             requester_ip_address=clean_metadata.get("requester_ip_address", None),

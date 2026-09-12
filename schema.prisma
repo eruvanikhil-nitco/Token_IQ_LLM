@@ -638,6 +638,7 @@ model LiteLLM_SpendLogs {
   completionStartTime DateTime? // Assuming completionStartTime is a DateTime field
   model               String   @default("")
   model_id            String?   @default("") // the model id stored in proxy model db
+  provider_credential String?   @default("") // which of the customer's provider credentials paid for this request
   model_group         String?   @default("") // public model_name / model_group
   custom_llm_provider String?   @default("") // litellm used custom_llm_provider
   api_base            String?   @default("")

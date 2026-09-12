@@ -3680,6 +3680,7 @@ class SpendLogsMetadata(TypedDict):
 
 class SpendLogsPayload(TypedDict):
     request_id: str
+    provider_credential: str
     call_type: str
     api_key: str
     spend: float
