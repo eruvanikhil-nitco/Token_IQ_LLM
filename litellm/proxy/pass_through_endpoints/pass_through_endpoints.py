@@ -576,6 +576,13 @@ class HttpPassThroughEndpointHelpers(BasePassthroughUtils):
             LiteLLMProxyRequestSetup.get_sanitized_user_information_from_key(user_api_key_dict=user_api_key_dict)
         )
 
+        # Which of the customer's accounts this is charged to. A courier request carries
+        # no deployment, so without this the spend row cannot say, and a charge landing on
+        # the wrong account is invisible until an invoice arrives.
+        bound_credentials: Final = getattr(user_api_key_dict, "provider_credentials", None)
+        if bound_credentials:
+            _metadata["provider_credential"] = bound_credentials[0]
+
         litellm_metadata: Final = litellm_params_in_body.pop("litellm_metadata", None)
         metadata: Final = litellm_params_in_body.pop("metadata", None)
         if litellm_metadata:

@@ -336,6 +336,15 @@ def _provider_credential_that_paid(litellm_params: Mapping[str, object], model_i
     credential_name: Final = litellm_params.get("litellm_credential_name")
     if isinstance(credential_name, str) and credential_name:
         return credential_name
+
+    # A courier request carries no deployment, so the identity above is absent. What is
+    # known is the credential its key named, which the pass-through path puts here.
+    metadata: Final = litellm_params.get("metadata")
+    if isinstance(metadata, Mapping):
+        bound: Final = metadata.get("provider_credential")
+        if isinstance(bound, str) and bound:
+            return bound
+
     return model_id
 
 

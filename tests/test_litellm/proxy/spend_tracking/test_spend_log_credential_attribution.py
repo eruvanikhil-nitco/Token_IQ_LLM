@@ -56,3 +56,24 @@ def test_nothing_identifiable_records_empty_rather_than_guessing():
     payload = _payload({})
 
     assert payload["provider_credential"] == ""
+
+
+def test_a_courier_request_records_the_credential_its_key_named():
+    """Courier requests carry no deployment, so the deployment identity that answers this
+    for translating mode is absent. The key's binding is what is known, and recording it
+    is what makes a wrong-account charge visible in the data rather than only on an
+    invoice."""
+    payload = _payload({"metadata": {"provider_credential": "acme-openai-production"}})
+
+    assert payload["provider_credential"] == "acme-openai-production"
+
+
+def test_a_stored_credential_on_the_deployment_still_wins_for_translating_mode():
+    payload = _payload(
+        {
+            "litellm_credential_name": "from-deployment",
+            "metadata": {"provider_credential": "from-key-binding"},
+        }
+    )
+
+    assert payload["provider_credential"] == "from-deployment"

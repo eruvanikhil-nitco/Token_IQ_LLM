@@ -118,7 +118,15 @@ def test_deployment_for_other_provider_does_not_match():
     assert passthrough_router.get_credentials(custom_llm_provider="openai", region_name=None) is None
 
 
-def test_unflagged_deployment_does_not_match():
+def test_a_deployment_without_the_old_opt_in_flag_is_used():
+    """This asserted the opposite until the opt-in was removed.
+
+    The flag guarded a scan the gateway no longer has to justify: the credential belongs
+    to the customer and so does the traffic. Requiring it meant a customer entered correct
+    credentials, switched a team to courier, and saw every call fail reporting a missing
+    credential while the dashboard showed it present, with nothing in the error naming the
+    setting. On the deployment this was found on, 39 of 40 models lacked it.
+    """
     llm_router = litellm.Router(
         model_list=[
             {
@@ -129,7 +137,7 @@ def test_unflagged_deployment_does_not_match():
     )
     passthrough_router = _passthrough_router(llm_router)
 
-    assert passthrough_router.get_credentials(custom_llm_provider="openai", region_name=None) is None
+    assert passthrough_router.get_credentials(custom_llm_provider="openai", region_name=None) == "sk-not-flagged"
 
 
 def test_first_matching_deployment_wins():
