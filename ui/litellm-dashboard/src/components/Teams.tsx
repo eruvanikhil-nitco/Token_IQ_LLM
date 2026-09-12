@@ -99,6 +99,7 @@ const teamCreateFieldsSchema = z.object({
   mcp_tool_permissions: z.record(z.string(), z.array(z.string())).optional(),
   allowed_agents_and_groups: z.object({ agents: z.array(z.string()), accessGroups: z.array(z.string()) }).optional(),
   object_permission_search_tools: z.array(z.string()).optional(),
+  courier_mode: z.boolean().optional(),
 });
 
 type TeamCreateFormValues = z.infer<typeof teamCreateFieldsSchema>;
@@ -128,6 +129,7 @@ const EMPTY_TEAM_CREATE_VALUES: TeamCreateFormValues = {
   mcp_tool_permissions: {},
   allowed_agents_and_groups: undefined,
   object_permission_search_tools: undefined,
+  courier_mode: true,
 };
 
 const ADDITIONAL_SETTINGS_FIELDS = [
@@ -771,6 +773,32 @@ const Teams: React.FC<TeamProps> = ({ accessToken, userID, userRole, premiumUser
                         context="team"
                         dataTestId="create-team-models-select"
                       />
+                    )}
+                  </FormField>
+
+                  <FormField
+                    control={form.control}
+                    name="courier_mode"
+                    label={labelWithHint(
+                      "Courier mode",
+                      "On: this team sends each provider's own request shape to that provider's address, and the body reaches the provider unread. Off: the team writes one common shape to /v1/chat/completions and the gateway translates it. Either way spend and usage are recorded.",
+                    )}
+                  >
+                    {({ id, value, onChange }) => (
+                      <div className="flex items-start gap-3">
+                        <Switch
+                          id={id}
+                          checked={value ?? true}
+                          onCheckedChange={onChange}
+                          aria-label="Courier mode"
+                          data-testid="create-team-courier-mode"
+                        />
+                        <p className="text-sm text-muted-foreground">
+                          {value ?? true
+                            ? "This team keeps the code it already has and points it at this gateway. /v1/chat/completions is closed for it."
+                            : "This team writes to /v1/chat/completions and the gateway translates for each provider."}
+                        </p>
+                      </div>
                     )}
                   </FormField>
 

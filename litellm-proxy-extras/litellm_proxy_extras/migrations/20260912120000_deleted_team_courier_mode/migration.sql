@@ -1,0 +1,1 @@
+ALTER TABLE "LiteLLM_DeletedTeamTable" ADD COLUMN IF NOT EXISTS "courier_mode" BOOLEAN NOT NULL DEFAULT false;

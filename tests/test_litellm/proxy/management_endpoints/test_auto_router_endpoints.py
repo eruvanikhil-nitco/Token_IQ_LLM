@@ -800,7 +800,6 @@ from unittest.mock import AsyncMock, MagicMock
 from litellm.proxy.management_endpoints.auto_router_endpoints import (
     get_shadow_eval_job,
     list_shadow_eval_jobs,
-    start_shadow_eval,
     stop_shadow_eval_job,
 )
 from litellm.types.management_endpoints.auto_router_endpoints import SHADOW_EVAL_TURN_VALVE, StartShadowEvalRequest
@@ -809,67 +808,8 @@ VIEWER = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY, api_ke
 NON_ADMIN = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-user", user_id="user")
 
 
-def _complexity_router_deployment(
-    model_name: str, tiers: dict[str, str], default: str, classifier: str = "cheap"
-) -> dict[str, object]:
-    return {
-        "model_name": model_name,
-        "litellm_params": {
-            "model": "auto_router/complexity_router",
-            "complexity_router_default_model": default,
-            "complexity_router_config": {
-                "tiers": tiers,
-                "classifier_type": "llm",
-                "classifier_llm_config": {"model": classifier},
-                "session_affinity": False,
-            },
-        },
-    }
 
 
-def _shadow_router() -> Router:
-    """A real Router, so the endpoint's model checks run against real resolution.
-
-    `sonnet-router` exists to keep the judge-vs-candidate cases honest: its tiers are
-    deployments named nothing like the shipped default judge, yet one of them serves
-    `anthropic/claude-sonnet-5`, so only a check that resolves names finds the collision.
-    `my-router` deliberately serves none of it, since the default judge has to stay valid
-    for every other test in this file.
-    """
-    return Router(
-        model_list=[
-            {"model_name": "cheap", "litellm_params": {"model": "openai/gpt-4o-mini", "api_key": "fake"}},
-            {"model_name": "mid", "litellm_params": {"model": "openai/gpt-4o", "api_key": "fake"}},
-            {"model_name": "pricey", "litellm_params": {"model": "openai/o3", "api_key": "fake"}},
-            {"model_name": "prefixed-tier", "litellm_params": {"model": "openai/gpt-4o", "api_key": "fake"}},
-            {"model_name": "bare-tier", "litellm_params": {"model": "gpt-4o", "api_key": "fake"}},
-            {"model_name": "house-sonnet", "litellm_params": {"model": "anthropic/claude-sonnet-5", "api_key": "fake"}},
-            {
-                "model_name": "model_name_team-a_x",
-                "litellm_params": {"model": "anthropic/claude-sonnet-5", "api_key": "fake"},
-                "model_info": {"team_id": "team-a", "team_public_model_name": "house-judge"},
-            },
-            {
-                "model_name": "anthropic/claude-sonnet-5-team-a",
-                "litellm_params": {"model": "anthropic/claude-sonnet-5", "api_key": "fake"},
-                "model_info": {"team_id": "team-a", "team_public_model_name": "anthropic/claude-sonnet-5"},
-            },
-            {
-                "model_name": "model_name_team-b_y",
-                "litellm_params": {"model": "anthropic/claude-sonnet-5", "api_key": "fake"},
-                "model_info": {"team_id": "team-b", "team_public_model_name": "b-tier"},
-            },
-            _complexity_router_deployment(
-                "my-router", {"SIMPLE": "cheap", "MEDIUM": "mid", "COMPLEX": "pricey"}, "mid"
-            ),
-            _complexity_router_deployment("sonnet-router", {"SIMPLE": "cheap", "MEDIUM": "house-sonnet"}, "cheap"),
-            _complexity_router_deployment("classifier-router", {"SIMPLE": "cheap"}, "cheap", classifier="pricey"),
-            _complexity_router_deployment("b-team-router", {"SIMPLE": "cheap", "MEDIUM": "b-tier"}, "cheap"),
-            _complexity_router_deployment("prefixed-router", {"SIMPLE": "prefixed-tier"}, "prefixed-tier"),
-            _complexity_router_deployment("bare-router", {"SIMPLE": "bare-tier"}, "bare-tier"),
-        ],
-        model_group_alias={"judge-alias": "pricey"},
-    )
 
 
 def _leg_record(**overrides: object) -> MagicMock:
@@ -1092,463 +1032,40 @@ def _start_request(**overrides: object) -> StartShadowEvalRequest:
     return StartShadowEvalRequest.model_validate(payload)
 
 
-def _configure_anthropic_sdk_judge(monkeypatch: pytest.MonkeyPatch) -> None:
-    import litellm
-
-    monkeypatch.setattr(litellm, "anthropic_key", "sk-test")
-
-
-@pytest.mark.asyncio
-async def test_start_shadow_eval_writes_one_leg_per_key_in_one_statement(monkeypatch: pytest.MonkeyPatch):
-    """N keys become N sibling rows sharing group_id and identical config, written by a
-    single create_many so a unique-index loser rolls back the whole claim, and expiry or
-    budget exhaustion frees every requested key's slot first."""
-    import litellm.proxy.proxy_server as proxy_server
-
-    _configure_anthropic_sdk_judge(monkeypatch)
-    prisma = _shadow_prisma()
-    monkeypatch.setattr(proxy_server, "prisma_client", prisma)
-    monkeypatch.setattr(proxy_server, "llm_router", _shadow_router())
-
-    response = await start_shadow_eval(_start_request(api_key_ids=("key-hash", "key-hash-2")), ADMIN)
-
-    sweep_sql, sweep_ids, sweep_type = prisma.db.execute_raw.call_args.args
-    assert "stopped_at IS NULL" in sweep_sql
-    assert "j.ends_at <= (NOW() AT TIME ZONE 'utc')" in sweep_sql
-    assert "SET stopped_at = (NOW() AT TIME ZONE 'utc')" in sweep_sql
-    assert ">= j.max_turns" in sweep_sql
-    assert "j.max_budget IS NOT NULL" in sweep_sql
-    assert ">= j.max_budget" in sweep_sql
-    assert "SUM(a.judge_cost + a.shadow_cost + a.shadow_classifier_cost)" in sweep_sql
-    assert "j.target_type = $2 AND j.target_id = ANY($1::text[])" in sweep_sql
-    assert sweep_ids == ["key-hash", "key-hash-2"]
-    assert sweep_type == "key"
-    prisma.db.litellm_shadowevaljob.create_many.assert_awaited_once()
-    rows = prisma.db.litellm_shadowevaljob.create_many.call_args.kwargs["data"]
-    assert [(row["target_type"], row["target_id"]) for row in rows] == [("key", "key-hash"), ("key", "key-hash-2")]
-    assert (
-        len(
-            {
-                frozenset((k, tuple(v) if isinstance(v, list) else v) for k, v in row.items() if k not in ("target_id", "id"))
-                for row in rows
-            }
-        )
-        == 1
-    )
-    assert len({row["id"] for row in rows}) == len(rows)
-    assert len({row["group_id"] for row in rows}) == 1
-    assert all(row["max_turns"] == SHADOW_EVAL_TURN_VALVE and row["created_by"] == "admin" for row in rows)
-    assert all(row["max_budget"] == 5.0 for row in rows)
-    assert all("status" not in row for row in rows)
-    assert response.job_id == rows[0]["group_id"]
-    assert response.status == "running"
-    assert response.judged_count is None
-    assert [(target.target_id, target.max_budget, target.target_alias) for target in response.targets] == [
-        ("key-hash", 5.0, "prod-alpha"),
-        ("key-hash-2", 5.0, "prod-alpha"),
-    ]
-    assert all(target.target_type == "key" for target in response.targets)
-    assert all(target.max_turns == SHADOW_EVAL_TURN_VALVE for target in response.targets)
-
-
-@pytest.mark.asyncio
-async def test_start_shadow_eval_multi_router_writes_the_set_on_every_leg(monkeypatch: pytest.MonkeyPatch):
-    """A multi-router job stores the full set in router_names and the first router in
-    router_name, so a rolling-deploy pod that predates router_names still runs a valid
-    single-arm eval and its unstamped attempt rows attribute to that first router."""
-    import litellm.proxy.proxy_server as proxy_server
-
-    _configure_anthropic_sdk_judge(monkeypatch)
-    prisma = _shadow_prisma()
-    monkeypatch.setattr(proxy_server, "prisma_client", prisma)
-    monkeypatch.setattr(proxy_server, "llm_router", _shadow_router())
-
-    response = await start_shadow_eval(
-        _start_request(router_name=None, router_names=("my-router", "classifier-router")), ADMIN
-    )
-
-    rows = prisma.db.litellm_shadowevaljob.create_many.call_args.kwargs["data"]
-    assert all(row["router_name"] == "my-router" for row in rows)
-    assert all(row["router_names"] == ["my-router", "classifier-router"] for row in rows)
-    assert response.router_names == ("my-router", "classifier-router")
-    assert response.router_name == "my-router"
-
-
-@pytest.mark.asyncio
-async def test_start_shadow_eval_rejects_an_unconfigured_router_in_the_set(monkeypatch: pytest.MonkeyPatch):
-    import litellm.proxy.proxy_server as proxy_server
-
-    _configure_anthropic_sdk_judge(monkeypatch)
-    prisma = _shadow_prisma()
-    monkeypatch.setattr(proxy_server, "prisma_client", prisma)
-    monkeypatch.setattr(proxy_server, "llm_router", _shadow_router())
-
-    with pytest.raises(HTTPException, match="not-a-router") as exc:
-        await start_shadow_eval(_start_request(router_name=None, router_names=("my-router", "not-a-router")), ADMIN)
-
-    assert exc.value.status_code == 400
-    prisma.db.litellm_shadowevaljob.create_many.assert_not_called()
-
-
-@pytest.mark.asyncio
-async def test_judge_collision_is_found_on_every_router_of_the_set(monkeypatch: pytest.MonkeyPatch):
-    """The judge-as-candidate guard walks every candidate router: a judge that serves an
-    arm of the SECOND router still poisons the whole job's win rates."""
-    import litellm.proxy.proxy_server as proxy_server
-
-    _configure_anthropic_sdk_judge(monkeypatch)
-    prisma = _shadow_prisma()
-    monkeypatch.setattr(proxy_server, "prisma_client", prisma)
-    monkeypatch.setattr(proxy_server, "llm_router", _shadow_router())
-
-    with pytest.raises(HTTPException, match="also an arm") as exc:
-        await start_shadow_eval(_start_request(router_name=None, router_names=("my-router", "sonnet-router")), ADMIN)
-
-    assert exc.value.status_code == 400
-    prisma.db.litellm_shadowevaljob.create_many.assert_not_called()
-
-
-@pytest.mark.asyncio
-async def test_start_shadow_eval_rejects_an_uncredentialed_sdk_judge(monkeypatch: pytest.MonkeyPatch) -> None:
-    import litellm
-    import litellm.proxy.proxy_server as proxy_server
-
-    prisma = _shadow_prisma()
-    monkeypatch.setattr(proxy_server, "prisma_client", prisma)
-    monkeypatch.setattr(proxy_server, "llm_router", _shadow_router())
-    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
-    monkeypatch.delenv("ANTHROPIC_AUTH_TOKEN", raising=False)
-    monkeypatch.setattr(litellm, "anthropic_key", None)
-    monkeypatch.setattr(litellm, "api_key", None)
-
-    with pytest.raises(HTTPException, match="ANTHROPIC_API_KEY") as exc:
-        await start_shadow_eval(_start_request(), ADMIN)
-
-    assert exc.value.status_code == 400
-    prisma.db.litellm_shadowevaljob.create_many.assert_not_called()
-
-
-@pytest.mark.asyncio
-@pytest.mark.parametrize("credential_name", ("ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN"))
-async def test_start_shadow_eval_accepts_an_sdk_judge_with_anthropic_credentials(
-    monkeypatch: pytest.MonkeyPatch, credential_name: str
-) -> None:
-    import litellm
-    import litellm.proxy.proxy_server as proxy_server
-
-    prisma = _shadow_prisma()
-    monkeypatch.setattr(proxy_server, "prisma_client", prisma)
-    monkeypatch.setattr(proxy_server, "llm_router", _shadow_router())
-    monkeypatch.setattr(litellm, "anthropic_key", None)
-    monkeypatch.setattr(litellm, "api_key", None)
-    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
-    monkeypatch.delenv("ANTHROPIC_AUTH_TOKEN", raising=False)
-    monkeypatch.setenv(credential_name, "test-credential")
-
-    response = await start_shadow_eval(_start_request(), ADMIN)
-
-    assert response.status == "running"
-    prisma.db.litellm_shadowevaljob.create_many.assert_awaited_once()
-
-
-@pytest.mark.asyncio
-async def test_start_shadow_eval_accepts_an_sdk_judge_when_anthropic_secret_lookup_is_available(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    import litellm
-    from litellm.integrations.custom_secret_manager import CustomSecretManager
-    import litellm.proxy.proxy_server as proxy_server
-    from litellm.types.secret_managers.main import KeyManagementSettings, KeyManagementSystem
-
-    class AnthropicSecretManager(CustomSecretManager):
-        def sync_read_secret(
-            self, secret_name: str, optional_params: dict | None = None, timeout: float | None = None
-        ) -> str | None:
-            return "test-credential" if secret_name == "ANTHROPIC_API_KEY" else None
-
-        async def async_read_secret(
-            self, secret_name: str, optional_params: dict | None = None, timeout: float | None = None
-        ) -> str | None:
-            return self.sync_read_secret(secret_name, optional_params, timeout)
-
-    prisma = _shadow_prisma()
-    monkeypatch.setattr(proxy_server, "prisma_client", prisma)
-    monkeypatch.setattr(proxy_server, "llm_router", _shadow_router())
-    monkeypatch.setattr(litellm, "anthropic_key", None)
-    monkeypatch.setattr(litellm, "api_key", None)
-    monkeypatch.setattr(litellm, "secret_manager_client", AnthropicSecretManager())
-    monkeypatch.setattr(litellm, "_key_management_system", KeyManagementSystem.CUSTOM)
-    monkeypatch.setattr(litellm, "_key_management_settings", KeyManagementSettings(access_mode="read_only"))
-    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
-    monkeypatch.delenv("ANTHROPIC_AUTH_TOKEN", raising=False)
-
-    response = await start_shadow_eval(_start_request(), ADMIN)
-
-    assert response.status == "running"
-    prisma.db.litellm_shadowevaljob.create_many.assert_awaited_once()
-
-
-@pytest.mark.asyncio
-async def test_start_shadow_eval_accepts_a_configured_judge_without_anthropic_credentials(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    import litellm
-    import litellm.proxy.proxy_server as proxy_server
-
-    prisma = _shadow_prisma()
-    monkeypatch.setattr(proxy_server, "prisma_client", prisma)
-    monkeypatch.setattr(proxy_server, "llm_router", _shadow_router())
-    monkeypatch.setattr(litellm, "anthropic_key", None)
-    monkeypatch.setattr(litellm, "api_key", None)
-    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
-    monkeypatch.delenv("ANTHROPIC_AUTH_TOKEN", raising=False)
-
-    response = await start_shadow_eval(_start_request(judge_model="house-sonnet"), ADMIN)
-
-    assert response.status == "running"
-    prisma.db.litellm_shadowevaljob.create_many.assert_awaited_once()
-
-
-@pytest.mark.asyncio
-@pytest.mark.parametrize(
-    "caller,request_overrides,claimed,expected_status",
-    [
-        (NON_ADMIN, {}, (), 403),
-        (VIEWER, {}, (), 403),
-        (ADMIN, {"router_name": "not-a-router"}, (), 400),
-        (ADMIN, {"judge_model": "not/a real model!"}, (), 400),
-        (ADMIN, {"judge_model": "my-router"}, (), 400),
-        (ADMIN, {}, ("key-hash",), 409),
-        (ADMIN, {"api_key_ids": ("key-hash", "key-hash-2")}, ("key-hash-2",), 409),
-        (ADMIN, {"direction": "reverse", "baseline_model": "my-router"}, (), 400),
-        (ADMIN, {"direction": "reverse", "baseline_model": "not/a real model!"}, (), 400),
-        (ADMIN, {"direction": "reverse", "baseline_model": "openai/gpt-4o", "router_name": "not-a-router"}, (), 400),
-        (ADMIN, {"judge_model": "pricey"}, (), 400),
-        (ADMIN, {"judge_model": "mid"}, (), 400),
-        (ADMIN, {"judge_model": "judge-alias"}, (), 400),
-        (ADMIN, {"router_name": "sonnet-router"}, (), 400),
-        (ADMIN, {"direction": "reverse", "baseline_model": "house-sonnet"}, (), 400),
-    ],
-    ids=[
-        "non-admin",
-        "view-only",
-        "unknown-router",
-        "unresolvable-judge",
-        "router-as-judge",
-        "already-active",
-        "one-of-several-keys-already-active",
-        "router-as-baseline",
-        "unresolvable-baseline",
-        "reverse-still-needs-an-auto-router",
-        "judge-is-a-tier-model",
-        "judge-is-the-routers-default-model",
-        "judge-alias-resolves-to-a-tier-model",
-        "default-judge-is-what-a-tier-deployment-serves",
-        "judge-is-what-the-reverse-baseline-serves",
-    ],
-)
-async def test_start_shadow_eval_rejections(
-    monkeypatch: pytest.MonkeyPatch, caller, request_overrides, claimed, expected_status
-):
-    import litellm.proxy.proxy_server as proxy_server
-
-    _configure_anthropic_sdk_judge(monkeypatch)
-    prisma = _shadow_prisma(legs=[_leg_record(id=f"leg-{key}", group_id="job-7", target_id=key) for key in claimed])
-    monkeypatch.setattr(proxy_server, "prisma_client", prisma)
-    monkeypatch.setattr(proxy_server, "llm_router", _shadow_router())
-
-    with pytest.raises(HTTPException) as exc:
-        await start_shadow_eval(_start_request(**request_overrides), caller)
-    assert exc.value.status_code == expected_status
-    prisma.db.litellm_shadowevaljob.create_many.assert_not_called()
-
-
-@pytest.mark.asyncio
-@pytest.mark.parametrize(
-    "request_overrides",
-    [
-        {"judge_model": "house-sonnet"},
-        {"judge_model": "anthropic/claude-opus-4-5"},
-        {"router_name": "sonnet-router", "judge_model": "pricey"},
-        {"router_name": "classifier-router", "judge_model": "pricey"},
-        {"direction": "reverse", "baseline_model": "house-sonnet", "judge_model": "openai/gpt-4.1"},
-    ],
-    ids=[
-        "judge-serves-a-model-no-tier-serves",
-        "judge-is-an-unconfigured-public-name",
-        "judge-is-a-tier-of-a-DIFFERENT-router",
-        "judge-is-only-the-routers-classifier",
-        "reverse-judge-differs-from-both-arms",
-    ],
-)
-async def test_start_shadow_eval_accepts_a_judge_that_serves_neither_arm(
-    monkeypatch: pytest.MonkeyPatch, request_overrides: dict[str, object]
-) -> None:
-    """The negative class of the judge-as-candidate gate.
-
-    Without these, a gate that refused every judge would pass the rejection table above
-    while making the endpoint useless.
-    """
-    import litellm
-
-    monkeypatch.setattr(litellm, "api_key", "sk-test")
-    import litellm.proxy.proxy_server as proxy_server
-
-    prisma = _shadow_prisma()
-    monkeypatch.setattr(proxy_server, "prisma_client", prisma)
-    monkeypatch.setattr(proxy_server, "llm_router", _shadow_router())
-
-    response = await start_shadow_eval(_start_request(**request_overrides), ADMIN)
-
-    assert response.job_id
-    prisma.db.litellm_shadowevaljob.create_many.assert_awaited_once()
-
-
-@pytest.mark.asyncio
-async def test_start_shadow_eval_names_the_colliding_arm_by_the_deployment_the_admin_configured(
-    monkeypatch: pytest.MonkeyPatch,
-):
-    """The gate compares what would ANSWER each name, not the names themselves.
-
-    `anthropic/claude-sonnet-5` shares no substring with the deployment `house-sonnet` that
-    serves it, so a spelling comparison accepts this job and the run's whole budget buys a
-    result that has to be discarded. The detail has to name the deployment, since that is
-    the thing the admin can go and change.
-    """
-    import litellm.proxy.proxy_server as proxy_server
-
-    _configure_anthropic_sdk_judge(monkeypatch)
-    monkeypatch.setattr(proxy_server, "prisma_client", _shadow_prisma())
-    monkeypatch.setattr(proxy_server, "llm_router", _shadow_router())
-
-    with pytest.raises(HTTPException) as exc:
-        await start_shadow_eval(_start_request(router_name="sonnet-router"), ADMIN)
-
-    assert exc.value.status_code == 400
-    assert "house-sonnet" in str(exc.value.detail)
-    assert "anthropic/claude-sonnet-5" in str(exc.value.detail)
-
-
-@pytest.mark.asyncio
-async def test_start_shadow_eval_names_the_busy_key_and_its_job(monkeypatch: pytest.MonkeyPatch):
-    """A key busy elsewhere blocks the whole start rather than being silently dropped from
-    it, and the 409 names which key and which job so the caller can stop or drop it."""
-    import litellm.proxy.proxy_server as proxy_server
-
-    _configure_anthropic_sdk_judge(monkeypatch)
-    prisma = _shadow_prisma(legs=[_leg_record(id="leg-b", group_id="job-7", target_id="key-hash-2")])
-    monkeypatch.setattr(proxy_server, "prisma_client", prisma)
-    monkeypatch.setattr(proxy_server, "llm_router", _shadow_router())
-
-    with pytest.raises(HTTPException) as exc:
-        await start_shadow_eval(_start_request(api_key_ids=("key-hash", "key-hash-2")), ADMIN)
-    assert exc.value.status_code == 409
-    assert "key key-hash-2 (job job-7)" in exc.value.detail
-
-
-@pytest.mark.asyncio
-async def test_start_shadow_eval_reuses_a_key_whose_previous_job_already_stopped(monkeypatch: pytest.MonkeyPatch):
-    """The claim is held by unstopped legs only, matching the partial unique index. A read
-    that forgets that would strand every key that has ever finished a job."""
-    import litellm.proxy.proxy_server as proxy_server
-
-    _configure_anthropic_sdk_judge(monkeypatch)
-    prisma = _shadow_prisma(legs=[_leg_record(group_id="job-7", stopped_at=datetime.now(timezone.utc))])
-    monkeypatch.setattr(proxy_server, "prisma_client", prisma)
-    monkeypatch.setattr(proxy_server, "llm_router", _shadow_router())
-
-    job = await start_shadow_eval(_start_request(), ADMIN)
-
-    assert job.status == "running"
-    prisma.db.litellm_shadowevaljob.create_many.assert_awaited_once()
-
-
-@pytest.mark.asyncio
-async def test_start_shadow_eval_rejects_an_uncredentialed_sdk_baseline(monkeypatch: pytest.MonkeyPatch) -> None:
-    import litellm
-    import litellm.proxy.proxy_server as proxy_server
-
-    prisma = _shadow_prisma()
-    monkeypatch.setattr(proxy_server, "prisma_client", prisma)
-    monkeypatch.setattr(proxy_server, "llm_router", _shadow_router())
-    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
-    monkeypatch.delenv("ANTHROPIC_AUTH_TOKEN", raising=False)
-    monkeypatch.setattr(litellm, "anthropic_key", None)
-    monkeypatch.setattr(litellm, "api_key", None)
-
-    with pytest.raises(HTTPException, match=r"baseline_model.*ANTHROPIC_API_KEY") as exc:
-        await start_shadow_eval(
-            _start_request(
-                direction="reverse",
-                router_name="sonnet-router",
-                judge_model="pricey",
-                baseline_model="anthropic/claude-sonnet-5",
-            ),
-            ADMIN,
-        )
-
-    assert exc.value.status_code == 400
-    prisma.db.litellm_shadowevaljob.create_many.assert_not_called()
-
-
-@pytest.mark.asyncio
-async def test_start_shadow_eval_reverse_records_its_arms_and_holds_its_own_slot(monkeypatch: pytest.MonkeyPatch):
-    """The two directions ask opposite questions of the same key, so a forward job holding
-    the slot must not block a reverse one. The second reverse start still 409s."""
-    import litellm.proxy.proxy_server as proxy_server
-
-    _configure_anthropic_sdk_judge(monkeypatch)
-    legs = [_leg_record(group_id="job-fwd")]
-    prisma = _shadow_prisma(legs=legs)
-    monkeypatch.setattr(proxy_server, "prisma_client", prisma)
-    monkeypatch.setattr(proxy_server, "llm_router", _shadow_router())
-
-    reverse = _start_request(direction="reverse", baseline_model="openai/gpt-4o")
-    response = await start_shadow_eval(reverse, ADMIN)
-
-    assert (response.direction, response.baseline_model) == ("reverse", "openai/gpt-4o")
-    rows = prisma.db.litellm_shadowevaljob.create_many.call_args.kwargs["data"]
-    assert rows[0]["direction"] == "reverse"
-    assert rows[0]["baseline_model"] == "openai/gpt-4o"
-
-    legs.append(_leg_record(id="leg-2", group_id="job-rev", direction="reverse"))
-    with pytest.raises(HTTPException) as exc:
-        await start_shadow_eval(reverse, ADMIN)
-    assert exc.value.status_code == 409
-
-
-@pytest.mark.asyncio
-async def test_start_shadow_eval_forward_leaves_the_baseline_column_empty(monkeypatch: pytest.MonkeyPatch):
-    import litellm.proxy.proxy_server as proxy_server
-
-    _configure_anthropic_sdk_judge(monkeypatch)
-    prisma = _shadow_prisma()
-    monkeypatch.setattr(proxy_server, "prisma_client", prisma)
-    monkeypatch.setattr(proxy_server, "llm_router", _shadow_router())
-
-    await start_shadow_eval(_start_request(), ADMIN)
-
-    rows = prisma.db.litellm_shadowevaljob.create_many.call_args.kwargs["data"]
-    assert rows[0]["direction"] == "forward"
-    assert rows[0]["baseline_model"] is None
-
-
-@pytest.mark.asyncio
-async def test_start_shadow_eval_rejects_keys_this_proxy_does_not_know(monkeypatch: pytest.MonkeyPatch):
-    """A typo'd api_key_id would otherwise create a leg no traffic can ever match. Every
-    unknown key is named at once, so a caller passing several fixes them in one round."""
-    import litellm.proxy.proxy_server as proxy_server
-
-    prisma = _shadow_prisma(known_keys=("key-hash",))
-    monkeypatch.setattr(proxy_server, "prisma_client", prisma)
-    monkeypatch.setattr(proxy_server, "llm_router", _shadow_router())
-
-    with pytest.raises(HTTPException) as exc:
-        await start_shadow_eval(_start_request(api_key_ids=("key-hash", "typo-a", "typo-b")), ADMIN)
-    assert exc.value.status_code == 400
-    assert "typo-a, typo-b" in exc.value.detail
-    assert "key-hash," not in exc.value.detail
-    prisma.db.litellm_shadowevaljob.create_many.assert_not_called()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 def test_start_shadow_eval_request_dedupes_and_bounds_the_key_set():
@@ -1574,147 +1091,14 @@ def test_start_request_bounds_the_combined_target_count_across_types():
     assert len(mixed.api_key_ids) + len(mixed.team_ids) == 100
 
 
-@pytest.mark.asyncio
-@pytest.mark.parametrize(
-    "overrides,prisma_kwargs,expected_target",
-    [
-        (
-            {"api_key_ids": (), "team_ids": ("team-eng",)},
-            {"known_teams": {"team-eng": "Engineering"}},
-            ("team", "team-eng", "Engineering"),
-        ),
-        (
-            {"api_key_ids": (), "user_ids": ("dev-alice",)},
-            {"known_users": {"dev-alice": "alice@example.com"}},
-            ("user", "dev-alice", "alice@example.com"),
-        ),
-    ],
-    ids=["team-target-labeled-by-team-alias", "user-target-labeled-by-user-email"],
-)
-async def test_start_shadow_eval_creates_typed_legs_for_team_and_user_targets(
-    monkeypatch: pytest.MonkeyPatch, overrides, prisma_kwargs, expected_target
-):
-    import litellm.proxy.proxy_server as proxy_server
-
-    _configure_anthropic_sdk_judge(monkeypatch)
-    prisma = _shadow_prisma(**prisma_kwargs)
-    monkeypatch.setattr(proxy_server, "prisma_client", prisma)
-    monkeypatch.setattr(proxy_server, "llm_router", _shadow_router())
-
-    response = await start_shadow_eval(_start_request(**overrides), ADMIN)
-
-    target_type, target_id, target_alias = expected_target
-    rows = prisma.db.litellm_shadowevaljob.create_many.call_args.kwargs["data"]
-    assert [(row["target_type"], row["target_id"]) for row in rows] == [(target_type, target_id)]
-    assert response.status == "running"
-    target = response.targets[0]
-    assert (target.target_type, target.target_id, target.target_alias, target.key_name) == (
-        target_type,
-        target_id,
-        target_alias,
-        None,
-    )
 
 
-@pytest.mark.asyncio
-@pytest.mark.parametrize(
-    "overrides,prisma_kwargs,expected_detail",
-    [
-        (
-            {"api_key_ids": (), "team_ids": ("team-eng", "team-ghost")},
-            {"known_teams": {"team-eng": "Engineering"}},
-            "team_ids not on this proxy: team-ghost",
-        ),
-        (
-            {"api_key_ids": (), "user_ids": ("dev-alice", "dev-ghost")},
-            {"known_users": {"dev-alice": "alice@example.com"}},
-            "user_ids not on this proxy: dev-ghost",
-        ),
-    ],
-    ids=["unknown-team", "unknown-user"],
-)
-async def test_start_shadow_eval_rejects_teams_and_users_this_proxy_does_not_know(
-    monkeypatch: pytest.MonkeyPatch, overrides, prisma_kwargs, expected_detail
-):
-    import litellm.proxy.proxy_server as proxy_server
-
-    _configure_anthropic_sdk_judge(monkeypatch)
-    prisma = _shadow_prisma(**prisma_kwargs)
-    monkeypatch.setattr(proxy_server, "prisma_client", prisma)
-    monkeypatch.setattr(proxy_server, "llm_router", _shadow_router())
-
-    with pytest.raises(HTTPException) as exc:
-        await start_shadow_eval(_start_request(**overrides), ADMIN)
-    assert exc.value.status_code == 400
-    assert expected_detail in exc.value.detail
-    prisma.db.litellm_shadowevaljob.create_many.assert_not_called()
 
 
-@pytest.mark.asyncio
-async def test_start_shadow_eval_mixed_targets_create_both_legs_and_sweep_once_per_type(
-    monkeypatch: pytest.MonkeyPatch,
-):
-    import litellm.proxy.proxy_server as proxy_server
-
-    _configure_anthropic_sdk_judge(monkeypatch)
-    prisma = _shadow_prisma(known_teams={"team-eng": "Engineering"})
-    monkeypatch.setattr(proxy_server, "prisma_client", prisma)
-    monkeypatch.setattr(proxy_server, "llm_router", _shadow_router())
-
-    response = await start_shadow_eval(_start_request(team_ids=("team-eng",)), ADMIN)
-
-    rows = prisma.db.litellm_shadowevaljob.create_many.call_args.kwargs["data"]
-    assert [(row["target_type"], row["target_id"]) for row in rows] == [("key", "key-hash"), ("team", "team-eng")]
-    assert len({row["group_id"] for row in rows}) == 1
-    sweeps = [
-        call.args
-        for call in prisma.db.execute_raw.await_args_list
-        if "SET stopped_at = (NOW() AT TIME ZONE 'utc')" in call.args[0]
-    ]
-    assert [(ids, target_type) for _, ids, target_type in sweeps] == [(["key-hash"], "key"), (["team-eng"], "team")]
-    assert [(t.target_type, t.target_id, t.target_alias) for t in response.targets] == [
-        ("key", "key-hash", "prod-alpha"),
-        ("team", "team-eng", "Engineering"),
-    ]
 
 
-@pytest.mark.asyncio
-async def test_start_shadow_eval_names_the_busy_team_target(monkeypatch: pytest.MonkeyPatch):
-    import litellm.proxy.proxy_server as proxy_server
-
-    _configure_anthropic_sdk_judge(monkeypatch)
-    prisma = _shadow_prisma(
-        legs=[_leg_record(id="leg-t", group_id="job-7", target_type="team", target_id="team-eng")],
-        known_teams={"team-eng": "Engineering"},
-    )
-    monkeypatch.setattr(proxy_server, "prisma_client", prisma)
-    monkeypatch.setattr(proxy_server, "llm_router", _shadow_router())
-
-    with pytest.raises(HTTPException) as exc:
-        await start_shadow_eval(_start_request(api_key_ids=(), team_ids=("team-eng",)), ADMIN)
-    assert exc.value.status_code == 409
-    assert "team team-eng (job job-7)" in exc.value.detail
-    prisma.db.litellm_shadowevaljob.create_many.assert_not_called()
 
 
-@pytest.mark.asyncio
-async def test_start_shadow_eval_claim_matches_exact_target_pairs_not_bare_ids(monkeypatch: pytest.MonkeyPatch):
-    """A key whose hash happens to spell a team's id must not hold the team's slot: the
-    claim matches (target_type, target_id) pairs, never ids across kinds."""
-    import litellm.proxy.proxy_server as proxy_server
-
-    _configure_anthropic_sdk_judge(monkeypatch)
-    prisma = _shadow_prisma(
-        legs=[_leg_record(id="leg-k", group_id="job-7", target_type="key", target_id="team-eng")],
-        known_teams={"team-eng": "Engineering"},
-    )
-    monkeypatch.setattr(proxy_server, "prisma_client", prisma)
-    monkeypatch.setattr(proxy_server, "llm_router", _shadow_router())
-
-    response = await start_shadow_eval(_start_request(api_key_ids=(), team_ids=("team-eng",)), ADMIN)
-
-    assert response.status == "running"
-    prisma.db.litellm_shadowevaljob.create_many.assert_awaited_once()
 
 
 @pytest.mark.asyncio
@@ -1736,22 +1120,6 @@ async def test_list_shadow_eval_jobs_rejects_a_lone_filter_half(monkeypatch: pyt
     prisma.db.query_raw.assert_not_called()
 
 
-@pytest.mark.asyncio
-async def test_start_shadow_eval_concurrent_unique_violation_is_a_409(monkeypatch: pytest.MonkeyPatch):
-    import litellm.proxy.proxy_server as proxy_server
-    from prisma.errors import UniqueViolationError
-
-    _configure_anthropic_sdk_judge(monkeypatch)
-    prisma = _shadow_prisma()
-    prisma.db.litellm_shadowevaljob.create_many = AsyncMock(
-        side_effect=UniqueViolationError(MagicMock(message="unique constraint"))
-    )
-    monkeypatch.setattr(proxy_server, "prisma_client", prisma)
-    monkeypatch.setattr(proxy_server, "llm_router", _shadow_router())
-
-    with pytest.raises(HTTPException) as exc:
-        await start_shadow_eval(_start_request(), ADMIN)
-    assert exc.value.status_code == 409
 
 
 @pytest.mark.parametrize(
@@ -2297,27 +1665,6 @@ async def test_legacy_jobs_without_a_dollar_budget_stay_turn_gated(monkeypatch: 
     assert jobs[0].targets[0].spend == 250.0
 
 
-@pytest.mark.asyncio
-async def test_shadow_eval_responses_name_every_shadowed_key(monkeypatch: pytest.MonkeyPatch):
-    import litellm.proxy.proxy_server as proxy_server
-
-    prisma = _shadow_prisma(
-        legs=[_leg_record(), _leg_record(id="leg-2", target_id="deleted-key-hash")],
-        known_keys=("key-hash", "key-hash-2"),
-    )
-    monkeypatch.setattr(proxy_server, "llm_router", _shadow_router())
-    monkeypatch.setattr(proxy_server, "prisma_client", prisma)
-
-    jobs = await list_shadow_eval_jobs(VIEWER, target_type=None, target_id=None, limit=50)
-    assert [(target.target_alias, target.key_name) for target in jobs[0].targets] == [
-        (None, None),
-        ("prod-alpha", "sk-...lpha"),
-    ]
-    batched_where = prisma.db.litellm_verificationtoken.find_many.call_args.kwargs["where"]
-    assert batched_where == {"token": {"in": ["deleted-key-hash", "key-hash"]}}
-
-    detail = await get_shadow_eval_job("job-1", VIEWER)
-    assert [target.target_alias for target in detail.targets] == [None, "prod-alpha"]
 
 
 @pytest.mark.asyncio
@@ -2562,163 +1909,16 @@ async def test_two_racing_stops_produce_exactly_one_winner(monkeypatch: pytest.M
     assert "already stopped" in exc.value.detail
 
 
-@pytest.mark.asyncio
-async def test_start_shadow_eval_scopes_missing_sdk_judge_credentials_to_the_sdk_team(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    import litellm
-    import litellm.proxy.proxy_server as proxy_server
-
-    prisma = _shadow_prisma(key_teams={"key-hash": "team-a", "key-hash-2": "team-b"})
-    monkeypatch.setattr(proxy_server, "prisma_client", prisma)
-    monkeypatch.setattr(proxy_server, "llm_router", _shadow_router())
-    monkeypatch.setattr(litellm, "anthropic_key", None)
-    monkeypatch.setattr(litellm, "api_key", None)
-    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
-    monkeypatch.delenv("ANTHROPIC_AUTH_TOKEN", raising=False)
-
-    with pytest.raises(HTTPException, match="ANTHROPIC_API_KEY") as exc:
-        await start_shadow_eval(_start_request(api_key_ids=("key-hash", "key-hash-2")), ADMIN)
-
-    assert exc.value.status_code == 400
-    assert "team-b" in exc.value.detail
-    assert "team-a" not in exc.value.detail
-    prisma.db.litellm_shadowevaljob.create_many.assert_not_called()
 
 
-@pytest.mark.asyncio
-async def test_start_shadow_eval_finds_a_collision_only_the_keys_team_can_see(monkeypatch: pytest.MonkeyPatch):
-    """The shadow and judge calls carry the shadowed key's team, so the router selects
-    deployments with it and an unscoped check answers for a caller that does not exist.
-
-    `house-judge` is team-a's public name for a deployment serving anthropic/claude-sonnet-5,
-    which is also what the router's MEDIUM tier `house-sonnet` serves. Resolved without the
-    team it matches no deployment at all, so the judge reads as the literal string, nothing
-    collides, and the job runs a week producing win rates its own judge authored.
-    """
-    import litellm.proxy.proxy_server as proxy_server
-
-    prisma = _shadow_prisma(key_teams={"key-hash": "team-a"})
-    monkeypatch.setattr(proxy_server, "prisma_client", prisma)
-    monkeypatch.setattr(proxy_server, "llm_router", _shadow_router())
-
-    with pytest.raises(HTTPException) as exc:
-        await start_shadow_eval(_start_request(router_name="sonnet-router", judge_model="house-judge"), ADMIN)
-
-    assert exc.value.status_code == 400
-    assert "house-sonnet" in str(exc.value.detail)
-    prisma.db.litellm_shadowevaljob.create_many.assert_not_called()
 
 
-@pytest.mark.asyncio
-async def test_start_shadow_eval_refuses_when_only_one_of_several_teams_collides(monkeypatch: pytest.MonkeyPatch):
-    """Every key's verdicts land in the same win rates, so one team's biased judge is enough
-    to spoil the job. team-b cannot reach `house-judge` at all; team-a can, and collides."""
-    import litellm.proxy.proxy_server as proxy_server
-
-    prisma = _shadow_prisma(key_teams={"key-hash": "team-b", "key-hash-2": "team-a"})
-    monkeypatch.setattr(proxy_server, "prisma_client", prisma)
-    monkeypatch.setattr(proxy_server, "llm_router", _shadow_router())
-
-    with pytest.raises(HTTPException) as exc:
-        await start_shadow_eval(
-            _start_request(
-                api_key_ids=("key-hash", "key-hash-2"), router_name="sonnet-router", judge_model="house-judge"
-            ),
-            ADMIN,
-        )
-
-    assert exc.value.status_code == 400
 
 
-@pytest.mark.asyncio
-async def test_start_shadow_eval_sees_a_collision_hidden_behind_the_second_teams_tier(
-    monkeypatch: pytest.MonkeyPatch,
-):
-    """The arm side is team-scoped too, and the same job is valid or not depending on which
-    keys it samples for.
-
-    `b-team-router`'s MEDIUM tier is team-b's own deployment, serving the model the judge
-    `house-sonnet` also serves. A team-a key can never be routed to it, so that job is fine;
-    add a team-b key and the judge starts grading its own answers. The pair is one test
-    because either half alone would pass against a check that ignored teams in the direction
-    it does not exercise.
-    """
-    import litellm.proxy.proxy_server as proxy_server
-
-    monkeypatch.setattr(proxy_server, "llm_router", _shadow_router())
-
-    monkeypatch.setattr(proxy_server, "prisma_client", _shadow_prisma(key_teams={"key-hash": "team-a"}))
-    accepted = await start_shadow_eval(_start_request(router_name="b-team-router", judge_model="house-sonnet"), ADMIN)
-    assert accepted.job_id
-
-    monkeypatch.setattr(
-        proxy_server, "prisma_client", _shadow_prisma(key_teams={"key-hash": "team-a", "key-hash-2": "team-b"})
-    )
-    with pytest.raises(HTTPException) as exc:
-        await start_shadow_eval(
-            _start_request(
-                api_key_ids=("key-hash", "key-hash-2"), router_name="b-team-router", judge_model="house-sonnet"
-            ),
-            ADMIN,
-        )
-
-    assert exc.value.status_code == 400
-    assert "b-tier" in str(exc.value.detail)
 
 
-@pytest.mark.asyncio
-async def test_start_shadow_eval_matches_a_bare_public_judge_name_to_a_prefixed_tier(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """`gpt-4o` and a tier deployment serving `openai/gpt-4o` are one model.
-
-    The judge is not configured on the proxy, so it is served by the SDK under the name
-    litellm resolves it to; the tier is served by its deployment under the name the admin
-    configured. Comparing those two spellings finds nothing, and the job runs a week with
-    the judge grading its own answers, which is the whole defect this endpoint guards.
-    """
-    import litellm
-    import litellm.proxy.proxy_server as proxy_server
-
-    prisma = _shadow_prisma()
-    monkeypatch.setattr(proxy_server, "prisma_client", prisma)
-    monkeypatch.setattr(proxy_server, "llm_router", _shadow_router())
-    monkeypatch.setattr(litellm, "api_key", "sk-test")
-
-    with pytest.raises(HTTPException) as exc:
-        await start_shadow_eval(_start_request(router_name="prefixed-router", judge_model="gpt-4o"), ADMIN)
-
-    assert exc.value.status_code == 400
-    assert "prefixed-tier" in str(exc.value.detail)
-    prisma.db.litellm_shadowevaljob.create_many.assert_not_called()
 
 
-@pytest.mark.asyncio
-async def test_start_shadow_eval_matches_a_prefixed_judge_name_to_a_bare_tier_deployment(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """The mirror of the case above, and the reason BOTH sides are normalised.
-
-    An admin may configure a deployment as plain `gpt-4o` and litellm infers the provider.
-    Normalising only the judge would leave that tier spelled differently from the judge that
-    is the same model, so the collision would be missed for exactly the configs that spell
-    the two ends differently, which is every config this guard exists for.
-    """
-    import litellm
-    import litellm.proxy.proxy_server as proxy_server
-
-    prisma = _shadow_prisma()
-    monkeypatch.setattr(proxy_server, "prisma_client", prisma)
-    monkeypatch.setattr(proxy_server, "llm_router", _shadow_router())
-    monkeypatch.setattr(litellm, "api_key", "sk-test")
-
-    with pytest.raises(HTTPException) as exc:
-        await start_shadow_eval(_start_request(router_name="bare-router", judge_model="openai/gpt-4o"), ADMIN)
-
-    assert exc.value.status_code == 400
-    assert "bare-tier" in str(exc.value.detail)
-    prisma.db.litellm_shadowevaljob.create_many.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -2789,29 +1989,3 @@ async def test_partially_seeded_funnel_reads_as_unknown_coverage(monkeypatch: py
     assert response.results.shed_count is None
 
 
-@pytest.mark.asyncio
-async def test_start_shadow_eval_seeds_a_zero_funnel_row_per_leg(monkeypatch: pytest.MonkeyPatch):
-    """A fully covered job never records a skip, so only a row seeded at creation
-    separates 'nothing was skipped' from a job predating the funnel."""
-    import litellm.proxy.proxy_server as proxy_server
-
-    _configure_anthropic_sdk_judge(monkeypatch)
-    prisma = _shadow_prisma(legs=[])
-    monkeypatch.setattr(proxy_server, "prisma_client", prisma)
-    monkeypatch.setattr(proxy_server, "llm_router", _shadow_router())
-    _configure_anthropic_sdk_judge(monkeypatch)
-
-    await start_shadow_eval(_start_request(api_key_ids=("key-hash", "key-hash-2")), ADMIN)
-
-    created = prisma.db.litellm_shadowevaljob.create_many.call_args.kwargs["data"]
-    leg_ids = sorted(row["id"] for row in created)
-    assert len(leg_ids) == 2 and all(leg_ids)
-    seeded = prisma.db.litellm_shadowevalfunnel.create_many.call_args.kwargs
-    assert sorted(row["job_id"] for row in seeded["data"]) == leg_ids
-    assert seeded["skip_duplicates"] is True
-    group_reads = [
-        call
-        for call in prisma.db.litellm_shadowevaljob.find_many.call_args_list
-        if "group_id" in call.kwargs.get("where", {})
-    ]
-    assert group_reads == []

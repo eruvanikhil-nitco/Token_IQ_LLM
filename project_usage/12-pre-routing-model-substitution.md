@@ -56,6 +56,16 @@ Router unreachable.
 `_router_with_two_deployments` was rewritten to give each deployment its own `model_name`
 rather than deleted, which fixed 7 tests whose second deployment was scaffolding.
 
+`test_auto_router_endpoints.py` was missed in that sweep and kept 52 unreachable cases red
+for a while afterwards. Every one built its fixture through `_shadow_router`, a Router whose
+deployments are complexity routers, so they failed at construction on the guard's own
+message rather than on anything they meant to assert. Shadow eval compares an auto router
+against a baseline, and an auto router cannot be registered in this build, so the feature
+those tests cover cannot be reached at all. The 31 test functions went, along with
+`_shadow_router`, `_complexity_router_deployment` and `_configure_anthropic_sdk_judge`, which
+nothing else referenced. 825 lines. The 93 cases in the file that do not go through a
+complexity router still pass and were left alone.
+
 `TestModelsRouteExemptFromDisableLLMEndpoints` was also removed, but for a different reason:
 it loads `EnterpriseRouteChecks` from `enterprise/litellm_enterprise/proxy/auth/route_checks.py`,
 deleted in `728daee2d8`. Fallout from the enterprise removal, missed at the time because only
@@ -63,7 +73,8 @@ the pass-through and UI suites were run then.
 
 ## Two failures deliberately left red
 
-Neither is caused by this work and neither is hidden behind a skip.
+Neither is caused by this work and neither is hidden behind a skip. Both were re-confirmed
+still red, and still for these reasons, when the shadow-eval cases above were removed.
 
 `test_post_custom_auth_expired_key_returns_unauthorized` builds a naive
 `datetime.now() - timedelta(minutes=1)` while `_run_post_custom_auth_checks` stamps naive

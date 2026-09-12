@@ -214,6 +214,7 @@ model LiteLLM_DeletedTeamTable {
     policies                String[] @default([])
     model_id                Int?     // id for LiteLLM_ModelTable -> stores team-level model aliases
     allow_team_guardrail_config Boolean @default(false)
+    courier_mode            Boolean  @default(false)
 
     // Original timestamps from team creation/updates
     created_at              DateTime? @map("created_at")

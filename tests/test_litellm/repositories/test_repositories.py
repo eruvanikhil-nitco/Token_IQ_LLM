@@ -2387,3 +2387,68 @@ class TestCountBillableUsers:
         client.db.litellm_usertable = _RacyTable()
         repo = UserRepository(client)
         assert await repo.count_billable_users() == 0
+
+
+class TestArchiveDataMatchesTheSchemaItWritesTo:
+    """The archive builder writes a dict straight into LiteLLM_DeletedTeamTable, so a key
+    naming a column that does not exist is a 500 on every team delete, not a bad value in
+    one row.
+
+    That happened: `courier_mode` was added to the builder and not to the table, and team
+    deletion was broken until a real delete was attempted. The tests around it hand-list
+    which fields must be excluded, so a newly added one is absent from the list by
+    definition and passes. This reads the schema instead, so the next field to go in
+    without a column fails here rather than in production.
+    """
+
+    @staticmethod
+    def _deleted_team_columns() -> frozenset[str]:
+        import re
+        from pathlib import Path
+
+        schema = Path(__file__).resolve().parents[3] / "schema.prisma"
+        body = re.search(
+            r"model LiteLLM_DeletedTeamTable \{(.*?)\n\}", schema.read_text(encoding="utf-8"), re.DOTALL
+        )
+        assert body is not None, "LiteLLM_DeletedTeamTable not found in schema.prisma"
+        return frozenset(
+            match.group(1)
+            for line in body.group(1).splitlines()
+            if (match := re.match(r"\s*([a-zA-Z_][a-zA-Z0-9_]*)\s+\S", line)) and not line.strip().startswith("//")
+        )
+
+    def test_every_archived_key_is_a_real_column(self):
+        from datetime import datetime
+
+        from litellm.models.team import Member
+        from litellm.repositories.team_repository import TeamRepository
+
+        team = LiteLLM_TeamTable(
+            team_id="team-full",
+            team_alias="Full Team",
+            organization_id="org-1",
+            object_permission_id="perm-1",
+            admins=["a"],
+            members=["m"],
+            members_with_roles=[Member(user_id="u1", role="admin")],
+            metadata={"k": "v"},
+            max_budget=1000.0,
+            soft_budget=800.0,
+            spend=150.0,
+            models=["gpt-4"],
+            max_parallel_requests=10,
+            tpm_limit=5000,
+            rpm_limit=100,
+            budget_duration="30d",
+            budget_reset_at=datetime.now(),
+            blocked=True,
+            model_spend={"gpt-4": 10.0},
+            model_max_budget={"gpt-4": 100.0},
+            router_settings={"x": 1},
+            model_id=1,
+            courier_mode=True,
+        )
+
+        archived = TeamRepository(MockPrismaClient())._build_archive_data(team)
+
+        assert set(archived) <= self._deleted_team_columns()
