@@ -35,6 +35,7 @@ class ServiceTypes(str, enum.Enum):
     REDIS_DAILY_END_USER_SPEND_UPDATE_QUEUE = "redis_daily_end_user_spend_update_queue"
     REDIS_DAILY_ORG_SPEND_UPDATE_QUEUE = "redis_daily_org_spend_update_queue"
     REDIS_DAILY_TEAM_SPEND_UPDATE_QUEUE = "redis_daily_team_spend_update_queue"
+    REDIS_DAILY_PROJECT_SPEND_UPDATE_QUEUE = "redis_daily_project_spend_update_queue"
     REDIS_DAILY_AGENT_SPEND_UPDATE_QUEUE = "redis_daily_agent_spend_update_queue"
     REDIS_DAILY_TAG_SPEND_UPDATE_QUEUE = "redis_daily_tag_spend_update_queue"
     # spend update queue - current spend of key, user, team

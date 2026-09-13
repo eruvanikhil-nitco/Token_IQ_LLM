@@ -185,3 +185,52 @@ async def test_writer_survives_a_transaction_whose_key_columns_are_null():
     _, params = prisma_client.db.statements[0]
     assert None not in params[:9]
     assert transactions == {}
+
+
+def project_txn(**overrides):
+    return {
+        "project_id": "proj-alpha",
+        "date": "2026-09-13",
+        "api_key": "sk-hash",
+        "model": "gpt-4o-mini",
+        "model_group": "gpt-4o-mini",
+        "custom_llm_provider": "openai",
+        "mcp_namespaced_tool_name": "",
+        "endpoint": "/chat/completions",
+        "prompt_tokens": 10,
+        "completion_tokens": 20,
+        "spend": 0.25,
+        "api_requests": 1,
+        "successful_requests": 1,
+        "failed_requests": 0,
+        **overrides,
+    }
+
+
+def test_the_project_rollup_writes_to_the_project_table_on_its_own_constraint():
+    table = DAILY_SPEND_TABLES["project"]
+    sql, _ = build_bulk_upsert(table, merge_by_conflict_key(table, (project_txn(),)))
+
+    assert '"LiteLLM_DailyProjectSpend"' in sql
+    conflict_target = re.search(r"ON CONFLICT \(([^)]*)\)", sql)
+    assert conflict_target is not None
+    assert conflict_target.group(1) == (
+        '"project_id", "date", "api_key", "model", "custom_llm_provider", '
+        '"mcp_namespaced_tool_name", "endpoint"'
+    )
+
+
+def test_two_requests_on_one_project_and_day_merge_into_a_single_row():
+    table = DAILY_SPEND_TABLES["project"]
+    merged = merge_by_conflict_key(table, (project_txn(), project_txn(spend=0.75, api_requests=1)))
+
+    assert len(merged) == 1
+    assert merged[0][1]["spend"] == pytest.approx(1.0)
+    assert merged[0][1]["api_requests"] == 2
+
+
+def test_two_projects_on_the_same_day_stay_separate_rows():
+    table = DAILY_SPEND_TABLES["project"]
+    merged = merge_by_conflict_key(table, (project_txn(), project_txn(project_id="proj-beta")))
+
+    assert len(merged) == 2

@@ -801,6 +801,7 @@ class LiteLLMRoutes(enum.Enum):
             "/v2/guardrails/list",
             "/project/list",
             "/project/info",
+            "/project/daily/activity",
             # Read-only search tool routes power the Search Tools UI page.
             # Create/update/delete and test_connection stay admin-only.
             "/search_tools/list",
@@ -848,6 +849,7 @@ class LiteLLMRoutes(enum.Enum):
         # Project read routes - endpoint scopes results to caller's teams (non-admin)
         "/project/list",
         "/project/info",
+        "/project/daily/activity",
         # Endpoint enforces proxy-admin vs team-admin model access itself.
         "/health/test_connection",
         # Invitation routes - org/team admins checked in endpoint via _user_has_admin_privileges
@@ -4976,6 +4978,10 @@ class BaseDailySpendTransaction(TypedDict):
 
 class DailyTeamSpendTransaction(BaseDailySpendTransaction):
     team_id: str
+
+
+class DailyProjectSpendTransaction(BaseDailySpendTransaction):
+    project_id: str
 
 
 class DailyOrganizationSpendTransaction(BaseDailySpendTransaction):

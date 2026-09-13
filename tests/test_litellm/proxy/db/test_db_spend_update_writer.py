@@ -1719,7 +1719,7 @@ async def test_daily_agent_receives_deepcopied_payload():
 async def test_commit_spend_updates_uses_pipeline():
     """
     Verify that _commit_spend_updates_to_db_with_redis uses
-    get_all_transactions_from_redis_buffer_pipeline instead of 7 individual calls.
+    get_all_transactions_from_redis_buffer_pipeline instead of 8 individual calls.
     """
     db_writer = DBSpendUpdateWriter()
 
@@ -1727,7 +1727,7 @@ async def test_commit_spend_updates_uses_pipeline():
     mock_redis_update_buffer.store_in_memory_spend_updates_in_redis = AsyncMock()
     # Return all-None tuple (no data to commit); the pipeline yields 6 slots
     mock_redis_update_buffer.get_all_transactions_from_redis_buffer_pipeline = AsyncMock(
-        return_value=(None, None, None, None, None, None, None)
+        return_value=(None, None, None, None, None, None, None, None)
     )
     db_writer.redis_update_buffer = mock_redis_update_buffer
 
@@ -1782,7 +1782,7 @@ async def test_commit_with_redis_requeues_all_on_db_failure():
 
     mock_redis_update_buffer = AsyncMock()
     mock_redis_update_buffer.get_all_transactions_from_redis_buffer_pipeline = AsyncMock(
-        return_value=(db_spend, daily_user, None, None, None, None, None)
+        return_value=(db_spend, daily_user, None, None, None, None, None, None)
     )
     mock_redis_update_buffer.restore_transactions_to_redis = AsyncMock()
     db_writer.redis_update_buffer = mock_redis_update_buffer
@@ -1838,7 +1838,7 @@ async def test_commit_with_redis_only_requeues_failed_category():
 
     mock_redis_update_buffer = AsyncMock()
     mock_redis_update_buffer.get_all_transactions_from_redis_buffer_pipeline = AsyncMock(
-        return_value=(db_spend, daily_user, None, None, None, None, None)
+        return_value=(db_spend, daily_user, None, None, None, None, None, None)
     )
     mock_redis_update_buffer.restore_transactions_to_redis = AsyncMock()
     db_writer.redis_update_buffer = mock_redis_update_buffer
@@ -1887,7 +1887,7 @@ async def test_commit_with_redis_no_requeue_on_success():
 
     mock_redis_update_buffer = AsyncMock()
     mock_redis_update_buffer.get_all_transactions_from_redis_buffer_pipeline = AsyncMock(
-        return_value=(db_spend, None, None, None, None, None, None)
+        return_value=(db_spend, None, None, None, None, None, None, None)
     )
     mock_redis_update_buffer.restore_transactions_to_redis = AsyncMock()
     db_writer.redis_update_buffer = mock_redis_update_buffer
@@ -2520,7 +2520,7 @@ async def test_window_spend_queue_is_handed_to_the_redis_buffer():
     db_writer = DBSpendUpdateWriter()
     mock_redis_update_buffer = AsyncMock()
     mock_redis_update_buffer.get_all_transactions_from_redis_buffer_pipeline = AsyncMock(
-        return_value=(None, None, None, None, None, None, None)
+        return_value=(None, None, None, None, None, None, None, None)
     )
     db_writer.redis_update_buffer = mock_redis_update_buffer
     db_writer.pod_lock_manager = AsyncMock()
@@ -2550,7 +2550,7 @@ async def test_window_spend_transactions_from_redis_are_committed_by_the_lock_wi
     )
     mock_redis_update_buffer = AsyncMock()
     mock_redis_update_buffer.get_all_transactions_from_redis_buffer_pipeline = AsyncMock(
-        return_value=(None, None, None, None, None, None, window_transactions)
+        return_value=(None, None, None, None, None, None, None, window_transactions)
     )
     db_writer.redis_update_buffer = mock_redis_update_buffer
     db_writer.pod_lock_manager = AsyncMock()
@@ -2635,7 +2635,7 @@ async def test_failed_window_spend_commit_from_redis_is_restored_to_redis():
     )
     mock_redis_update_buffer = AsyncMock()
     mock_redis_update_buffer.get_all_transactions_from_redis_buffer_pipeline = AsyncMock(
-        return_value=(None, None, None, None, None, None, window_transactions)
+        return_value=(None, None, None, None, None, None, None, window_transactions)
     )
     mock_redis_update_buffer.restore_transactions_to_redis = AsyncMock()
     db_writer.redis_update_buffer = mock_redis_update_buffer
@@ -3138,3 +3138,56 @@ async def test_a_request_with_no_project_leaves_the_project_ledger_alone():
     transactions = await db_writer.spend_update_queue.flush_and_get_aggregated_db_spend_update_transactions()
     assert not transactions["project_list_transactions"]
     assert transactions["team_list_transactions"] == {"team-1": 0.4}
+
+
+@pytest.mark.asyncio
+async def test_a_request_on_a_project_key_lands_in_the_daily_project_rollup():
+    db_writer = DBSpendUpdateWriter()
+
+    await db_writer.add_spend_log_transaction_to_daily_project_transaction(
+        payload={
+            "startTime": datetime.now(timezone.utc),
+            "api_key": "hashed-key",
+            "model": "gpt-4o-mini",
+            "custom_llm_provider": "openai",
+            "model_group": "gpt-4o-mini",
+            "metadata": "{}",
+            "spend": 0.5,
+            "prompt_tokens": 10,
+            "completion_tokens": 20,
+        },
+        prisma_client=MagicMock(),
+        project_id="proj-alpha",
+    )
+
+    transactions = (
+        await db_writer.daily_project_spend_update_queue.flush_and_get_aggregated_daily_spend_update_transactions()
+    )
+    assert len(transactions) == 1
+    only = next(iter(transactions.values()))
+    assert only["project_id"] == "proj-alpha"
+    assert only["spend"] == 0.5
+
+
+@pytest.mark.asyncio
+async def test_a_request_with_no_project_writes_no_daily_project_row():
+    db_writer = DBSpendUpdateWriter()
+
+    await db_writer.add_spend_log_transaction_to_daily_project_transaction(
+        payload={
+            "startTime": datetime.now(timezone.utc),
+            "api_key": "hashed-key",
+            "model": "gpt-4o-mini",
+            "custom_llm_provider": "openai",
+            "model_group": "gpt-4o-mini",
+            "metadata": "{}",
+            "spend": 0.5,
+        },
+        prisma_client=MagicMock(),
+        project_id=None,
+    )
+
+    transactions = (
+        await db_writer.daily_project_spend_update_queue.flush_and_get_aggregated_daily_spend_update_transactions()
+    )
+    assert transactions == {}

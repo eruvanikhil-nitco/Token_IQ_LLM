@@ -32,6 +32,7 @@ from litellm.proxy._types import (
     DailyAgentSpendTransaction,
     DailyEndUserSpendTransaction,
     DailyOrganizationSpendTransaction,
+    DailyProjectSpendTransaction,
     DailyTagSpendTransaction,
     DailyTeamSpendTransaction,
     DailyUserSpendTransaction,
@@ -197,6 +198,7 @@ class DBSpendUpdateWriter:
         self.daily_team_spend_update_queue = DailySpendUpdateQueue()
         self.daily_end_user_spend_update_queue = DailySpendUpdateQueue()
         self.daily_agent_spend_update_queue = DailySpendUpdateQueue()
+        self.daily_project_spend_update_queue = DailySpendUpdateQueue()
         self.daily_org_spend_update_queue = DailySpendUpdateQueue()
         self.daily_tag_spend_update_queue = DailySpendUpdateQueue()
         self.window_spend_update_queue = WindowSpendUpdateQueue()
@@ -644,6 +646,18 @@ class DBSpendUpdateWriter:
             )
 
         try:
+            await self.add_spend_log_transaction_to_daily_project_transaction(
+                payload=payload_copy,
+                prisma_client=prisma_client,
+                project_id=project_id,
+            )
+        except Exception:
+            verbose_proxy_logger.debug(
+                "_batch_database_updates: add_spend_log_transaction_to_daily_project_transaction failed: %s",
+                traceback.format_exc(),
+            )
+
+        try:
             await self.add_spend_log_transaction_to_daily_org_transaction(
                 payload=payload_copy,
                 org_id=org_id,
@@ -1042,6 +1056,7 @@ class DBSpendUpdateWriter:
             spend_update_queue=self.spend_update_queue,
             daily_spend_update_queue=self.daily_spend_update_queue,
             daily_team_spend_update_queue=self.daily_team_spend_update_queue,
+            daily_project_spend_update_queue=self.daily_project_spend_update_queue,
             daily_org_spend_update_queue=self.daily_org_spend_update_queue,
             daily_end_user_spend_update_queue=self.daily_end_user_spend_update_queue,
             daily_agent_spend_update_queue=self.daily_agent_spend_update_queue,
@@ -1061,6 +1076,7 @@ class DBSpendUpdateWriter:
                     db_spend_update_transactions,
                     daily_spend_update_transactions,
                     daily_team_spend_update_transactions,
+                    daily_project_spend_update_transactions,
                     daily_org_spend_update_transactions,
                     daily_end_user_spend_update_transactions,
                     daily_agent_spend_update_transactions,
@@ -1071,6 +1087,7 @@ class DBSpendUpdateWriter:
                     "db_spend_update_transactions": db_spend_update_transactions,
                     "daily_spend_update_transactions": daily_spend_update_transactions,
                     "daily_team_spend_update_transactions": daily_team_spend_update_transactions,
+                    "daily_project_spend_update_transactions": daily_project_spend_update_transactions,
                     "daily_org_spend_update_transactions": daily_org_spend_update_transactions,
                     "daily_end_user_spend_update_transactions": daily_end_user_spend_update_transactions,
                     "daily_agent_spend_update_transactions": daily_agent_spend_update_transactions,
@@ -1117,6 +1134,15 @@ class DBSpendUpdateWriter:
                         daily_spend_transactions=daily_team_spend_update_transactions,
                     )
                 uncommitted.pop("daily_team_spend_update_transactions", None)
+
+                if daily_project_spend_update_transactions is not None:
+                    await DBSpendUpdateWriter.update_daily_project_spend(
+                        n_retry_times=n_retry_times,
+                        prisma_client=prisma_client,
+                        proxy_logging_obj=proxy_logging_obj,
+                        daily_spend_transactions=daily_project_spend_update_transactions,
+                    )
+                uncommitted.pop("daily_project_spend_update_transactions", None)
 
                 if daily_org_spend_update_transactions is not None:
                     await DBSpendUpdateWriter.update_daily_org_spend(
@@ -1219,6 +1245,20 @@ class DBSpendUpdateWriter:
             prisma_client=prisma_client,
             proxy_logging_obj=proxy_logging_obj,
             daily_spend_transactions=daily_team_spend_update_transactions,
+        )
+
+        ################## Daily Project Spend Update Transactions ##################
+        # Aggregate all in memory daily project spend transactions and commit to db
+        daily_project_spend_update_transactions: Final = cast(
+            dict[str, DailyProjectSpendTransaction],
+            await self.daily_project_spend_update_queue.flush_and_get_aggregated_daily_spend_update_transactions(),
+        )
+
+        await DBSpendUpdateWriter.update_daily_project_spend(
+            n_retry_times=n_retry_times,
+            prisma_client=prisma_client,
+            proxy_logging_obj=proxy_logging_obj,
+            daily_spend_transactions=daily_project_spend_update_transactions,
         )
 
         ################## Daily Organization Spend Update Transactions ##################
@@ -1960,6 +2000,25 @@ class DBSpendUpdateWriter:
         )
 
     @staticmethod
+    async def update_daily_project_spend(
+        n_retry_times: int,
+        prisma_client: PrismaClient,
+        proxy_logging_obj: ProxyLogging,
+        daily_spend_transactions: dict[str, DailyProjectSpendTransaction],
+    ):
+        """
+        Batch job to update LiteLLM_DailyProjectSpend table using in-memory daily_spend_transactions
+        """
+        await DBSpendUpdateWriter._update_daily_spend(
+            n_retry_times=n_retry_times,
+            prisma_client=prisma_client,
+            proxy_logging_obj=proxy_logging_obj,
+            daily_spend_transactions=daily_spend_transactions,
+            entity_type="project",
+            entity_id_field="project_id",
+        )
+
+    @staticmethod
     async def update_daily_org_spend(
         n_retry_times: int,
         prisma_client: PrismaClient,
@@ -2039,13 +2098,15 @@ class DBSpendUpdateWriter:
         self,
         payload: dict | SpendLogsPayload,
         prisma_client: PrismaClient,
-        type: Literal["user", "team", "org", "request_tags", "end_user", "agent"] = "user",
+        type: Literal["user", "team", "project", "org", "request_tags", "end_user", "agent"] = "user",
     ) -> BaseDailySpendTransaction | None:
         common_expected_keys: Final = ["startTime", "api_key"]
         if type == "user":
             expected_keys = ["user", *common_expected_keys]
         elif type == "team":
             expected_keys = ["team_id", *common_expected_keys]
+        elif type == "project":
+            expected_keys = ["project_id", *common_expected_keys]
         elif type == "org":
             expected_keys = ["organization_id", *common_expected_keys]
         elif type == "request_tags":
@@ -2200,6 +2261,27 @@ class DBSpendUpdateWriter:
         daily_transaction_key = f"{payload['team_id']}_{base_daily_transaction['date']}_{payload['api_key']}_{payload['model']}_{payload['custom_llm_provider']}_{endpoint_str}"
         daily_transaction: Final = DailyTeamSpendTransaction(team_id=payload["team_id"], **base_daily_transaction)
         await self.daily_team_spend_update_queue.add_update(update={daily_transaction_key: daily_transaction})
+
+    async def add_spend_log_transaction_to_daily_project_transaction(
+        self,
+        payload: SpendLogsPayload,
+        prisma_client: PrismaClient | None = None,
+        project_id: str | None = None,
+    ) -> None:
+        if prisma_client is None or project_id is None:
+            return
+
+        payload_with_project: Final = cast(SpendLogsPayload, {**payload, "project_id": project_id})
+        base_daily_transaction: Final = await self._common_add_spend_log_transaction_to_daily_transaction(
+            payload_with_project, prisma_client, "project"
+        )
+        if base_daily_transaction is None:
+            return
+
+        endpoint_str: Final = base_daily_transaction.get("endpoint") or ""
+        daily_transaction_key = f"{project_id}_{base_daily_transaction['date']}_{payload_with_project['api_key']}_{payload_with_project['model']}_{payload_with_project['custom_llm_provider']}_{endpoint_str}"
+        daily_transaction: Final = DailyProjectSpendTransaction(project_id=project_id, **base_daily_transaction)
+        await self.daily_project_spend_update_queue.add_update(update={daily_transaction_key: daily_transaction})
 
     async def add_spend_log_transaction_to_daily_org_transaction(
         self,

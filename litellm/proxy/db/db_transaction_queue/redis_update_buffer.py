@@ -19,6 +19,7 @@ from litellm.constants import (
     REDIS_DAILY_AGENT_SPEND_UPDATE_BUFFER_KEY,
     REDIS_DAILY_END_USER_SPEND_UPDATE_BUFFER_KEY,
     REDIS_DAILY_ORG_SPEND_UPDATE_BUFFER_KEY,
+    REDIS_DAILY_PROJECT_SPEND_UPDATE_BUFFER_KEY,
     REDIS_DAILY_SPEND_UPDATE_BUFFER_KEY,
     REDIS_DAILY_TAG_SPEND_UPDATE_BUFFER_KEY,
     REDIS_DAILY_TEAM_SPEND_UPDATE_BUFFER_KEY,
@@ -31,6 +32,7 @@ from litellm.proxy._types import (
     DailyAgentSpendTransaction,
     DailyEndUserSpendTransaction,
     DailyOrganizationSpendTransaction,
+    DailyProjectSpendTransaction,
     DailyTagSpendTransaction,
     DailyTeamSpendTransaction,
     DailyUserSpendTransaction,
@@ -187,6 +189,7 @@ class RedisUpdateBuffer:
         spend_update_queue: SpendUpdateQueue,
         daily_spend_update_queue: DailySpendUpdateQueue,
         daily_team_spend_update_queue: DailySpendUpdateQueue,
+        daily_project_spend_update_queue: DailySpendUpdateQueue,
         daily_org_spend_update_queue: DailySpendUpdateQueue,
         daily_end_user_spend_update_queue: DailySpendUpdateQueue,
         daily_agent_spend_update_queue: DailySpendUpdateQueue,
@@ -250,6 +253,9 @@ class RedisUpdateBuffer:
         daily_team_spend_update_transactions: Final = (
             await daily_team_spend_update_queue.flush_and_get_aggregated_daily_spend_update_transactions()
         )
+        daily_project_spend_update_transactions: Final = (
+            await daily_project_spend_update_queue.flush_and_get_aggregated_daily_spend_update_transactions()
+        )
         daily_org_spend_update_transactions: Final = (
             await daily_org_spend_update_queue.flush_and_get_aggregated_daily_spend_update_transactions()
         )
@@ -284,6 +290,11 @@ class RedisUpdateBuffer:
                 daily_team_spend_update_transactions,
                 REDIS_DAILY_TEAM_SPEND_UPDATE_BUFFER_KEY,
                 ServiceTypes.REDIS_DAILY_TEAM_SPEND_UPDATE_QUEUE,
+            ),
+            (
+                daily_project_spend_update_transactions,
+                REDIS_DAILY_PROJECT_SPEND_UPDATE_BUFFER_KEY,
+                ServiceTypes.REDIS_DAILY_PROJECT_SPEND_UPDATE_QUEUE,
             ),
             (
                 daily_org_spend_update_transactions,
@@ -342,6 +353,7 @@ class RedisUpdateBuffer:
                 db_spend_update_transactions=db_spend_update_transactions,
                 daily_spend_update_transactions=daily_spend_update_transactions,
                 daily_team_spend_update_transactions=daily_team_spend_update_transactions,
+                daily_project_spend_update_transactions=daily_project_spend_update_transactions,
                 daily_org_spend_update_transactions=daily_org_spend_update_transactions,
                 daily_end_user_spend_update_transactions=daily_end_user_spend_update_transactions,
                 daily_agent_spend_update_transactions=daily_agent_spend_update_transactions,
@@ -349,6 +361,7 @@ class RedisUpdateBuffer:
                 spend_update_queue=spend_update_queue,
                 daily_spend_update_queue=daily_spend_update_queue,
                 daily_team_spend_update_queue=daily_team_spend_update_queue,
+                daily_project_spend_update_queue=daily_project_spend_update_queue,
                 daily_org_spend_update_queue=daily_org_spend_update_queue,
                 daily_end_user_spend_update_queue=daily_end_user_spend_update_queue,
                 daily_agent_spend_update_queue=daily_agent_spend_update_queue,
@@ -369,6 +382,7 @@ class RedisUpdateBuffer:
         db_spend_update_transactions: DBSpendUpdateTransactions | None,
         daily_spend_update_transactions: dict[str, BaseDailySpendTransaction] | None,
         daily_team_spend_update_transactions: dict[str, BaseDailySpendTransaction] | None,
+        daily_project_spend_update_transactions: dict[str, BaseDailySpendTransaction] | None,
         daily_org_spend_update_transactions: dict[str, BaseDailySpendTransaction] | None,
         daily_end_user_spend_update_transactions: dict[str, BaseDailySpendTransaction] | None,
         daily_agent_spend_update_transactions: dict[str, BaseDailySpendTransaction] | None,
@@ -376,6 +390,7 @@ class RedisUpdateBuffer:
         spend_update_queue: SpendUpdateQueue,
         daily_spend_update_queue: DailySpendUpdateQueue,
         daily_team_spend_update_queue: DailySpendUpdateQueue,
+        daily_project_spend_update_queue: DailySpendUpdateQueue,
         daily_org_spend_update_queue: DailySpendUpdateQueue,
         daily_end_user_spend_update_queue: DailySpendUpdateQueue,
         daily_agent_spend_update_queue: DailySpendUpdateQueue,
@@ -446,6 +461,7 @@ class RedisUpdateBuffer:
         daily_pairs: Final[list[tuple[dict[str, BaseDailySpendTransaction] | None, DailySpendUpdateQueue]]] = [
             (daily_spend_update_transactions, daily_spend_update_queue),
             (daily_team_spend_update_transactions, daily_team_spend_update_queue),
+            (daily_project_spend_update_transactions, daily_project_spend_update_queue),
             (daily_org_spend_update_transactions, daily_org_spend_update_queue),
             (
                 daily_end_user_spend_update_transactions,
@@ -465,6 +481,7 @@ class RedisUpdateBuffer:
         db_spend_update_transactions: DBSpendUpdateTransactions | None = None,
         daily_spend_update_transactions: Mapping[str, BaseDailySpendTransaction] | None = None,
         daily_team_spend_update_transactions: Mapping[str, BaseDailySpendTransaction] | None = None,
+        daily_project_spend_update_transactions: Mapping[str, BaseDailySpendTransaction] | None = None,
         daily_org_spend_update_transactions: Mapping[str, BaseDailySpendTransaction] | None = None,
         daily_end_user_spend_update_transactions: Mapping[str, BaseDailySpendTransaction] | None = None,
         daily_agent_spend_update_transactions: Mapping[str, BaseDailySpendTransaction] | None = None,
@@ -487,6 +504,7 @@ class RedisUpdateBuffer:
             (db_spend_update_transactions, REDIS_UPDATE_BUFFER_KEY),
             (daily_spend_update_transactions, REDIS_DAILY_SPEND_UPDATE_BUFFER_KEY),
             (daily_team_spend_update_transactions, REDIS_DAILY_TEAM_SPEND_UPDATE_BUFFER_KEY),
+            (daily_project_spend_update_transactions, REDIS_DAILY_PROJECT_SPEND_UPDATE_BUFFER_KEY),
             (daily_org_spend_update_transactions, REDIS_DAILY_ORG_SPEND_UPDATE_BUFFER_KEY),
             (daily_end_user_spend_update_transactions, REDIS_DAILY_END_USER_SPEND_UPDATE_BUFFER_KEY),
             (daily_agent_spend_update_transactions, REDIS_DAILY_AGENT_SPEND_UPDATE_BUFFER_KEY),
@@ -611,25 +629,27 @@ class RedisUpdateBuffer:
         DBSpendUpdateTransactions | None,
         dict[str, DailyUserSpendTransaction] | None,
         dict[str, DailyTeamSpendTransaction] | None,
+        dict[str, DailyProjectSpendTransaction] | None,
         dict[str, DailyOrganizationSpendTransaction] | None,
         dict[str, DailyEndUserSpendTransaction] | None,
         dict[str, DailyAgentSpendTransaction] | None,
         tuple[WindowSpendTransaction, ...] | None,
     ]:
         """
-        Drains the main 7 Redis buffer queues in a single pipeline round-trip.
+        Drains the main 8 Redis buffer queues in a single pipeline round-trip.
 
-        Returns a 7-tuple of parsed results in this order:
+        Returns an 8-tuple of parsed results in this order:
             0: DBSpendUpdateTransactions
             1: daily user spend
             2: daily team spend
-            3: daily org spend
-            4: daily end-user spend
-            5: daily agent spend
-            6: budget window spend
+            3: daily project spend
+            4: daily org spend
+            5: daily end-user spend
+            6: daily agent spend
+            7: budget window spend
         """
         if self.redis_cache is None:
-            return None, None, None, None, None, None, None
+            return None, None, None, None, None, None, None, None
 
         lpop_list: Final[list[RedisPipelineLpopOperation]] = [
             RedisPipelineLpopOperation(key=REDIS_UPDATE_BUFFER_KEY, count=MAX_REDIS_BUFFER_DEQUEUE_COUNT),
@@ -639,6 +659,10 @@ class RedisUpdateBuffer:
             ),
             RedisPipelineLpopOperation(
                 key=REDIS_DAILY_TEAM_SPEND_UPDATE_BUFFER_KEY,
+                count=MAX_REDIS_BUFFER_DEQUEUE_COUNT,
+            ),
+            RedisPipelineLpopOperation(
+                key=REDIS_DAILY_PROJECT_SPEND_UPDATE_BUFFER_KEY,
                 count=MAX_REDIS_BUFFER_DEQUEUE_COUNT,
             ),
             RedisPipelineLpopOperation(
@@ -662,7 +686,7 @@ class RedisUpdateBuffer:
         raw_results: Final = await self.redis_cache.async_lpop_pipeline(lpop_list=lpop_list)
 
         # Pad with None if pipeline returned fewer results than expected
-        while len(raw_results) < 7:
+        while len(raw_results) < 8:
             raw_results.append(None)
 
         # Slot 0: DBSpendUpdateTransactions
@@ -672,9 +696,9 @@ class RedisUpdateBuffer:
             if len(parsed) > 0:
                 db_spend = self._combine_list_of_transactions(parsed)
 
-        # Slots 1-5: daily spend categories
+        # Slots 1-6: daily spend categories
         daily_results: Final[list[dict[str, BaseDailySpendTransaction] | None]] = []
-        for slot in range(1, 6):
+        for slot in range(1, 7):
             slot_result = raw_results[slot]
             if slot_result is None:
                 daily_results.append(None)
@@ -685,9 +709,9 @@ class RedisUpdateBuffer:
 
         window_spend: Final = (
             WindowSpendUpdateQueue.get_aggregated_window_spend_transactions(
-                tuple(json.loads(transaction) for transaction in raw_results[6])
+                tuple(json.loads(transaction) for transaction in raw_results[7])
             )
-            if raw_results[6] is not None
+            if raw_results[7] is not None
             else None
         )
 
@@ -695,9 +719,10 @@ class RedisUpdateBuffer:
             db_spend,
             cast(dict[str, DailyUserSpendTransaction] | None, daily_results[0]),
             cast(dict[str, DailyTeamSpendTransaction] | None, daily_results[1]),
-            cast(dict[str, DailyOrganizationSpendTransaction] | None, daily_results[2]),
-            cast(dict[str, DailyEndUserSpendTransaction] | None, daily_results[3]),
-            cast(dict[str, DailyAgentSpendTransaction] | None, daily_results[4]),
+            cast(dict[str, DailyProjectSpendTransaction] | None, daily_results[2]),
+            cast(dict[str, DailyOrganizationSpendTransaction] | None, daily_results[3]),
+            cast(dict[str, DailyEndUserSpendTransaction] | None, daily_results[4]),
+            cast(dict[str, DailyAgentSpendTransaction] | None, daily_results[5]),
             window_spend,
         )
 

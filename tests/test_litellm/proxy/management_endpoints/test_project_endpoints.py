@@ -325,3 +325,92 @@ async def test_deleting_is_authorised_per_project_not_once_for_the_batch():
 
     assert exc.value.status_code == 403
     deleter.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_daily_activity_reads_the_project_rollup_not_the_raw_spend_logs():
+    from litellm.proxy.management_endpoints.project_endpoints import get_project_daily_activity
+
+    recorded: dict = {}
+
+    async def _capture(**kwargs):
+        recorded.update(kwargs)
+        return "report"
+
+    with (
+        patch("litellm.proxy.proxy_server.prisma_client", _prisma()),
+        patch(
+            "litellm.repositories.project_repository.ProjectRepository.find_by_id",
+            AsyncMock(return_value=_project()),
+        ),
+        patch("litellm.proxy.management_endpoints.project_endpoints.get_daily_activity", _capture),
+    ):
+        result = await get_project_daily_activity(project_id="p1", user_api_key_dict=ADMIN)
+
+    assert result == "report"
+    assert recorded["table_name"] == "litellm_dailyprojectspend"
+    assert recorded["entity_id_field"] == "project_id"
+    assert recorded["entity_id"] == "p1"
+    assert recorded["entity_metadata_field"] == {"p1": {"project_alias": "api-service"}}
+
+
+@pytest.mark.asyncio
+async def test_daily_activity_of_another_team_s_project_is_refused_not_empty():
+    from fastapi import HTTPException
+
+    from litellm.proxy.management_endpoints.project_endpoints import get_project_daily_activity
+
+    with (
+        patch("litellm.proxy.proxy_server.prisma_client", _prisma()),
+        patch(
+            "litellm.repositories.project_repository.ProjectRepository.find_by_id",
+            AsyncMock(return_value=_project()),
+        ),
+        pytest.raises(HTTPException) as exc,
+    ):
+        await get_project_daily_activity(project_id="p1", user_api_key_dict=OUTSIDER)
+
+    assert exc.value.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_daily_activity_for_an_unknown_project_is_a_404():
+    from fastapi import HTTPException
+
+    from litellm.proxy.management_endpoints.project_endpoints import get_project_daily_activity
+
+    with (
+        patch("litellm.proxy.proxy_server.prisma_client", _prisma()),
+        patch(
+            "litellm.repositories.project_repository.ProjectRepository.find_by_id",
+            AsyncMock(return_value=None),
+        ),
+        pytest.raises(HTTPException) as exc,
+    ):
+        await get_project_daily_activity(project_id="ghost", user_api_key_dict=ADMIN)
+
+    assert exc.value.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_attaching_a_budget_to_a_project_is_actually_saved():
+    """/project/update answered 200 while dropping budget_id, which left the project
+    budget check in auth_checks comparing spend against a budget nothing could set."""
+    from litellm.proxy._types import UpdateProjectRequest
+    from litellm.proxy.management_endpoints.project_endpoints import update_project
+
+    saved = AsyncMock(return_value=_project())
+    with (
+        patch("litellm.proxy.proxy_server.prisma_client", _prisma()),
+        patch(
+            "litellm.repositories.project_repository.ProjectRepository.find_by_id",
+            AsyncMock(return_value=_project()),
+        ),
+        patch("litellm.repositories.project_repository.ProjectRepository.update_project", saved),
+    ):
+        await update_project(
+            data=UpdateProjectRequest(project_id="p1", budget_id="b-monthly"),
+            user_api_key_dict=ADMIN,
+        )
+
+    assert saved.await_args.kwargs["budget_id"] == "b-monthly"

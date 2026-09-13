@@ -27,9 +27,13 @@ from litellm.proxy._types import (
     UserAPIKeyAuth,
 )
 from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+from litellm.proxy.management_endpoints.common_daily_activity import get_daily_activity
 from litellm.proxy.management_endpoints.common_utils import _is_user_team_admin
 from litellm.repositories.project_repository import ProjectRepository
 from litellm.types.llms.base import LiteLLMPydanticObjectBase
+from litellm.types.proxy.management_endpoints.common_daily_activity import (
+    SpendAnalyticsPaginatedResponse,
+)
 
 router: Final = APIRouter()
 
@@ -171,6 +175,7 @@ async def update_project(
         project_alias=data.project_alias,
         description=data.description,
         team_id=data.team_id,
+        budget_id=data.budget_id,
         metadata=data.metadata,
         models=data.models,
         model_rpm_limit=data.model_rpm_limit,
@@ -193,3 +198,42 @@ async def delete_project(
     for project_id in data.project_ids:
         await repository.delete_project(project_id)
     return {"deleted_projects": list(data.project_ids)}
+
+
+@router.get(
+    "/project/daily/activity",
+    response_model=SpendAnalyticsPaginatedResponse,
+    tags=["project management"],
+    dependencies=[Depends(user_api_key_auth)],
+)
+async def get_project_daily_activity(
+    project_id: str = fastapi.Query(description="The project to report on"),
+    start_date: str | None = None,
+    end_date: str | None = None,
+    model: str | None = None,
+    api_key: str | None = None,
+    page: int = 1,
+    page_size: int = 10,
+    user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
+):
+    """What one project spent, by day.
+
+    Reads the project's daily rollup rather than the raw spend logs, so the cost of a
+    report does not grow with the number of requests the project has made.
+    """
+    prisma_client: Final = _prisma_or_500()
+    project: Final = await _authorised_project_or_403(project_id, user_api_key_dict, prisma_client, write=False)
+
+    return await get_daily_activity(
+        prisma_client=prisma_client,
+        table_name="litellm_dailyprojectspend",
+        entity_id_field="project_id",
+        entity_id=project_id,
+        entity_metadata_field={project_id: {"project_alias": project.project_alias}},
+        start_date=start_date,
+        end_date=end_date,
+        model=model,
+        api_key=api_key,
+        page=page,
+        page_size=page_size,
+    )

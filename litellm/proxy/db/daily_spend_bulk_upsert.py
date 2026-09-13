@@ -14,7 +14,7 @@ from itertools import groupby
 from types import MappingProxyType
 from typing import Final, Literal
 
-DailySpendEntity = Literal["user", "team", "org", "tag", "end_user", "agent"]
+DailySpendEntity = Literal["user", "team", "project", "org", "tag", "end_user", "agent"]
 
 SqlValue = str | int | float | None
 
@@ -36,6 +36,7 @@ DAILY_SPEND_TABLES: Final[Mapping[DailySpendEntity, DailySpendTable]] = MappingP
     {
         "user": DailySpendTable(name="LiteLLM_DailyUserSpend", entity_id_column="user_id"),
         "team": DailySpendTable(name="LiteLLM_DailyTeamSpend", entity_id_column="team_id"),
+        "project": DailySpendTable(name="LiteLLM_DailyProjectSpend", entity_id_column="project_id"),
         "org": DailySpendTable(name="LiteLLM_DailyOrganizationSpend", entity_id_column="organization_id"),
         "end_user": DailySpendTable(name="LiteLLM_DailyEndUserSpend", entity_id_column="end_user_id"),
         "agent": DailySpendTable(name="LiteLLM_DailyAgentSpend", entity_id_column="agent_id"),

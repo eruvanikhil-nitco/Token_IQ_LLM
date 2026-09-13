@@ -47,6 +47,9 @@ async def test_store_in_memory_spend_updates_uses_pipeline(redis_update_buffer, 
     )
 
     # Empty queues
+    daily_project_queue = AsyncMock()
+    daily_project_queue.flush_and_get_aggregated_daily_spend_update_transactions = AsyncMock(return_value={})
+
     daily_org_queue = AsyncMock()
     daily_org_queue.flush_and_get_aggregated_daily_spend_update_transactions = AsyncMock(return_value={})
 
@@ -60,6 +63,7 @@ async def test_store_in_memory_spend_updates_uses_pipeline(redis_update_buffer, 
         spend_update_queue=spend_update_queue,
         daily_spend_update_queue=daily_spend_queue,
         daily_team_spend_update_queue=daily_team_queue,
+        daily_project_spend_update_queue=daily_project_queue,
         daily_org_spend_update_queue=daily_org_queue,
         daily_end_user_spend_update_queue=daily_end_user_queue,
         daily_agent_spend_update_queue=daily_agent_queue,
@@ -94,6 +98,7 @@ async def test_store_in_memory_spend_updates_restores_on_rpush_failure(redis_upd
     spend_queue = SpendUpdateQueue()
     daily_user_queue = DailySpendUpdateQueue()
     daily_team_queue = DailySpendUpdateQueue()
+    daily_project_queue = DailySpendUpdateQueue()
     daily_org_queue = DailySpendUpdateQueue()
     daily_end_user_queue = DailySpendUpdateQueue()
     daily_agent_queue = DailySpendUpdateQueue()
@@ -127,6 +132,7 @@ async def test_store_in_memory_spend_updates_restores_on_rpush_failure(redis_upd
         spend_update_queue=spend_queue,
         daily_spend_update_queue=daily_user_queue,
         daily_team_spend_update_queue=daily_team_queue,
+        daily_project_spend_update_queue=daily_project_queue,
         daily_org_spend_update_queue=daily_org_queue,
         daily_end_user_spend_update_queue=daily_end_user_queue,
         daily_agent_spend_update_queue=daily_agent_queue,
@@ -166,6 +172,7 @@ async def test_store_in_memory_spend_updates_all_empty_returns_early(redis_updat
         spend_update_queue=empty_queue,
         daily_spend_update_queue=empty_daily_queue,
         daily_team_spend_update_queue=empty_daily_queue,
+        daily_project_spend_update_queue=empty_daily_queue,
         daily_org_spend_update_queue=empty_daily_queue,
         daily_end_user_spend_update_queue=empty_daily_queue,
         daily_agent_spend_update_queue=empty_daily_queue,
@@ -195,6 +202,7 @@ async def test_get_all_transactions_from_redis_buffer_pipeline(redis_update_buff
     )
     daily_user_json = json.dumps({"user_key1": {"spend": 1.0, "api_requests": 1}})
     daily_team_json = json.dumps({"team_key1": {"spend": 2.0, "api_requests": 2}})
+    daily_project_json = json.dumps({"project_key1": {"spend": 4.0, "api_requests": 4}})
     window_spend_json = json.dumps(
         [
             {
@@ -213,20 +221,22 @@ async def test_get_all_transactions_from_redis_buffer_pipeline(redis_update_buff
             [db_spend_json],  # slot 0: db spend updates
             [daily_user_json],  # slot 1: daily user
             [daily_team_json],  # slot 2: daily team
-            None,  # slot 3: daily org (empty)
-            None,  # slot 4: daily end-user (empty)
-            None,  # slot 5: daily agent (empty)
-            [window_spend_json, window_spend_json],  # slot 6: budget window spend
+            [daily_project_json],  # slot 3: daily project
+            None,  # slot 4: daily org (empty)
+            None,  # slot 5: daily end-user (empty)
+            None,  # slot 6: daily agent (empty)
+            [window_spend_json, window_spend_json],  # slot 7: budget window spend
         ]
     )
 
     result = await redis_update_buffer.get_all_transactions_from_redis_buffer_pipeline()
 
-    assert len(result) == 7
+    assert len(result) == 8
     (
         db_spend,
         daily_user,
         daily_team,
+        daily_project,
         daily_org,
         daily_end_user,
         daily_agent,
@@ -263,7 +273,7 @@ async def test_get_all_transactions_from_redis_buffer_pipeline(redis_update_buff
     from litellm.constants import REDIS_WINDOW_SPEND_UPDATE_BUFFER_KEY
 
     popped_keys = [op["key"] for op in mock_redis_cache.async_lpop_pipeline.call_args.kwargs["lpop_list"]]
-    assert popped_keys[6] == REDIS_WINDOW_SPEND_UPDATE_BUFFER_KEY
+    assert popped_keys[7] == REDIS_WINDOW_SPEND_UPDATE_BUFFER_KEY
 
 
 @pytest.mark.asyncio
@@ -271,7 +281,7 @@ async def test_get_all_transactions_from_redis_buffer_pipeline_no_redis():
     """When redis_cache is None, should return all Nones"""
     buffer = RedisUpdateBuffer(redis_cache=None)
     result = await buffer.get_all_transactions_from_redis_buffer_pipeline()
-    assert result == (None, None, None, None, None, None, None)
+    assert result == (None, None, None, None, None, None, None, None)
 
 
 @pytest.mark.asyncio
@@ -335,11 +345,11 @@ async def test_restored_window_spend_transactions_drain_back_unchanged(redis_upd
     assert [op["key"] for op in rpush_list] == [REDIS_WINDOW_SPEND_UPDATE_BUFFER_KEY]
 
     mock_redis_cache.async_lpop_pipeline = AsyncMock(
-        return_value=[None, None, None, None, None, None, list(rpush_list[0]["values"])]
+        return_value=[None, None, None, None, None, None, None, list(rpush_list[0]["values"])]
     )
     drained = await redis_update_buffer.get_all_transactions_from_redis_buffer_pipeline()
 
-    assert drained[6] == window_transactions
+    assert drained[7] == window_transactions
 
 
 @pytest.mark.asyncio
@@ -505,6 +515,7 @@ async def test_store_in_memory_spend_updates_pushes_budget_window_spend(redis_up
         spend_update_queue=empty_queue,
         daily_spend_update_queue=empty_daily_queue,
         daily_team_spend_update_queue=empty_daily_queue,
+        daily_project_spend_update_queue=empty_daily_queue,
         daily_org_spend_update_queue=empty_daily_queue,
         daily_end_user_spend_update_queue=empty_daily_queue,
         daily_agent_spend_update_queue=empty_daily_queue,
@@ -596,6 +607,7 @@ async def test_store_in_memory_spend_updates_restores_budget_window_spend_on_rpu
         spend_update_queue=empty_queue,
         daily_spend_update_queue=empty_daily_queue,
         daily_team_spend_update_queue=empty_daily_queue,
+        daily_project_spend_update_queue=empty_daily_queue,
         daily_org_spend_update_queue=empty_daily_queue,
         daily_end_user_spend_update_queue=empty_daily_queue,
         daily_agent_spend_update_queue=empty_daily_queue,
