@@ -850,6 +850,7 @@ async def test_commit_spend_updates_to_db_increments_agent_spend():
         "team_list_transactions": {},
         "team_member_list_transactions": {},
         "org_list_transactions": {},
+        "project_list_transactions": {},
         "tag_list_transactions": {},
         "agent_list_transactions": {agent_id: response_cost},
     }
@@ -922,6 +923,7 @@ async def test_commit_spend_updates_to_db_increments_team_member_spend_and_total
         "team_list_transactions": {},
         "team_member_list_transactions": {entity_id: response_cost},
         "org_list_transactions": {},
+        "project_list_transactions": {},
         "tag_list_transactions": {},
         "agent_list_transactions": {},
     }
@@ -1508,6 +1510,7 @@ async def test_commit_key_spend_updates_includes_last_active():
         "team_list_transactions": {},
         "team_member_list_transactions": {},
         "org_list_transactions": {},
+        "project_list_transactions": {},
         "tag_list_transactions": {},
         "agent_list_transactions": {},
     }
@@ -1592,6 +1595,7 @@ async def test_batch_database_updates_isolation_on_failure():
     db_writer._update_user_db = AsyncMock()
     db_writer._update_team_db = AsyncMock()
     db_writer._update_org_db = AsyncMock()
+    db_writer._update_project_db = AsyncMock()
     db_writer._update_tag_db = AsyncMock()
     db_writer._update_agent_db = AsyncMock()
     db_writer.add_spend_log_transaction_to_daily_user_transaction = AsyncMock()
@@ -1607,6 +1611,7 @@ async def test_batch_database_updates_isolation_on_failure():
         hashed_token="t1",
         team_id="team1",
         org_id="org1",
+        project_id="proj1",
         end_user_id="eu1",
         prisma_client=MagicMock(),
         litellm_proxy_budget_name="budget",
@@ -1618,6 +1623,7 @@ async def test_batch_database_updates_isolation_on_failure():
     db_writer._update_key_db.assert_awaited_once()
     db_writer._update_team_db.assert_awaited_once()
     db_writer._update_org_db.assert_awaited_once()
+    db_writer._update_project_db.assert_awaited_once()
     db_writer._update_tag_db.assert_awaited_once()
     db_writer._update_agent_db.assert_awaited_once()
     db_writer.add_spend_log_transaction_to_daily_user_transaction.assert_awaited_once()
@@ -1653,6 +1659,7 @@ async def test_daily_agent_receives_deepcopied_payload():
     db_writer._update_key_db = AsyncMock()
     db_writer._update_team_db = AsyncMock()
     db_writer._update_org_db = AsyncMock()
+    db_writer._update_project_db = AsyncMock()
     db_writer._update_tag_db = AsyncMock()
     db_writer._update_agent_db = AsyncMock()
     db_writer.add_spend_log_transaction_to_daily_user_transaction = AsyncMock()
@@ -1767,6 +1774,7 @@ async def test_commit_with_redis_requeues_all_on_db_failure():
         "team_list_transactions": {},
         "team_member_list_transactions": {},
         "org_list_transactions": {},
+        "project_list_transactions": {},
         "tag_list_transactions": {},
         "agent_list_transactions": {},
     }
@@ -1822,6 +1830,7 @@ async def test_commit_with_redis_only_requeues_failed_category():
         "team_list_transactions": {},
         "team_member_list_transactions": {},
         "org_list_transactions": {},
+        "project_list_transactions": {},
         "tag_list_transactions": {},
         "agent_list_transactions": {},
     }
@@ -1871,6 +1880,7 @@ async def test_commit_with_redis_no_requeue_on_success():
         "team_list_transactions": {},
         "team_member_list_transactions": {},
         "org_list_transactions": {},
+        "project_list_transactions": {},
         "tag_list_transactions": {},
         "agent_list_transactions": {},
     }
@@ -2023,6 +2033,15 @@ async def test_commit_daily_tag_spend_no_requeue_on_success():
             id="org",
         ),
         pytest.param(
+            "project_list_transactions",
+            {"proj_c": 0.1, "proj_a": 0.2, "proj_b": 0.3},
+            "litellm_projecttable",
+            "update_many",
+            "project_id",
+            ["proj_a", "proj_b", "proj_c"],
+            id="project",
+        ),
+        pytest.param(
             "end_user_list_transactions",
             {"eu_c": 0.1, "eu_a": 0.2, "eu_b": 0.3},
             "litellm_endusertable",
@@ -2098,6 +2117,7 @@ async def test_commit_spend_updates_iterates_in_sorted_order(
         "team_list_transactions": {},
         "team_member_list_transactions": {},
         "org_list_transactions": {},
+        "project_list_transactions": {},
         "tag_list_transactions": {},
         "agent_list_transactions": {},
     }
@@ -2146,6 +2166,7 @@ async def test_update_database_does_not_deepcopy_on_request_path():
     db_writer._update_key_db = AsyncMock()
     db_writer._update_team_db = AsyncMock()
     db_writer._update_org_db = AsyncMock()
+    db_writer._update_project_db = AsyncMock()
     db_writer._update_tag_db = AsyncMock()
     db_writer._update_agent_db = AsyncMock()
     db_writer.add_spend_log_transaction_to_daily_user_transaction = AsyncMock(side_effect=capture_batch_payload)
@@ -2681,6 +2702,7 @@ async def test_commit_spend_updates_to_db_does_not_stamp_key_settings_updated_at
         "team_list_transactions": {},
         "team_member_list_transactions": {},
         "org_list_transactions": {},
+        "project_list_transactions": {},
         "tag_list_transactions": {},
         "agent_list_transactions": {},
     }
@@ -2763,6 +2785,7 @@ def _empty_spend_transactions(**overrides):
         "team_list_transactions": {},
         "team_member_list_transactions": {},
         "org_list_transactions": {},
+        "project_list_transactions": {},
         "tag_list_transactions": {},
         "agent_list_transactions": {},
     }
@@ -2903,6 +2926,7 @@ async def test_update_daily_spend_retries_deadlock(monkeypatch):
         ("team_list_transactions", "team-1"),
         ("team_member_list_transactions", "team_id::team-1::user_id::user-1"),
         ("org_list_transactions", "org-1"),
+        ("project_list_transactions", "project-1"),
         ("tag_list_transactions", "tag-1"),
         ("agent_list_transactions", "agent-1"),
     ],
@@ -3055,3 +3079,62 @@ async def test_daily_transaction_attributes_caching_savings_only_with_an_injecti
     assert transaction["cache_creation_input_tokens"] == 1111
     assert transaction["prompt_caching_savings_spend"] != 0.0
     assert transaction["gateway_injected_caching_savings_spend"] == 0.0
+
+
+@pytest.mark.asyncio
+async def test_project_spend_reaches_the_ledger_the_budget_check_reads():
+    """_project_max_budget_check compares LiteLLM_ProjectTable.spend against the budget,
+    so a request that never moves that column is a project budget that never fires."""
+    db_writer = DBSpendUpdateWriter()
+
+    await db_writer._update_project_db(
+        response_cost=0.25,
+        project_id="proj-alpha",
+        prisma_client=MagicMock(),
+    )
+
+    transactions = await db_writer.spend_update_queue.flush_and_get_aggregated_db_spend_update_transactions()
+    assert transactions["project_list_transactions"] == {"proj-alpha": 0.25}
+
+
+@pytest.mark.asyncio
+async def test_spend_on_a_project_key_is_attributed_to_that_project():
+    db_writer = DBSpendUpdateWriter()
+
+    await db_writer._batch_database_updates(
+        response_cost=0.4,
+        user_id=None,
+        hashed_token=None,
+        team_id=None,
+        org_id=None,
+        project_id="proj-alpha",
+        end_user_id=None,
+        prisma_client=MagicMock(),
+        litellm_proxy_budget_name=None,
+        payload={},
+    )
+
+    transactions = await db_writer.spend_update_queue.flush_and_get_aggregated_db_spend_update_transactions()
+    assert transactions["project_list_transactions"] == {"proj-alpha": 0.4}
+
+
+@pytest.mark.asyncio
+async def test_a_request_with_no_project_leaves_the_project_ledger_alone():
+    db_writer = DBSpendUpdateWriter()
+
+    await db_writer._batch_database_updates(
+        response_cost=0.4,
+        user_id=None,
+        hashed_token=None,
+        team_id="team-1",
+        org_id=None,
+        project_id=None,
+        end_user_id=None,
+        prisma_client=MagicMock(),
+        litellm_proxy_budget_name=None,
+        payload={},
+    )
+
+    transactions = await db_writer.spend_update_queue.flush_and_get_aggregated_db_spend_update_transactions()
+    assert not transactions["project_list_transactions"]
+    assert transactions["team_list_transactions"] == {"team-1": 0.4}

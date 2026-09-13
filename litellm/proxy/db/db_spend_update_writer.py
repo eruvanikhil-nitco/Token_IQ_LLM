@@ -215,6 +215,7 @@ class DBSpendUpdateWriter:
         start_time: datetime | None,
         end_time: datetime | None,
         response_cost: float | None,
+        project_id: str | None = None,
     ) -> None:
         from litellm.proxy.proxy_server import (
             disable_spend_logs,
@@ -290,6 +291,7 @@ class DBSpendUpdateWriter:
                     hashed_token=hashed_token,
                     team_id=team_id,
                     org_id=org_id,
+                    project_id=project_id,
                     end_user_id=end_user_id,
                     prisma_client=prisma_client,
                     litellm_proxy_budget_name=litellm_proxy_budget_name,
@@ -484,6 +486,7 @@ class DBSpendUpdateWriter:
         hashed_token: str | None,
         team_id: str | None,
         org_id: str | None,
+        project_id: str | None,
         end_user_id: str | None,
         prisma_client: PrismaClient | None,
         litellm_proxy_budget_name: str | None,
@@ -548,6 +551,18 @@ class DBSpendUpdateWriter:
         except Exception:
             verbose_proxy_logger.debug(
                 "_batch_database_updates: _update_org_db failed: %s",
+                traceback.format_exc(),
+            )
+
+        try:
+            await self._update_project_db(
+                response_cost=response_cost,
+                project_id=project_id,
+                prisma_client=prisma_client,
+            )
+        except Exception:
+            verbose_proxy_logger.debug(
+                "_batch_database_updates: _update_project_db failed: %s",
                 traceback.format_exc(),
             )
 
@@ -772,6 +787,31 @@ class DBSpendUpdateWriter:
                 exc=e,
             )
             raise e
+
+    async def _update_project_db(
+        self,
+        response_cost: float | None,
+        project_id: str | None,
+        prisma_client: PrismaClient | None,
+    ) -> None:
+        if project_id is None or prisma_client is None:
+            return
+        try:
+            await self.spend_update_queue.add_update(
+                update=SpendUpdateQueueItem(
+                    entity_type=Litellm_EntityType.PROJECT,
+                    entity_id=project_id,
+                    response_cost=response_cost,
+                )
+            )
+        except Exception as e:
+            spend_log_error(
+                "Spend tracking - failed to enqueue project spend update. project_id=%s, response_cost=%s - %s",
+                project_id,
+                response_cost,
+                str(e),
+                exc=e,
+            )
 
     async def _update_org_db(
         self,
@@ -1584,6 +1624,18 @@ class DBSpendUpdateWriter:
                         start_time=start_time,
                         proxy_logging_obj=proxy_logging_obj,
                     )
+
+        ### UPDATE PROJECT TABLE ###
+        project_list_transactions: Final = db_spend_update_transactions["project_list_transactions"]
+        await DBSpendUpdateWriter._update_entity_spend_in_db(
+            entity_name="Project",
+            transactions=project_list_transactions,
+            table_accessor="litellm_projecttable",
+            where_field="project_id",
+            n_retry_times=n_retry_times,
+            prisma_client=prisma_client,
+            proxy_logging_obj=proxy_logging_obj,
+        )
 
         ### UPDATE TAG TABLE ###
         tag_list_transactions: Final = db_spend_update_transactions["tag_list_transactions"]

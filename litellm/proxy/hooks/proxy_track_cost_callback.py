@@ -210,6 +210,7 @@ class _ProxyDBLogger(CustomLogger):
             user_id=user_api_key_dict.user_id,
             end_user_id=user_api_key_dict.end_user_id,
             team_id=user_api_key_dict.team_id,
+            project_id=user_api_key_dict.project_id,
             kwargs=request_data,
             completion_response=original_exception,
             start_time=actual_start_time,
@@ -254,6 +255,7 @@ class _ProxyDBLogger(CustomLogger):
             user_id: Final = cast(str | None, metadata.get("user_api_key_user_id", None))
             team_id: Final = cast(str | None, metadata.get("user_api_key_team_id", None))
             org_id: Final = cast(str | None, metadata.get("user_api_key_org_id", None))
+            project_id: Final = cast(str | None, metadata.get("user_api_key_project_id", None))
             key_alias: Final = cast(str | None, metadata.get("user_api_key_alias", None))
             end_user_max_budget: Final = metadata.get("user_api_end_user_max_budget", None)
             sl_object: Final[StandardLoggingPayload | None] = kwargs.get("standard_logging_object", None)
@@ -300,6 +302,7 @@ class _ProxyDBLogger(CustomLogger):
                         end_user_id=end_user_id,
                         team_id=team_id,
                         org_id=org_id,
+                        project_id=project_id,
                         kwargs=kwargs,
                         completion_response=completion_response,
                         start_time=start_time,
@@ -577,6 +580,7 @@ async def _update_database_and_spend_counters(
     end_user_id: str | None,
     team_id: str | None,
     org_id: str | None,
+    project_id: str | None,
     kwargs: dict,
     completion_response: litellm.ModelResponse | Any | None,
     start_time: Any,
@@ -593,6 +597,7 @@ async def _update_database_and_spend_counters(
             user_id=user_id,
             end_user_id=end_user_id,
             team_id=team_id,
+            project_id=project_id,
             kwargs=kwargs,
             completion_response=completion_response,
             start_time=start_time,

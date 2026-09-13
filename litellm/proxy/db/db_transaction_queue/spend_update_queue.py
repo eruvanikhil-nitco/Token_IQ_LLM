@@ -1,5 +1,6 @@
 import asyncio
-from typing import Final
+from types import MappingProxyType
+from typing import Final, Literal, TypeAlias
 
 from litellm._logging import verbose_proxy_logger
 from litellm.constants import LITELLM_ASYNCIO_QUEUE_MAXSIZE
@@ -13,6 +14,34 @@ from litellm.proxy.db.db_transaction_queue.base_update_queue import (
     service_logger_obj,
 )
 from litellm.types.services import ServiceTypes
+
+SpendTransactionField: TypeAlias = Literal[
+    "user_list_transactions",
+    "end_user_list_transactions",
+    "key_list_transactions",
+    "team_list_transactions",
+    "team_member_list_transactions",
+    "org_list_transactions",
+    "project_list_transactions",
+    "tag_list_transactions",
+    "agent_list_transactions",
+    "model_access_group_list_transactions",
+]
+
+_ENTITY_TRANSACTION_FIELD: Final[MappingProxyType[Litellm_EntityType, SpendTransactionField]] = MappingProxyType(
+    {
+        Litellm_EntityType.USER: "user_list_transactions",
+        Litellm_EntityType.END_USER: "end_user_list_transactions",
+        Litellm_EntityType.KEY: "key_list_transactions",
+        Litellm_EntityType.TEAM: "team_list_transactions",
+        Litellm_EntityType.TEAM_MEMBER: "team_member_list_transactions",
+        Litellm_EntityType.ORGANIZATION: "org_list_transactions",
+        Litellm_EntityType.PROJECT: "project_list_transactions",
+        Litellm_EntityType.TAG: "tag_list_transactions",
+        Litellm_EntityType.AGENT: "agent_list_transactions",
+        Litellm_EntityType.MODEL_ACCESS_GROUP: "model_access_group_list_transactions",
+    }
+)
 
 
 class SpendUpdateQueue(BaseUpdateQueue):
@@ -137,23 +166,11 @@ class SpendUpdateQueue(BaseUpdateQueue):
             team_list_transactions={},
             team_member_list_transactions={},
             org_list_transactions={},
+            project_list_transactions={},
             tag_list_transactions={},
             agent_list_transactions={},
             model_access_group_list_transactions={},
         )
-
-        # Map entity types to their corresponding transaction dictionary keys
-        entity_type_to_dict_key: Final = {
-            Litellm_EntityType.USER: "user_list_transactions",
-            Litellm_EntityType.END_USER: "end_user_list_transactions",
-            Litellm_EntityType.KEY: "key_list_transactions",
-            Litellm_EntityType.TEAM: "team_list_transactions",
-            Litellm_EntityType.TEAM_MEMBER: "team_member_list_transactions",
-            Litellm_EntityType.ORGANIZATION: "org_list_transactions",
-            Litellm_EntityType.TAG: "tag_list_transactions",
-            Litellm_EntityType.AGENT: "agent_list_transactions",
-            Litellm_EntityType.MODEL_ACCESS_GROUP: "model_access_group_list_transactions",
-        }
 
         for update in updates:
             entity_type = update.get("entity_type")
@@ -167,40 +184,17 @@ class SpendUpdateQueue(BaseUpdateQueue):
                 )
                 continue
 
-            dict_key = entity_type_to_dict_key.get(entity_type)
+            dict_key = _ENTITY_TRANSACTION_FIELD.get(entity_type)
             if dict_key is None:
                 verbose_proxy_logger.debug(
-                    "Skipping update spend for update: %s, because entity_type is not in entity_type_to_dict_key",
+                    "Skipping update spend for update: %s, because entity_type has no transaction field",
                     update,
                 )
-                continue  # Skip unknown entity types
-
-            # Type-safe access using if/elif statements
-            if dict_key == "user_list_transactions":
-                transactions_dict = db_spend_update_transactions["user_list_transactions"]
-            elif dict_key == "end_user_list_transactions":
-                transactions_dict = db_spend_update_transactions["end_user_list_transactions"]
-            elif dict_key == "key_list_transactions":
-                transactions_dict = db_spend_update_transactions["key_list_transactions"]
-            elif dict_key == "team_list_transactions":
-                transactions_dict = db_spend_update_transactions["team_list_transactions"]
-            elif dict_key == "team_member_list_transactions":
-                transactions_dict = db_spend_update_transactions["team_member_list_transactions"]
-            elif dict_key == "org_list_transactions":
-                transactions_dict = db_spend_update_transactions["org_list_transactions"]
-            elif dict_key == "tag_list_transactions":
-                transactions_dict = db_spend_update_transactions["tag_list_transactions"]
-            elif dict_key == "agent_list_transactions":
-                transactions_dict = db_spend_update_transactions["agent_list_transactions"]
-            elif dict_key == "model_access_group_list_transactions":
-                transactions_dict = db_spend_update_transactions["model_access_group_list_transactions"]
-            else:
                 continue
 
+            transactions_dict = db_spend_update_transactions[dict_key]
             if transactions_dict is None:
                 transactions_dict = {}
-
-                # type ignore: dict_key is guaranteed to be one of "one of ("user_list_transactions", "end_user_list_transactions", "key_list_transactions", "team_list_transactions", "team_member_list_transactions", "org_list_transactions")"
                 db_spend_update_transactions[dict_key] = transactions_dict
 
             if entity_id not in transactions_dict:
