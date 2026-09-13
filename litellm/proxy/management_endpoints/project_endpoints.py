@@ -23,11 +23,13 @@ from litellm.proxy._types import (
     LiteLLM_TeamTable,
     LitellmUserRoles,
     NewProjectRequest,
+    UpdateProjectRequest,
     UserAPIKeyAuth,
 )
 from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
 from litellm.proxy.management_endpoints.common_utils import _is_user_team_admin
 from litellm.repositories.project_repository import ProjectRepository
+from litellm.types.llms.base import LiteLLMPydanticObjectBase
 
 router: Final = APIRouter()
 
@@ -128,3 +130,66 @@ async def project_list(
     prisma_client: Final = _prisma_or_500()
     await _authorised_team_or_403(team_id, user_api_key_dict, prisma_client, write=False)
     return await ProjectRepository(prisma_client).find_by_team_id(team_id)
+
+
+class ProjectDeleteRequest(LiteLLMPydanticObjectBase):
+    """Request model for POST /project/delete"""
+
+    project_ids: list[str]
+
+
+async def _authorised_project_or_403(
+    project_id: str,
+    user_api_key_dict: UserAPIKeyAuth,
+    prisma_client: Any,  # any-ok: untyped wrapper
+    *,
+    write: bool,
+):
+    """The project, once the caller is shown to administer its team."""
+    project: Final = await ProjectRepository(prisma_client).find_by_id(project_id)
+    if project is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"message": f"Project not found, passed project id: {project_id}."},
+        )
+    await _authorised_team_or_403(project.team_id or "", user_api_key_dict, prisma_client, write=write)
+    return project
+
+
+@router.post("/project/update", tags=["project management"], dependencies=[Depends(user_api_key_auth)])
+async def update_project(
+    data: UpdateProjectRequest,
+    user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
+):
+    """Change a project. Fields left out are untouched, not cleared."""
+    prisma_client: Final = _prisma_or_500()
+    await _authorised_project_or_403(data.project_id, user_api_key_dict, prisma_client, write=True)
+
+    return await ProjectRepository(prisma_client).update_project(
+        project_id=data.project_id,
+        updated_by=user_api_key_dict.user_id or "unknown",
+        project_alias=data.project_alias,
+        description=data.description,
+        team_id=data.team_id,
+        metadata=data.metadata,
+        models=data.models,
+        model_rpm_limit=data.model_rpm_limit,
+        model_tpm_limit=data.model_tpm_limit,
+        blocked=data.blocked,
+    )
+
+
+@router.post("/project/delete", tags=["project management"], dependencies=[Depends(user_api_key_auth)])
+async def delete_project(
+    data: ProjectDeleteRequest,
+    user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
+):
+    """Delete projects. Every one is authorised before any is deleted."""
+    prisma_client: Final = _prisma_or_500()
+    for project_id in data.project_ids:
+        await _authorised_project_or_403(project_id, user_api_key_dict, prisma_client, write=True)
+
+    repository: Final = ProjectRepository(prisma_client)
+    for project_id in data.project_ids:
+        await repository.delete_project(project_id)
+    return {"deleted_projects": list(data.project_ids)}

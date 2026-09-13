@@ -201,3 +201,127 @@ async def test_listing_another_team_s_projects_is_refused_not_empty():
         await project_list(team_id="t1", user_api_key_dict=OUTSIDER)
 
     assert exc.value.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_unblocking_a_project_is_possible_because_an_error_message_promises_it():
+    """auth_checks tells the owner of a blocked project to update it via this route. Until
+    now that route did not exist, so the instruction was unfollowable."""
+    from litellm.proxy._types import UpdateProjectRequest
+    from litellm.proxy.management_endpoints.project_endpoints import update_project
+
+    with (
+        patch("litellm.proxy.proxy_server.prisma_client", _prisma()),
+        patch(
+            "litellm.repositories.project_repository.ProjectRepository.find_by_id",
+            AsyncMock(return_value=_project()),
+        ),
+        patch(
+            "litellm.repositories.project_repository.ProjectRepository.update_project",
+            AsyncMock(return_value=_project()),
+        ) as upd,
+    ):
+        await update_project(data=UpdateProjectRequest(project_id="p1", blocked=False), user_api_key_dict=ADMIN)
+
+    assert upd.await_args.kwargs["blocked"] is False
+    assert upd.await_args.kwargs["updated_by"] == "admin"
+
+
+@pytest.mark.asyncio
+async def test_a_field_not_sent_is_left_alone_rather_than_cleared():
+    """A partial update that nulls everything it was not told about would wipe a project's
+    model list on a rename."""
+    from litellm.proxy._types import UpdateProjectRequest
+    from litellm.proxy.management_endpoints.project_endpoints import update_project
+
+    with (
+        patch("litellm.proxy.proxy_server.prisma_client", _prisma()),
+        patch(
+            "litellm.repositories.project_repository.ProjectRepository.find_by_id",
+            AsyncMock(return_value=_project()),
+        ),
+        patch(
+            "litellm.repositories.project_repository.ProjectRepository.update_project",
+            AsyncMock(return_value=_project()),
+        ) as upd,
+    ):
+        await update_project(
+            data=UpdateProjectRequest(project_id="p1", project_alias="renamed"), user_api_key_dict=ADMIN
+        )
+
+    assert upd.await_args.kwargs["project_alias"] == "renamed"
+    assert upd.await_args.kwargs["models"] is None
+
+
+@pytest.mark.asyncio
+async def test_updating_another_team_s_project_is_refused():
+    from fastapi import HTTPException
+
+    from litellm.proxy._types import UpdateProjectRequest
+    from litellm.proxy.management_endpoints.project_endpoints import update_project
+
+    with (
+        patch("litellm.proxy.proxy_server.prisma_client", _prisma()),
+        patch(
+            "litellm.repositories.project_repository.ProjectRepository.find_by_id",
+            AsyncMock(return_value=_project()),
+        ),
+        pytest.raises(HTTPException) as exc,
+    ):
+        await update_project(data=UpdateProjectRequest(project_id="p1", blocked=True), user_api_key_dict=OUTSIDER)
+
+    assert exc.value.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_deleting_reports_which_projects_went():
+    from litellm.proxy.management_endpoints.project_endpoints import ProjectDeleteRequest, delete_project
+
+    with (
+        patch("litellm.proxy.proxy_server.prisma_client", _prisma()),
+        patch(
+            "litellm.repositories.project_repository.ProjectRepository.find_by_id",
+            AsyncMock(return_value=_project()),
+        ),
+        patch(
+            "litellm.repositories.project_repository.ProjectRepository.delete_project",
+            AsyncMock(return_value=_project()),
+        ),
+    ):
+        result = await delete_project(data=ProjectDeleteRequest(project_ids=["p1"]), user_api_key_dict=ADMIN)
+
+    assert result == {"deleted_projects": ["p1"]}
+
+
+@pytest.mark.asyncio
+async def test_deleting_is_authorised_per_project_not_once_for_the_batch():
+    """A batch containing one project the caller may delete and one they may not must
+    refuse outright, not delete the first and then fail. The caller here genuinely
+    administers t1 and genuinely does not administer t-other, so an interleaved
+    authorise-then-delete loop would destroy p1 before refusing p2."""
+    from fastapi import HTTPException
+
+    from litellm.proxy._types import Member
+    from litellm.proxy.management_endpoints.project_endpoints import ProjectDeleteRequest, delete_project
+
+    lead = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
+    mine = _team_row("t1", members_with_roles=[Member(user_id="lead", role="admin").model_dump()])
+    theirs = _team_row("t-other")
+
+    client = MagicMock()
+    client.db.litellm_teamtable.find_unique = AsyncMock(side_effect=[mine, theirs])
+    deleter = AsyncMock(return_value=_project())
+
+    with (
+        patch("litellm.proxy.proxy_server.prisma_client", client),
+        patch(
+            "litellm.repositories.project_repository.ProjectRepository.find_by_id",
+            AsyncMock(side_effect=[_project("p1", "t1"), _project("p2", "t-other")]),
+        ),
+        patch("litellm.repositories.project_repository.ProjectRepository.delete_project", deleter),
+        pytest.raises(HTTPException) as exc,
+    ):
+        await delete_project(data=ProjectDeleteRequest(project_ids=["p1", "p2"]), user_api_key_dict=lead)
+
+    assert exc.value.status_code == 403
+    deleter.assert_not_awaited()
