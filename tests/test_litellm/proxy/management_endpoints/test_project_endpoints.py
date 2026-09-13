@@ -109,3 +109,95 @@ async def test_creating_under_a_team_that_does_not_exist_is_a_404():
         await new_project(data=NewProjectRequest(team_id="ghost"), user_api_key_dict=ADMIN)
 
     assert exc.value.status_code == 404
+
+
+def _project(project_id: str = "p1", team_id: str = "t1") -> MagicMock:
+    return MagicMock(project_id=project_id, project_alias="api-service", team_id=team_id)
+
+
+@pytest.mark.asyncio
+async def test_a_member_of_the_owning_team_may_read_a_project():
+    """These two routes are already in the internal-user allowlist, so the product has
+    said a non-admin may call them."""
+    from litellm.proxy.management_endpoints.project_endpoints import project_info
+
+    member = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-m", user_id="m", team_id="t1")
+    with (
+        patch("litellm.proxy.proxy_server.prisma_client", _prisma()),
+        patch(
+            "litellm.repositories.project_repository.ProjectRepository.find_by_id",
+            AsyncMock(return_value=_project()),
+        ),
+    ):
+        result = await project_info(project_id="p1", user_api_key_dict=member)
+
+    assert result.project_id == "p1"
+
+
+@pytest.mark.asyncio
+async def test_reading_a_project_of_another_team_is_refused():
+    from fastapi import HTTPException
+
+    from litellm.proxy.management_endpoints.project_endpoints import project_info
+
+    with (
+        patch("litellm.proxy.proxy_server.prisma_client", _prisma()),
+        patch(
+            "litellm.repositories.project_repository.ProjectRepository.find_by_id",
+            AsyncMock(return_value=_project()),
+        ),
+        pytest.raises(HTTPException) as exc,
+    ):
+        await project_info(project_id="p1", user_api_key_dict=OUTSIDER)
+
+    assert exc.value.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_an_unknown_project_is_a_404_not_an_empty_object():
+    from fastapi import HTTPException
+
+    from litellm.proxy.management_endpoints.project_endpoints import project_info
+
+    with (
+        patch("litellm.proxy.proxy_server.prisma_client", _prisma()),
+        patch(
+            "litellm.repositories.project_repository.ProjectRepository.find_by_id",
+            AsyncMock(return_value=None),
+        ),
+        pytest.raises(HTTPException) as exc,
+    ):
+        await project_info(project_id="ghost", user_api_key_dict=ADMIN)
+
+    assert exc.value.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_listing_returns_only_the_named_team_s_projects():
+    from litellm.proxy.management_endpoints.project_endpoints import project_list
+
+    with (
+        patch("litellm.proxy.proxy_server.prisma_client", _prisma()),
+        patch(
+            "litellm.repositories.project_repository.ProjectRepository.find_by_team_id",
+            AsyncMock(return_value=[_project("p1"), _project("p2")]),
+        ) as by_team,
+    ):
+        result = await project_list(team_id="t1", user_api_key_dict=ADMIN)
+
+    assert [p.project_id for p in result] == ["p1", "p2"]
+    assert by_team.await_args.args[0] == "t1"
+
+
+@pytest.mark.asyncio
+async def test_listing_another_team_s_projects_is_refused_not_empty():
+    """An empty list is indistinguishable from a team with no projects, which hides a
+    permissions problem from whoever has to debug it."""
+    from fastapi import HTTPException
+
+    from litellm.proxy.management_endpoints.project_endpoints import project_list
+
+    with patch("litellm.proxy.proxy_server.prisma_client", _prisma()), pytest.raises(HTTPException) as exc:
+        await project_list(team_id="t1", user_api_key_dict=OUTSIDER)
+
+    assert exc.value.status_code == 403

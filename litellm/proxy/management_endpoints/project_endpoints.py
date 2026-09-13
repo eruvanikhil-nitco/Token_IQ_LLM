@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from typing import Any, Final
 
+import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from litellm.proxy._types import (
@@ -99,3 +100,31 @@ async def new_project(
         model_rpm_limit=data.model_rpm_limit,
         model_tpm_limit=data.model_tpm_limit,
     )
+
+
+@router.get("/project/info", tags=["project management"], dependencies=[Depends(user_api_key_auth)])
+async def project_info(
+    project_id: str = fastapi.Query(description="The project to read"),
+    user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
+):
+    """One project, if the caller belongs to the team that owns it."""
+    prisma_client: Final = _prisma_or_500()
+    project: Final = await ProjectRepository(prisma_client).find_by_id(project_id)
+    if project is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"message": f"Project not found, passed project id: {project_id}."},
+        )
+    await _authorised_team_or_403(project.team_id or "", user_api_key_dict, prisma_client, write=False)
+    return project
+
+
+@router.get("/project/list", tags=["project management"], dependencies=[Depends(user_api_key_auth)])
+async def project_list(
+    team_id: str = fastapi.Query(description="List the projects of this team"),
+    user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
+):
+    """Every project under one team."""
+    prisma_client: Final = _prisma_or_500()
+    await _authorised_team_or_403(team_id, user_api_key_dict, prisma_client, write=False)
+    return await ProjectRepository(prisma_client).find_by_team_id(team_id)
