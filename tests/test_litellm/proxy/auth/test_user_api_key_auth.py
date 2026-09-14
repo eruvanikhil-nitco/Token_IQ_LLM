@@ -2106,7 +2106,7 @@ class TestJWTOAuth2Coexistence:
             assert exc_info.value.type == ProxyErrorTypes.auth_error
             assert exc_info.value.code == "403"
             assert (
-                "Oauth2 token validation is only available for premium users"
+                "OAuth2 token validation: This feature is not included in this installation's Token IQ plan"
                 in exc_info.value.message
             )
             mock_oauth2.assert_not_called()
@@ -6145,14 +6145,15 @@ async def test_real_jwt_still_requires_license_when_jwt_auth_enabled(monkeypatch
         patch("litellm.proxy.proxy_server.master_key", "sk-master"),
         patch("litellm.proxy.proxy_server.prisma_client", None),
     ):
-        with pytest.raises(Exception, match='JWT Auth is an enterprise only feature\\. You must be a') as exc_info:
+        with pytest.raises(Exception, match="JWT auth: This feature is not included in this installation's Token IQ plan") as exc_info:
             await user_api_key_auth(
                 request=mock_request,
                 api_key=f"Bearer {jwt_token}",
             )
 
     message = str(getattr(exc_info.value, "message", exc_info.value))
-    assert "enterprise only feature" in message
+    assert "Token IQ plan" in message
+    assert "LiteLLM" not in message
 
 
 @pytest.mark.asyncio
@@ -6832,7 +6833,7 @@ async def test_unlicensed_jwt_auth_is_forbidden_not_unauthorized():
     )
 
     assert error.code == "403"
-    assert "enterprise" in error.message.lower()
+    assert "token iq plan" in error.message.lower()
 
 
 class TestLitellmReceivedAtStamping:

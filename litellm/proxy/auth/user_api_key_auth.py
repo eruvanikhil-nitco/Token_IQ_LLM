@@ -1349,8 +1349,7 @@ async def _user_api_key_auth_builder(
 
             if premium_user is not True:
                 raise ProxyException(
-                    message="Oauth2 token validation is only available for premium users. "
-                    + CommonProxyErrors.not_premium_user.value,
+                    message=f"OAuth2 token validation: {CommonProxyErrors.not_premium_user.value}",
                     type=ProxyErrorTypes.auth_error,
                     param="premium_user",
                     code=status.HTTP_403_FORBIDDEN,
@@ -1369,7 +1368,7 @@ async def _user_api_key_auth_builder(
 
                 if premium_user is not True:
                     raise ProxyException(
-                        message=f"JWT Auth is an enterprise only feature. {CommonProxyErrors.not_premium_user.value}",
+                        message=f"JWT auth: {CommonProxyErrors.not_premium_user.value}",
                         type=ProxyErrorTypes.auth_error,
                         param="premium_user",
                         code=status.HTTP_403_FORBIDDEN,

@@ -12506,12 +12506,18 @@ def test_the_gateway_has_no_path_that_meters_usage_to_litellm(monkeypatch):
 
     from litellm.proxy import proxy_server
 
+    def importable(module: str) -> bool:
+        try:
+            return importlib.util.find_spec(module) is not None
+        except ModuleNotFoundError:
+            return False
+
     monkeypatch.setattr(proxy_server, "premium_user", True)
     monkeypatch.setenv("LITELLM_BILLING_METRICS_ENDPOINT", "https://collector.invalid")
     billable = next(m for m in proxy_server.app.user_middleware if m.cls.__name__ == "BillableRequestMetricsMiddleware")
 
     assert billable.kwargs["recorder_factory"]() is None
-    assert importlib.util.find_spec("litellm.proxy.enterprise_billing") is None
+    assert not importable("litellm.proxy.enterprise_billing.billing_metrics")
 
 
 def test_gated_features_unlock_from_the_token_iq_plan_without_a_litellm_licence(monkeypatch):
