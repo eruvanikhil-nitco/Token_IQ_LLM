@@ -8,8 +8,8 @@ Feeds two independent sinks off one classification:
   Not license-gated (see litellm.proxy.db.gateway_request_tracking). It is not
   told which deployment served the request: it persists its counts, so every
   dimension it takes has to be one the proxy chooses.
-- ``BillingRecorder`` receives 2xx requests only and exports them for
-  enterprise metering (see litellm.proxy.enterprise_billing.billing_metrics).
+- ``BillingRecorder`` receives 2xx requests only, for a metering exporter when
+  one is injected. The proxy injects none.
 
 Both are injected. When neither is present the middleware is a transparent
 pass-through.

@@ -545,19 +545,6 @@ from litellm.proxy.plugin_routes import (
 )
 from litellm.types.proxy.management_endpoints.management_v1 import ProblemDetail
 
-try:
-    from litellm.proxy.enterprise_billing.billing_metrics import (
-        build_billing_metrics_recorder as _build_billing_metrics_recorder,
-    )
-    from litellm.proxy.enterprise_billing.billing_metrics import (
-        shutdown_billing_metrics_recorder as _shutdown_billing_metrics_recorder,
-    )
-
-    build_billing_metrics_recorder: Callable[..., BillingRecorder | None] | None = _build_billing_metrics_recorder
-    shutdown_billing_metrics_recorder: Callable[[], None] | None = _shutdown_billing_metrics_recorder
-except ImportError:
-    build_billing_metrics_recorder = None
-    shutdown_billing_metrics_recorder = None
 from litellm.proxy.management_endpoints.audit_log_endpoints import (
     router as audit_log_endpoints_router,
 )
@@ -915,11 +902,6 @@ async def proxy_shutdown_event(worker_heartbeat: ProxyWorkerHeartbeat | None = N
 
     if db_writer_client is not None:
         await db_writer_client.close()
-
-    # final flush of billable-request counts: without it, up to one export
-    # interval of enterprise billing data is dropped on every restart
-    if shutdown_billing_metrics_recorder is not None:
-        shutdown_billing_metrics_recorder()
 
     # flush remaining langfuse logs
     if "langfuse" in litellm.success_callback:
@@ -2089,33 +2071,14 @@ app.add_middleware(
 
 app.add_middleware(PrometheusAuthMiddleware)
 # Added before InFlightRequestsMiddleware so it nests *inside* it: Starlette
-# makes the last-added middleware outermost. The billable count is recorded
-# after the inner app returns, so if this sat outside the in-flight tracker a
-# request could be counted as drained while its record() had not yet run, and
-# proxy_shutdown_event could flush and stop the exporter underneath it.
+# makes the last-added middleware outermost, and the request count is recorded
+# after the inner app returns.
 app.add_middleware(
     BillableRequestMetricsMiddleware,
-    # Factory, not an instance: the recorder is resolved on the first request so
-    # it sees premium_user and the billing env vars AFTER proxy_startup_event has
-    # loaded the YAML config's environment_variables. Building it here at import
-    # time would permanently capture recorder=None for YAML-configured
-    # deployments. The lambda reads the module globals at call time.
-    recorder_factory=lambda: (
-        build_billing_metrics_recorder(
-            premium=premium_user,
-            # Read from the license check, not the premium_user_data module
-            # global: that global is bound once at import and goes stale when
-            # the license arrives via the YAML config's environment_variables.
-            license_data=_license_check.airgapped_license_data,
-            litellm_version=version,
-        )
-        if build_billing_metrics_recorder is not None
-        else None
-    ),
-    # Unlike the billing recorder this is not license-gated: the admin UI must
-    # report SGR on any deployment. Gated only on a database being configured,
-    # since without one the fold would never be drained. Read at call time, so
-    # it sees prisma_client as of the first request rather than import time.
+    recorder_factory=lambda: None,
+    # The admin UI reports SGR from this sink. Gated only on a database being
+    # configured, since without one the fold would never be drained. Read at call
+    # time, so it sees prisma_client as of the first request rather than import time.
     sink_factory=lambda: gateway_request_accumulator if prisma_client is not None else None,
 )
 app.add_middleware(InFlightRequestsMiddleware)

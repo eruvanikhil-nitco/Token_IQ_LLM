@@ -12507,3 +12507,16 @@ def test_disabling_docs_does_not_disable_other_routes(monkeypatch):
 
     assert client.get("/redoc").status_code == 404
     assert client.get("/health/liveliness").status_code == 200
+
+
+def test_the_gateway_has_no_path_that_meters_usage_to_litellm(monkeypatch):
+    import importlib.util
+
+    from litellm.proxy import proxy_server
+
+    monkeypatch.setattr(proxy_server, "premium_user", True)
+    monkeypatch.setenv("LITELLM_BILLING_METRICS_ENDPOINT", "https://collector.invalid")
+    billable = next(m for m in proxy_server.app.user_middleware if m.cls.__name__ == "BillableRequestMetricsMiddleware")
+
+    assert billable.kwargs["recorder_factory"]() is None
+    assert importlib.util.find_spec("litellm.proxy.enterprise_billing") is None
