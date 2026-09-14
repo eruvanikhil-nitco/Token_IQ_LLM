@@ -3397,9 +3397,9 @@ async def test_load_environment_variables_direct_and_os_environ():
 
 
 @pytest.mark.asyncio
-async def test_load_environment_variables_litellm_license_and_edge_cases():
+async def test_load_environment_variables_token_iq_plan_and_edge_cases():
     """
-    Test _load_environment_variables method with LITELLM_LICENSE special handling and edge cases
+    Test _load_environment_variables method with TOKEN_IQ_PLAN special handling and edge cases
     """
     from unittest.mock import MagicMock, patch
 
@@ -3407,29 +3407,21 @@ async def test_load_environment_variables_litellm_license_and_edge_cases():
 
     proxy_config = ProxyConfig()
 
-    # Test Case 1: LITELLM_LICENSE in environment_variables
-    test_config_with_license = {
+    # Test Case 1: TOKEN_IQ_PLAN in environment_variables
+    from litellm.proxy import proxy_server
+
+    test_config_with_plan = {
         "environment_variables": {
-            "LITELLM_LICENSE": "test_license_key",
+            "TOKEN_IQ_PLAN": "standard",
             "OTHER_VAR": "other_value",
         }
     }
 
-    # Mock _license_check
-    mock_license_check = MagicMock()
-    mock_license_check.is_premium.return_value = True
+    with patch.dict(os.environ, {}, clear=False), patch("litellm.proxy.proxy_server.premium_user", False):
+        proxy_config._load_environment_variables(test_config_with_plan)
 
-    with patch("litellm.proxy.proxy_server._license_check", mock_license_check):
-        with patch.dict(os.environ, {}, clear=False):
-            # Call the method under test
-            proxy_config._load_environment_variables(test_config_with_license)
-
-            # Verify LITELLM_LICENSE was set in environment
-            assert os.environ["LITELLM_LICENSE"] == "test_license_key"
-
-            # Verify license check was updated
-            assert mock_license_check.license_str == "test_license_key"
-            mock_license_check.is_premium.assert_called_once()
+        assert os.environ["TOKEN_IQ_PLAN"] == "standard"
+        assert proxy_server.premium_user is True
 
     # Test Case 2: No environment_variables in config
     test_config_no_env_vars = {}
@@ -12520,3 +12512,15 @@ def test_the_gateway_has_no_path_that_meters_usage_to_litellm(monkeypatch):
 
     assert billable.kwargs["recorder_factory"]() is None
     assert importlib.util.find_spec("litellm.proxy.enterprise_billing") is None
+
+
+def test_gated_features_unlock_from_the_token_iq_plan_without_a_litellm_licence(monkeypatch):
+    from litellm.proxy import proxy_server
+
+    monkeypatch.delenv("LITELLM_LICENSE", raising=False)
+    monkeypatch.setattr(proxy_server, "premium_user", False)
+
+    proxy_server.ProxyConfig()._load_environment_variables({"environment_variables": {"TOKEN_IQ_PLAN": "standard"}})
+
+    assert proxy_server.token_iq_plan.name == "standard"
+    assert proxy_server.premium_user is True

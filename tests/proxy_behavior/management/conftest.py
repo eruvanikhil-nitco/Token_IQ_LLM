@@ -59,7 +59,7 @@ async def proxy_app():
     proxy_server.premium_user = True
 
     async with proxy_startup_event(app):
-        proxy_server.premium_user = True  # lifespan re-runs _license_check
+        proxy_server.premium_user = True  # lifespan re-resolves the Token IQ plan
         # The lifespan fires check_view_exists() as a background task; on a
         # fresh DB the first auth call races it and resolves user_id=None.
         if proxy_server.prisma_client is not None:

@@ -502,7 +502,7 @@ async def new_user(
     ```
     """
     try:
-        from litellm.proxy.proxy_server import _license_check, general_settings, prisma_client
+        from litellm.proxy.proxy_server import general_settings, prisma_client, token_iq_plan
 
         if prisma_client is None:
             raise HTTPException(status_code=400, detail=CommonProxyErrors.db_not_connected_error.value)
@@ -520,10 +520,13 @@ async def new_user(
 
         # Check if license is over limit
         billable_users: Final = await UserRepository(prisma_client).count_billable_users()
-        if billable_users and _license_check.is_over_limit(total_users=billable_users):
+        if billable_users and token_iq_plan.is_over_user_limit(total_users=billable_users):
             raise HTTPException(
                 status_code=403,
-                detail="License is over limit. Please contact support@berri.ai to upgrade your license.",
+                detail=(
+                    f"This installation's Token IQ plan allows {token_iq_plan.max_users} users. "
+                    "Ask your Token IQ administrator to raise the limit."
+                ),
             )
 
         # Only proxy admins can create administrative users

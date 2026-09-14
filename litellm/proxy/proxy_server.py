@@ -79,7 +79,6 @@ from litellm.proxy._types import (
     ConfigList,
     ConfigYAML,
     CoordinationRedisParams,
-    EnterpriseLicenseData,
     FieldDetail,
     InvitationClaim,
     InvitationDelete,
@@ -271,7 +270,7 @@ from litellm.proxy.auth.auth_utils import (
 )
 from litellm.proxy.auth.fallback_model_access import router_fallback_access_check
 from litellm.proxy.auth.handle_jwt import JWTHandler
-from litellm.proxy.auth.litellm_license import LicenseCheck
+from litellm.proxy.auth.token_iq_plan import PLAN_ENV, TokenIqPlan, require_plan
 from litellm.proxy.auth.model_checks import (
     expand_wildcard_deployments_for_model_info,
     get_all_fallbacks,
@@ -756,9 +755,8 @@ except ImportError:
 ###################
 
 server_root_path: Final = get_server_root_path()
-_license_check = LicenseCheck()
-premium_user: bool = _license_check.is_premium()
-premium_user_data: Optional["EnterpriseLicenseData"] = _license_check.airgapped_license_data
+token_iq_plan: TokenIqPlan = require_plan(os.environ)
+premium_user: bool = token_iq_plan.unlocks_gated_features
 global_max_parallel_request_retries_env: Final[str | None] = os.getenv("LITELLM_GLOBAL_MAX_PARALLEL_REQUEST_RETRIES")
 proxy_state: Final = ProxyState()
 SENSITIVE_DATA_MASKER: Final = SensitiveDataMasker()
@@ -986,7 +984,7 @@ async def proxy_startup_event(app: FastAPI) -> AsyncGenerator[None, None]:
         db_writer_client, \
         store_model_in_db, \
         premium_user, \
-        _license_check, \
+        token_iq_plan, \
         proxy_batch_polling_interval, \
         shared_aiohttp_session
     import json
@@ -1017,10 +1015,9 @@ async def proxy_startup_event(app: FastAPI) -> AsyncGenerator[None, None]:
                 verbose_proxy_logger.error("Worker startup hook '%s' failed: %s", _hook_spec, e)
                 raise
 
-    ## CHECK PREMIUM USER
-    verbose_proxy_logger.debug("litellm.proxy.proxy_server.py::startup() - CHECKING PREMIUM USER - %s", premium_user)
-    if premium_user is False:
-        premium_user = _license_check.is_premium()
+    ## RESOLVE THE TOKEN IQ PLAN
+    token_iq_plan = require_plan(os.environ)
+    premium_user = token_iq_plan.unlocks_gated_features
 
     ## CHECK MASTER KEY IN ENVIRONMENT ##
     master_key = get_secret_str("LITELLM_MASTER_KEY")
@@ -4956,7 +4953,7 @@ class ProxyConfig:
 
     def _load_environment_variables(self, config: dict):
         ## ENVIRONMENT VARIABLES
-        global premium_user
+        global premium_user, token_iq_plan
         environment_variables: Final = config.get("environment_variables", None)
         if environment_variables:
             for key, value in environment_variables.items():
@@ -4984,10 +4981,9 @@ class ProxyConfig:
                     #########################################################
                     os.environ[key] = str(value)
 
-            # check if litellm_license in general_settings
-            if "LITELLM_LICENSE" in environment_variables:
-                _license_check.license_str = os.getenv("LITELLM_LICENSE", None)
-                premium_user = _license_check.is_premium()
+            if PLAN_ENV in environment_variables:
+                token_iq_plan = require_plan(os.environ)
+                premium_user = token_iq_plan.unlocks_gated_features
 
     def _warn_on_misplaced_jwt_keys(self, config: dict) -> tuple[str, ...]:
         misplaced_jwt_keys = tuple(key for key in ("enable_jwt_auth", "litellm_jwtauth") if key in config)
@@ -5643,10 +5639,6 @@ class ProxyConfig:
             if general_settings.get("enforced_params") is not None and premium_user is not True:
                 raise ValueError("Trying to use `enforced_params`" + CommonProxyErrors.not_premium_user.value)
 
-            # check if litellm_license in general_settings
-            if "litellm_license" in general_settings:
-                _license_check.license_str = general_settings["litellm_license"]
-                premium_user = _license_check.is_premium()
 
         router_params: Final[dict] = {
             "cache_responses": litellm.cache is not None,  # cache if user passed in cache values

@@ -11,8 +11,8 @@ reservations, but a reservation is only enforced once the model is saturated.
   is blocked with the priority-flavored 429 while a key of a different priority,
   still inside its own reservation, is served (priority_strict.picks_under_tpm)
 
-The proxy under test must run with this config (and LITELLM_LICENSE set, since
-priority reservation is a premium feature):
+The proxy under test must run with this config, on a Token IQ plan that unlocks
+gated features, which the default `standard` plan does:
 
     litellm_settings:
       callbacks: ["dynamic_rate_limiter_v3"]

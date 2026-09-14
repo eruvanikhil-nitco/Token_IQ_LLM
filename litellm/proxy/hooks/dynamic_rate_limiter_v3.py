@@ -2,7 +2,6 @@
 Dynamic rate limiter v3 - Saturation-aware priority-based rate limiting
 """
 
-import os
 from collections.abc import Callable
 from datetime import datetime
 from typing import TYPE_CHECKING, Final, Literal
@@ -121,9 +120,11 @@ class _PROXY_DynamicRateLimitHandlerV3(CustomLogger):
         if litellm.priority_reservation is None or priority not in litellm.priority_reservation:
             verbose_proxy_logger.debug("Priority Reservation not set for the given priority.")
         elif priority is not None and litellm.priority_reservation is not None:
-            if os.getenv("LITELLM_LICENSE", None) is None:
+            from litellm.proxy.proxy_server import premium_user
+
+            if premium_user is not True:
                 verbose_proxy_logger.error(
-                    "PREMIUM FEATURE: Reserving tpm/rpm by priority is a premium feature. Please add a 'LITELLM_LICENSE' to your .env to enable this.\nGet a license: https://docs.litellm.ai/docs/proxy/enterprise."
+                    "Reserving tpm/rpm by priority is not included in this installation's Token IQ plan"
                 )
             else:
                 value: Final = litellm.priority_reservation[priority]

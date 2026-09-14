@@ -354,7 +354,6 @@ async def _drive_create(metadata, mock_sink=None):
 
     with (
         patch("litellm.proxy.proxy_server.prisma_client") as pc,
-        patch("litellm.proxy.proxy_server._license_check") as lic,
         patch("litellm.proxy.proxy_server.user_api_key_cache", MagicMock()),
         patch("litellm.proxy.proxy_server.litellm_proxy_admin_name", "admin"),
     ):
@@ -368,7 +367,6 @@ async def _drive_create(metadata, mock_sink=None):
         pc.db.litellm_teamtable.update = AsyncMock(return_value=team_row)
         pc.db.litellm_usertable.update = AsyncMock(return_value=MagicMock())
         pc.db.litellm_modeltable.create = AsyncMock(return_value=MagicMock(id="model-1"))
-        lic.is_team_count_over_limit.return_value = False
         if mock_sink is not None:
             mock_sink["team_create"] = pc.db.litellm_teamtable.create
             mock_sink["model_create"] = pc.db.litellm_modeltable.create
