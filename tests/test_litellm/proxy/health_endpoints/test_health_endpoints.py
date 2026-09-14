@@ -265,72 +265,30 @@ async def test_health_services_endpoint_sqs(status, error_message):
 
 
 @pytest.mark.asyncio
-async def test_health_license_endpoint_with_active_license():
-    license_data = {
-        "expiration_date": "2099-01-01",
-        "allowed_features": ["feature-a"],
-        "max_users": 100,
-        "max_teams": 5,
-    }
-    mock_license_check = SimpleNamespace(
-        license_str="test-license",
-        public_key=None,
-        airgapped_license_data=license_data,
-        verify_license_without_api_request=MagicMock(return_value=True),
-    )
+async def test_health_license_reports_the_installations_token_iq_plan():
+    from litellm.proxy.auth.token_iq_plan import TokenIqPlan
 
-    with (
-        patch(
-            "litellm.proxy.proxy_server._license_check",
-            mock_license_check,
-        ),
-        patch(
-            "litellm.proxy.proxy_server.premium_user",
-            True,
-        ),
-        patch(
-            "litellm.proxy.proxy_server.premium_user_data",
-            license_data,
-        ),
-    ):
+    growth = TokenIqPlan(name="growth", unlocks_gated_features=True, max_users=50, max_teams=4)
+    with patch("litellm.proxy.proxy_server.token_iq_plan", growth):
         response = await health_license_endpoint(user_api_key_dict=MagicMock())
 
-    assert response["has_license"] is True
-    assert response["license_type"] == "enterprise"
-    assert response["expiration_date"] == "2099-01-01"
-    assert response["allowed_features"] == ["feature-a"]
-    assert response["limits"] == {"max_users": 100, "max_teams": 5}
+    assert response == {
+        "has_license": True,
+        "license_type": "growth",
+        "expiration_date": None,
+        "allowed_features": [],
+        "limits": {"max_users": 50, "max_teams": 4},
+    }
 
 
 @pytest.mark.asyncio
-async def test_health_license_endpoint_without_valid_license():
-    mock_license_check = SimpleNamespace(
-        license_str="invalid-key",
-        public_key=None,
-        airgapped_license_data=None,
-        verify_license_without_api_request=MagicMock(return_value=False),
-    )
+async def test_health_license_shows_no_caps_on_the_standard_plan():
+    from litellm.proxy.auth.token_iq_plan import PLANS
 
-    with (
-        patch(
-            "litellm.proxy.proxy_server._license_check",
-            mock_license_check,
-        ),
-        patch(
-            "litellm.proxy.proxy_server.premium_user",
-            False,
-        ),
-        patch(
-            "litellm.proxy.proxy_server.premium_user_data",
-            None,
-        ),
-    ):
+    with patch("litellm.proxy.proxy_server.token_iq_plan", PLANS["standard"]):
         response = await health_license_endpoint(user_api_key_dict=MagicMock())
 
-    assert response["has_license"] is True
-    assert response["license_type"] == "community"
-    assert response["expiration_date"] is None
-    assert response["allowed_features"] == []
+    assert response["license_type"] == "standard"
     assert response["limits"] == {"max_users": None, "max_teams": None}
 
 

@@ -8,7 +8,7 @@ import time
 import traceback
 from collections.abc import Iterable, Mapping
 from datetime import datetime, timedelta
-from typing import Any, Final, Literal, TypedDict, cast
+from typing import Any, Final, Literal, TypedDict
 
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
@@ -27,7 +27,6 @@ from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler
 from litellm.proxy._types import (
     AlertType,
     CallInfo,
-    EnterpriseLicenseData,
     Litellm_EntityType,
     LitellmUserRoles,
     ProxyErrorTypes,
@@ -1288,40 +1287,6 @@ async def shared_health_check_status_endpoint(
         )
 
 
-def _read_license_data() -> dict[str, Any] | None:
-    from litellm.proxy.proxy_server import _license_check, premium_user_data
-
-    license_data: EnterpriseLicenseData | None = premium_user_data or _license_check.airgapped_license_data
-
-    if (
-        license_data is None
-        and getattr(_license_check, "license_str", None)
-        and getattr(_license_check, "public_key", None)
-    ):
-        try:
-            verification_result: Final = _license_check.verify_license_without_api_request(
-                public_key=_license_check.public_key,
-                license_key=_license_check.license_str,
-            )
-            if verification_result is True:
-                license_data = _license_check.airgapped_license_data
-        except Exception:
-            pass
-
-    if license_data is None:
-        return None
-    return cast(dict[str, Any], license_data)
-
-
-def _read_allowed_features(license_data: dict[str, Any]) -> list:
-    raw_allowed_features: Final = license_data.get("allowed_features")
-    if isinstance(raw_allowed_features, list):
-        return list(raw_allowed_features)
-    if raw_allowed_features is None:
-        return []
-    return [raw_allowed_features]
-
-
 @router.get(
     "/health/license",
     tags=["health"],
@@ -1330,38 +1295,15 @@ def _read_allowed_features(license_data: dict[str, Any]) -> list:
 async def health_license_endpoint(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ):
-    """Return metadata about the configured LiteLLM license without exposing the key."""
-    from litellm.proxy.proxy_server import _license_check, premium_user
-
-    license_data: Final = _read_license_data()
-    has_license: Final = bool(getattr(_license_check, "license_str", None))
-    license_type: Final = "enterprise" if premium_user else "community"
-
-    if license_data is None:
-        return {
-            "has_license": has_license,
-            "license_type": license_type,
-            "expiration_date": None,
-            "allowed_features": [],
-            "limits": {
-                "max_users": None,
-                "max_teams": None,
-            },
-        }
-
-    expiration_date: Final = license_data.get("expiration_date")
-    max_users: Final = license_data.get("max_users")
-    max_teams: Final = license_data.get("max_teams")
+    """The installation's Token IQ plan, in the shape the dashboard's plan card reads."""
+    from litellm.proxy.proxy_server import token_iq_plan
 
     return {
-        "has_license": has_license,
-        "license_type": license_type,
-        "expiration_date": expiration_date,
-        "allowed_features": _read_allowed_features(license_data),
-        "limits": {
-            "max_users": max_users,
-            "max_teams": max_teams,
-        },
+        "has_license": True,
+        "license_type": token_iq_plan.name,
+        "expiration_date": None,
+        "allowed_features": [],
+        "limits": {"max_users": token_iq_plan.max_users, "max_teams": token_iq_plan.max_teams},
     }
 
 
