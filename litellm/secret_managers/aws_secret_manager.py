@@ -15,7 +15,7 @@ import re
 from typing import Any, Final
 
 import litellm
-from litellm.proxy._types import KeyManagementSystem
+from litellm.proxy._types import CommonProxyErrors, KeyManagementSystem
 
 
 def validate_environment():
@@ -56,18 +56,10 @@ class AWSKeyManagementService_V2:
         if "AWS_REGION_NAME" not in os.environ:
             raise ValueError("Missing required environment variable - AWS_REGION_NAME")
 
-        ## CHECK IF LICENSE IN ENV ## - premium feature
-        is_litellm_license_in_env: bool = False
+        from litellm.proxy.proxy_server import premium_user
 
-        if (
-            os.getenv("LITELLM_LICENSE", None) is not None
-            or os.getenv("LITELLM_SECRET_AWS_KMS_LITELLM_LICENSE", None) is not None
-        ):
-            is_litellm_license_in_env = True
-        if is_litellm_license_in_env is False:
-            raise ValueError(
-                "AWSKeyManagementService V2 is an Enterprise Feature. Please add a valid LITELLM_LICENSE to your envionment."
-            )
+        if premium_user is not True:
+            raise ValueError(f"AWS Key Management Service V2: {CommonProxyErrors.not_premium_user.value}")
 
     def load_aws_kms(self, use_aws_kms: bool | None):
         if use_aws_kms is None or use_aws_kms is False:

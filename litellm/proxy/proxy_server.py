@@ -5573,9 +5573,7 @@ class ProxyConfig:
             ### ALLOWED IP ###
             allowed_ips: Final = general_settings.get("allowed_ips", None)
             if allowed_ips is not None and premium_user is False:
-                raise ValueError(
-                    "allowed_ips is an Enterprise Feature. Please add a valid LITELLM_LICENSE to your envionment."
-                )
+                raise ValueError(f"allowed_ips: {CommonProxyErrors.not_premium_user.value}")
             ## BUDGET RESCHEDULER ##
             proxy_budget_rescheduler_min_time = general_settings.get(
                 "proxy_budget_rescheduler_min_time", proxy_budget_rescheduler_min_time
