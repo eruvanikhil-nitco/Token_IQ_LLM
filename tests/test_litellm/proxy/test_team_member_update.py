@@ -18,7 +18,7 @@ from litellm.proxy.management_endpoints.team_endpoints import team_member_update
 
 
 @pytest.mark.asyncio
-async def test_ateam_member_update_admin_requires_premium(monkeypatch):
+async def test_assigning_a_team_admin_off_plan_names_the_token_iq_plan(monkeypatch):
     # Arrange: patch prisma_client and premium_user
     monkeypatch.setattr(proxy_server, "prisma_client", object())
     monkeypatch.setattr(proxy_server, "premium_user", False)
@@ -42,12 +42,8 @@ async def test_ateam_member_update_admin_requires_premium(monkeypatch):
         await team_member_update(data, request, auth)
 
     assert exc_info.value.status_code == 400
-    expected_msg = (
-        "Assigning team admins is a premium feature. You must be a LiteLLM Enterprise user to use this feature. "
-        "If you have a license please set `LITELLM_LICENSE` in your env. Get a 7 day trial key here: https://www.litellm.ai/#trial. "
-        "Pricing: https://www.litellm.ai/#pricing"
-    )
-    assert exc_info.value.detail == expected_msg
+    assert exc_info.value.detail == "Assigning team admins: This feature is not included in this installation's Token IQ plan."
+    assert "LiteLLM" not in exc_info.value.detail
 
 
 @pytest.fixture

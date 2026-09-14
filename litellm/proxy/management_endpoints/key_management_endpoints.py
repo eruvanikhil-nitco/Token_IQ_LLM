@@ -3930,7 +3930,7 @@ def _check_model_access_group(models: list[str] | None, llm_router: Router | Non
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail={
-                        "error": f"Setting a model access group on a wildcard model is only available for LiteLLM Enterprise users.{CommonProxyErrors.not_premium_user.value}"
+                        "error": f"Setting a model access group on a wildcard model: {CommonProxyErrors.not_premium_user.value}"
                     },
                 )
 

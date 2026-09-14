@@ -9006,3 +9006,28 @@ class TestSessionTokenCookie:
         resp = Response()
         set_session_token_cookie(resp, _make_http_request(), "jwt-token-value")
         assert "Secure" in self._cookie(resp)
+
+
+@pytest.mark.asyncio
+async def test_sso_beyond_the_free_user_count_names_the_token_iq_plan():
+    from litellm.proxy._types import ProxyException
+    from litellm.proxy.management_endpoints.ui_sso import _raise_if_sso_exceeds_free_user_limit
+
+    repository = MagicMock()
+    repository.return_value.count_billable_users = AsyncMock(return_value=6)
+    with patch("litellm.proxy.management_endpoints.ui_sso.UserRepository", repository):
+        with pytest.raises(ProxyException) as refused:
+            await _raise_if_sso_exceeds_free_user_limit(premium_user=False, prisma_client=MagicMock())
+
+    assert "Token IQ plan" in refused.value.message
+    assert "LiteLLM" not in refused.value.message
+    assert "litellm.ai" not in refused.value.message
+
+
+def test_plan_refusals_never_send_customers_to_litellm():
+    from litellm.proxy._types import CommonProxyErrors
+
+    for message in (CommonProxyErrors.not_premium_user.value, CommonProxyErrors.missing_enterprise_package.value):
+        assert "LiteLLM" not in message
+        assert "LITELLM_LICENSE" not in message
+        assert "litellm.ai" not in message
