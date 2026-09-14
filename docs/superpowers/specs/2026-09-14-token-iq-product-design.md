@@ -62,9 +62,9 @@ Some features are MIT code switched off by a licence check, and Token IQ's plan 
 | Google Secret Manager | Credential storage |
 | Spend report, fine-tuning endpoints, priority rate limit reservation | Gateway features |
 
-Other features lived only in the deleted enterprise folder, so they must be rebuilt from scratch if Token IQ wants them: email alerts over SMTP, SendGrid and Resend, PagerDuty alerts, secret detection and hiding, Llama Guard, LLM Guard, banned keywords, blocked user lists, OpenAI and Google moderation, Aporia, callback controls, managed file and batch access checks, **audit log endpoints**, and a custom SSO handler
+Other features lived only in the deleted enterprise folder, so they must be rebuilt from scratch if Token IQ wants them: email alerts over SMTP, SendGrid and Resend, PagerDuty alerts, secret detection and hiding, Llama Guard, LLM Guard, banned keywords, blocked user lists, OpenAI and Google moderation, Aporia, callback controls, managed file and batch access checks, the original audit log endpoints, and a custom SSO handler
 
-The Audit Log tabs in Admin Settings and Logs are kept in the navigation, but their backend was in the deleted code and they probably show nothing today. Phase 0 confirms this and plans the rebuild
+The audit trail itself survives. Admin Settings / Audit Log already works, because it reads `/audit/list`, a fresh implementation added on 2026-09-10 that is not based on enterprise code. The Logs page's Audit Logs tab still calls the deleted `/audit` route and shows nothing, and `/audit/list` checks no role, so organisation admins can read the whole installation's trail. Phase 0 fixes both
 
 ## The counting rule
 
@@ -97,7 +97,9 @@ Token IQ cannot embed a provider's real dashboard, because those pages need the 
 
 ### User tools
 
-Claude Code and GitHub Copilot come first, followed by ChatGPT and Codex and then Cursor. Nothing is promised per user until research confirms, for each tool, whether per-person usage or cost exists, which plan it needs, how detailed it is and how late it arrives. Personal subscriptions paid through expenses are invisible to every API
+What each tool exposes is researched in `docs/superpowers/specs/2026-09-14-user-tools-data-research.md`. Per-user cost is documented for Claude and Cursor, available for GitHub Copilot as seat fees plus billed AI credits with a caveat for enterprise-owned organizations, and unverified for ChatGPT and Codex until a real Enterprise admin account confirms OpenAI's Cost API. Every tool requires a business or enterprise plan, and personal subscriptions paid through expenses are invisible to every API
+
+Claude Code and GitHub Copilot were chosen first. The research recommends building Claude first, then Cursor, then Copilot once its billing caveat is checked, then ChatGPT and Codex
 
 ### Credentials
 
@@ -294,7 +296,7 @@ Business recommendations cover unused seats to reclaim, spend escaping the gatew
 
 ## Phases
 
-**Phase 0, product readiness.** Token IQ's own plan system replacing LiteLLM licence checks, starting with team admins. Docker images that build from a clean checkout and a deployment pipeline for customer installations. Confirmation of whether the Audit Log tabs work, and a rebuild plan if they do not. Rebranding of the remaining customer-visible LiteLLM text. Done when a fresh installation builds, deploys and lets a team admin be assigned without a LiteLLM licence
+**Phase 0, product readiness.** Token IQ's own plan system replacing LiteLLM licence checks, starting with team admins. Docker images that build from a clean checkout and a deployment pipeline for customer installations. The Logs page Audit Logs tab moved onto the working audit trail, with the audit endpoint limited to admins. Rebranding of the remaining customer-visible LiteLLM text. Done when a fresh installation builds, deploys and lets a team admin be assigned without a LiteLLM licence. The work is planned in `docs/superpowers/plans/2026-09-14-token-iq-plan-system.md` and `docs/superpowers/plans/2026-09-14-release-readiness.md`, and deployment waits on the choice of cloud provider
 
 **Phase 1, organisation and navigation.** Projects switched on, without the Beta label and open to team admins, with spend and budget columns and the daily report connected. New Projects and Budget tabs on teams. Users renamed. The full sidebar reorganisation with redirects. Project added to the Gateway view picker. Done when every existing page and tab is reachable in its new place and every old address redirects
 
@@ -329,7 +331,7 @@ Business recommendations cover unused seats to reclaim, spend escaping the gatew
 
 ## Open questions
 
-1. What per-user data each user tool exposes, answered by the Phase 4 research report
+1. The four questions only a real account can answer, listed at the end of the user tools research
 2. The outcome of the legal review of the licensing position
 3. The tiers of Token IQ's plan system and which features each includes
 4. Which invoice formats finance will upload
