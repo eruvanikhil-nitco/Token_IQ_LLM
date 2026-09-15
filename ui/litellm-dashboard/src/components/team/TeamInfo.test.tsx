@@ -121,6 +121,10 @@ vi.mock("@/components/team/member_permissions", () => ({
   default: vi.fn(() => <div>Member Permissions</div>),
 }));
 
+vi.mock("@/components/team/TeamProjectsTab", () => ({
+  default: ({ teamId }: { teamId: string }) => <div data-testid="team-projects-tab">{teamId}</div>,
+}));
+
 vi.mock("@/components/common_components/ModelAliasManager", () => ({
   default: vi.fn(({ initialModelAliases, onAliasUpdate }) => (
     <div>
@@ -470,6 +474,29 @@ describe("TeamInfoView", () => {
       await waitFor(() => {
         expect(screen.getByRole("tab", { name: "Virtual Keys" })).toBeInTheDocument();
       });
+    });
+
+    it("adds Projects and Budget tabs before Settings for someone who can edit the team", async () => {
+      vi.mocked(networking.teamInfoCall).mockResolvedValue(createMockTeamData({ max_budget: 100, spend: 25 }));
+
+      renderWithProviders(<TeamInfoView {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByRole("tab", { name: "Projects" })).toBeInTheDocument();
+      });
+      expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual([
+        "Overview",
+        "My User",
+        "Virtual Keys",
+        "Members",
+        "Member Permissions",
+        "Projects",
+        "Budget",
+        "Settings",
+      ]);
+
+      await userEvent.setup({ delay: null }).click(screen.getByRole("tab", { name: "Budget" }));
+      expect(await screen.findByText("of $100.00 budget")).toBeInTheDocument();
     });
 
     it("should display object permissions when present", async () => {

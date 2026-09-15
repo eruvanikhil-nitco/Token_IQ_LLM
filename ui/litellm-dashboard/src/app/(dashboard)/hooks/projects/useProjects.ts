@@ -46,9 +46,10 @@ export const projectReaderRoles = [...all_admin_roles, ...internalUserRoles];
 
 // ── Fetch function ───────────────────────────────────────────────────────────
 
-const fetchProjects = async (accessToken: string): Promise<ProjectResponse[]> => {
+const fetchProjects = async (accessToken: string, teamId?: string): Promise<ProjectResponse[]> => {
   const baseUrl = getProxyBaseUrl();
-  const url = `${baseUrl}/project/list`;
+  const teamQuery = teamId ? `?team_id=${encodeURIComponent(teamId)}` : "";
+  const url = `${baseUrl}/project/list${teamQuery}`;
 
   const response = await fetch(url, {
     method: "GET",
@@ -77,5 +78,15 @@ export const useProjects = () => {
     queryKey: projectKeys.list({}),
     queryFn: async () => fetchProjects(accessToken!),
     enabled: Boolean(accessToken) && projectReaderRoles.includes(userRole!),
+  });
+};
+
+export const useTeamProjects = (teamId: string) => {
+  const { accessToken, userRole } = useAuthorized();
+
+  return useQuery<ProjectResponse[]>({
+    queryKey: projectKeys.list({ filters: { team_id: teamId } }),
+    queryFn: async () => fetchProjects(accessToken!, teamId),
+    enabled: Boolean(accessToken && teamId) && projectReaderRoles.includes(userRole ?? ""),
   });
 };

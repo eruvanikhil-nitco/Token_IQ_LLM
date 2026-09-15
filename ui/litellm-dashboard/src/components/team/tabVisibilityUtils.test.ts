@@ -15,24 +15,31 @@ describe("team_info_tabs", () => {
       expect(TEAM_INFO_TAB_LABELS[TEAM_INFO_TAB_KEYS.VIRTUAL_KEYS]).toBe("Virtual Keys");
       expect(TEAM_INFO_TAB_LABELS[TEAM_INFO_TAB_KEYS.MEMBERS]).toBe("Members");
       expect(TEAM_INFO_TAB_LABELS[TEAM_INFO_TAB_KEYS.MEMBER_PERMISSIONS]).toBe("Member Permissions");
+      expect(TEAM_INFO_TAB_LABELS[TEAM_INFO_TAB_KEYS.PROJECTS]).toBe("Projects");
+      expect(TEAM_INFO_TAB_LABELS[TEAM_INFO_TAB_KEYS.BUDGET]).toBe("Budget");
       expect(TEAM_INFO_TAB_LABELS[TEAM_INFO_TAB_KEYS.SETTINGS]).toBe("Settings");
     });
   });
 
   describe("getTeamInfoVisibleTabs", () => {
-    it("returns overview, my user, and virtual keys when user cannot edit team", () => {
-      const tabs = getTeamInfoVisibleTabs(false);
-      expect(tabs).toEqual([TEAM_INFO_TAB_KEYS.OVERVIEW, TEAM_INFO_TAB_KEYS.MY_USER, TEAM_INFO_TAB_KEYS.VIRTUAL_KEYS]);
+    it("returns overview, my user, virtual keys and budget when user cannot edit team", () => {
+      expect(getTeamInfoVisibleTabs(false)).toEqual([
+        TEAM_INFO_TAB_KEYS.OVERVIEW,
+        TEAM_INFO_TAB_KEYS.MY_USER,
+        TEAM_INFO_TAB_KEYS.VIRTUAL_KEYS,
+        TEAM_INFO_TAB_KEYS.BUDGET,
+      ]);
     });
 
-    it("returns all tabs when user can edit team", () => {
-      const tabs = getTeamInfoVisibleTabs(true);
-      expect(tabs).toEqual([
+    it("returns all tabs, with projects and budget before settings, when user can edit team", () => {
+      expect(getTeamInfoVisibleTabs(true)).toEqual([
         TEAM_INFO_TAB_KEYS.OVERVIEW,
         TEAM_INFO_TAB_KEYS.MY_USER,
         TEAM_INFO_TAB_KEYS.VIRTUAL_KEYS,
         TEAM_INFO_TAB_KEYS.MEMBERS,
         TEAM_INFO_TAB_KEYS.MEMBER_PERMISSIONS,
+        TEAM_INFO_TAB_KEYS.PROJECTS,
+        TEAM_INFO_TAB_KEYS.BUDGET,
         TEAM_INFO_TAB_KEYS.SETTINGS,
       ]);
     });
@@ -91,6 +98,16 @@ describe("team_info_tabs", () => {
 
     it("returns true for settings tab when user can edit", () => {
       expect(isTeamInfoTabVisible(TEAM_INFO_TAB_KEYS.SETTINGS, true)).toBe(true);
+    });
+
+    it("shows projects only to someone who can edit the team, since the list carries spend", () => {
+      expect(isTeamInfoTabVisible(TEAM_INFO_TAB_KEYS.PROJECTS, false)).toBe(false);
+      expect(isTeamInfoTabVisible(TEAM_INFO_TAB_KEYS.PROJECTS, true)).toBe(true);
+    });
+
+    it("always shows budget, which the overview already shows to every member", () => {
+      expect(isTeamInfoTabVisible(TEAM_INFO_TAB_KEYS.BUDGET, false)).toBe(true);
+      expect(isTeamInfoTabVisible(TEAM_INFO_TAB_KEYS.BUDGET, true)).toBe(true);
     });
   });
 });

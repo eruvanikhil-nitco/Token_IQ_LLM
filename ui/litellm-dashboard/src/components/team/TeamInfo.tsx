@@ -84,7 +84,9 @@ import RouterSettingsAccordion, { RouterSettingsAccordionRef } from "../common_c
 import MemberModal from "./EditMembership";
 import MemberPermissions from "./member_permissions";
 import MyUserTab from "./MyUserTab";
+import TeamBudgetTab from "@/components/team/TeamBudgetTab";
 import TeamCourierModeCard from "./TeamCourierModeCard";
+import TeamProjectsTab from "@/components/team/TeamProjectsTab";
 import {
   getTeamInfoDefaultTab,
   getTeamInfoVisibleTabs,
@@ -1112,6 +1114,24 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
       key: TEAM_INFO_TAB_KEYS.MEMBER_PERMISSIONS,
       label: TEAM_INFO_TAB_LABELS[TEAM_INFO_TAB_KEYS.MEMBER_PERMISSIONS],
       children: <MemberPermissions teamId={teamId} accessToken={accessToken} canEditTeam={canEditTeam} />,
+    },
+    {
+      key: TEAM_INFO_TAB_KEYS.PROJECTS,
+      label: TEAM_INFO_TAB_LABELS[TEAM_INFO_TAB_KEYS.PROJECTS],
+      children: <TeamProjectsTab teamId={teamId} />,
+    },
+    {
+      key: TEAM_INFO_TAB_KEYS.BUDGET,
+      label: TEAM_INFO_TAB_LABELS[TEAM_INFO_TAB_KEYS.BUDGET],
+      children: (
+        <TeamBudgetTab
+          spend={info.spend}
+          maxBudget={info.max_budget}
+          budgetDuration={info.budget_duration}
+          budgetResetAt={info.budget_reset_at}
+          memberBudget={info.team_member_budget_table}
+        />
+      ),
     },
     {
       key: TEAM_INFO_TAB_KEYS.SETTINGS,
