@@ -884,7 +884,7 @@ async def _resolve_group_member_ids(
         raise HTTPException(
             status_code=400,
             detail={
-                "error": f"Member ID '{partition.ambiguous_values[0]}' names more than one LiteLLM user, so the "
+                "error": f"Member ID '{partition.ambiguous_values[0]}' names more than one Token IQ user, so the "
                 "group membership cannot be attributed. Resolve the duplicate, which for an id that also matches a "
                 "SCIM-provisioned placeholder means deleting that placeholder."
             },

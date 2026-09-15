@@ -2351,7 +2351,7 @@ async def apply_guardrail(
         if active_guardrail is None:
             raise HTTPException(
                 status_code=404,
-                detail=f"Guardrail '{request.guardrail_name}' not found. Please ensure the guardrail is configured in your LiteLLM proxy.",
+                detail=f"Guardrail '{request.guardrail_name}' not found. Please ensure the guardrail is configured in Token IQ.",
             )
 
         request_processor: Final = ProxyBaseLLMRequestProcessing(data=data)

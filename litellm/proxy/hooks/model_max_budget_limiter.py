@@ -323,7 +323,7 @@ class _PROXY_VirtualKeyModelMaxBudgetLimiter(RouterBudgetLimiting):
             entity_id=user_id,
             model_max_budget=user_model_max_budget,
             model=model,
-            exceeded_message=f"LiteLLM User: {user_id}, exceeded budget for model={model}",
+            exceeded_message=f"User {user_id} exceeded their budget for model={model}",
         )
 
     async def is_end_user_within_model_budget(
@@ -343,7 +343,7 @@ class _PROXY_VirtualKeyModelMaxBudgetLimiter(RouterBudgetLimiting):
             entity_id=end_user_id,
             model_max_budget=end_user_model_max_budget,
             model=model,
-            exceeded_message=f"LiteLLM End User: {end_user_id}, exceeded budget for model={model}",
+            exceeded_message=f"End user {end_user_id} exceeded their budget for model={model}",
         )
 
     async def _is_entity_within_model_budget(

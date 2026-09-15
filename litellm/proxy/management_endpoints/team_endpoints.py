@@ -1358,7 +1358,7 @@ async def new_team(
                 raise HTTPException(
                     status_code=400,
                     detail={
-                        "error": f"team_id '{UI_TEAM_ID}' is reserved for LiteLLM UI dashboard sessions and cannot be used for a real team. Please use a different team id."
+                        "error": f"team_id '{UI_TEAM_ID}' is reserved for Token IQ dashboard sessions and cannot be used for a real team. Please use a different team id."
                     },
                 )
             # Check if team_id exists already

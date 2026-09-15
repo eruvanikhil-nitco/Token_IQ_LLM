@@ -988,7 +988,7 @@ async def cancel_batch(
             if model_id_from_batch is None:
                 raise HTTPException(
                     status_code=400,
-                    detail={"error": "Invalid LiteLLM managed batch ID. Missing model_id."},
+                    detail={"error": "Invalid managed batch ID. Missing model_id."},
                 )
             data["model"] = model_id_from_batch
             data["batch_id"] = get_batch_id_from_unified_batch_id(unified_batch_id)

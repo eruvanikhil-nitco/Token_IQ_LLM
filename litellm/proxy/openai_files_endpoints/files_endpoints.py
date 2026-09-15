@@ -894,7 +894,7 @@ async def get_file_content(
             if is_managed_cloud_storage_uri(file_id):
                 raise HTTPException(
                     status_code=400,
-                    detail="Raw cloud storage file ids cannot be retrieved directly. Use the LiteLLM managed file id returned when the file was created.",
+                    detail="Raw cloud storage file ids cannot be retrieved directly. Use the managed file id returned when the file was created.",
                 )
             # Check for model-based credential routing
             (

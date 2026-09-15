@@ -129,7 +129,7 @@ class _PROXY_MaxParallelRequestsHandler(CustomLogger):
             requested_model: Final = data.get("model") if data else None
             resolved_model, llm_provider = resolve_llm_provider_for_rate_limit(requested_model)
             raise ProxyRateLimitError(
-                detail=f"LiteLLM Rate Limit Handler for rate limit type = {rate_limit_type}. {CommonProxyErrors.max_parallel_request_limit_reached.value}. current rpm: {current['current_rpm']}, rpm limit: {rpm_limit}, current tpm: {current['current_tpm']}, tpm limit: {tpm_limit}, current max_parallel_requests: {current['current_requests']}, max_parallel_requests: {max_parallel_requests}",
+                detail=f"Rate limit reached for rate limit type = {rate_limit_type}. {CommonProxyErrors.max_parallel_request_limit_reached.value}. current rpm: {current['current_rpm']}, rpm limit: {rpm_limit}, current tpm: {current['current_tpm']}, tpm limit: {tpm_limit}, current max_parallel_requests: {current['current_requests']}, max_parallel_requests: {max_parallel_requests}",
                 headers={"retry-after": str(self.time_to_next_minute())},
                 rate_limit_type=triggered_type,
                 model=resolved_model,

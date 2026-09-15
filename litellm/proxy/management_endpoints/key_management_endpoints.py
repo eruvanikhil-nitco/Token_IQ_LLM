@@ -1244,14 +1244,14 @@ async def _common_key_generation_helper(
         _masked: Final = f"{data.key[:4]}****{data.key[-4:]}" if len(data.key) > 8 else "****"
         raise HTTPException(
             status_code=400,
-            detail={"error": f"Invalid key format. LiteLLM Virtual Key must start with 'sk-'. Received: {_masked}"},
+            detail={"error": f"Invalid key format. A virtual key must start with 'sk-'. Received: {_masked}"},
         )
 
     if data.key is not None and len(data.key) < MINIMUM_CUSTOM_KEY_LENGTH:
         raise HTTPException(
             status_code=400,
             detail={
-                "error": f"Invalid key format. LiteLLM Virtual Key must be at least {MINIMUM_CUSTOM_KEY_LENGTH} characters long."
+                "error": f"Invalid key format. A virtual key must be at least {MINIMUM_CUSTOM_KEY_LENGTH} characters long."
             },
         )
 

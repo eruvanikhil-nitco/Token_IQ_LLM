@@ -91,7 +91,7 @@ class TestKeyMaskingInKeyManagement:
             else "****"
         )
 
-        error_msg = f"Invalid key format. LiteLLM Virtual Key must start with 'sk-'. Received: {_masked}"
+        error_msg = f"Invalid key format. A virtual key must start with 'sk-'. Received: {_masked}"
 
         # Full key must not appear
         assert key_value not in error_msg

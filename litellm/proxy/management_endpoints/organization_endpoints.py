@@ -1293,7 +1293,7 @@ async def find_member_if_email(user_email: str, prisma_client: PrismaClient) -> 
     not_unique_user_email_error: Final = HTTPException(
         status_code=400,
         detail={
-            "error": f"Unique user not found for user_email={user_email}. Potential duplicate OR non-existent user_email in LiteLLM_UserTable. Use 'user_id' instead."
+            "error": f"Unique user not found for user_email={user_email}. Potential duplicate OR non-existent user_email. Use 'user_id' instead."
         },
     )
     try:

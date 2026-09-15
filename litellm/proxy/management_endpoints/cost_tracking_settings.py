@@ -220,7 +220,7 @@ async def update_cost_discount_config(
         raise HTTPException(
             status_code=400,
             detail={
-                "error": f"Invalid provider(s): {', '.join(invalid_providers)}. Must be valid LiteLLM providers. See https://docs.litellm.ai/docs/providers for the full list."
+                "error": f"Invalid provider(s): {', '.join(invalid_providers)}. Must be providers Token IQ supports."
             },
         )
 
@@ -358,7 +358,7 @@ async def update_cost_margin_config(
         raise HTTPException(
             status_code=400,
             detail={
-                "error": f"Invalid provider(s): {', '.join(invalid_providers)}. Must be valid LiteLLM providers or 'global'. See https://docs.litellm.ai/docs/providers for the full list."
+                "error": f"Invalid provider(s): {', '.join(invalid_providers)}. Must be providers Token IQ supports, or 'global'."
             },
         )
 

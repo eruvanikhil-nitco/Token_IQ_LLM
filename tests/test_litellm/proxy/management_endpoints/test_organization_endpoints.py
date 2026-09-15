@@ -1060,6 +1060,6 @@ async def test_find_member_if_email_missing_row_raises_documented_400():
     assert exc_info.value.detail == {
         "error": (
             "Unique user not found for user_email=missing@example.com. Potential duplicate OR "
-            "non-existent user_email in LiteLLM_UserTable. Use 'user_id' instead."
+            "non-existent user_email. Use 'user_id' instead."
         )
     }
