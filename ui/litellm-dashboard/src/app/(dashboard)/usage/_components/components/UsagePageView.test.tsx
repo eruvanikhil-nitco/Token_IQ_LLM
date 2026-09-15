@@ -78,6 +78,7 @@ vi.mock("./UsageViewSelect/UsageViewSelect", async () => {
       },
       React.createElement("option", { value: "global" }, "Global Usage"),
       React.createElement("option", { value: "team" }, "Team Usage"),
+      React.createElement("option", { value: "project" }, "Project Usage"),
       React.createElement("option", { value: "organization" }, "Organization Usage"),
       React.createElement("option", { value: "customer" }, "Customer Usage"),
       tagOption,
@@ -154,6 +155,15 @@ vi.mock("@/app/(dashboard)/hooks/users/useCurrentUser", () => ({
 vi.mock("@/app/(dashboard)/hooks/users/useUsers", () => ({
   useInfiniteUsers: vi.fn(),
   useUserLookup: vi.fn(() => ({ data: null })),
+}));
+
+vi.mock("@/app/(dashboard)/hooks/projects/useProjects", () => ({
+  useProjects: vi.fn(() => ({
+    data: [
+      { project_id: "proj-1", project_alias: "Search" },
+      { project_id: "proj-2", project_alias: null },
+    ],
+  })),
 }));
 
 describe("UsagePage", () => {
@@ -644,6 +654,24 @@ describe("UsagePage", () => {
     });
 
     expect(screen.getByTestId("entity-usage")).toHaveAttribute("data-entity-list", "[]");
+  });
+
+  it("shows project usage with the caller's projects to filter by", async () => {
+    renderWithProviders(<UsagePage {...defaultProps} />);
+
+    act(() => {
+      fireEvent.change(screen.getByTestId("usage-view-select"), { target: { value: "project" } });
+    });
+
+    const entityUsage = await screen.findByTestId("entity-usage");
+    expect(entityUsage).toHaveAttribute("data-entity-type", "project");
+    expect(entityUsage).toHaveAttribute(
+      "data-entity-list",
+      JSON.stringify([
+        { label: "Search", value: "proj-1" },
+        { label: "proj-2", value: "proj-2" },
+      ]),
+    );
   });
 
   it("should show tag usage selector option for internal users", async () => {

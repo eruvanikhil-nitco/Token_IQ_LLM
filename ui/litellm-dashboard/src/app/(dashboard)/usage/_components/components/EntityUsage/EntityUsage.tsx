@@ -30,6 +30,7 @@ import {
   agentDailyActivityCall,
   customerDailyActivityCall,
   organizationDailyActivityCall,
+  projectDailyActivityCall,
   tagDailyActivityCall,
   teamDailyActivityAggregatedCall,
   teamDailyActivityCall,
@@ -91,6 +92,7 @@ interface EntityUsageProps {
 const ENTITY_FETCH_FNS: Record<EntityType, (...args: any[]) => Promise<any>> = {
   tag: tagDailyActivityCall,
   team: teamDailyActivityCall,
+  project: projectDailyActivityCall,
   organization: organizationDailyActivityCall,
   customer: customerDailyActivityCall,
   agent: agentDailyActivityCall,

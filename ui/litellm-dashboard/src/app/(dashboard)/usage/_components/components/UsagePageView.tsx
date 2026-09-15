@@ -20,6 +20,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 
 import { useAgents } from "@/app/(dashboard)/hooks/agents/useAgents";
 import { useCustomers } from "@/app/(dashboard)/hooks/customers/useCustomers";
+import { useProjects } from "@/app/(dashboard)/hooks/projects/useProjects";
 import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
 import useIsOrgAdmin from "@/app/(dashboard)/hooks/useIsOrgAdmin";
 import { useCurrentUser } from "@/app/(dashboard)/hooks/users/useCurrentUser";
@@ -101,6 +102,7 @@ const UsagePage: React.FC<UsagePageProps> = ({ teams, organizations }) => {
   // filter reads as loading rather than as a range with no customers.
   const { data: customers } = useCustomers();
   const { data: agentsResponse } = useAgents();
+  const { data: projects } = useProjects();
   const { data: currentUser } = useCurrentUser();
   const isAdmin = all_admin_roles.includes(userRole || "");
   const canViewTagUsage = isAdmin || internalUserRoles.includes(userRole || "");
@@ -924,6 +926,24 @@ const UsagePage: React.FC<UsagePageProps> = ({ teams, organizations }) => {
                   label: team.team_alias,
                   value: team.team_id,
                 })) || null
+              }
+              premiumUser={premiumUser}
+              dateValue={dateValue}
+            />
+          )}
+
+          {/* Project Usage Panel */}
+          {usageView === "project" && (
+            <EntityUsage
+              accessToken={accessToken}
+              entityType="project"
+              userID={userID}
+              userRole={userRole}
+              entityList={
+                projects?.map((project) => ({
+                  label: project.project_alias ?? project.project_id,
+                  value: project.project_id,
+                })) ?? null
               }
               premiumUser={premiumUser}
               dateValue={dateValue}

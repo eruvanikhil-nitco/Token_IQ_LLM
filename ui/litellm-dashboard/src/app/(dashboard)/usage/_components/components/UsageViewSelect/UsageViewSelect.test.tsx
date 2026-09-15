@@ -105,4 +105,22 @@ describe("UsageViewSelect", () => {
     await openMenu(user);
     expect(offers(container, optionName)).toBe(true);
   });
+
+  it("offers Project Usage to a user who is not an admin, since the proxy limits it to their teams", async () => {
+    const user = userEvent.setup();
+    const { container } = render(<UsageViewSelect value="global" onChange={mockOnChange} userRole="Internal User" />);
+
+    await openMenu(user);
+
+    expect(offers(container, "Project Usage")).toBe(true);
+  });
+
+  it("should call onChange with project when Project Usage is chosen", async () => {
+    const user = userEvent.setup();
+    render(<UsageViewSelect value="global" onChange={mockOnChange} userRole="Admin" />);
+
+    await chooseSelectOption(user, screen.getByRole("combobox"), /^Project Usage/);
+
+    expect(mockOnChange.mock.calls[0][0]).toBe("project");
+  });
 });

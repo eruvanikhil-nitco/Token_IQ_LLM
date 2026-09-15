@@ -25,6 +25,7 @@ vi.mock("@/components/networking", () => ({
   customerDailyActivityCall: vi.fn(),
   agentDailyActivityCall: vi.fn(),
   userDailyActivityCall: vi.fn(),
+  projectDailyActivityCall: vi.fn(),
 }));
 
 // Mock the child components to simplify testing
@@ -108,6 +109,7 @@ describe("EntityUsage", () => {
   const mockCustomerDailyActivityCall = vi.mocked(networking.customerDailyActivityCall);
   const mockAgentDailyActivityCall = vi.mocked(networking.agentDailyActivityCall);
   const mockUserDailyActivityCall = vi.mocked(networking.userDailyActivityCall);
+  const mockProjectDailyActivityCall = vi.mocked(networking.projectDailyActivityCall);
   const mockUseInfiniteUsers = vi.mocked(useInfiniteUsers);
 
   const infiniteUsersResult = (users: { user_id: string; user_alias: string | null; user_email: string | null }[]) =>
@@ -410,6 +412,7 @@ describe("EntityUsage", () => {
     mockCustomerDailyActivityCall.mockClear();
     mockAgentDailyActivityCall.mockClear();
     mockUserDailyActivityCall.mockClear();
+    mockProjectDailyActivityCall.mockClear();
     mockTagDailyActivityCall.mockResolvedValue(mockSpendData);
     mockTeamDailyActivityCall.mockResolvedValue(mockSpendData);
     mockTeamDailyActivityAggregatedCall.mockResolvedValue(mockSpendData);
@@ -417,6 +420,7 @@ describe("EntityUsage", () => {
     mockCustomerDailyActivityCall.mockResolvedValue(mockSpendData);
     mockAgentDailyActivityCall.mockResolvedValue(mockAgentSpendData);
     mockUserDailyActivityCall.mockResolvedValue(mockSpendData);
+    mockProjectDailyActivityCall.mockResolvedValue(mockSpendData);
     mockUseInfiniteUsers.mockClear();
     mockUseInfiniteUsers.mockReturnValue(
       infiniteUsersResult([
@@ -458,6 +462,17 @@ describe("EntityUsage", () => {
       const spendElements = screen.getAllByText("$100.50");
       expect(spendElements.length).toBeGreaterThan(0);
     });
+  });
+
+  it("should render with project entity type and call the project API", async () => {
+    mockProjectDailyActivityCall.mockResolvedValue(mockSpendData);
+
+    render(<EntityUsage {...defaultProps} entityType="project" />);
+
+    await waitFor(() => {
+      expect(mockProjectDailyActivityCall).toHaveBeenCalled();
+    });
+    expect(screen.getByText("Project Spend Overview")).toBeInTheDocument();
   });
 
   it("should render with organization entity type and call organization API", async () => {
