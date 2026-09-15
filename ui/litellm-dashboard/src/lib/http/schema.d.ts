@@ -6750,7 +6750,7 @@ export interface paths {
         };
         /**
          * Health License Endpoint
-         * @description Return metadata about the configured LiteLLM license without exposing the key.
+         * @description The installation's Token IQ plan, in the shape the dashboard's plan card reads.
          */
         get: operations["health_license_endpoint_health_license_get"];
         put?: never;
@@ -11448,6 +11448,130 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/project/daily/activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Project Daily Activity
+         * @description What projects spent, by day.
+         *
+         *     `project_ids` is comma-separated. Leaving it out reports on every project the caller can
+         *     read. Reads the project daily rollup rather than the raw spend logs, so the cost of a
+         *     report does not grow with the number of requests.
+         */
+        get: operations["get_project_daily_activity_project_daily_activity_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/project/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Delete Project
+         * @description Delete projects. Every one is authorised before any is deleted.
+         */
+        post: operations["delete_project_project_delete_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/project/info": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Project Info
+         * @description One project, if the caller belongs to the team that owns it.
+         */
+        get: operations["project_info_project_info_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/project/list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Project List
+         * @description Projects the caller may read. Pass `team_id` to list only that team's projects.
+         */
+        get: operations["project_list_project_list_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/project/new": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * New Project
+         * @description Create a project under a team.
+         */
+        post: operations["new_project_project_new_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/project/update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Update Project
+         * @description Change a project. Fields left out are untouched, not cleared.
+         */
+        post: operations["update_project_project_update_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/prompts": {
         parameters: {
             query?: never;
@@ -11787,6 +11911,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/provider/billing/probe": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Provider Billing Probe
+         * @description Try one provider's billing API now and report what came back.
+         */
+        post: operations["provider_billing_probe_provider_billing_probe_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/provider/budgets": {
         parameters: {
             query?: never;
@@ -11900,6 +12044,49 @@ export interface paths {
          * @description Per-provider rollup: models configured, catalogue size, and recent usage
          */
         get: operations["provider_overview_provider_overview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/provider/reconciliation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Provider Reconciliation
+         * @description Every request in the window, priced by us and by the provider, with the difference.
+         */
+        get: operations["provider_reconciliation_provider_reconciliation_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/provider/reconciliation/daily": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daily Reconciliation
+         * @description Daily totals for a provider that reports aggregates rather than single requests.
+         *
+         *     A full outer join, because a day the provider charged for and this gateway never saw
+         *     is the single most valuable row here: it is spend that bypassed the gateway entirely.
+         */
+        get: operations["daily_reconciliation_provider_reconciliation_daily_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -23650,6 +23837,22 @@ export interface components {
             /** Entities */
             entities: components["schemas"]["BedrockChecksSensitiveInformationEntityItem"][];
         };
+        /**
+         * BillingProbeResponse
+         * @description One on-demand fetch from a provider's billing API, reported without storing anything
+         */
+        BillingProbeResponse: {
+            /** Detail */
+            detail: string | null;
+            /** Facts Found */
+            facts_found: number;
+            /** Outcome */
+            outcome: string;
+            /** Provider */
+            provider: string;
+            /** Sample Cost */
+            sample_cost: string | null;
+        };
         /** BlockKeyRequest */
         BlockKeyRequest: {
             /** Key */
@@ -26317,6 +26520,40 @@ export interface components {
              * @description Set to false to disable SSL verification (e.g., for self-signed certificates)
              */
             ssl_verify?: string | null;
+        };
+        /**
+         * DailyReconciliationResponse
+         * @description Daily totals from a provider that reports aggregates rather than single requests
+         */
+        DailyReconciliationResponse: {
+            /** Days Provider Charged More */
+            days_provider_charged_more: number;
+            /** Delta */
+            delta: string;
+            /** Our Total */
+            our_total: string;
+            /** Provider */
+            provider: string;
+            /** Rows */
+            rows: components["schemas"]["DailyReconciliationRow"][];
+            /** Their Total */
+            their_total: string;
+        };
+        /**
+         * DailyReconciliationRow
+         * @description One day, charged twice
+         */
+        DailyReconciliationRow: {
+            /** Day */
+            day: string;
+            /** Delta */
+            delta: string | null;
+            /** Escaped Spend */
+            escaped_spend: boolean;
+            /** Our Cost */
+            our_cost: string;
+            /** Their Cost */
+            their_cost: string | null;
         };
         /** DailySpendData */
         DailySpendData: {
@@ -31918,6 +32155,77 @@ export interface components {
             /** Users */
             users?: components["schemas"]["LiteLLM_UserTable"][] | null;
         };
+        /**
+         * NewProjectRequest
+         * @description Request model for POST /project/new
+         */
+        NewProjectRequest: {
+            /** Allowed Models */
+            allowed_models?: string[] | null;
+            /**
+             * Blocked
+             * @default false
+             */
+            blocked: boolean;
+            /** Budget Duration */
+            budget_duration?: string | null;
+            /** Budget Id */
+            budget_id?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Guardrails */
+            guardrails?: string[] | null;
+            /** Max Budget */
+            max_budget?: number | null;
+            /** Max Parallel Requests */
+            max_parallel_requests?: number | null;
+            /** Metadata */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
+            /** Model Itpm Limit */
+            model_itpm_limit?: {
+                [key: string]: number;
+            } | null;
+            /** Model Max Budget */
+            model_max_budget?: {
+                [key: string]: unknown;
+            } | null;
+            /** Model Otpm Limit */
+            model_otpm_limit?: {
+                [key: string]: number;
+            } | null;
+            /** Model Rpm Limit */
+            model_rpm_limit?: {
+                [key: string]: unknown;
+            } | null;
+            /** Model Tpm Limit */
+            model_tpm_limit?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Models
+             * @default []
+             */
+            models: string[];
+            object_permission?: components["schemas"]["LiteLLM_ObjectPermissionBase"] | null;
+            /** Policies */
+            policies?: string[] | null;
+            /** Project Alias */
+            project_alias?: string | null;
+            /** Project Id */
+            project_id?: string | null;
+            /** Rpm Limit */
+            rpm_limit?: number | null;
+            /** Soft Budget */
+            soft_budget?: number | null;
+            /** Tags */
+            tags?: string[] | null;
+            /** Team Id */
+            team_id: string;
+            /** Tpm Limit */
+            tpm_limit?: number | null;
+        };
         /** NewTeamRequest */
         NewTeamRequest: {
             /** Access Group Ids */
@@ -33625,6 +33933,14 @@ export interface components {
              */
             version_status: string;
         };
+        /**
+         * ProjectDeleteRequest
+         * @description Request model for POST /project/delete
+         */
+        ProjectDeleteRequest: {
+            /** Project Ids */
+            project_ids: string[];
+        };
         /** Prompt */
         Prompt: {
             litellm_params: components["schemas"]["PromptLiteLLMParams"];
@@ -34115,6 +34431,44 @@ export interface components {
             } | null;
         } & {
             [key: string]: unknown;
+        };
+        /**
+         * ReconciliationResponse
+         * @description What we recorded against what the provider charged, over a window
+         */
+        ReconciliationResponse: {
+            /** Delta */
+            delta: string;
+            /** Our Total */
+            our_total: string;
+            /** Provider */
+            provider: string;
+            /** Rows */
+            rows: components["schemas"]["ReconciliationRow"][];
+            /** Their Total */
+            their_total: string;
+            /** Unmatched Our Rows */
+            unmatched_our_rows: number;
+        };
+        /**
+         * ReconciliationRow
+         * @description One request, priced twice
+         */
+        ReconciliationRow: {
+            /** Credential Name */
+            credential_name: string;
+            /** Delta */
+            delta: string | null;
+            /** Evidence */
+            evidence: string;
+            /** Model */
+            model: string | null;
+            /** Our Cost */
+            our_cost: string;
+            /** Request Id */
+            request_id: string;
+            /** Their Cost */
+            their_cost: string | null;
         };
         /** RegenerateKeyRequest */
         RegenerateKeyRequest: {
@@ -37559,6 +37913,71 @@ export interface components {
              * @description Semantic version; cleared if omitted
              */
             version?: string | null;
+        };
+        /**
+         * UpdateProjectRequest
+         * @description Request model for POST /project/update
+         */
+        UpdateProjectRequest: {
+            /** Allowed Models */
+            allowed_models?: string[] | null;
+            /** Blocked */
+            blocked?: boolean | null;
+            /** Budget Duration */
+            budget_duration?: string | null;
+            /** Budget Id */
+            budget_id?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Guardrails */
+            guardrails?: string[] | null;
+            /** Max Budget */
+            max_budget?: number | null;
+            /** Max Parallel Requests */
+            max_parallel_requests?: number | null;
+            /** Metadata */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
+            /** Model Itpm Limit */
+            model_itpm_limit?: {
+                [key: string]: number;
+            } | null;
+            /** Model Max Budget */
+            model_max_budget?: {
+                [key: string]: unknown;
+            } | null;
+            /** Model Otpm Limit */
+            model_otpm_limit?: {
+                [key: string]: number;
+            } | null;
+            /** Model Rpm Limit */
+            model_rpm_limit?: {
+                [key: string]: unknown;
+            } | null;
+            /** Model Tpm Limit */
+            model_tpm_limit?: {
+                [key: string]: unknown;
+            } | null;
+            /** Models */
+            models?: string[] | null;
+            object_permission?: components["schemas"]["LiteLLM_ObjectPermissionBase"] | null;
+            /** Policies */
+            policies?: string[] | null;
+            /** Project Alias */
+            project_alias?: string | null;
+            /** Project Id */
+            project_id: string;
+            /** Rpm Limit */
+            rpm_limit?: number | null;
+            /** Soft Budget */
+            soft_budget?: number | null;
+            /** Tags */
+            tags?: string[] | null;
+            /** Team Id */
+            team_id?: string | null;
+            /** Tpm Limit */
+            tpm_limit?: number | null;
         };
         /**
          * UpdatePublicModelGroupsRequest
@@ -54131,6 +54550,205 @@ export interface operations {
             };
         };
     };
+    get_project_daily_activity_project_daily_activity_get: {
+        parameters: {
+            query?: {
+                project_ids?: string | null;
+                start_date?: string | null;
+                end_date?: string | null;
+                model?: string | null;
+                api_key?: string | null;
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SpendAnalyticsPaginatedResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_project_project_delete_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProjectDeleteRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    project_info_project_info_get: {
+        parameters: {
+            query: {
+                /** @description The project to read */
+                project_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    project_list_project_list_get: {
+        parameters: {
+            query?: {
+                team_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    new_project_project_new_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NewProjectRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_project_project_update_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateProjectRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     create_prompt_prompts_post: {
         parameters: {
             query?: never;
@@ -54432,6 +55050,38 @@ export interface operations {
             };
         };
     };
+    provider_billing_probe_provider_billing_probe_post: {
+        parameters: {
+            query: {
+                /** @description Which provider's billing API to try */
+                provider: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingProbeResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     provider_budgets_provider_budgets_get: {
         parameters: {
             query?: never;
@@ -54530,6 +55180,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProviderOverviewResponse"];
+                };
+            };
+        };
+    };
+    provider_reconciliation_provider_reconciliation_get: {
+        parameters: {
+            query: {
+                /** @description Which provider to reconcile, for example openrouter */
+                provider: string;
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    daily_reconciliation_provider_reconciliation_daily_get: {
+        parameters: {
+            query: {
+                /** @description Which provider to reconcile, for example anthropic */
+                provider: string;
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DailyReconciliationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

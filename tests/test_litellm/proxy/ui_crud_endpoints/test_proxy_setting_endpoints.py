@@ -3266,3 +3266,52 @@ class TestPtuCostAttributionUISetting:
         assert response.status_code == 400
         assert "enable_ptu_cost_attribution" in str(response.json()["detail"])
         assert not mock_prisma.db.litellm_uisettings.upsert.called
+
+
+def test_projects_show_on_a_fresh_installation(monkeypatch):
+    """Projects are part of Token IQ's teams, projects and users hierarchy, so an installation
+    that has never saved UI settings must show them."""
+    from unittest.mock import AsyncMock, MagicMock
+
+    fake_prisma = MagicMock()
+    fake_prisma.db.litellm_uisettings.find_unique = AsyncMock(return_value=None)
+    monkeypatch.setattr("litellm.proxy.proxy_server.prisma_client", fake_prisma)
+
+    response = client.get("/get/ui_settings")
+
+    assert response.status_code == 200, response.text
+    assert response.json()["values"]["enable_projects_ui"] is True
+
+
+def test_an_admin_can_turn_projects_off_without_a_paid_feature_refusal(monkeypatch):
+    """Saving this switch used to answer 403 as an enterprise feature, so it could never be
+    changed on this build."""
+    from unittest.mock import AsyncMock, MagicMock
+
+    import litellm.proxy.proxy_server as proxy_server_module
+    from litellm.proxy._types import UserAPIKeyAuth
+    from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
+
+    upsert = AsyncMock()
+    fake_prisma = MagicMock()
+    fake_prisma.db.litellm_uisettings.find_unique = AsyncMock(return_value=None)
+    fake_prisma.db.litellm_uisettings.upsert = upsert
+    monkeypatch.setattr(proxy_server_module, "prisma_client", fake_prisma)
+    monkeypatch.setattr("litellm.proxy.proxy_server.store_model_in_db", True)
+
+    async def _admin_auth():
+        return UserAPIKeyAuth(
+            user_id="settings-admin",
+            api_key="hashed-admin-key",
+            user_role=LitellmUserRoles.PROXY_ADMIN,
+        )
+
+    app.dependency_overrides[user_api_key_auth] = _admin_auth
+    try:
+        response = client.patch("/update/ui_settings", json={"enable_projects_ui": False})
+    finally:
+        app.dependency_overrides.pop(user_api_key_auth, None)
+
+    assert response.status_code == 200, response.text
+    saved = json.loads(upsert.await_args.kwargs["data"]["update"]["ui_settings"])
+    assert saved["enable_projects_ui"] is False
