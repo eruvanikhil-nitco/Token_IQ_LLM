@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
+from typing import Final
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -556,3 +557,186 @@ async def test_attaching_a_budget_to_a_project_is_actually_saved():
         )
 
     assert saved.await_args.kwargs["budget_id"] == "b-monthly"
+
+
+@pytest.mark.asyncio
+async def test_a_view_only_admin_cannot_create_a_project():
+    """The project write routes are open at the route layer to anyone, so the endpoint's own
+    write check is the only thing standing between an admin viewer and a new project."""
+    from fastapi import HTTPException
+
+    from litellm.proxy.management_endpoints.project_endpoints import new_project
+
+    create: Final = AsyncMock()
+    with (
+        patch("litellm.proxy.proxy_server.prisma_client", _prisma()),
+        patch("litellm.repositories.project_repository.ProjectRepository.create_project", create),
+        pytest.raises(HTTPException) as exc,
+    ):
+        await new_project(data=NewProjectRequest(project_alias="viewer-made", team_id="t1"), user_api_key_dict=VIEWER)
+
+    assert exc.value.status_code == 403
+    create.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_a_view_only_admin_cannot_delete_a_project():
+    from fastapi import HTTPException
+
+    from litellm.proxy.management_endpoints.project_endpoints import ProjectDeleteRequest, delete_project
+
+    deleter: Final = AsyncMock()
+    with (
+        patch("litellm.proxy.proxy_server.prisma_client", _prisma()),
+        patch(
+            "litellm.repositories.project_repository.ProjectRepository.find_by_id",
+            AsyncMock(return_value=_project()),
+        ),
+        patch("litellm.repositories.project_repository.ProjectRepository.delete_project", deleter),
+        pytest.raises(HTTPException) as exc,
+    ):
+        await delete_project(data=ProjectDeleteRequest(project_ids=("p1",)), user_api_key_dict=VIEWER)
+
+    assert exc.value.status_code == 403
+    deleter.assert_not_awaited()
+
+
+def _lead_of_t1() -> tuple[UserAPIKeyAuth, SimpleNamespace]:
+    from litellm.proxy._types import Member
+
+    lead: Final = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
+    return lead, _team_row("t1", members_with_roles=(Member(user_id="lead", role="admin").model_dump(),))
+
+
+@pytest.mark.asyncio
+async def test_a_team_admin_cannot_move_their_project_into_a_team_they_do_not_run():
+    """Checking only the project's current team would let the admin of t1 hand a project, and
+    the keys spending through it, to t2."""
+    from fastapi import HTTPException
+
+    from litellm.proxy._types import UpdateProjectRequest
+    from litellm.proxy.management_endpoints.project_endpoints import update_project
+
+    lead, mine = _lead_of_t1()
+    client: Final = MagicMock()
+    client.db.litellm_teamtable.find_unique = AsyncMock(side_effect=(mine, _team_row("t2")))
+    saved: Final = AsyncMock(return_value=_project())
+
+    with (
+        patch("litellm.proxy.proxy_server.prisma_client", client),
+        patch(
+            "litellm.repositories.project_repository.ProjectRepository.find_by_id",
+            AsyncMock(return_value=_project("p1", "t1")),
+        ),
+        patch("litellm.repositories.project_repository.ProjectRepository.update_project", saved),
+        pytest.raises(HTTPException) as exc,
+    ):
+        await update_project(data=UpdateProjectRequest(project_id="p1", team_id="t2"), user_api_key_dict=lead)
+
+    assert exc.value.status_code == 403
+    assert "t2" in str(exc.value.detail)
+    saved.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_a_proxy_admin_may_move_a_project_to_another_team():
+    from litellm.proxy._types import UpdateProjectRequest
+    from litellm.proxy.management_endpoints.project_endpoints import update_project
+
+    saved: Final = AsyncMock(return_value=_project("p1", "t2"))
+    with (
+        patch("litellm.proxy.proxy_server.prisma_client", _prisma()),
+        patch(
+            "litellm.repositories.project_repository.ProjectRepository.find_by_id",
+            AsyncMock(return_value=_project("p1", "t1")),
+        ),
+        patch("litellm.repositories.project_repository.ProjectRepository.update_project", saved),
+    ):
+        await update_project(data=UpdateProjectRequest(project_id="p1", team_id="t2"), user_api_key_dict=ADMIN)
+
+    assert saved.await_args.kwargs["team_id"] == "t2"
+
+
+@pytest.mark.asyncio
+async def test_a_team_admin_cannot_attach_a_budget_when_creating_a_project():
+    """Budgets are made on the admin-only Budgets page, so only a proxy admin decides which one
+    a project spends against."""
+    from fastapi import HTTPException
+
+    from litellm.proxy.management_endpoints.project_endpoints import new_project
+
+    lead, mine = _lead_of_t1()
+    create: Final = AsyncMock()
+    with (
+        patch("litellm.proxy.proxy_server.prisma_client", _prisma(mine)),
+        patch("litellm.repositories.project_repository.ProjectRepository.create_project", create),
+        pytest.raises(HTTPException) as exc,
+    ):
+        await new_project(
+            data=NewProjectRequest(project_alias="batch", team_id="t1", budget_id="b-big"), user_api_key_dict=lead
+        )
+
+    assert exc.value.status_code == 403
+    assert "budget" in str(exc.value.detail)
+    create.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_a_team_admin_cannot_attach_a_budget_when_updating_a_project():
+    from fastapi import HTTPException
+
+    from litellm.proxy._types import UpdateProjectRequest
+    from litellm.proxy.management_endpoints.project_endpoints import update_project
+
+    lead, mine = _lead_of_t1()
+    saved: Final = AsyncMock()
+    with (
+        patch("litellm.proxy.proxy_server.prisma_client", _prisma(mine)),
+        patch(
+            "litellm.repositories.project_repository.ProjectRepository.find_by_id",
+            AsyncMock(return_value=_project("p1", "t1")),
+        ),
+        patch("litellm.repositories.project_repository.ProjectRepository.update_project", saved),
+        pytest.raises(HTTPException) as exc,
+    ):
+        await update_project(data=UpdateProjectRequest(project_id="p1", budget_id="b-big"), user_api_key_dict=lead)
+
+    assert exc.value.status_code == 403
+    assert "budget" in str(exc.value.detail)
+    saved.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_a_team_admin_may_still_update_their_project_without_touching_the_budget():
+    from litellm.proxy._types import UpdateProjectRequest
+    from litellm.proxy.management_endpoints.project_endpoints import update_project
+
+    lead, mine = _lead_of_t1()
+    saved: Final = AsyncMock(return_value=_project())
+    with (
+        patch("litellm.proxy.proxy_server.prisma_client", _prisma(mine)),
+        patch(
+            "litellm.repositories.project_repository.ProjectRepository.find_by_id",
+            AsyncMock(return_value=_project("p1", "t1")),
+        ),
+        patch("litellm.repositories.project_repository.ProjectRepository.update_project", saved),
+    ):
+        await update_project(
+            data=UpdateProjectRequest(project_id="p1", team_id="t1", project_alias="renamed"), user_api_key_dict=lead
+        )
+
+    assert saved.await_args.kwargs["project_alias"] == "renamed"
+
+
+@pytest.mark.asyncio
+async def test_a_proxy_admin_may_attach_a_budget_when_creating_a_project():
+    from litellm.proxy.management_endpoints.project_endpoints import new_project
+
+    create: Final = AsyncMock(return_value=_project())
+    with (
+        patch("litellm.proxy.proxy_server.prisma_client", _prisma()),
+        patch("litellm.repositories.project_repository.ProjectRepository.create_project", create),
+    ):
+        await new_project(data=NewProjectRequest(team_id="t1", budget_id="b-monthly"), user_api_key_dict=ADMIN)
+
+    assert create.await_args.kwargs["budget_id"] == "b-monthly"

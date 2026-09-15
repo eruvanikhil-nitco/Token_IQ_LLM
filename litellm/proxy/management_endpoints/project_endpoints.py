@@ -19,6 +19,7 @@ from typing import TYPE_CHECKING, Any, Final
 
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
+from typing_extensions import ReadOnly, TypedDict
 
 from litellm.models.project import LiteLLM_ProjectTable
 from litellm.proxy._types import (
@@ -43,6 +44,10 @@ if TYPE_CHECKING:
     from litellm.proxy.utils import PrismaClient
 
 router: Final = APIRouter()
+
+
+class _ErrorDetail(TypedDict):
+    error: ReadOnly[str]
 
 
 def _prisma_or_500() -> Any:  # any-ok: PrismaClient is an untyped runtime wrapper
@@ -120,6 +125,14 @@ async def _projects_visible_to(
     return await repository.find_by_team_ids(readable_team_ids)
 
 
+def _refuse_budget_unless_proxy_admin(budget_id: str | None, user_api_key_dict: UserAPIKeyAuth) -> None:
+    """Budgets are created on the admin-only Budgets page, so only a proxy admin picks one for a project."""
+    if budget_id is None or user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN:
+        return
+    detail: Final[_ErrorDetail] = {"error": "Only a proxy admin can attach a budget to a project."}
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=detail)
+
+
 @router.post("/project/new", tags=["project management"], dependencies=[Depends(user_api_key_auth)])
 async def new_project(
     data: NewProjectRequest,
@@ -128,6 +141,7 @@ async def new_project(
     """Create a project under a team."""
     prisma_client: Final = _prisma_or_500()
     await _authorised_team_or_403(data.team_id, user_api_key_dict, prisma_client, write=True)
+    _refuse_budget_unless_proxy_admin(data.budget_id, user_api_key_dict)
 
     return await ProjectRepository(prisma_client).create_project(
         created_by=user_api_key_dict.user_id or "unknown",
@@ -204,7 +218,10 @@ async def update_project(
 ):
     """Change a project. Fields left out are untouched, not cleared."""
     prisma_client: Final = _prisma_or_500()
-    await _authorised_project_or_403(data.project_id, user_api_key_dict, prisma_client, write=True)
+    project: Final = await _authorised_project_or_403(data.project_id, user_api_key_dict, prisma_client, write=True)
+    if data.team_id is not None and data.team_id != project.team_id:
+        await _authorised_team_or_403(data.team_id, user_api_key_dict, prisma_client, write=True)
+    _refuse_budget_unless_proxy_admin(data.budget_id, user_api_key_dict)
 
     return await ProjectRepository(prisma_client).update_project(
         project_id=data.project_id,
