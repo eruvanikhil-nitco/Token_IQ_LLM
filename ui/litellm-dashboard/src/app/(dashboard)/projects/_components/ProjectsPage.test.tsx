@@ -10,6 +10,11 @@ vi.mock("@/app/(dashboard)/hooks/projects/useProjects", () => ({
   useProjects: () => mockUseProjects(),
 }));
 
+const mockUseAuthorized = vi.fn();
+vi.mock("@/app/(dashboard)/hooks/useAuthorized", () => ({
+  default: () => mockUseAuthorized(),
+}));
+
 const mockUseTeams = vi.fn();
 vi.mock("@/app/(dashboard)/hooks/teams/useTeams", () => ({
   useTeams: () => mockUseTeams(),
@@ -76,6 +81,7 @@ describe("ProjectsPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUseTeams.mockReturnValue({ data: [], isLoading: false });
+    mockUseAuthorized.mockReturnValue({ isViewOnly: false });
   });
 
   it("should render the Projects heading", () => {
@@ -90,6 +96,14 @@ describe("ProjectsPage", () => {
     mockUseProjects.mockReturnValue({ data: [], isLoading: false });
     renderWithProviders(<ProjectsPage />);
     expect(screen.getByRole("button", { name: /create project/i })).toBeInTheDocument();
+  });
+
+  it("should hide 'Create Project' from an admin viewer, who cannot create projects", () => {
+    mockUseAuthorized.mockReturnValue({ isViewOnly: true });
+    mockUseProjects.mockReturnValue({ data: mockProjects, isLoading: false });
+    renderWithProviders(<ProjectsPage />);
+    expect(screen.getByText("Alpha Project")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /create project/i })).not.toBeInTheDocument();
   });
 
   it("should render the projects table", () => {

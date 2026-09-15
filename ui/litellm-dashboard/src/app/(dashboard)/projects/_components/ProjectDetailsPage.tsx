@@ -4,6 +4,7 @@ import {
   useProjectSpendByModel,
 } from "@/app/(dashboard)/hooks/projects/useProjectSpendByModel";
 import { useTeam } from "@/app/(dashboard)/hooks/teams/useTeams";
+import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
 import { BarChart } from "@/components/shared/charts";
 import { ArrowLeftIcon, DollarSignIcon, EditIcon, UsersIcon } from "lucide-react";
 import { useState } from "react";
@@ -39,6 +40,7 @@ export function ProjectDetail({ projectId, onBack }: ProjectDetailProps) {
   const { data: project, isLoading } = useProjectDetails(projectId);
   const { data: modelSpendData = [] } = useProjectSpendByModel(projectId);
   const { data: teamData } = useTeam(project?.team_id ?? undefined);
+  const { isViewOnly } = useAuthorized();
   // teamInfoCall returns { team_id, team_info: {...}, keys, team_memberships }
   const teamInfo: TeamInfoShape | undefined = ((teamData as unknown as { team_info?: TeamInfoShape })?.team_info ??
     teamData) as TeamInfoShape | undefined;
@@ -98,10 +100,12 @@ export function ProjectDetail({ projectId, onBack }: ProjectDetailProps) {
             </div>
           </div>
         </div>
-        <Button onClick={() => setIsEditModalVisible(true)}>
-          <EditIcon className="size-4" />
-          Edit Project
-        </Button>
+        {!isViewOnly && (
+          <Button onClick={() => setIsEditModalVisible(true)}>
+            <EditIcon className="size-4" />
+            Edit Project
+          </Button>
+        )}
       </div>
 
       <Card className="mb-6">

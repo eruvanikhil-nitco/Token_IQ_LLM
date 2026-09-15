@@ -1,5 +1,6 @@
 import { useProjects } from "@/app/(dashboard)/hooks/projects/useProjects";
 import { useTeams } from "@/app/(dashboard)/hooks/teams/useTeams";
+import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
 import { Folder, Plus, SearchIcon, X } from "lucide-react";
 import { parseAsString, useQueryState } from "nuqs";
 import { useMemo, useState } from "react";
@@ -13,6 +14,7 @@ import { ProjectsTable } from "./ProjectsTable";
 export function ProjectsPage() {
   const { data: projects, isLoading } = useProjects();
   const { data: teams, isLoading: isTeamsLoading } = useTeams();
+  const { isViewOnly } = useAuthorized();
 
   const [selectedProjectId, setSelectedProjectId] = useQueryState(
     "project",
@@ -60,10 +62,12 @@ export function ProjectsPage() {
         title="Projects"
         subtitle="Manage projects within your teams"
         primaryAction={
-          <Button onClick={() => setIsCreateModalVisible(true)}>
-            <Plus className="size-4" />
-            Create Project
-          </Button>
+          isViewOnly ? undefined : (
+            <Button onClick={() => setIsCreateModalVisible(true)}>
+              <Plus className="size-4" />
+              Create Project
+            </Button>
+          )
         }
       />
 

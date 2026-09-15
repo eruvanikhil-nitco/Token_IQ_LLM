@@ -9,6 +9,11 @@ vi.mock("@/app/(dashboard)/hooks/projects/useProjectDetails", () => ({
   useProjectDetails: (id: string) => mockUseProjectDetails(id),
 }));
 
+const mockUseAuthorized = vi.fn();
+vi.mock("@/app/(dashboard)/hooks/useAuthorized", () => ({
+  default: () => mockUseAuthorized(),
+}));
+
 const mockUseTeam = vi.fn();
 vi.mock("@/app/(dashboard)/hooks/teams/useTeams", () => ({
   useTeam: (id?: string) => mockUseTeam(id),
@@ -70,6 +75,7 @@ describe("ProjectDetail", () => {
     vi.clearAllMocks();
     mockUseTeam.mockReturnValue({ data: undefined, isLoading: false });
     mockUseProjectSpendByModel.mockReturnValue({ data: [] });
+    mockUseAuthorized.mockReturnValue({ isViewOnly: false });
   });
 
   describe("when loading", () => {
@@ -169,6 +175,13 @@ describe("ProjectDetail", () => {
     it("should show an 'Edit Project' button", () => {
       renderWithProviders(<ProjectDetail projectId="proj-1" onBack={onBack} />);
       expect(screen.getByRole("button", { name: /edit project/i })).toBeInTheDocument();
+    });
+
+    it("should hide 'Edit Project' from an admin viewer, who cannot change projects", () => {
+      mockUseAuthorized.mockReturnValue({ isViewOnly: true });
+      renderWithProviders(<ProjectDetail projectId="proj-1" onBack={onBack} />);
+      expect(screen.getByRole("heading", { name: "My Project" })).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /edit project/i })).not.toBeInTheDocument();
     });
 
     it("should open the edit modal when 'Edit Project' is clicked", async () => {

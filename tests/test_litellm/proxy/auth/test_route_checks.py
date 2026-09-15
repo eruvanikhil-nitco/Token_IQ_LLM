@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from typing import Final
 from unittest.mock import MagicMock, patch
 
 
@@ -3410,4 +3411,23 @@ def test_agent_registry_route_gate_open_to_non_admin_roles(user_role, method, ro
         request=request,
         valid_token=valid_token,
         request_data={},
+    )
+
+
+@pytest.mark.parametrize("route", ("/project/new", "/project/update", "/project/delete"))
+def test_project_write_routes_reach_the_endpoint_for_an_internal_user(route):
+    """A team admin is an internal user, and the project endpoints decide team-admin rights
+    themselves. Blocking the route here showed team admins an admin-only error from Create
+    Project and Edit Project before the endpoint could check anything."""
+    user_role: Final = LitellmUserRoles.INTERNAL_USER.value
+    request: Final = MagicMock(spec=Request)
+    request.method = "POST"
+
+    RouteChecks.non_proxy_admin_allowed_routes_check(
+        user_obj=LiteLLM_UserTable(user_id="lead", user_role=user_role),
+        _user_role=user_role,
+        route=route,
+        request=request,
+        valid_token=UserAPIKeyAuth(user_id="lead", user_role=user_role),
+        request_data={},  # mutable-ok: the route check's request_data parameter is a plain dict
     )

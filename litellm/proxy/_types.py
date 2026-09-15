@@ -850,6 +850,10 @@ class LiteLLMRoutes(enum.Enum):
         "/project/list",
         "/project/info",
         "/project/daily/activity",
+        # Project write routes - endpoints check team-admin rights themselves
+        "/project/new",
+        "/project/update",
+        "/project/delete",
         # Endpoint enforces proxy-admin vs team-admin model access itself.
         "/health/test_connection",
         # Invitation routes - org/team admins checked in endpoint via _user_has_admin_privileges
