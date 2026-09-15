@@ -6,11 +6,9 @@ test.describe("Add Model", () => {
 
   test("admin settings test", async ({ page }) => {
     await page.goto("/ui");
-    // "Settings" is a collapsible group (button) in the sidebar; expand it, then
-    // click the "Admin Settings" child link. Scope to the complementary landmark.
+    // The sidebar is flat: "Admin Settings" is a top-level link, no parent group to expand.
     const sidebar = page.getByRole("complementary");
-    await sidebar.getByRole("button", { name: /Settings/ }).click();
-    await sidebar.getByRole("link", { name: /Admin Settings/ }).click();
+    await sidebar.getByRole("link", { name: "Admin Settings", exact: true }).click();
     await page.getByRole("tab", { name: "UI Settings" }).click();
     await expect(page.getByText("Configuration for UI-specific")).toBeVisible();
   });

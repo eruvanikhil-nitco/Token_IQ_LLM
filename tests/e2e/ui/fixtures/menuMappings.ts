@@ -11,7 +11,7 @@ export const menuLabelToPage: Record<string, Page> = {
   "Models + Endpoints": Page.Models,
   Usage: Page.NewUsage,
   Teams: Page.Teams,
-  "Internal Users": Page.Users,
+  Users: Page.Users,
   "Internal User": Page.Users, // Legacy label support
   Organizations: Page.Organizations,
   "API Reference": Page.ApiRef,
@@ -19,21 +19,18 @@ export const menuLabelToPage: Record<string, Page> = {
   "Model Hub": Page.ModelHubTable,
   Logs: Page.Logs,
   Guardrails: Page.Guardrails,
-  // Settings submenu items
   "Router Settings": Page.RouterSettings,
   "Logging & Alerts": Page.LoggingAndAlerts,
   "Admin Settings": Page.AdminPanel,
   "Cost Tracking": Page.CostTracking,
   "UI Theme": Page.UiTheme,
-  // Experimental submenu items
   "Response Cache": Page.Caching,
   Caching: Page.Caching, // Legacy label support
   Prompts: Page.Prompts,
   Budgets: Page.Budgets,
   "API Playground": Page.TransformRequest,
   "Tag Management": Page.TagManagement,
-  "Old Usage": Page.Usage,
-  // Tools submenu items
+  "Classic Usage": Page.Usage,
   "MCP Servers": Page.McpServers,
   "Vector Stores": Page.VectorStores,
 };

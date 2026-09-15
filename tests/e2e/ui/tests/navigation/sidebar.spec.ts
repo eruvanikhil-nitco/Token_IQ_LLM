@@ -11,12 +11,11 @@ const sidebarButtons = {
   [Role.ProxyAdmin]: [
     "Virtual Keys",
     "Playground",
-    "Models",
+    "Models + Endpoints",
     "Usage",
     "Teams",
-    "Internal Users",
+    "Users",
     "AI Hub",
-    "Response Cache",
   ],
 };
 
@@ -53,7 +52,7 @@ for (const { role, storage } of roles) {
 
         // Sidebar items are links inside the `complementary` landmark; scoping
         // there avoids the top-bar breadcrumb, which also links the page name.
-        const tab = page.getByRole("complementary").getByRole("link", { name: buttonLabel });
+        const tab = page.getByRole("complementary").getByRole("link", { name: buttonLabel, exact: true });
         await expect(tab).toBeVisible();
 
         await tab.click();
