@@ -1600,6 +1600,25 @@ describe("ModelInfoView", () => {
       expect(payload.litellm_params.litellm_credential_name).toBe("other-credential");
     });
 
+    it("does not offer a billing credential in the existing credentials selector", async () => {
+      mockCredentialListCall.mockResolvedValue({
+        credentials: [
+          { credential_name: "selected-credential", credential_values: {}, credential_info: {} },
+          {
+            credential_name: "billing-credential",
+            credential_values: {},
+            credential_info: { purpose: "billing_ingestion", provider: "openai" },
+          },
+        ],
+      } as never);
+      const user = userEvent.setup();
+      await enterEditMode(user);
+
+      await user.click(await screen.findByText("selected-credential"));
+
+      expect(screen.queryByText("billing-credential")).not.toBeInTheDocument();
+    });
+
     it("sends the vector stores picked in the knowledge base selector", async () => {
       const user = userEvent.setup();
       await enterEditMode(user);

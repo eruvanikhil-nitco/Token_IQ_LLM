@@ -20,7 +20,13 @@ import { CredentialItem } from "../networking";
 import { Providers } from "../provider_info_helpers";
 import { Logo } from "@/components/molecules/logo/Logo";
 import BillingCredentialFields from "./BillingCredentialFields";
-import { isBillingCredential, resetCredentialFormOnProviderChange, type BillingProvider } from "./credential_form_helpers";
+import {
+  BILLING_KEY_FIELDS,
+  isBillingCredential,
+  resetCredentialFormOnProviderChange,
+  resetCredentialFormOnPurposeChange,
+  type BillingProvider,
+} from "./credential_form_helpers";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const providerOptions: SearchSelectOption[] = Object.entries(Providers).map(([providerEnum, providerDisplayName]) => ({
@@ -94,6 +100,26 @@ export default function CredentialModal({
     setFieldValue: (field: string, value: unknown) => form.setValue(field, value),
   };
 
+  const handleBillingProviderChange = (newProvider: BillingProvider) => {
+    // A field left mounted-then-remounted keeps its react-hook-form value (no
+    // shouldUnregister), so a key typed for one billing provider would otherwise
+    // survive a switch to another and get submitted alongside the new one.
+    BILLING_KEY_FIELDS.forEach((field) => formAdapter.setFieldValue(field, undefined));
+    setBillingProvider(newProvider);
+  };
+
+  const handlePurposeChange = (value: unknown) => {
+    const newPurpose = value as "model_access" | "billing_access";
+    resetCredentialFormOnPurposeChange(formAdapter, newPurpose);
+    setPurpose(newPurpose);
+    if (newPurpose === "model_access") {
+      setSelectedProvider(Providers.OpenAI);
+      formAdapter.setFieldValue("custom_llm_provider", Providers.OpenAI);
+    } else {
+      setBillingProvider("openai");
+    }
+  };
+
   const handleSubmit = async () => {
     const isValid = await form.trigger(registry.mountedNames() as string[]);
     if (!isValid) {
@@ -153,10 +179,7 @@ export default function CredentialModal({
                   {(control) => (
                     <RadioGroup
                       value={(control.value as string | undefined) ?? "model_access"}
-                      onValueChange={(value: unknown) => {
-                        control.onChange(value);
-                        setPurpose(value as "model_access" | "billing_access");
-                      }}
+                      onValueChange={handlePurposeChange}
                     >
                       <FieldLabel className="font-normal">
                         <RadioGroupItem value="model_access" />
@@ -197,7 +220,11 @@ export default function CredentialModal({
                   <ProviderSpecificFields selectedProvider={selectedProvider} />
                 </>
               ) : (
-                <BillingCredentialFields provider={billingProvider} onProviderChange={setBillingProvider} isEdit={isEdit} />
+                <BillingCredentialFields
+                  provider={billingProvider}
+                  onProviderChange={handleBillingProviderChange}
+                  isEdit={isEdit}
+                />
               )}
 
               <div className="flex justify-between items-center">

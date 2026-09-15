@@ -173,6 +173,70 @@ describe("CredentialModal purpose", () => {
     expect(screen.queryByLabelText(/Admin API key/)).not.toBeInTheDocument();
   });
 
+  it("clears a typed admin key when switching from one billing provider to another", async () => {
+    const user = userEvent.setup();
+    renderModal();
+
+    await user.click(screen.getByRole("radio", { name: /Billing access/ }));
+    fireEvent.change(screen.getByLabelText(/Admin API key/), { target: { value: "sk-admin-test-not-real" } });
+
+    await chooseSelectOption(user, screen.getByLabelText(/Billing provider/), /Anthropic/);
+
+    expect((screen.getByLabelText(/Admin API key/) as HTMLInputElement).value).toBe("");
+  });
+
+  it("clears a model-access key typed before switching to Billing access", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    renderModal({ onSubmit });
+
+    await waitFor(() => {
+      expect(screen.getByLabelText("OpenAI API Key")).toBeInTheDocument();
+    });
+    fireEvent.change(screen.getByLabelText("Credential Name:"), { target: { value: "openai-costs" } });
+    fireEvent.change(screen.getByLabelText("OpenAI API Key"), { target: { value: "sk-model-serving-key" } });
+
+    await user.click(screen.getByRole("radio", { name: /Billing access/ }));
+
+    expect((screen.getByLabelText(/Admin API key/) as HTMLInputElement).value).toBe("");
+
+    fireEvent.change(screen.getByLabelText(/Admin API key/), { target: { value: "sk-admin-test-not-real" } });
+    await user.click(screen.getByRole("button", { name: /Add Credential/ }));
+
+    await waitFor(() =>
+      expect(onSubmit).toHaveBeenCalledWith({
+        credential_name: "openai-costs",
+        purpose: "billing_access",
+        billing_provider: "openai",
+        api_key: "sk-admin-test-not-real",
+      }),
+    );
+  });
+
+  it("clears a billing key typed before switching back to Model access", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    renderModal({ onSubmit });
+
+    await user.click(screen.getByRole("radio", { name: /Billing access/ }));
+    fireEvent.change(screen.getByLabelText(/Admin API key/), { target: { value: "sk-admin-test-not-real" } });
+
+    await user.click(screen.getByRole("radio", { name: /Model access/ }));
+
+    await waitFor(() => {
+      expect((screen.getByLabelText("OpenAI API Key") as HTMLInputElement).value).toBe("");
+    });
+
+    fireEvent.change(screen.getByLabelText("Credential Name:"), { target: { value: "openai-key" } });
+    fireEvent.change(screen.getByLabelText("OpenAI API Key"), { target: { value: "sk-model-serving-key" } });
+    await user.click(screen.getByRole("button", { name: /Add Credential/ }));
+
+    await waitFor(() => expect(onSubmit).toHaveBeenCalled());
+    const values = onSubmit.mock.calls[0][0];
+    expect(values.api_key).toBe("sk-model-serving-key");
+    expect(values).not.toHaveProperty("billing_provider");
+  });
+
   it("opens an existing billing credential without offering to change its purpose or provider", () => {
     renderModal({
       mode: "edit",

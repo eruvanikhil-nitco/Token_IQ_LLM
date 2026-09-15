@@ -28,6 +28,7 @@ import CacheControlInjectionPoints, {
   CACHE_CONTROL_TOOLTIP,
   type CacheControlInjectionPoint,
 } from "./add_model/cache_control_settings";
+import { modelAccessCredentials } from "./model_add/credential_form_helpers";
 import type { CredentialItem } from "./networking";
 import NumericalInput from "./shared/numerical_input";
 import type { Tag } from "./tag_management/types";
@@ -630,7 +631,7 @@ const ModelInfoEditForm: React.FC<ModelInfoEditFormProps> = ({
                   {({ id, value, onChange, onBlur }) => {
                     const items = [
                       { value: "", label: "None" },
-                      ...credentialsList.map((credential) => ({
+                      ...modelAccessCredentials(credentialsList).map((credential) => ({
                         value: credential.credential_name,
                         label: credential.credential_name,
                       })),

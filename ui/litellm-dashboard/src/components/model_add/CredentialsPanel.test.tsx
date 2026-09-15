@@ -32,8 +32,18 @@ vi.mock("@/components/networking", async (importOriginal) => {
 // Stub the modal so the panel's submit handlers can be driven directly: the
 // button fires onSubmit with form-shaped values, and it only renders when open.
 let addModalValues: Record<string, unknown> = { credential_name: "new-cred", custom_llm_provider: "openai" };
-const mockCredentialModalValues = (values: Record<string, unknown>) => {
-  addModalValues = values;
+let editModalValues: Record<string, unknown> = {
+  credential_name: "openai-key",
+  custom_llm_provider: "openai",
+  api_key: "sk-1****2345",
+  api_base: "https://proxy.e2e.example.com/v1",
+};
+const mockCredentialModalValues = (values: Record<string, unknown>, mode: "add" | "edit" = "add") => {
+  if (mode === "edit") {
+    editModalValues = values;
+  } else {
+    addModalValues = values;
+  }
 };
 
 vi.mock("./CredentialModal", () => ({
@@ -49,15 +59,7 @@ vi.mock("./CredentialModal", () => ({
     if (!open) {
       return null;
     }
-    const values =
-      mode === "edit"
-        ? {
-            credential_name: "openai-key",
-            custom_llm_provider: "openai",
-            api_key: "sk-1****2345",
-            api_base: "https://proxy.e2e.example.com/v1",
-          }
-        : addModalValues;
+    const values = mode === "edit" ? editModalValues : addModalValues;
     return (
       <button data-testid={`credential-modal-${mode}-submit`} onClick={() => onSubmit(values)}>
         submit {mode}
@@ -95,6 +97,12 @@ describe("CredentialsPanel", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     addModalValues = { credential_name: "new-cred", custom_llm_provider: "openai" };
+    editModalValues = {
+      credential_name: "openai-key",
+      custom_llm_provider: "openai",
+      api_key: "sk-1****2345",
+      api_base: "https://proxy.e2e.example.com/v1",
+    };
   });
 
   it("renders the Add Credential button for an admin", () => {
@@ -230,6 +238,43 @@ describe("CredentialsPanel", () => {
       }),
     );
     expect(toast.error).toHaveBeenCalledWith(expect.stringContaining("sk-admin-"));
+  });
+
+  it("sends no key when editing a billing credential whose key was left blank", async () => {
+    const user = userEvent.setup();
+    vi.mocked(credentialUpdateCall).mockResolvedValueOnce(undefined as never);
+    mockCredentialModalValues(
+      { credential_name: "openai-costs", purpose: "billing_access", billing_provider: "openai" },
+      "edit",
+    );
+    mockUseAuthorized.mockReturnValue({ accessToken: "test-token", userRole: "Admin" });
+    mockUseCredentials.mockReturnValue({
+      data: {
+        credentials: [
+          {
+            credential_name: "openai-costs",
+            credential_values: {},
+            credential_info: { purpose: "billing_ingestion", provider: "openai" },
+          },
+        ],
+      },
+      isLoading: false,
+      refetch: vi.fn(),
+    });
+
+    renderPanel();
+
+    await user.click(screen.getByTestId("credential-actions-openai-costs"));
+    await user.click(await screen.findByTestId("credential-action-edit"));
+    await user.click(screen.getByTestId("credential-modal-edit-submit"));
+
+    await waitFor(() => expect(credentialUpdateCall).toHaveBeenCalled());
+    const [, updatedName, payload] = vi.mocked(credentialUpdateCall).mock.calls[0];
+    expect(updatedName).toBe("openai-costs");
+    expect(payload.credential_info).toEqual({ purpose: "billing_ingestion", provider: "openai" });
+    // toStrictEqual (not toEqual): a leaked `api_key: undefined` must not sneak past a
+    // toEqual comparison, which treats an undefined-valued key the same as an absent one.
+    expect(payload.credential_values).toStrictEqual({});
   });
 
   describe("Admin Viewer write-action gating", () => {

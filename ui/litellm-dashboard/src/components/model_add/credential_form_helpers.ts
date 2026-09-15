@@ -51,7 +51,36 @@ export const BILLING_PROVIDERS: ReadonlyArray<{ value: BillingProvider; label: s
 
 const BEDROCK_BILLING_FIELDS = ["aws_access_key_id", "aws_secret_access_key", "aws_session_token", "service_name"];
 
+export const BILLING_KEY_FIELDS = ["api_key", ...BEDROCK_BILLING_FIELDS];
+
 const FORM_ONLY_FIELDS = ["credential_name", "custom_llm_provider", "purpose", "billing_provider"];
+
+/**
+ * Reset the credential form when the user switches Purpose (Model access <-> Billing access).
+ *
+ * Why: both purposes reuse the field name `api_key` under the same react-hook-form instance,
+ * and RHF keeps a field's value after its Controller unmounts unless `shouldUnregister` is set.
+ * Without this reset, a model-serving key typed before switching to Billing access would still
+ * be present under `api_key` and get submitted as part of a billing credential (and the reverse).
+ *
+ * Strategy mirrors `resetCredentialFormOnProviderChange`: blow away the whole form, then restore
+ * only the purpose-agnostic credential name, so every purpose-specific field starts from a clean
+ * slate under its new Controller.
+ */
+export function resetCredentialFormOnPurposeChange(
+  form: CredentialFormAdapter,
+  newPurpose: "model_access" | "billing_access",
+): void {
+  const preservedName = form.getFieldValue("credential_name");
+  form.resetFields();
+  if (preservedName !== undefined) {
+    form.setFieldValue("credential_name", preservedName);
+  }
+  form.setFieldValue("purpose", newPurpose);
+  if (newPurpose === "billing_access") {
+    form.setFieldValue("billing_provider", "openai");
+  }
+}
 
 export const isBillingCredential = (credential: CredentialItem): boolean =>
   credential.credential_info?.purpose === BILLING_PURPOSE;

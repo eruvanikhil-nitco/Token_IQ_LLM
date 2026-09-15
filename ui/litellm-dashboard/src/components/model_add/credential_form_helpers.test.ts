@@ -8,6 +8,7 @@ import {
   isBillingCredential,
   modelAccessCredentials,
   resetCredentialFormOnProviderChange,
+  resetCredentialFormOnPurposeChange,
 } from "./credential_form_helpers";
 
 /**
@@ -168,5 +169,61 @@ describe("credential purpose", () => {
     expect(
       buildCredentialPayload({ credential_name: "x", custom_llm_provider: "OpenAI", api_key: "k" }).credential_info,
     ).toEqual({ custom_llm_provider: "OpenAI" });
+  });
+});
+
+describe("resetCredentialFormOnPurposeChange", () => {
+  it("clears every field except credential_name, so a model-access key can't survive under Billing access", () => {
+    const { stub, fields } = makeFormStub({
+      credential_name: "openai-costs",
+      custom_llm_provider: "OpenAI",
+      api_key: "sk-model-serving-key",
+      api_base: "https://api.openai.com/v1",
+    });
+
+    resetCredentialFormOnPurposeChange(stub, "billing_access");
+
+    expect(fields.credential_name).toBe("openai-costs");
+    expect(fields.custom_llm_provider).toBeUndefined();
+    expect(fields.api_key).toBeUndefined();
+    expect(fields.api_base).toBeUndefined();
+  });
+
+  it("clears a billing key so it can't survive under Model access", () => {
+    const { stub, fields } = makeFormStub({
+      credential_name: "openai-costs",
+      purpose: "billing_access",
+      billing_provider: "openai",
+      api_key: "sk-admin-test-not-real",
+    });
+
+    resetCredentialFormOnPurposeChange(stub, "model_access");
+
+    expect(fields.api_key).toBeUndefined();
+    expect(fields.billing_provider).toBeUndefined();
+  });
+
+  it("writes the new purpose into the form", () => {
+    const { stub, fields } = makeFormStub({ credential_name: "x" });
+
+    resetCredentialFormOnPurposeChange(stub, "billing_access");
+
+    expect(fields.purpose).toBe("billing_access");
+  });
+
+  it("defaults the billing provider to openai when switching to Billing access", () => {
+    const { stub, fields } = makeFormStub({ credential_name: "x" });
+
+    resetCredentialFormOnPurposeChange(stub, "billing_access");
+
+    expect(fields.billing_provider).toBe("openai");
+  });
+
+  it("does not invent a billing provider when switching to Model access", () => {
+    const { stub, fields } = makeFormStub({ credential_name: "x" });
+
+    resetCredentialFormOnPurposeChange(stub, "model_access");
+
+    expect(fields.billing_provider).toBeUndefined();
   });
 });
