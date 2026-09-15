@@ -1,0 +1,61 @@
+"""Which stored credentials read a provider's bill, and whether one is fit to.
+
+A billing credential is an organisation admin key that can read an account's costs. It is
+never used to serve models and is never shown back, so one marker on `credential_info`
+identifies it for the ingestion job, the credential endpoints and the dashboard alike.
+"""
+
+from __future__ import annotations
+
+from collections.abc import Mapping
+from types import MappingProxyType
+from typing import Final
+
+BILLING_PURPOSE: Final = "billing_ingestion"
+
+BILLING_PROVIDERS: Final[frozenset[str]] = frozenset({"openai", "anthropic", "openrouter", "bedrock"})
+
+_ADMIN_KEY_PREFIXES: Final = MappingProxyType({"openai": "sk-admin-", "anthropic": "sk-ant-admin"})
+"""Cost reports answer only to an organisation admin key. An ordinary key saves fine and then
+fails every sync with a 401, so the kind of key is checked before it is stored."""
+
+_BEDROCK_REQUIRED: Final = ("aws_access_key_id", "aws_secret_access_key")
+
+
+def is_billing_credential(credential_info: Mapping[str, object] | None) -> bool:
+    """Whether this credential is marked for reading a provider's bill."""
+    return credential_info is not None and credential_info.get("purpose") == BILLING_PURPOSE
+
+
+def _present(value: object) -> bool:
+    return isinstance(value, str) and value != ""
+
+
+def billing_credential_problem(
+    credential_info: Mapping[str, object],
+    credential_values: Mapping[str, object],
+    *,
+    require_keys: bool,
+) -> str | None:
+    """Why this billing credential cannot read its provider's bill, or None when it can."""
+    provider: Final = credential_info.get("provider")
+    if not isinstance(provider, str) or provider not in BILLING_PROVIDERS:
+        return f"A billing credential needs a provider, one of: {', '.join(sorted(BILLING_PROVIDERS))}."
+
+    if provider == "bedrock":
+        missing: Final = tuple(name for name in _BEDROCK_REQUIRED if not _present(credential_values.get(name)))
+        if require_keys and missing:
+            return f"A Bedrock billing credential needs {' and '.join(missing)}."
+        return None
+
+    api_key: Final = credential_values.get("api_key")
+    if not _present(api_key):
+        return f"A {provider} billing credential needs an api_key." if require_keys else None
+
+    prefix: Final = _ADMIN_KEY_PREFIXES.get(provider)
+    if prefix is not None and isinstance(api_key, str) and not api_key.startswith(prefix):
+        return (
+            f"This is not a {provider} admin key. Cost reports need an organisation admin key, "
+            f"which starts with {prefix}."
+        )
+    return None

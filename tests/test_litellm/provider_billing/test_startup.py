@@ -16,6 +16,7 @@ def test_every_shipped_connector_is_registered():
         "openrouter",
         "anthropic",
         "openai",
+        "bedrock",
     }
     clear_registry_for_tests()
 
@@ -30,5 +31,5 @@ def test_registering_twice_is_harmless():
     register_billing_connectors(prisma_client=MagicMock())
     register_billing_connectors(prisma_client=MagicMock())
 
-    assert len(registered_connectors()) == 3
+    assert len(registered_connectors()) == 4
     clear_registry_for_tests()

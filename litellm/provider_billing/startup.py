@@ -15,6 +15,7 @@ def register_billing_connectors(*, prisma_client: Any) -> None:  # any-ok: untyp
     """Idempotent: a worker that restarts its scheduler must not fail on a second call."""
     from litellm.llms.custom_httpx.http_handler import get_async_httpx_client
     from litellm.provider_billing.anthropic import AnthropicBillingConnector
+    from litellm.provider_billing.bedrock import BedrockBillingConnector, build_cost_explorer
     from litellm.provider_billing.connector import register_connector, registered_connectors
     from litellm.provider_billing.openai import OpenAIBillingConnector
     from litellm.provider_billing.openrouter import (
@@ -34,6 +35,7 @@ def register_billing_connectors(*, prisma_client: Any) -> None:  # any-ok: untyp
         ),
         AnthropicBillingConnector(http_client_factory=http),
         OpenAIBillingConnector(http_client_factory=http),
+        BedrockBillingConnector(cost_explorer_factory=build_cost_explorer),
     )
 
     for connector in candidates:
