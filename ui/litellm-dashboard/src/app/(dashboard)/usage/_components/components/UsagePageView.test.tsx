@@ -1,5 +1,6 @@
 import { useAgents } from "@/app/(dashboard)/hooks/agents/useAgents";
 import { useCustomers } from "@/app/(dashboard)/hooks/customers/useCustomers";
+import { useProjects } from "@/app/(dashboard)/hooks/projects/useProjects";
 import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
 import useIsOrgAdmin from "@/app/(dashboard)/hooks/useIsOrgAdmin";
 import { useCurrentUser } from "@/app/(dashboard)/hooks/users/useCurrentUser";
@@ -158,12 +159,7 @@ vi.mock("@/app/(dashboard)/hooks/users/useUsers", () => ({
 }));
 
 vi.mock("@/app/(dashboard)/hooks/projects/useProjects", () => ({
-  useProjects: vi.fn(() => ({
-    data: [
-      { project_id: "proj-1", project_alias: "Search" },
-      { project_id: "proj-2", project_alias: null },
-    ],
-  })),
+  useProjects: vi.fn(),
 }));
 
 describe("UsagePage", () => {
@@ -173,6 +169,7 @@ describe("UsagePage", () => {
   const mockGatewayDailyActivityCall = vi.mocked(networking.gatewayDailyActivityCall);
   const mockUseCustomers = vi.mocked(useCustomers);
   const mockUseAgents = vi.mocked(useAgents);
+  const mockUseProjects = vi.mocked(useProjects);
   const mockUseAuthorized = vi.mocked(useAuthorized);
   const mockUseCurrentUser = vi.mocked(useCurrentUser);
   const mockUseInfiniteUsers = vi.mocked(useInfiniteUsers);
@@ -418,6 +415,14 @@ describe("UsagePage", () => {
     } as any);
     mockUseAgents.mockReturnValue({
       data: { agents: [] },
+      isLoading: false,
+      error: null,
+    } as any);
+    mockUseProjects.mockReturnValue({
+      data: [
+        { project_id: "proj-1", project_alias: "Search" },
+        { project_id: "proj-2", project_alias: null },
+      ],
       isLoading: false,
       error: null,
     } as any);
@@ -789,6 +794,19 @@ describe("UsagePage", () => {
 
     act(() => {
       fireEvent.change(screen.getByTestId("usage-view-select"), { target: { value: "customer" } });
+    });
+
+    const entityUsage = await screen.findByTestId("entity-usage");
+    expect(entityUsage).toHaveAttribute("data-entity-list", "null");
+  });
+
+  it("should withhold the project list while it is still loading", async () => {
+    mockUseProjects.mockReturnValue({ data: undefined, isLoading: true, error: null } as any);
+
+    renderWithProviders(<UsagePage {...defaultProps} />);
+
+    act(() => {
+      fireEvent.change(screen.getByTestId("usage-view-select"), { target: { value: "project" } });
     });
 
     const entityUsage = await screen.findByTestId("entity-usage");
