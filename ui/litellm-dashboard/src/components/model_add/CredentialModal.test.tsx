@@ -1,6 +1,8 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+import { chooseSelectOption } from "../../../tests/test-utils";
 import { Providers } from "../provider_info_helpers";
 import { CredentialItem } from "../networking";
 import CredentialModal from "./CredentialModal";
@@ -124,5 +126,64 @@ describe("CredentialModal", () => {
 
       expect(screen.getByLabelText("Credential Name:")).toBeDisabled();
     });
+  });
+});
+
+describe("CredentialModal purpose", () => {
+  it("shows only the billing key field when Billing access is chosen", async () => {
+    const user = userEvent.setup();
+    renderModal();
+
+    await user.click(screen.getByRole("radio", { name: /Billing access/ }));
+
+    expect(screen.getByText(/Read-only/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Admin API key/)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/OpenAI API Key/)).not.toBeInTheDocument();
+  });
+
+  it("sends the billing values in the shape the panel builds from", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    renderModal({ onSubmit });
+
+    fireEvent.change(screen.getByLabelText(/Credential Name/), { target: { value: "openai-costs" } });
+    await user.click(screen.getByRole("radio", { name: /Billing access/ }));
+    fireEvent.change(screen.getByLabelText(/Admin API key/), { target: { value: "sk-admin-test-not-real" } });
+    await user.click(screen.getByRole("button", { name: /Add Credential/ }));
+
+    await waitFor(() =>
+      expect(onSubmit).toHaveBeenCalledWith({
+        credential_name: "openai-costs",
+        purpose: "billing_access",
+        billing_provider: "openai",
+        api_key: "sk-admin-test-not-real",
+      }),
+    );
+  });
+
+  it("asks for the two AWS keys when the billing provider is Amazon Bedrock", async () => {
+    const user = userEvent.setup();
+    renderModal();
+
+    await user.click(screen.getByRole("radio", { name: /Billing access/ }));
+    await chooseSelectOption(user, screen.getByLabelText(/Billing provider/), /Amazon Bedrock/);
+
+    expect(screen.getByLabelText(/AWS access key ID/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/AWS secret access key/)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/Admin API key/)).not.toBeInTheDocument();
+  });
+
+  it("opens an existing billing credential without offering to change its purpose or provider", () => {
+    renderModal({
+      mode: "edit",
+      existingCredential: {
+        credential_name: "openai-costs",
+        credential_values: {},
+        credential_info: { purpose: "billing_ingestion", provider: "openai" },
+      },
+    });
+
+    expect(screen.queryByRole("radio", { name: /Model access/ })).not.toBeInTheDocument();
+    expect(screen.getByText(/Leave the key empty to keep the stored one/)).toBeInTheDocument();
   });
 });

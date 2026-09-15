@@ -17,21 +17,9 @@ import { isProxyAdminRole } from "@/utils/roles";
 
 import DeleteResourceModal from "../common_components/DeleteResourceModal";
 import { toast } from "@/lib/toast";
+import { buildCredentialPayload } from "./credential_form_helpers";
 import CredentialModal from "./CredentialModal";
 import CredentialsTable from "./CredentialsTable";
-
-const restrictedFields = ["credential_name", "custom_llm_provider"];
-
-const buildCredential = (values: Record<string, unknown>, credentialValues: Record<string, unknown>) => ({
-  credential_name: values.credential_name as string,
-  credential_values: credentialValues,
-  credential_info: {
-    custom_llm_provider: values.custom_llm_provider as string,
-  },
-});
-
-const withoutRestrictedFields = (values: Record<string, unknown>): Record<string, unknown> =>
-  Object.fromEntries(Object.entries(values).filter(([key]) => !restrictedFields.includes(key)));
 
 export default function CredentialsPanel() {
   const { accessToken, userRole } = useAuthorized();
@@ -52,13 +40,14 @@ export default function CredentialsPanel() {
       return;
     }
     try {
-      const newCredential = buildCredential(values, stripMaskedSecrets(withoutRestrictedFields(values)));
+      const built = buildCredentialPayload(values);
+      const newCredential = { ...built, credential_values: stripMaskedSecrets(built.credential_values) };
       await credentialUpdateCall(accessToken, values.credential_name as string, newCredential);
       toast.success("Credential updated successfully");
       setIsUpdateModalOpen(false);
       await refetchCredentials();
     } catch (error) {
-      toast.error("Failed to update credential");
+      toast.error(error instanceof Error && error.message ? error.message : "Failed to update credential");
     }
   };
 
@@ -67,13 +56,13 @@ export default function CredentialsPanel() {
       return;
     }
     try {
-      const newCredential = buildCredential(values, withoutRestrictedFields(values));
+      const newCredential = buildCredentialPayload(values);
       await credentialCreateCall(accessToken, newCredential);
       toast.success("Credential added successfully");
       setIsAddModalOpen(false);
       await refetchCredentials();
     } catch (error) {
-      toast.error("Failed to add credential");
+      toast.error(error instanceof Error && error.message ? error.message : "Failed to add credential");
     }
   };
 

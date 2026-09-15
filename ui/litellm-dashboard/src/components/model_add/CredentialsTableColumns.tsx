@@ -18,6 +18,8 @@ import {
 import { cn } from "@/lib/cva.config";
 import { copyToClipboard } from "@/utils/dataUtils";
 
+import { credentialPurposeLabel, isBillingCredential } from "./credential_form_helpers";
+
 function CredentialProviderCell({ provider }: { provider: string | undefined }) {
   if (!provider) {
     return <span className="text-sm text-muted-foreground">-</span>;
@@ -112,7 +114,23 @@ export const getCredentialsTableColumns = ({
       header: "Provider",
       size: 200,
       enableSorting: false,
-      cell: ({ row }) => <CredentialProviderCell provider={row.original.credential_info?.custom_llm_provider} />,
+      cell: ({ row }) => (
+        <CredentialProviderCell
+          provider={
+            isBillingCredential(row.original)
+              ? row.original.credential_info?.provider
+              : row.original.credential_info?.custom_llm_provider
+          }
+        />
+      ),
+    },
+    {
+      id: "purpose",
+      meta: { title: "Purpose" },
+      header: "Purpose",
+      size: 190,
+      enableSorting: false,
+      cell: ({ row }) => <span className="text-sm">{credentialPurposeLabel(row.original)}</span>,
     },
   ];
 

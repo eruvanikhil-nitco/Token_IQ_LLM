@@ -11,6 +11,7 @@ vi.mock("@/components/provider_info_helpers", () => ({
     const providerMap: Record<string, { displayName: string; logo: string }> = {
       openai: { displayName: "OpenAI", logo: "/openai-logo.png" },
       azure: { displayName: "Azure", logo: "/azure-logo.png" },
+      anthropic: { displayName: "Anthropic", logo: "/anthropic-logo.png" },
     };
     return providerMap[provider] || { displayName: provider, logo: "" };
   },
@@ -106,6 +107,27 @@ describe("CredentialsTable", () => {
     await user.click(screen.getByTestId("credential-actions-b-openai-key"));
     await user.click(await screen.findByTestId("credential-action-copy"));
     expect(await window.navigator.clipboard.readText()).toBe("b-openai-key");
+  });
+
+  it("should show each credential's purpose", () => {
+    render(
+      <CredentialsTable
+        {...defaultProps}
+        credentials={[
+          { credential_name: "openai-models", credential_values: {}, credential_info: { custom_llm_provider: "OpenAI" } },
+          {
+            credential_name: "anthropic-costs",
+            credential_values: {},
+            credential_info: { purpose: "billing_ingestion", provider: "anthropic" },
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getByRole("columnheader", { name: /Purpose/ })).toBeInTheDocument();
+    expect(screen.getByText("Model access")).toBeInTheDocument();
+    expect(screen.getByText("Billing access (read-only)")).toBeInTheDocument();
+    expect(screen.getByText("Anthropic")).toBeInTheDocument();
   });
 
   it("should not render the actions menu when the user cannot modify credentials", () => {

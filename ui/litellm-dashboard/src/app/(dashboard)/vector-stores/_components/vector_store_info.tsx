@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ArrowLeft, CircleHelp } from "lucide-react";
 import { z } from "zod/v4";
+import { modelAccessCredentials } from "@/components/model_add/credential_form_helpers";
 import {
   vectorStoreInfoCall,
   vectorStoreUpdateCall,
@@ -175,7 +176,7 @@ const VectorStoreInfoView: React.FC<VectorStoreInfoViewProps> = ({
 
   const credentialOptions: CredentialOption[] = [
     { value: null, label: "None" },
-    ...credentials.map((credential) => ({
+    ...modelAccessCredentials(credentials).map((credential) => ({
       value: credential.credential_name,
       label: credential.credential_name,
     })),

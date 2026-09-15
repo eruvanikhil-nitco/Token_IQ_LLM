@@ -31,6 +31,11 @@ vi.mock("@/components/networking", async (importOriginal) => {
 
 // Stub the modal so the panel's submit handlers can be driven directly: the
 // button fires onSubmit with form-shaped values, and it only renders when open.
+let addModalValues: Record<string, unknown> = { credential_name: "new-cred", custom_llm_provider: "openai" };
+const mockCredentialModalValues = (values: Record<string, unknown>) => {
+  addModalValues = values;
+};
+
 vi.mock("./CredentialModal", () => ({
   default: function CredentialModalMock({
     mode,
@@ -52,7 +57,7 @@ vi.mock("./CredentialModal", () => ({
             api_key: "sk-1****2345",
             api_base: "https://proxy.e2e.example.com/v1",
           }
-        : { credential_name: "new-cred", custom_llm_provider: "openai" };
+        : addModalValues;
     return (
       <button data-testid={`credential-modal-${mode}-submit`} onClick={() => onSubmit(values)}>
         submit {mode}
@@ -89,6 +94,7 @@ const renderPanel = () =>
 describe("CredentialsPanel", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    addModalValues = { credential_name: "new-cred", custom_llm_provider: "openai" };
   });
 
   it("renders the Add Credential button for an admin", () => {
@@ -171,7 +177,7 @@ describe("CredentialsPanel", () => {
     await user.click(screen.getByTestId("credential-modal-add-submit"));
 
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith("Failed to add credential");
+      expect(toast.error).toHaveBeenCalledWith("network down");
     });
     // The modal stays open so the user can retry, and no success toast fired.
     expect(screen.getByTestId("credential-modal-add-submit")).toBeInTheDocument();
@@ -196,6 +202,34 @@ describe("CredentialsPanel", () => {
     const [, updatedName, payload] = vi.mocked(credentialUpdateCall).mock.calls[0];
     expect(updatedName).toBe("openai-key");
     expect(payload.credential_values).toEqual({ api_base: "https://proxy.e2e.example.com/v1" });
+  });
+
+  it("sends a billing credential with the billing marker and shows the server's reason when it is refused", async () => {
+    const user = userEvent.setup();
+    vi.mocked(credentialCreateCall).mockRejectedValueOnce(
+      new Error("This is not a openai admin key. Cost reports need an organisation admin key, which starts with sk-admin-."),
+    );
+    mockCredentialModalValues({
+      credential_name: "openai-costs",
+      purpose: "billing_access",
+      billing_provider: "openai",
+      api_key: "sk-proj-test-not-real",
+    });
+    mockUseAuthorized.mockReturnValue({ accessToken: "test-token", userRole: "Admin" });
+    mockUseCredentials.mockReturnValue({ data: { credentials: [] }, isLoading: false, refetch: vi.fn() });
+    renderPanel();
+
+    await user.click(screen.getByRole("button", { name: /add credential/i }));
+    await user.click(await screen.findByTestId("credential-modal-add-submit"));
+
+    await waitFor(() =>
+      expect(credentialCreateCall).toHaveBeenCalledWith("test-token", {
+        credential_name: "openai-costs",
+        credential_values: { api_key: "sk-proj-test-not-real" },
+        credential_info: { purpose: "billing_ingestion", provider: "openai" },
+      }),
+    );
+    expect(toast.error).toHaveBeenCalledWith(expect.stringContaining("sk-admin-"));
   });
 
   describe("Admin Viewer write-action gating", () => {

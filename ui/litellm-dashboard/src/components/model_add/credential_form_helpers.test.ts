@@ -1,6 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
+import type { CredentialItem } from "../networking";
 import { Providers } from "../provider_info_helpers";
-import { resetCredentialFormOnProviderChange } from "./credential_form_helpers";
+import {
+  BILLING_PROVIDERS,
+  buildCredentialPayload,
+  credentialPurposeLabel,
+  isBillingCredential,
+  modelAccessCredentials,
+  resetCredentialFormOnProviderChange,
+} from "./credential_form_helpers";
 
 /**
  * Build a minimal FormInstance stub that records calls. We don't depend
@@ -79,5 +87,86 @@ describe("resetCredentialFormOnProviderChange", () => {
 
     const credentialNameCalls = calls.setFieldValue.mock.calls.filter(([key]) => key === "credential_name");
     expect(credentialNameCalls).toHaveLength(0);
+  });
+});
+
+describe("credential purpose", () => {
+  const billing: CredentialItem = {
+    credential_name: "anthropic-costs",
+    credential_values: {},
+    credential_info: { purpose: "billing_ingestion", provider: "anthropic" },
+  };
+  const modelAccess: CredentialItem = {
+    credential_name: "openai-models",
+    credential_values: { api_key: "sk-****" },
+    credential_info: { custom_llm_provider: "OpenAI" },
+  };
+
+  it("tells billing credentials from model access credentials", () => {
+    expect(isBillingCredential(billing)).toBe(true);
+    expect(isBillingCredential(modelAccess)).toBe(false);
+  });
+
+  it("keeps billing credentials out of the lists used to serve models", () => {
+    expect(modelAccessCredentials([billing, modelAccess]).map((c) => c.credential_name)).toEqual(["openai-models"]);
+  });
+
+  it("labels each purpose in plain words", () => {
+    expect(credentialPurposeLabel(billing)).toBe("Billing access (read-only)");
+    expect(credentialPurposeLabel(modelAccess)).toBe("Model access");
+  });
+
+  it("offers exactly the providers this build can read bills from", () => {
+    expect(BILLING_PROVIDERS.map((p) => p.value)).toEqual(["openai", "anthropic", "openrouter", "bedrock"]);
+  });
+
+  it("builds a billing credential with the marker the ingestion job looks for", () => {
+    expect(
+      buildCredentialPayload({
+        credential_name: "anthropic-costs",
+        purpose: "billing_access",
+        billing_provider: "anthropic",
+        api_key: "sk-ant-admin01-test-not-real",
+      }),
+    ).toEqual({
+      credential_name: "anthropic-costs",
+      credential_values: { api_key: "sk-ant-admin01-test-not-real" },
+      credential_info: { purpose: "billing_ingestion", provider: "anthropic" },
+    });
+  });
+
+  it("keeps only the Bedrock values that were filled in", () => {
+    expect(
+      buildCredentialPayload({
+        credential_name: "aws-costs",
+        purpose: "billing_access",
+        billing_provider: "bedrock",
+        aws_access_key_id: "AKIATESTNOTREAL",
+        aws_secret_access_key: "test-not-real",
+        aws_session_token: "",
+      }).credential_values,
+    ).toEqual({ aws_access_key_id: "AKIATESTNOTREAL", aws_secret_access_key: "test-not-real" });
+  });
+
+  it("builds a model access credential exactly as before", () => {
+    expect(
+      buildCredentialPayload({
+        credential_name: "openai-models",
+        purpose: "model_access",
+        custom_llm_provider: "OpenAI",
+        api_key: "sk-test-not-real",
+        api_base: "https://api.openai.com/v1",
+      }),
+    ).toEqual({
+      credential_name: "openai-models",
+      credential_values: { api_key: "sk-test-not-real", api_base: "https://api.openai.com/v1" },
+      credential_info: { custom_llm_provider: "OpenAI" },
+    });
+  });
+
+  it("treats a form with no purpose as model access, so existing callers keep working", () => {
+    expect(
+      buildCredentialPayload({ credential_name: "x", custom_llm_provider: "OpenAI", api_key: "k" }).credential_info,
+    ).toEqual({ custom_llm_provider: "OpenAI" });
   });
 });

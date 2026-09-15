@@ -280,6 +280,8 @@ export interface CredentialItem {
     custom_llm_provider?: string;
     description?: string;
     required?: boolean;
+    purpose?: string;
+    provider?: string;
   };
 }
 

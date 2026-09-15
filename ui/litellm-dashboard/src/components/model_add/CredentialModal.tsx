@@ -2,7 +2,9 @@ import { Input } from "@/components/ui/input";
 import { SearchSelect, type SearchSelectOption } from "@/components/shared/SearchSelect";
 import { SimpleTooltip } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { FieldLabel } from "@/components/ui/field";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import ProviderSpecificFields from "../add_model/provider_specific_fields";
 import { requiredRule } from "../common_components/formRules";
@@ -17,7 +19,8 @@ import {
 import { CredentialItem } from "../networking";
 import { Providers } from "../provider_info_helpers";
 import { Logo } from "@/components/molecules/logo/Logo";
-import { resetCredentialFormOnProviderChange } from "./credential_form_helpers";
+import BillingCredentialFields from "./BillingCredentialFields";
+import { isBillingCredential, resetCredentialFormOnProviderChange, type BillingProvider } from "./credential_form_helpers";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const providerOptions: SearchSelectOption[] = Object.entries(Providers).map(([providerEnum, providerDisplayName]) => ({
@@ -25,6 +28,29 @@ const providerOptions: SearchSelectOption[] = Object.entries(Providers).map(([pr
   value: providerEnum,
   icon: <Logo provider={providerEnum} label={providerDisplayName} className="w-5 h-5" />,
 }));
+
+const buildInitialValues = (
+  existingCredential: CredentialItem | null,
+  isExistingBilling: boolean,
+): Record<string, unknown> | undefined => {
+  if (!existingCredential) {
+    return undefined;
+  }
+  if (isExistingBilling) {
+    return {
+      credential_name: existingCredential.credential_name,
+      purpose: "billing_access",
+      billing_provider: existingCredential.credential_info.provider,
+    };
+  }
+  return {
+    credential_name: existingCredential.credential_name,
+    custom_llm_provider: existingCredential.credential_info.custom_llm_provider,
+    ...Object.fromEntries(
+      Object.entries(existingCredential.credential_values || {}).map(([key, value]) => [key, value ?? null]),
+    ),
+  };
+};
 
 interface CredentialModalProps {
   open: boolean;
@@ -42,22 +68,25 @@ export default function CredentialModal({
   existingCredential = null,
 }: CredentialModalProps) {
   const isEdit = mode === "edit";
+  const isExistingBilling = existingCredential !== null && isBillingCredential(existingCredential);
   const [selectedProvider, setSelectedProvider] = useState<Providers>(
     (existingCredential?.credential_info.custom_llm_provider as Providers) ?? Providers.OpenAI,
   );
+  const [purpose, setPurpose] = useState<"model_access" | "billing_access">(
+    isExistingBilling ? "billing_access" : "model_access",
+  );
+  const [billingProvider, setBillingProvider] = useState<BillingProvider>(
+    (existingCredential?.credential_info.provider as BillingProvider | undefined) ?? "openai",
+  );
 
-  const initialValues = existingCredential
-    ? {
-        credential_name: existingCredential.credential_name,
-        custom_llm_provider: existingCredential.credential_info.custom_llm_provider,
-        ...Object.fromEntries(
-          Object.entries(existingCredential.credential_values || {}).map(([key, value]) => [key, value ?? null]),
-        ),
-      }
-    : undefined;
+  const initialValues = buildInitialValues(existingCredential, isExistingBilling);
 
   const form = useForm<MountedFormValues>({ mode: "onChange", defaultValues: initialValues });
   const registry = useMountRegistry();
+  // Registered directly (not via a MountedFormField) so it stays included
+  // even when the Purpose radio is hidden in edit mode: an existing billing
+  // credential's purpose must still reach buildCredentialPayload.
+  useEffect(() => registry.register("purpose"), [registry]);
 
   const formAdapter = {
     getFieldValue: (field: string) => form.getValues(field),
@@ -119,28 +148,57 @@ export default function CredentialModal({
                 )}
               </MountedFormField>
 
-              <MountedFormField
-                label={labelWithHint("Provider:", "Helper to auto-populate provider specific fields")}
-                name="custom_llm_provider"
-                required
-                rules={{ validate: { required: requiredRule("Required") } }}
-                className="mb-4"
-              >
-                {(control) => (
-                  <SearchSelect
-                    inputId={control.id}
-                    placeholder="Select a provider"
-                    options={providerOptions}
-                    value={(control.value as string | undefined) ?? ""}
-                    onValueChange={(value) => {
-                      control.onChange(value);
-                      resetCredentialFormOnProviderChange(formAdapter, value as Providers, setSelectedProvider);
-                    }}
-                  />
-                )}
-              </MountedFormField>
+              {!isEdit && (
+                <MountedFormField label="Purpose" name="purpose" defaultValue="model_access" className="mb-4">
+                  {(control) => (
+                    <RadioGroup
+                      value={(control.value as string | undefined) ?? "model_access"}
+                      onValueChange={(value: unknown) => {
+                        control.onChange(value);
+                        setPurpose(value as "model_access" | "billing_access");
+                      }}
+                    >
+                      <FieldLabel className="font-normal">
+                        <RadioGroupItem value="model_access" />
+                        Model access
+                      </FieldLabel>
+                      <FieldLabel className="font-normal">
+                        <RadioGroupItem value="billing_access" />
+                        Billing access (read-only)
+                      </FieldLabel>
+                    </RadioGroup>
+                  )}
+                </MountedFormField>
+              )}
 
-              <ProviderSpecificFields selectedProvider={selectedProvider} />
+              {purpose === "model_access" ? (
+                <>
+                  <MountedFormField
+                    label={labelWithHint("Provider:", "Helper to auto-populate provider specific fields")}
+                    name="custom_llm_provider"
+                    required
+                    rules={{ validate: { required: requiredRule("Required") } }}
+                    className="mb-4"
+                  >
+                    {(control) => (
+                      <SearchSelect
+                        inputId={control.id}
+                        placeholder="Select a provider"
+                        options={providerOptions}
+                        value={(control.value as string | undefined) ?? ""}
+                        onValueChange={(value) => {
+                          control.onChange(value);
+                          resetCredentialFormOnProviderChange(formAdapter, value as Providers, setSelectedProvider);
+                        }}
+                      />
+                    )}
+                  </MountedFormField>
+
+                  <ProviderSpecificFields selectedProvider={selectedProvider} />
+                </>
+              ) : (
+                <BillingCredentialFields provider={billingProvider} onProviderChange={setBillingProvider} isEdit={isEdit} />
+              )}
 
               <div className="flex justify-between items-center">
                 <SimpleTooltip content="Get help on our github">

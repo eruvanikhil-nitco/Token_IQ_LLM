@@ -3,6 +3,7 @@ import { CircleHelp, Eye, EyeOff, Info } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/shared/Alert";
 import { useWatch } from "react-hook-form";
 import { z } from "zod/v4";
+import { modelAccessCredentials } from "@/components/model_add/credential_form_helpers";
 import { CredentialItem, vectorStoreCreateCall } from "@/components/networking";
 import {
   VectorStoreProviders,
@@ -204,7 +205,7 @@ const VectorStoreForm: React.FC<VectorStoreFormProps> = ({
 
   const credentialOptions: CredentialOption[] = [
     { value: null, label: "None" },
-    ...credentials.map((credential) => ({
+    ...modelAccessCredentials(credentials).map((credential) => ({
       value: credential.credential_name,
       label: credential.credential_name,
     })),

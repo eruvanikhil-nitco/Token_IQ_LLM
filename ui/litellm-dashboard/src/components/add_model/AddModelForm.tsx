@@ -24,6 +24,7 @@ import {
   type MountedFormValues,
 } from "../common_components/MountedFormField";
 import type { Team } from "../key_team_helpers/key_list";
+import { modelAccessCredentials } from "../model_add/credential_form_helpers";
 import { type CredentialItem, type ProviderCreateInfo, modelAvailableCall } from "../networking";
 import { Providers } from "../provider_info_helpers";
 import { ProviderLogo } from "../molecules/models/ProviderLogo";
@@ -132,7 +133,7 @@ const AddModelForm: React.FC<AddModelFormProps> = ({
   const credentialOptions: SearchSelectOption[] = useMemo(
     () => [
       { label: "None", value: "" },
-      ...credentials.map((credential) => ({
+      ...modelAccessCredentials(credentials).map((credential) => ({
         label: credential.credential_name,
         value: credential.credential_name,
       })),
