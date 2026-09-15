@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -23,6 +23,10 @@ vi.mock("@/components/networking", () => ({
 
 vi.mock("@/app/(dashboard)/hooks/useAuthorized", () => ({
   default: () => ({ accessToken: "sk-test", userRole: "Admin", userId: "u1" }),
+}));
+
+vi.mock("@/app/(dashboard)/models-and-endpoints/panels/AccessGroupBudgetsPanel", () => ({
+  default: () => <div data-testid="access-group-budgets-panel" />,
 }));
 
 interface BudgetSeed {
@@ -254,5 +258,37 @@ describe("Budget Panel", () => {
     await user.click(screen.getByRole("button", { name: /^delete$/i }));
 
     await waitFor(() => expect(getMock.mock.calls.length).toBeGreaterThan(before));
+  });
+
+  it("offers the budget tabs in the agreed order", async () => {
+    renderPanel();
+    await screen.findByRole("heading", { level: 1, name: "Budgets" });
+
+    const topTabs = within(screen.getAllByRole("tablist")[0]).getAllByRole("tab");
+    expect(topTabs.map((tab) => tab.textContent)).toEqual([
+      "Budgets",
+      "Assign Budget",
+      "Examples",
+      expect.stringContaining("Model Access Group Budgets"),
+    ]);
+  });
+
+  it("shows Model Access Group Budgets here now that it has moved from Models", async () => {
+    const user = userEvent.setup();
+    renderPanel();
+
+    await user.click(await screen.findByRole("tab", { name: /Model Access Group Budgets/ }));
+
+    expect(await screen.findByTestId("access-group-budgets-panel")).toBeInTheDocument();
+  });
+
+  it("shows how to assign a budget to a customer on its own tab", async () => {
+    const user = userEvent.setup();
+    renderPanel();
+
+    await user.click(await screen.findByRole("tab", { name: "Assign Budget" }));
+
+    expect(screen.getByText("Assign a budget to a customer")).toBeVisible();
+    expect(screen.queryByRole("tab", { name: "Assign Budget to Customer" })).not.toBeInTheDocument();
   });
 });

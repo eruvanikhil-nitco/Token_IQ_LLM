@@ -8,7 +8,6 @@ import { useTeams } from "@/app/(dashboard)/hooks/teams/useTeams";
 import { useUISettings } from "@/app/(dashboard)/hooks/uiSettings/useUISettings";
 import { all_admin_roles, internalUserRoles } from "@/utils/roles";
 import { canCreateModels } from "@/utils/modelPermissions";
-import BetaBadge from "@/components/BetaBadge";
 import CostOptimizationFeedbackBanner from "@/components/molecules/cost_optimization_feedback_banner";
 import ModelInfoView from "@/components/model_info_view";
 import TeamInfoView from "@/components/team/TeamInfo";
@@ -22,7 +21,6 @@ import HealthStatusPanel from "@/app/(dashboard)/models-and-endpoints/panels/Hea
 import ModelRetrySettingsPanel from "@/app/(dashboard)/models-and-endpoints/panels/ModelRetrySettingsPanel";
 import ModelLimitsTab from "@/app/(dashboard)/models-and-endpoints/components/ModelLimitsTab";
 import ModelGroupAliasPanel from "@/app/(dashboard)/models-and-endpoints/panels/ModelGroupAliasPanel";
-import AccessGroupBudgetsPanel from "@/app/(dashboard)/models-and-endpoints/panels/AccessGroupBudgetsPanel";
 import PriceDataPanel from "@/app/(dashboard)/models-and-endpoints/panels/PriceDataPanel";
 import ModelPricingTab from "@/app/(dashboard)/models-and-endpoints/components/ModelPricingTab";
 import { Button } from "@/components/ui/button";
@@ -38,7 +36,6 @@ type ModelTabSlug =
   | "model-limits"
   | "model-pricing"
   | "model-group-alias"
-  | "access-group-budgets"
   | "price-data";
 
 const BASE_TAB_KEY = "all-models";
@@ -52,7 +49,6 @@ export const TAB_LABELS: Record<ModelTabSlug, string> = {
   "model-limits": "Model Limits",
   "model-pricing": "Model Pricing",
   "model-group-alias": "Model Group Alias",
-  "access-group-budgets": "Model Access Group Budgets",
   "price-data": "Price Data Reload",
 };
 
@@ -76,8 +72,6 @@ const renderPanel = (key: string) => {
       return <ModelPricingTab />;
     case "model-group-alias":
       return <ModelGroupAliasPanel />;
-    case "access-group-budgets":
-      return <AccessGroupBudgetsPanel />;
     case "price-data":
       return <PriceDataPanel />;
     default:
@@ -120,7 +114,6 @@ export default function ModelsAndEndpointsPage() {
             "model-limits",
             "model-pricing",
             "model-group-alias",
-            "access-group-budgets",
             "price-data",
           ] as const)
         : []),
@@ -129,17 +122,7 @@ export default function ModelsAndEndpointsPage() {
   );
 
   const allModelsLabel = isAdmin ? "All Models" : "Your Models";
-  const tabLabel = (slug: "" | ModelTabSlug): React.ReactNode => {
-    if (!slug) return allModelsLabel;
-    if (slug === "access-group-budgets") {
-      return (
-        <span className="flex items-center gap-2">
-          {TAB_LABELS[slug]} <BetaBadge />
-        </span>
-      );
-    }
-    return TAB_LABELS[slug];
-  };
+  const tabLabel = (slug: "" | ModelTabSlug): React.ReactNode => (slug ? TAB_LABELS[slug] : allModelsLabel);
 
   const handleRefreshClick = () => {
     setLastRefreshed(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));

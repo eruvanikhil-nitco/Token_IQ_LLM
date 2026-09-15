@@ -8,6 +8,8 @@ import React, { useCallback, useState } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { prism } from "react-syntax-highlighter/dist/esm/styles/prism";
 
+import AccessGroupBudgetsPanel from "@/app/(dashboard)/models-and-endpoints/panels/AccessGroupBudgetsPanel";
+import BetaBadge from "@/components/BetaBadge";
 import { useSyntaxTheme } from "@/hooks/useSyntaxTheme";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -101,8 +103,16 @@ const BudgetPanel: React.FC<BudgetSettingsPageProps> = ({ accessToken }) => {
               <TabsTrigger value="budgets" className="flex-none px-0 py-[7px] data-active:font-semibold">
                 Budgets
               </TabsTrigger>
+              <TabsTrigger value="assign-budget" className="flex-none px-0 py-[7px] data-active:font-semibold">
+                Assign Budget
+              </TabsTrigger>
               <TabsTrigger value="examples" className="flex-none px-0 py-[7px] data-active:font-semibold">
                 Examples
+              </TabsTrigger>
+              <TabsTrigger value="access-group-budgets" className="flex-none px-0 py-[7px] data-active:font-semibold">
+                <span className="flex items-center gap-2">
+                  Model Access Group Budgets <BetaBadge />
+                </span>
               </TabsTrigger>
             </TabsList>
           )}
@@ -140,14 +150,19 @@ const BudgetPanel: React.FC<BudgetSettingsPageProps> = ({ accessToken }) => {
             />
           </div>
         </TabsContent>
+        <TabsContent value="assign-budget" className="min-h-0 flex-1 overflow-y-auto" keepMounted>
+          <div className="pt-6">
+            <p className="text-base text-muted-foreground">Assign a budget to a customer</p>
+            <SyntaxHighlighter language="bash" style={syntaxTheme}>
+              {CREATE_END_USER_CURL_COMMAND}
+            </SyntaxHighlighter>
+          </div>
+        </TabsContent>
         <TabsContent value="examples" className="min-h-0 flex-1 overflow-y-auto" keepMounted>
           <div className="pt-6">
             <p className="text-base text-muted-foreground">How to use budget id</p>
-            <Tabs defaultValue="assign-budget">
+            <Tabs defaultValue="curl">
               <TabsList variant="line" className="h-auto w-full justify-start rounded-none border-b p-0">
-                <TabsTrigger value="assign-budget" className="flex-none rounded-none px-4 py-2">
-                  Assign Budget to Customer
-                </TabsTrigger>
                 <TabsTrigger value="curl" className="flex-none rounded-none px-4 py-2">
                   Test it (Curl)
                 </TabsTrigger>
@@ -155,11 +170,6 @@ const BudgetPanel: React.FC<BudgetSettingsPageProps> = ({ accessToken }) => {
                   Test it (OpenAI SDK)
                 </TabsTrigger>
               </TabsList>
-              <TabsContent value="assign-budget" keepMounted>
-                <SyntaxHighlighter language="bash" style={syntaxTheme}>
-                  {CREATE_END_USER_CURL_COMMAND}
-                </SyntaxHighlighter>
-              </TabsContent>
               <TabsContent value="curl" keepMounted>
                 <SyntaxHighlighter language="bash" style={syntaxTheme}>
                   {CHAT_COMPLETIONS_CURL_COMMAND}
@@ -171,6 +181,11 @@ const BudgetPanel: React.FC<BudgetSettingsPageProps> = ({ accessToken }) => {
                 </SyntaxHighlighter>
               </TabsContent>
             </Tabs>
+          </div>
+        </TabsContent>
+        <TabsContent value="access-group-budgets" className="min-h-0 flex-1 overflow-y-auto">
+          <div className="pt-6">
+            <AccessGroupBudgetsPanel />
           </div>
         </TabsContent>
       </Tabs>
