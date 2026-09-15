@@ -6564,68 +6564,6 @@ export const updateSSOSettings = async (accessToken: string, settings: Record<st
   }
 };
 
-interface UiAuditLogsParams {
-  action?: string;
-  table_name?: string;
-  object_id?: string;
-  changed_by?: string;
-  changed_by_api_key?: string;
-  object_team_id?: string;
-  object_key_hash?: string;
-  sort_by?: string;
-  sort_order?: "asc" | "desc";
-}
-
-interface UiAuditLogsCallOptions {
-  accessToken: string;
-  page?: number;
-  page_size?: number;
-  params?: UiAuditLogsParams;
-}
-
-export const uiAuditLogsCall = async ({
-  accessToken,
-  page = 1,
-  page_size = 50,
-  params = {},
-}: UiAuditLogsCallOptions) => {
-  try {
-    let url = proxyBaseUrl ? `${proxyBaseUrl}/audit` : `/audit`;
-
-    const queryParams = new URLSearchParams();
-    queryParams.append("page", page.toString());
-    queryParams.append("page_size", page_size.toString());
-
-    for (const [key, value] of Object.entries(params)) {
-      if (value != null && value !== "") {
-        queryParams.append(key, String(value));
-      }
-    }
-
-    url += `?${queryParams.toString()}`;
-
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        [globalLitellmHeaderName]: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      const errorMessage = deriveErrorMessage(errorData);
-      handleError(errorMessage);
-      throw new Error(errorMessage);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error("Failed to fetch audit logs:", error);
-    throw error;
-  }
-};
-
 export const getRemainingUsers = async (
   accessToken: string,
 ): Promise<{

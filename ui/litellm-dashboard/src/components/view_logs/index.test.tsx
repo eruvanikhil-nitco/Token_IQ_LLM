@@ -23,9 +23,9 @@ vi.mock("./RequestLogsPanel", () => ({
   },
 }));
 
-vi.mock("./AuditLogsPanel", () => ({
-  default: function AuditLogsPanelMock({ isActive }: { isActive: boolean }) {
-    return <div data-testid="audit-logs-panel">{isActive ? "active" : "inactive"}</div>;
+vi.mock("@/components/Settings/AdminSettings/AuditLog/AuditLogView", () => ({
+  default: function AuditLogViewMock() {
+    return <div data-testid="audit-log-view" />;
   },
 }));
 
@@ -81,7 +81,7 @@ describe("SpendLogsTable", () => {
 
     await user.click(screen.getByRole("tab", { name: "Audit Logs" }));
 
-    expect(await screen.findByTestId("audit-logs-panel")).toHaveTextContent("active");
+    expect(await screen.findByTestId("audit-log-view")).toBeInTheDocument();
     expect(screen.getByTestId("request-logs-panel")).toHaveTextContent("inactive");
   });
 
@@ -98,7 +98,7 @@ describe("SpendLogsTable", () => {
     it("never mounts the panels that call the admin-only endpoints for an internal user", () => {
       renderAs("Internal User");
 
-      expect(screen.queryByTestId("audit-logs-panel")).not.toBeInTheDocument();
+      expect(screen.queryByTestId("audit-log-view")).not.toBeInTheDocument();
       expect(screen.queryByTestId("deleted-teams-page")).not.toBeInTheDocument();
       expect(screen.getByTestId("deleted-keys-page")).toBeInTheDocument();
     });
@@ -116,7 +116,7 @@ describe("SpendLogsTable", () => {
       renderAs("Internal User", ORG_ADMIN_MEMBERSHIPS);
 
       expect(tabNames()).toEqual(["Request Logs", "Deleted Keys", "Deleted Teams"]);
-      expect(screen.queryByTestId("audit-logs-panel")).not.toBeInTheDocument();
+      expect(screen.queryByTestId("audit-log-view")).not.toBeInTheDocument();
     });
 
     it("keeps an internal user in the same org without an org_admin membership at two tabs", () => {
@@ -149,7 +149,7 @@ describe("SpendLogsTable", () => {
 
       await user.click(screen.getByRole("tab", { name: "Deleted Keys" }));
 
-      expect(screen.getByTestId("audit-logs-panel")).toHaveTextContent("inactive");
+      expect(screen.queryByTestId("audit-log-view")).not.toBeInTheDocument();
       expect(screen.getByTestId("request-logs-panel")).toHaveTextContent("inactive");
     });
 
@@ -159,7 +159,7 @@ describe("SpendLogsTable", () => {
 
       await user.click(screen.getByRole("tab", { name: "Deleted Teams" }));
 
-      expect(screen.getByTestId("audit-logs-panel")).toHaveTextContent("inactive");
+      expect(screen.queryByTestId("audit-log-view")).not.toBeInTheDocument();
       expect(screen.getByTestId("deleted-teams-page")).toBeInTheDocument();
     });
 

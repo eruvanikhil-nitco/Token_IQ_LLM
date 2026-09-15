@@ -2,7 +2,7 @@ import { useState } from "react";
 import useCan from "@/app/(dashboard)/hooks/useCan";
 import DeletedKeysPage from "../DeletedKeysPage/DeletedKeysPage";
 import DeletedTeamsPage from "../DeletedTeamsPage/DeletedTeamsPage";
-import AuditLogsPanel from "./AuditLogsPanel";
+import AuditLogView from "@/components/Settings/AdminSettings/AuditLog/AuditLogView";
 import RequestLogsPanel from "./RequestLogsPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UiLoadingSpinner } from "@/components/ui/ui-loading-spinner";
@@ -27,7 +27,7 @@ const AUDIT_LOGS_TAB: LogsTab = { id: "audit logs", label: "Audit Logs" };
 const DELETED_KEYS_TAB: LogsTab = { id: "deleted keys", label: "Deleted Keys" };
 const DELETED_TEAMS_TAB: LogsTab = { id: "deleted teams", label: "Deleted Teams" };
 
-export default function SpendLogsTable({ accessToken, token, userRole, userID, premiumUser }: SpendLogsTableProps) {
+export default function SpendLogsTable({ accessToken, token, userRole, userID }: SpendLogsTableProps) {
   const [activeTab, setActiveTab] = useState<LogsTabId>(REQUEST_LOGS_TAB.id);
   const canViewAuditLogs = useCan("viewAuditLogs");
   const canViewDeletedTeams = useCan("viewDeletedTeams");
@@ -60,16 +60,7 @@ export default function SpendLogsTable({ accessToken, token, userRole, userID, p
           />
         );
       case "audit logs":
-        return (
-          <AuditLogsPanel
-            userID={userID}
-            userRole={userRole}
-            token={token}
-            accessToken={accessToken}
-            isActive={activeTab === "audit logs"}
-            premiumUser={premiumUser}
-          />
-        );
+        return activeTab === "audit logs" ? <AuditLogView /> : null;
       case "deleted keys":
         return <DeletedKeysPage />;
       case "deleted teams":
