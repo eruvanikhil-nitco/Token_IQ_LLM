@@ -1,8 +1,12 @@
 import { useProjectDetails } from "@/app/(dashboard)/hooks/projects/useProjectDetails";
+import {
+  PROJECT_SPEND_WINDOW_DAYS,
+  useProjectSpendByModel,
+} from "@/app/(dashboard)/hooks/projects/useProjectSpendByModel";
 import { useTeam } from "@/app/(dashboard)/hooks/teams/useTeams";
 import { BarChart } from "@/components/shared/charts";
 import { ArrowLeftIcon, DollarSignIcon, EditIcon, UsersIcon } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import DefaultProxyAdminTag from "@/components/common_components/DefaultProxyAdminTag";
 import CopyButton from "@/components/shared/CopyButton";
 import { StatusBadge } from "@/components/shared/table_cells/status_badge";
@@ -33,6 +37,7 @@ const utilisationTone = (percent: number) => (percent >= 90 ? "over" : percent >
 
 export function ProjectDetail({ projectId, onBack }: ProjectDetailProps) {
   const { data: project, isLoading } = useProjectDetails(projectId);
+  const { data: modelSpendData = [] } = useProjectSpendByModel(projectId);
   const { data: teamData } = useTeam(project?.team_id ?? undefined);
   // teamInfoCall returns { team_id, team_info: {...}, keys, team_memberships }
   const teamInfo: TeamInfoShape | undefined = ((teamData as unknown as { team_info?: TeamInfoShape })?.team_info ??
@@ -43,13 +48,6 @@ export function ProjectDetail({ projectId, onBack }: ProjectDetailProps) {
   const maxBudget = project?.litellm_budget_table?.max_budget ?? null;
   const hasLimit = maxBudget != null && maxBudget > 0;
   const spendPercent = hasLimit ? Math.min((spend / maxBudget) * 100, 100) : 0;
-
-  const modelSpendData = useMemo(() => {
-    const raw = (project?.model_spend ?? {}) as Record<string, number>;
-    return Object.entries(raw)
-      .map(([model, value]) => ({ model, spend: value }))
-      .sort((a, b) => b.spend - a.spend);
-  }, [project?.model_spend]);
 
   if (isLoading) {
     return (
@@ -170,7 +168,7 @@ export function ProjectDetail({ projectId, onBack }: ProjectDetailProps) {
 
         <Card className="h-full lg:col-span-2">
           <CardHeader>
-            <CardTitle>Spend by Model</CardTitle>
+            <CardTitle>Spend by Model, last {PROJECT_SPEND_WINDOW_DAYS} days</CardTitle>
           </CardHeader>
           <CardContent>
             {modelSpendData.length > 0 ? (
@@ -186,7 +184,9 @@ export function ProjectDetail({ projectId, onBack }: ProjectDetailProps) {
                 style={{ height: Math.max(modelSpendData.length * 40, 120) }}
               />
             ) : (
-              <p className="py-8 text-center text-sm text-muted-foreground">No model spend recorded yet</p>
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                No model spend in the last {PROJECT_SPEND_WINDOW_DAYS} days
+              </p>
             )}
           </CardContent>
         </Card>

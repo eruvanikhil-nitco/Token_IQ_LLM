@@ -14,6 +14,12 @@ vi.mock("@/app/(dashboard)/hooks/teams/useTeams", () => ({
   useTeam: (id?: string) => mockUseTeam(id),
 }));
 
+const mockUseProjectSpendByModel = vi.fn();
+vi.mock("@/app/(dashboard)/hooks/projects/useProjectSpendByModel", () => ({
+  PROJECT_SPEND_WINDOW_DAYS: 30,
+  useProjectSpendByModel: (id: string) => mockUseProjectSpendByModel(id),
+}));
+
 vi.mock("./ProjectModals/EditProjectModal", () => ({
   EditProjectModal: ({ isOpen }: { isOpen: boolean }) => (isOpen ? <div data-testid="edit-modal" /> : null),
 }));
@@ -63,6 +69,7 @@ describe("ProjectDetail", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUseTeam.mockReturnValue({ data: undefined, isLoading: false });
+    mockUseProjectSpendByModel.mockReturnValue({ data: [] });
   });
 
   describe("when loading", () => {
@@ -181,18 +188,32 @@ describe("ProjectDetail", () => {
     });
 
     describe("Spend by Model chart", () => {
-      const multiModelProject: ProjectResponse = {
-        ...mockProject,
-        model_spend: {
-          "claude-sonnet-5": 0.5,
-          "gpt-5.2": 10,
-          "claude-opus-4-8": 2.75,
-          "gpt-5.2-codex": 5.5,
-        },
-      };
+      const multiModelSpend = [
+        { model: "gpt-5.2", spend: 10 },
+        { model: "gpt-5.2-codex", spend: 5.5 },
+        { model: "claude-opus-4-8", spend: 2.75 },
+        { model: "claude-sonnet-5", spend: 0.5 },
+      ];
+
+      beforeEach(() => {
+        mockUseProjectDetails.mockReturnValue({ data: mockProject, isLoading: false });
+      });
+
+      it("should read spend by model from the daily report rather than the project's stored model_spend", () => {
+        mockUseProjectDetails.mockReturnValue({
+          data: { ...mockProject, model_spend: { "stale-model": 99 } },
+          isLoading: false,
+        });
+        mockUseProjectSpendByModel.mockReturnValue({ data: [{ model: "gpt-5.2", spend: 1 }] });
+        const { container } = renderWithProviders(<ProjectDetail projectId="proj-1" onBack={onBack} />);
+
+        expect(mockUseProjectSpendByModel).toHaveBeenCalledWith("proj-1");
+        expect(yAxisTickLabels(container)).toEqual(["gpt-5.2"]);
+        expect(screen.getByText("Spend by Model, last 30 days")).toBeInTheDocument();
+      });
 
       it("should render one cyan bar per model without a legend", () => {
-        mockUseProjectDetails.mockReturnValue({ data: multiModelProject, isLoading: false });
+        mockUseProjectSpendByModel.mockReturnValue({ data: multiModelSpend });
         const { container } = renderWithProviders(<ProjectDetail projectId="proj-1" onBack={onBack} />);
 
         expect(container.querySelectorAll(".recharts-bar")).toHaveLength(1);
@@ -201,40 +222,37 @@ describe("ProjectDetail", () => {
         expect(container.querySelector(".recharts-legend-wrapper")).toBeNull();
       });
 
-      it("should list models on the category axis sorted by spend descending", () => {
-        mockUseProjectDetails.mockReturnValue({ data: multiModelProject, isLoading: false });
+      it("should list models on the category axis in the order the report ranks them", () => {
+        mockUseProjectSpendByModel.mockReturnValue({ data: multiModelSpend });
         const { container } = renderWithProviders(<ProjectDetail projectId="proj-1" onBack={onBack} />);
 
         expect(yAxisTickLabels(container)).toEqual(["gpt-5.2", "gpt-5.2-codex", "claude-opus-4-8", "claude-sonnet-5"]);
       });
 
       it("should format value axis ticks as dollars with four decimals", () => {
-        mockUseProjectDetails.mockReturnValue({ data: multiModelProject, isLoading: false });
+        mockUseProjectSpendByModel.mockReturnValue({ data: multiModelSpend });
         const { container } = renderWithProviders(<ProjectDetail projectId="proj-1" onBack={onBack} />);
 
         expect(container.querySelector(".recharts-xAxis-tick-labels")?.textContent).toMatch(/\$\d+\.\d{4}/);
       });
 
       it("should scale the chart height at 40px per model with a 120px floor", () => {
-        mockUseProjectDetails.mockReturnValue({ data: multiModelProject, isLoading: false });
+        mockUseProjectSpendByModel.mockReturnValue({ data: multiModelSpend });
         const { container } = renderWithProviders(<ProjectDetail projectId="proj-1" onBack={onBack} />);
         expect(container.querySelector<HTMLElement>('[data-slot="chart"]')?.style.height).toBe("160px");
 
-        mockUseProjectDetails.mockReturnValue({ data: mockProject, isLoading: false });
+        mockUseProjectSpendByModel.mockReturnValue({ data: [{ model: "gpt-4", spend: 12.5 }] });
         const { container: singleModelContainer } = renderWithProviders(
           <ProjectDetail projectId="proj-1" onBack={onBack} />,
         );
         expect(singleModelContainer.querySelector<HTMLElement>('[data-slot="chart"]')?.style.height).toBe("120px");
       });
 
-      it("should show the empty state when no model spend is recorded", () => {
-        mockUseProjectDetails.mockReturnValue({
-          data: { ...mockProject, model_spend: {} },
-          isLoading: false,
-        });
+      it("should show the empty state when the report has no model spend", () => {
+        mockUseProjectSpendByModel.mockReturnValue({ data: [] });
         const { container } = renderWithProviders(<ProjectDetail projectId="proj-1" onBack={onBack} />);
 
-        expect(screen.getByText("No model spend recorded yet")).toBeInTheDocument();
+        expect(screen.getByText("No model spend in the last 30 days")).toBeInTheDocument();
         expect(container.querySelector('[data-slot="chart"]')).toBeNull();
       });
     });

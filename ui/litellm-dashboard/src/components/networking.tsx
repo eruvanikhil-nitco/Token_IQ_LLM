@@ -1546,6 +1546,23 @@ export const teamDailyActivityAggregatedCall = async (
   }
 };
 
+export const projectDailyActivityCall = async (
+  accessToken: string,
+  startTime: Date,
+  endTime: Date,
+  page: number = 1,
+  projectIds: string[] | null = null,
+) => {
+  return fetchDailyActivity({
+    accessToken,
+    endpoint: "/project/daily/activity",
+    startTime,
+    endTime,
+    page,
+    extraQueryParams: { project_ids: projectIds },
+  });
+};
+
 export const organizationDailyActivityCall = async (
   accessToken: string,
   startTime: Date,
