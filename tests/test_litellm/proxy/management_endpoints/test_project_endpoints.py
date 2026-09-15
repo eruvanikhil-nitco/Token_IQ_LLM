@@ -9,6 +9,7 @@ from litellm.proxy._types import LitellmUserRoles, NewProjectRequest, UserAPIKey
 
 ADMIN = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin")
 OUTSIDER = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-out", user_id="outsider")
+VIEWER = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY, api_key="sk-view", user_id="viewer")
 
 
 def _team_row(team_id: str = "t1", members_with_roles: list | None = None) -> SimpleNamespace:
@@ -25,6 +26,12 @@ def _team_row(team_id: str = "t1", members_with_roles: list | None = None) -> Si
 def _prisma(team_row: SimpleNamespace | None = None) -> MagicMock:
     client = MagicMock()
     client.db.litellm_teamtable.find_unique = AsyncMock(return_value=team_row if team_row is not None else _team_row())
+    return client
+
+
+def _prisma_with_teams(*team_rows: SimpleNamespace) -> MagicMock:
+    client = MagicMock()
+    client.db.litellm_teamtable.find_many = AsyncMock(return_value=list(team_rows))
     return client
 
 
@@ -200,6 +207,101 @@ async def test_listing_another_team_s_projects_is_refused_not_empty():
     with patch("litellm.proxy.proxy_server.prisma_client", _prisma()), pytest.raises(HTTPException) as exc:
         await project_list(team_id="t1", user_api_key_dict=OUTSIDER)
 
+    assert exc.value.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_listing_without_a_team_shows_an_admin_every_project():
+    """The Projects page asks for every project at once. Requiring a team made the page fail
+    for everyone, admins included."""
+    from litellm.proxy.management_endpoints.project_endpoints import project_list
+
+    with (
+        patch("litellm.proxy.proxy_server.prisma_client", _prisma()),
+        patch(
+            "litellm.repositories.project_repository.ProjectRepository.find_many",
+            AsyncMock(return_value=[_project("p1", "t1"), _project("p2", "t2")]),
+        ),
+    ):
+        result = await project_list(team_id=None, user_api_key_dict=ADMIN)
+
+    assert [p.project_id for p in result] == ["p1", "p2"]
+
+
+@pytest.mark.asyncio
+async def test_listing_without_a_team_shows_a_team_admin_only_the_teams_they_run():
+    from litellm.proxy._types import Member
+    from litellm.proxy.management_endpoints.project_endpoints import project_list
+
+    lead = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
+    mine = _team_row("t1", members_with_roles=[Member(user_id="lead", role="admin").model_dump()])
+    theirs = _team_row("t2", members_with_roles=[Member(user_id="someone-else", role="admin").model_dump()])
+    by_teams = AsyncMock(return_value=[_project("p1", "t1")])
+
+    with (
+        patch("litellm.proxy.proxy_server.prisma_client", _prisma_with_teams(mine, theirs)),
+        patch("litellm.repositories.project_repository.ProjectRepository.find_by_team_ids", by_teams),
+    ):
+        result = await project_list(team_id=None, user_api_key_dict=lead)
+
+    assert [p.project_id for p in result] == ["p1"]
+    assert by_teams.await_args.args[0] == ("t1",)
+
+
+@pytest.mark.asyncio
+async def test_listing_without_a_team_includes_the_team_the_caller_s_key_belongs_to():
+    """A key's own team may already read one of its projects through /project/info, so the
+    list has to agree with that rule."""
+    from litellm.proxy.management_endpoints.project_endpoints import project_list
+
+    member = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-m", user_id="m", team_id="t2")
+    by_teams = AsyncMock(return_value=[_project("p2", "t2")])
+
+    with (
+        patch("litellm.proxy.proxy_server.prisma_client", _prisma_with_teams(_team_row("t1"), _team_row("t2"))),
+        patch("litellm.repositories.project_repository.ProjectRepository.find_by_team_ids", by_teams),
+    ):
+        await project_list(team_id=None, user_api_key_dict=member)
+
+    assert by_teams.await_args.args[0] == ("t2",)
+
+
+@pytest.mark.asyncio
+async def test_listing_without_a_team_gives_an_outsider_nothing_without_querying_projects():
+    from litellm.proxy.management_endpoints.project_endpoints import project_list
+
+    by_teams = AsyncMock(return_value=[_project("p1", "t1")])
+
+    with (
+        patch("litellm.proxy.proxy_server.prisma_client", _prisma_with_teams(_team_row("t1"))),
+        patch("litellm.repositories.project_repository.ProjectRepository.find_by_team_ids", by_teams),
+    ):
+        result = await project_list(team_id=None, user_api_key_dict=OUTSIDER)
+
+    assert result == []
+    by_teams.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_a_view_only_admin_may_read_a_project_but_not_change_it():
+    """Admin viewers have read parity with proxy admins everywhere else in the dashboard."""
+    from fastapi import HTTPException
+
+    from litellm.proxy._types import UpdateProjectRequest
+    from litellm.proxy.management_endpoints.project_endpoints import project_info, update_project
+
+    with (
+        patch("litellm.proxy.proxy_server.prisma_client", _prisma()),
+        patch(
+            "litellm.repositories.project_repository.ProjectRepository.find_by_id",
+            AsyncMock(return_value=_project()),
+        ),
+    ):
+        read = await project_info(project_id="p1", user_api_key_dict=VIEWER)
+        with pytest.raises(HTTPException) as exc:
+            await update_project(data=UpdateProjectRequest(project_id="p1", blocked=True), user_api_key_dict=VIEWER)
+
+    assert read.project_id == "p1"
     assert exc.value.status_code == 403
 
 

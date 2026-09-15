@@ -18,6 +18,7 @@ from typing import Any, Final
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 
+from litellm.models.project import LiteLLM_ProjectTable
 from litellm.proxy._types import (
     CommonProxyErrors,
     LiteLLM_TeamTable,
@@ -25,6 +26,7 @@ from litellm.proxy._types import (
     NewProjectRequest,
     UpdateProjectRequest,
     UserAPIKeyAuth,
+    user_api_key_has_admin_view,
 )
 from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
 from litellm.proxy.management_endpoints.common_daily_activity import get_daily_activity
@@ -75,6 +77,8 @@ async def _authorised_team_or_403(
     team: Final = await _team_or_404(team_id, prisma_client)
     if user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN:
         return team
+    if not write and user_api_key_has_admin_view(user_api_key_dict):
+        return team
     if _is_user_team_admin(user_api_key_dict=user_api_key_dict, team_obj=team):
         return team
     if not write and user_api_key_dict.team_id == team_id:
@@ -83,6 +87,32 @@ async def _authorised_team_or_403(
         status_code=status.HTTP_403_FORBIDDEN,
         detail={"error": f"You do not administer team {team_id}, so you cannot manage its projects."},
     )
+
+
+async def _projects_visible_to(
+    user_api_key_dict: UserAPIKeyAuth,
+    prisma_client: Any,  # any-ok: untyped wrapper
+) -> list[LiteLLM_ProjectTable]:
+    """Every project the caller may read.
+
+    Admins read all of them. Anyone else reads the projects of the teams they administer and
+    of the team their key belongs to, which is the same rule `_authorised_team_or_403` applies
+    to a single project. Prisma cannot filter the members JSON column, so teams are filtered here.
+    """
+    repository: Final = ProjectRepository(prisma_client)
+    if user_api_key_has_admin_view(user_api_key_dict):
+        return await repository.find_many()
+
+    team_rows: Final = await prisma_client.db.litellm_teamtable.find_many()
+    readable_team_ids: Final = tuple(
+        team.team_id
+        for team in (LiteLLM_TeamTable.model_validate(row.model_dump()) for row in team_rows)
+        if team.team_id == user_api_key_dict.team_id
+        or _is_user_team_admin(user_api_key_dict=user_api_key_dict, team_obj=team)
+    )
+    if not readable_team_ids:
+        return []
+    return await repository.find_by_team_ids(readable_team_ids)
 
 
 @router.post("/project/new", tags=["project management"], dependencies=[Depends(user_api_key_auth)])
@@ -127,11 +157,13 @@ async def project_info(
 
 @router.get("/project/list", tags=["project management"], dependencies=[Depends(user_api_key_auth)])
 async def project_list(
-    team_id: str = fastapi.Query(description="List the projects of this team"),
+    team_id: str | None = None,
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ):
-    """Every project under one team."""
+    """Projects the caller may read. Pass `team_id` to list only that team's projects."""
     prisma_client: Final = _prisma_or_500()
+    if team_id is None:
+        return await _projects_visible_to(user_api_key_dict, prisma_client)
     await _authorised_team_or_403(team_id, user_api_key_dict, prisma_client, write=False)
     return await ProjectRepository(prisma_client).find_by_team_id(team_id)
 

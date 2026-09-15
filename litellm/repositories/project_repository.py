@@ -2,6 +2,7 @@
 Project repository for database operations on LiteLLM_ProjectTable.
 """
 
+from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any, Final
 
 from litellm.models.project import LiteLLM_ProjectTable
@@ -34,6 +35,10 @@ class ProjectRepository(BaseRepository[LiteLLM_ProjectTable]):
     async def find_by_team_id(self, team_id: str) -> list[LiteLLM_ProjectTable]:
         """Find all projects belonging to a team."""
         return await self.find_many(where={"team_id": team_id})
+
+    async def find_by_team_ids(self, team_ids: Sequence[str]) -> list[LiteLLM_ProjectTable]:
+        """Every project owned by any of these teams."""
+        return await self.find_many(where={"team_id": {"in": list(team_ids)}})
 
     async def create_project(
         self,
