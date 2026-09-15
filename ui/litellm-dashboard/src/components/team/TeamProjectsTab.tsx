@@ -11,10 +11,15 @@ interface TeamProjectsTabProps {
 }
 
 export default function TeamProjectsTab({ teamId }: TeamProjectsTabProps) {
-  const { data: projects, isLoading } = useTeamProjects(teamId);
+  const { data: projects, isLoading, isError } = useTeamProjects(teamId);
 
   if (isLoading) {
     return <p className="py-8 text-center text-sm text-muted-foreground">Loading projects…</p>;
+  }
+  if (isError) {
+    return (
+      <p className="py-8 text-center text-sm text-muted-foreground">Could not load this team&apos;s projects.</p>
+    );
   }
   if (!projects || projects.length === 0) {
     return <p className="py-8 text-center text-sm text-muted-foreground">This team has no projects yet.</p>;

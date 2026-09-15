@@ -34,6 +34,7 @@ describe("TeamProjectsTab", () => {
   it("lists the team's projects with spend, budget and a link to each one", () => {
     mockUseTeamProjects.mockReturnValue({
       isLoading: false,
+      isError: false,
       data: [
         project({
           spend: 42,
@@ -61,10 +62,19 @@ describe("TeamProjectsTab", () => {
   });
 
   it("says so when the team has no projects", () => {
-    mockUseTeamProjects.mockReturnValue({ isLoading: false, data: [] });
+    mockUseTeamProjects.mockReturnValue({ isLoading: false, isError: false, data: [] });
 
     renderWithProviders(<TeamProjectsTab teamId="team-1" />);
 
     expect(screen.getByText("This team has no projects yet.")).toBeInTheDocument();
+  });
+
+  it("shows a distinct error message when the projects request fails", () => {
+    mockUseTeamProjects.mockReturnValue({ isLoading: false, isError: true, data: undefined });
+
+    renderWithProviders(<TeamProjectsTab teamId="team-1" />);
+
+    expect(screen.getByText("Could not load this team's projects.")).toBeInTheDocument();
+    expect(screen.queryByText("This team has no projects yet.")).not.toBeInTheDocument();
   });
 });
