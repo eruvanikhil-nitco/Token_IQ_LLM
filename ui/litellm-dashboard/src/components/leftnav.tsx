@@ -31,7 +31,6 @@ import {
   Code2,
   ExternalLink,
   FileText,
-  FlaskConical,
   Folder,
   HeartPulse,
   KeyRound,
@@ -109,52 +108,7 @@ interface MenuGroup {
 // icons changed to lucide as part of the sidebar redesign.
 const menuGroups: MenuGroup[] = [
   {
-    groupLabel: "AI GATEWAY",
-    items: [
-      { key: "api-keys", page: "api-keys", label: "Virtual Keys", icon: <KeyRound {...ICON} /> },
-      {
-        key: "model-management",
-        page: "model-management",
-        label: "Model Management",
-        icon: <Network {...ICON} />,
-        children: [
-          {
-            key: "providers",
-            page: "providers",
-            label: "Providers",
-            icon: <Boxes {...ICON} />,
-            roles: all_admin_roles,
-          },
-          {
-            key: "models",
-            page: "models",
-            label: "Models + Endpoints",
-            icon: <Network {...ICON} />,
-            roles: rolesAllowedToViewWriteScopedPages,
-          },
-        ],
-      },
-      {
-        key: "llm-playground",
-        page: "llm-playground",
-        label: "Playground",
-        icon: <PlayCircle {...ICON} />,
-        roles: rolesWithWriteAccess,
-      },
-      { key: "mcp-servers", page: "mcp-servers", label: "MCP Servers", icon: <Server {...ICON} /> },
-      { key: "skills", page: "skills", label: "Skills", icon: <Blocks {...ICON} />, roles: all_admin_roles },
-      { key: "guardrails", page: "guardrails", label: "Guardrails", icon: <Shield {...ICON} /> },
-      {
-        key: "policies",
-        page: "policies",
-        label: "Policies",
-        icon: <ScrollText {...ICON} />,
-        roles: rolesWithCapability("viewPolicies"),
-      },
-    ],
-  },
-  {
-    groupLabel: "OBSERVABILITY",
+    groupLabel: "ANALYTICS",
     items: [
       {
         key: "new_usage",
@@ -162,6 +116,13 @@ const menuGroups: MenuGroup[] = [
         icon: <BarChart3 {...ICON} />,
         roles: [...all_admin_roles, ...internalUserRoles],
         label: "Usage",
+      },
+      {
+        key: "4",
+        page: "usage",
+        label: "Classic Usage",
+        icon: <BarChart3 {...ICON} />,
+        roles: rolesWithCapability("viewGlobalSpend"),
       },
       {
         key: "cost-optimization",
@@ -175,17 +136,10 @@ const menuGroups: MenuGroup[] = [
         ),
       },
       { key: "logs", page: "logs", label: "Logs", icon: <Activity {...ICON} /> },
-      {
-        key: "guardrails-monitor",
-        page: "guardrails-monitor",
-        label: "Guardrails Monitor",
-        icon: <HeartPulse {...ICON} />,
-        roles: rolesWithCapability("viewGuardrailUsage"),
-      },
     ],
   },
   {
-    groupLabel: "ACCESS CONTROL",
+    groupLabel: "ORGANISATION",
     items: [
       { key: "teams", page: "teams", label: "Teams", icon: <Users {...ICON} /> },
       {
@@ -195,7 +149,7 @@ const menuGroups: MenuGroup[] = [
         icon: <Folder {...ICON} />,
         roles: [...all_admin_roles, ...internalUserRoles],
       },
-      { key: "users", page: "users", label: "Internal Users", icon: <User {...ICON} />, roles: all_admin_roles },
+      { key: "users", page: "users", label: "Users", icon: <User {...ICON} />, roles: all_admin_roles },
       {
         key: "access-groups",
         page: "access-groups",
@@ -207,46 +161,74 @@ const menuGroups: MenuGroup[] = [
     ],
   },
   {
-    groupLabel: "DEVELOPER TOOLS",
+    groupLabel: "GATEWAY",
     items: [
-      { key: "api_ref", page: "api_ref", label: "API Reference", icon: <Code2 {...ICON} /> },
-      { key: "model-hub-table", page: "model-hub-table", label: "AI Hub", icon: <LayoutGrid {...ICON} /> },
+      { key: "api-keys", page: "api-keys", label: "Virtual Keys", icon: <KeyRound {...ICON} /> },
+      { key: "providers", page: "providers", label: "Providers", icon: <Boxes {...ICON} />, roles: all_admin_roles },
       {
-        key: "experimental",
-        page: "experimental",
-        label: "Experimental",
-        icon: <FlaskConical {...ICON} />,
-        children: [
-          {
-            key: "prompts",
-            page: "prompts",
-            label: "Prompts",
-            icon: <FileText {...ICON} />,
-            roles: rolesWithCapability("viewPrompts"),
-          },
-          {
-            key: "transform-request",
-            page: "transform-request",
-            label: "API Playground",
-            icon: <Terminal {...ICON} />,
-            roles: [...all_admin_roles, ...internalUserRoles],
-          },
-          {
-            key: "tag-management",
-            page: "tag-management",
-            label: "Tag Management",
-            icon: <Tags {...ICON} />,
-            roles: all_admin_roles,
-          },
-          {
-            key: "4",
-            page: "usage",
-            label: "Old Usage",
-            icon: <BarChart3 {...ICON} />,
-            roles: rolesWithCapability("viewGlobalSpend"),
-          },
-        ],
+        key: "models",
+        page: "models",
+        label: "Models + Endpoints",
+        icon: <Network {...ICON} />,
+        roles: rolesAllowedToViewWriteScopedPages,
       },
+      {
+        key: "llm-playground",
+        page: "llm-playground",
+        label: "Playground",
+        icon: <PlayCircle {...ICON} />,
+        roles: rolesWithWriteAccess,
+      },
+      {
+        key: "transform-request",
+        page: "transform-request",
+        label: "API Playground",
+        icon: <Terminal {...ICON} />,
+        roles: [...all_admin_roles, ...internalUserRoles],
+      },
+    ],
+  },
+  {
+    groupLabel: "SAFETY",
+    items: [
+      { key: "guardrails", page: "guardrails", label: "Guardrails", icon: <Shield {...ICON} /> },
+      {
+        key: "guardrails-monitor",
+        page: "guardrails-monitor",
+        label: "Guardrails Monitor",
+        icon: <HeartPulse {...ICON} />,
+        roles: rolesWithCapability("viewGuardrailUsage"),
+      },
+      {
+        key: "policies",
+        page: "policies",
+        label: "Policies",
+        icon: <ScrollText {...ICON} />,
+        roles: rolesWithCapability("viewPolicies"),
+      },
+    ],
+  },
+  {
+    groupLabel: "BUILD",
+    items: [
+      { key: "mcp-servers", page: "mcp-servers", label: "MCP Servers", icon: <Server {...ICON} /> },
+      { key: "skills", page: "skills", label: "Skills", icon: <Blocks {...ICON} />, roles: all_admin_roles },
+      {
+        key: "prompts",
+        page: "prompts",
+        label: "Prompts",
+        icon: <FileText {...ICON} />,
+        roles: rolesWithCapability("viewPrompts"),
+      },
+      {
+        key: "tag-management",
+        page: "tag-management",
+        label: "Tag Management",
+        icon: <Tags {...ICON} />,
+        roles: all_admin_roles,
+      },
+      { key: "model-hub-table", page: "model-hub-table", label: "AI Hub", icon: <LayoutGrid {...ICON} /> },
+      { key: "api_ref", page: "api_ref", label: "API Reference", icon: <Code2 {...ICON} /> },
     ],
   },
   {
@@ -254,43 +236,34 @@ const menuGroups: MenuGroup[] = [
     roles: all_admin_roles,
     items: [
       {
-        key: "settings",
-        page: "settings",
-        label: "Settings",
+        key: "admin-panel",
+        page: "admin-panel",
+        label: "Admin Settings",
         icon: <SettingsIcon {...ICON} />,
         roles: all_admin_roles,
-        children: [
-          {
-            key: "router-settings",
-            page: "router-settings",
-            label: "Router Settings",
-            icon: <Route {...ICON} />,
-            roles: all_admin_roles,
-          },
-          {
-            key: "logging-and-alerts",
-            page: "logging-and-alerts",
-            label: "Logging & Alerts",
-            icon: <Bell {...ICON} />,
-            roles: all_admin_roles,
-          },
-          {
-            key: "admin-panel",
-            page: "admin-panel",
-            label: "Admin Settings",
-            icon: <SettingsIcon {...ICON} />,
-            roles: all_admin_roles,
-          },
-          {
-            key: "cost-tracking",
-            page: "cost-tracking",
-            label: "Cost Tracking",
-            icon: <BarChart3 {...ICON} />,
-            roles: all_admin_roles,
-          },
-          { key: "ui-theme", page: "ui-theme", label: "UI Theme", icon: <Palette {...ICON} />, roles: all_admin_roles },
-        ],
       },
+      {
+        key: "router-settings",
+        page: "router-settings",
+        label: "Router Settings",
+        icon: <Route {...ICON} />,
+        roles: all_admin_roles,
+      },
+      {
+        key: "logging-and-alerts",
+        page: "logging-and-alerts",
+        label: "Logging & Alerts",
+        icon: <Bell {...ICON} />,
+        roles: all_admin_roles,
+      },
+      {
+        key: "cost-tracking",
+        page: "cost-tracking",
+        label: "Cost Tracking",
+        icon: <BarChart3 {...ICON} />,
+        roles: all_admin_roles,
+      },
+      { key: "ui-theme", page: "ui-theme", label: "UI Theme", icon: <Palette {...ICON} />, roles: all_admin_roles },
     ],
   },
 ];
@@ -316,10 +289,11 @@ const findMenuItemKey = (page: string): string => {
 };
 
 const SECTION_DISPLAY: Record<string, string> = {
-  "AI GATEWAY": "AI Gateway",
-  OBSERVABILITY: "Observability",
-  "ACCESS CONTROL": "Access Control",
-  "DEVELOPER TOOLS": "Developer Tools",
+  ANALYTICS: "Analytics",
+  ORGANISATION: "Organisation",
+  GATEWAY: "Gateway",
+  SAFETY: "Safety",
+  BUILD: "Build",
   SETTINGS: "Settings",
 };
 

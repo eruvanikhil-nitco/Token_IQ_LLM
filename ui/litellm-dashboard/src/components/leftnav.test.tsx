@@ -1,7 +1,8 @@
-import { act, fireEvent, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "../../tests/test-utils";
 import Sidebar, { menuGroups, getBreadcrumb } from "./leftnav";
+import { MIGRATED_PAGES } from "@/utils/migratedPages";
 
 vi.mock("../utils/roles", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../utils/roles")>();
@@ -170,64 +171,76 @@ describe("Sidebar (leftnav)", () => {
     expect(dark).toHaveAttribute("src", "https://cdn.example.com/logo.png");
   });
 
-  it("renders all top-level (non-nested) tabs for admin", () => {
-    renderWithProviders(<Sidebar {...defaultProps} />);
+  it("places every page in its agreed sidebar group, with nothing lost and nothing nested", () => {
+    const placements = Object.fromEntries(
+      menuGroups.map((group) => [group.groupLabel, group.items.map((item) => item.page)]),
+    );
 
-    const topLevelLabels = [
-      "Virtual Keys",
-      "Model Management",
-      "Playground",
-      "MCP Servers",
-      "Guardrails",
-      "Policies",
-      "Usage",
-      "Logs",
-      "Guardrails Monitor",
-      "Teams",
-      "Internal Users",
-      "Access Groups",
-      "Budgets",
-      "API Reference",
-      "AI Hub",
-      "Experimental",
-      "Settings",
-    ];
+    expect(placements).toEqual({
+      ANALYTICS: ["new_usage", "usage", "cost-optimization", "logs"],
+      ORGANISATION: ["teams", "projects", "users", "access-groups", "budgets"],
+      GATEWAY: ["api-keys", "providers", "models", "llm-playground", "transform-request"],
+      SAFETY: ["guardrails", "guardrails-monitor", "policies"],
+      BUILD: ["mcp-servers", "skills", "prompts", "tag-management", "model-hub-table", "api_ref"],
+      SETTINGS: ["admin-panel", "router-settings", "logging-and-alerts", "cost-tracking", "ui-theme"],
+    });
+    expect(menuGroups.flatMap((group) => group.items).filter((item) => item.children !== undefined)).toEqual([]);
+  });
 
-    topLevelLabels.forEach((label) => {
+  it("gives every sidebar page a route, so moving an entry never breaks its address", () => {
+    const pages = menuGroups.flatMap((group) => group.items.map((item) => item.page));
+
+    expect(pages.filter((page) => MIGRATED_PAGES[page] === undefined)).toEqual([]);
+  });
+
+  it("renders the agreed group labels and page names for an admin", () => {
+    renderWithProviders(<Sidebar {...defaultProps} enableProjectsUI />);
+
+    ["ANALYTICS", "ORGANISATION", "GATEWAY", "SAFETY", "BUILD", "SETTINGS"].forEach((label) => {
       expect(screen.getByText(label)).toBeInTheDocument();
     });
+    [
+      "Usage",
+      "Classic Usage",
+      "Cost Optimization",
+      "Logs",
+      "Teams",
+      "Projects",
+      "Users",
+      "Access Groups",
+      "Budgets",
+      "Virtual Keys",
+      "Providers",
+      "Models + Endpoints",
+      "Playground",
+      "API Playground",
+      "Guardrails",
+      "Guardrails Monitor",
+      "Policies",
+      "MCP Servers",
+      "Skills",
+      "Prompts",
+      "Tag Management",
+      "AI Hub",
+      "API Reference",
+      "Admin Settings",
+      "Router Settings",
+      "Logging & Alerts",
+      "Cost Tracking",
+      "UI Theme",
+    ].forEach((label) => {
+      expect(screen.getByText(label)).toBeInTheDocument();
+    });
+    expect(screen.queryByText("Internal Users")).not.toBeInTheDocument();
+    expect(screen.queryByText("Old Usage")).not.toBeInTheDocument();
+    expect(screen.queryByText("Experimental")).not.toBeInTheDocument();
+    expect(screen.queryByText("Model Management")).not.toBeInTheDocument();
   });
 
-  it("expands a nested tab to reveal its children (Experimental > API Playground)", async () => {
-    renderWithProviders(<Sidebar {...defaultProps} />);
-
-    expect(screen.queryByText("API Playground")).not.toBeInTheDocument();
-    act(() => {
-      fireEvent.click(screen.getByText("Experimental"));
-    });
-    await waitFor(() => {
-      expect(screen.getByText("API Playground")).toBeInTheDocument();
-    });
-  });
-  it("reports whether a nested tab is expanded", async () => {
-    renderWithProviders(<Sidebar {...defaultProps} />);
-
-    const toggle = screen.getByText("Experimental").closest("button")!;
-    expect(toggle).toHaveAttribute("aria-expanded", "false");
-
-    act(() => {
-      fireEvent.click(toggle);
-    });
-    await waitFor(() => {
-      expect(toggle).toHaveAttribute("aria-expanded", "true");
-    });
-  });
-
-  it("keeps Router Settings as a single Settings child", () => {
+  it("keeps Router Settings as a single Settings entry", () => {
     // Router Settings is admin-only, so getAvailablePages() filters it out entirely and the
-    // page_utils duplicate-key guard cannot see it. Walk menuGroups directly, otherwise a
-    // stray duplicate placement ships silently.
-    expect(placementsOf("router-settings")).toEqual(["SETTINGS > settings"]);
+    // page_utils duplicate-key guard cannot see it. Walk menuGroups directly.
+    expect(placementsOf("router-settings")).toEqual(["SETTINGS"]);
   });
 
   it("has no duplicate keys among all menu items and their children", () => {
@@ -262,17 +275,11 @@ describe("Sidebar (leftnav)", () => {
       expect(screen.queryByText("Playground")).not.toBeInTheDocument();
     });
 
-    it("shows Models + Endpoints to Admin Viewer, nested under Model Management", async () => {
+    it("shows Models + Endpoints and Providers to Admin Viewer", () => {
       mockUseAuthorized.mockReturnValue(adminViewerAuth);
       renderWithProviders(<Sidebar {...defaultProps} />);
 
-      // Nested now, so the parent must be expanded before the child renders.
-      act(() => {
-        fireEvent.click(screen.getByText("Model Management"));
-      });
-      await waitFor(() => {
-        expect(screen.getByText("Models + Endpoints")).toBeInTheDocument();
-      });
+      expect(screen.getByText("Models + Endpoints")).toBeInTheDocument();
       expect(screen.getByText("Providers")).toBeInTheDocument();
     });
 
@@ -314,8 +321,8 @@ describe("Sidebar (leftnav)", () => {
       expect(screen.queryByText("Search Tools")).not.toBeInTheDocument();
       expect(screen.queryByText("Vector Stores")).not.toBeInTheDocument();
       expect(screen.queryByText("Tool Policies")).not.toBeInTheDocument();
-      // A sibling nested group still renders, so absence is not a dead sidebar.
-      expect(screen.getByText("Experimental")).toBeInTheDocument();
+      // A sibling entry still renders, so absence is not a dead sidebar.
+      expect(screen.getByText("API Playground")).toBeInTheDocument();
     });
 
     it("should hide the Policies entry from internal users while keeping Guardrails", () => {
@@ -326,41 +333,26 @@ describe("Sidebar (leftnav)", () => {
       expect(screen.queryByText("Policies")).not.toBeInTheDocument();
     });
 
-    it("should hide the Prompts entry from internal users while keeping other Experimental children", async () => {
+    it("hides Prompts from internal users while keeping API Playground", () => {
       mockUseAuthorized.mockReturnValue(internalAuth);
       renderWithProviders(<Sidebar {...defaultProps} />);
 
-      act(() => {
-        fireEvent.click(screen.getByText("Experimental"));
-      });
-      await waitFor(() => {
-        expect(screen.getByText("API Playground")).toBeInTheDocument();
-      });
+      expect(screen.getByText("API Playground")).toBeInTheDocument();
       expect(screen.queryByText("Prompts")).not.toBeInTheDocument();
     });
 
-    it("should hide Old Usage from internal users while keeping other Experimental children", async () => {
+    it("hides Classic Usage from internal users while keeping Usage", () => {
       mockUseAuthorized.mockReturnValue(internalAuth);
       renderWithProviders(<Sidebar {...defaultProps} />);
 
-      act(() => {
-        fireEvent.click(screen.getByText("Experimental"));
-      });
-      await waitFor(() => {
-        expect(screen.getByText("API Playground")).toBeInTheDocument();
-      });
-      expect(screen.queryByText("Old Usage")).not.toBeInTheDocument();
+      expect(screen.getByText("Usage")).toBeInTheDocument();
+      expect(screen.queryByText("Classic Usage")).not.toBeInTheDocument();
     });
 
-    it("should show Old Usage to admins", async () => {
+    it("shows Classic Usage to admins", () => {
       renderWithProviders(<Sidebar {...defaultProps} />);
 
-      act(() => {
-        fireEvent.click(screen.getByText("Experimental"));
-      });
-      await waitFor(() => {
-        expect(screen.getByText("Old Usage")).toBeInTheDocument();
-      });
+      expect(screen.getByText("Classic Usage")).toBeInTheDocument();
     });
   });
 
@@ -563,13 +555,16 @@ describe("Sidebar (leftnav)", () => {
 });
 
 describe("getBreadcrumb", () => {
-  it("resolves a top-level page to its section + title", () => {
-    expect(getBreadcrumb("api-keys")).toEqual({ section: "AI Gateway", title: "Virtual Keys" });
-    expect(getBreadcrumb("logs")).toEqual({ section: "Observability", title: "Logs" });
+  it("resolves a page to its new section and title", () => {
+    expect(getBreadcrumb("api-keys")).toEqual({ section: "Gateway", title: "Virtual Keys" });
+    expect(getBreadcrumb("logs")).toEqual({ section: "Analytics", title: "Logs" });
+    expect(getBreadcrumb("users")).toEqual({ section: "Organisation", title: "Users" });
+    expect(getBreadcrumb("usage")).toEqual({ section: "Analytics", title: "Classic Usage" });
+    expect(getBreadcrumb("prompts")).toEqual({ section: "Build", title: "Prompts" });
+    expect(getBreadcrumb("policies")).toEqual({ section: "Safety", title: "Policies" });
   });
 
-  it("resolves a nested child page to its parent section", () => {
-    // search-tools has no nav entry now, so the breadcrumb falls back to the prettified page id.
+  it("falls back to the prettified page id for a page with no sidebar entry", () => {
     expect(getBreadcrumb("search-tools")).toEqual({ section: null, title: "Search Tools" });
   });
 
