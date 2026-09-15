@@ -3455,7 +3455,9 @@ class TestCursorProxyRoute:
                 [],
             ),
         ):
-            with pytest.raises(Exception, match='Cursor API key not found\\. Add Cursor credentials via') as exc_info:
+            with pytest.raises(
+                Exception, match="Add Cursor credentials via the UI \\(Data Sources > LLM Provider Credentials\\)"
+            ) as exc_info:
                 await cursor_proxy_route(
                     endpoint="v0/agents",
                     request=mock_request,

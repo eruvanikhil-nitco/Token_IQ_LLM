@@ -2559,7 +2559,7 @@ async def cursor_proxy_route(
     if cursor_api_key is None:
         raise HTTPException(
             status_code=401,
-            detail="Cursor API key not found. Add Cursor credentials via the UI (Models + Endpoints → LLM Credentials) or set CURSOR_API_KEY environment variable.",
+            detail="Cursor API key not found. Add Cursor credentials via the UI (Data Sources > LLM Provider Credentials) or set CURSOR_API_KEY environment variable.",
         )
 
     encoded_endpoint = httpx.URL(endpoint).path
