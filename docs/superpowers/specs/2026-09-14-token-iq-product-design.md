@@ -95,6 +95,8 @@ Request-level forensics is only possible for OpenRouter. For every other provide
 
 Token IQ cannot embed a provider's real dashboard, because those pages need the provider's own login and block embedding. The Summary view rebuilds the same figures from the provider's API instead
 
+The inside of these pages borrows from established cloud cost platforms, researched in `docs/superpowers/specs/2026-09-15-cost-platform-reference.md`. Within the agreed tabs that means four connection states (Not connected, Waiting for first data, Healthy, Needs attention), a key type check before saving, the stated refresh delay and history on What We Fetch, a data source label and one provider-independent set of dimensions on every row, and a per-provider window for how long figures may still change. Three ideas from that research need a decision before they are planned: cost per customer or feature, accepting request-level logs from outside the gateway, and spend beyond AI
+
 ### User tools
 
 What each tool exposes is researched in `docs/superpowers/specs/2026-09-14-user-tools-data-research.md`. Per-user cost is documented for Claude and Cursor, available for GitHub Copilot as seat fees plus billed AI credits with a caveat for enterprise-owned organizations, and unverified for ChatGPT and Codex until a real Enterprise admin account confirms OpenAI's Cost API. Every tool requires a business or enterprise plan, and personal subscriptions paid through expenses are invisible to every API
