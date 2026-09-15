@@ -48,23 +48,13 @@ describe("Page Utils - LeftNav Sync", () => {
     const availablePages = getAvailablePages();
     const availablePageKeys = availablePages.map((p) => p.page);
 
-    // Collect all page keys from menuGroups (excluding parent containers and pages not accessible to internal users)
+    // Collect all page keys from menuGroups (excluding pages not accessible to internal users)
     const menuPageKeys: string[] = [];
-    const excludedParents = ["tools", "experimental", "settings"];
 
     menuGroups.forEach((group) => {
       group.items.forEach((item) => {
-        if (item.page && !excludedParents.includes(item.page) && isPageAccessibleToInternalUsers(item.roles)) {
+        if (item.page && isPageAccessibleToInternalUsers(item.roles)) {
           menuPageKeys.push(item.page);
-        }
-
-        // Add children (only if accessible to internal users)
-        if (item.children) {
-          item.children.forEach((child) => {
-            if (isPageAccessibleToInternalUsers(child.roles)) {
-              menuPageKeys.push(child.page);
-            }
-          });
         }
       });
     });
@@ -74,17 +64,6 @@ describe("Page Utils - LeftNav Sync", () => {
       expect(availablePageKeys, `Page "${pageKey}" from menuGroups should be in getAvailablePages() output`).toContain(
         pageKey,
       );
-    });
-  });
-
-  it("should not include parent container pages (tools, experimental, settings)", () => {
-    const availablePages = getAvailablePages();
-    const availablePageKeys = availablePages.map((p) => p.page);
-
-    const excludedParents = ["tools", "experimental", "settings"];
-
-    excludedParents.forEach((parent) => {
-      expect(availablePageKeys, `Parent container "${parent}" should not be in available pages`).not.toContain(parent);
     });
   });
 
@@ -103,18 +82,11 @@ describe("Page Utils - LeftNav Sync", () => {
   it("should have pageDescriptions entry for all navigable pages in menuGroups", () => {
     // Collect all page keys from menuGroups
     const menuPageKeys: string[] = [];
-    const excludedParents = ["tools", "experimental", "settings"];
 
     menuGroups.forEach((group) => {
       group.items.forEach((item) => {
-        if (item.page && !excludedParents.includes(item.page)) {
+        if (item.page) {
           menuPageKeys.push(item.page);
-        }
-
-        if (item.children) {
-          item.children.forEach((child) => {
-            menuPageKeys.push(child.page);
-          });
         }
       });
     });
@@ -136,18 +108,11 @@ describe("Page Utils - LeftNav Sync", () => {
   it("should not have orphaned descriptions (descriptions for pages not in menuGroups)", () => {
     // Collect all page keys from menuGroups
     const menuPageKeys: string[] = [];
-    const excludedParents = ["tools", "experimental", "settings"];
 
     menuGroups.forEach((group) => {
       group.items.forEach((item) => {
-        if (item.page && !excludedParents.includes(item.page)) {
+        if (item.page) {
           menuPageKeys.push(item.page);
-        }
-
-        if (item.children) {
-          item.children.forEach((child) => {
-            menuPageKeys.push(child.page);
-          });
         }
       });
     });
@@ -164,27 +129,6 @@ describe("Page Utils - LeftNav Sync", () => {
       orphanedDescriptions,
       `These descriptions don't match any page in menuGroups: ${orphanedDescriptions.join(", ")}. Remove them or add the pages to leftnav.`,
     ).toHaveLength(0);
-  });
-
-  it("should have proper group hierarchy for nested pages", () => {
-    const availablePages = getAvailablePages();
-
-    // Find pages that should be nested (children of Tools, Experimental, Settings)
-    const nestedPages = availablePages.filter((page) => page.group.includes(" > "));
-
-    // Each nested page should have parent > child format
-    nestedPages.forEach((page) => {
-      const parts = page.group.split(" > ");
-      expect(parts.length, `Nested page "${page.page}" should have exactly 2 parts in group hierarchy`).toBe(2);
-
-      // Parent should be one of the group labels
-      const parentGroup = parts[0];
-      const groupLabels = menuGroups.map((g) => g.groupLabel);
-      expect(
-        groupLabels,
-        `Parent group "${parentGroup}" for page "${page.page}" should be a valid group label`,
-      ).toContain(parentGroup);
-    });
   });
 
   it("should have unique page keys", () => {

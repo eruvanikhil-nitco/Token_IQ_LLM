@@ -86,18 +86,11 @@ vi.mock("@/app/(dashboard)/hooks/useLogout", () => ({
   useLogout: () => vi.fn(),
 }));
 
-const collectNavKeys = (): string[] =>
-  menuGroups.flatMap((group) => group.items.flatMap((item) => [item.key, ...(item.children ?? []).map((c) => c.key)]));
+const collectNavKeys = (): string[] => menuGroups.flatMap((group) => group.items.map((item) => item.key));
 
-// Every place a page id appears in the nav, as "GROUP" for a top-level item or
-// "GROUP > parentKey" for a child.
+// Every group a page id appears in.
 const placementsOf = (page: string): string[] =>
-  menuGroups.flatMap((group) => [
-    ...group.items.filter((item) => item.page === page).map(() => group.groupLabel),
-    ...group.items.flatMap((item) =>
-      (item.children ?? []).filter((child) => child.page === page).map(() => `${group.groupLabel} > ${item.key}`),
-    ),
-  ]);
+  menuGroups.flatMap((group) => group.items.filter((item) => item.page === page).map(() => group.groupLabel));
 
 describe("Sidebar (leftnav)", () => {
   const defaultProps = {
@@ -184,7 +177,6 @@ describe("Sidebar (leftnav)", () => {
       BUILD: ["mcp-servers", "skills", "prompts", "tag-management", "model-hub-table", "api_ref"],
       SETTINGS: ["admin-panel", "router-settings", "logging-and-alerts", "cost-tracking", "ui-theme"],
     });
-    expect(menuGroups.flatMap((group) => group.items).filter((item) => item.children !== undefined)).toEqual([]);
   });
 
   it("gives every sidebar page a route, so moving an entry never breaks its address", () => {

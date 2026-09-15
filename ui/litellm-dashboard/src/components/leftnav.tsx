@@ -15,9 +15,7 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSub,
   SidebarSeparator,
   sidebarMenuButtonVariants,
 } from "@/components/shared/Sidebar";
@@ -27,7 +25,6 @@ import {
   Bell,
   Blocks,
   Boxes,
-  ChevronRight,
   Code2,
   ExternalLink,
   FileText,
@@ -92,7 +89,6 @@ interface MenuItem {
   page: string;
   label: string | React.ReactNode;
   roles?: string[];
-  children?: MenuItem[];
   icon?: React.ReactNode;
   external_url?: string;
 }
@@ -268,21 +264,10 @@ const menuGroups: MenuGroup[] = [
   },
 ];
 
-const findParentKey = (page: string): string | null => {
-  for (const group of menuGroups) {
-    for (const item of group.items) {
-      if (item.children?.some((c) => c.page === page || c.key === page)) return item.key;
-    }
-  }
-  return null;
-};
-
 const findMenuItemKey = (page: string): string => {
   for (const group of menuGroups) {
     for (const item of group.items) {
       if (item.page === page) return item.key;
-      const child = item.children?.find((c) => c.page === page);
-      if (child) return child.key;
     }
   }
   return "api-keys";
@@ -312,8 +297,6 @@ export const getBreadcrumb = (page: string): { section: string | null; title: st
       const section = SECTION_DISPLAY[group.groupLabel] ?? group.groupLabel;
       if (item.page === page)
         return { section, title: typeof item.label === "string" ? item.label : prettify(item.key) };
-      const child = item.children?.find((c) => c.page === page);
-      if (child) return { section, title: typeof child.label === "string" ? child.label : prettify(child.key) };
     }
   }
   return { section: null, title: prettify(page) };
@@ -343,72 +326,32 @@ const Sidebar_: React.FC<SidebarProps> = ({
   const version = healthData?.litellm_version;
   const selectedKey = findMenuItemKey(defaultSelectedKey);
 
-  const [openGroups, setOpenGroups] = useState<Set<string>>(() => {
-    const parent = findParentKey(defaultSelectedKey);
-    return new Set(parent ? [parent] : []);
-  });
-
-  // Keep the active page's parent group expanded as the user navigates, using the
-  // "adjust state during render" pattern rather than an effect (avoids a
-  // setState-in-effect render cascade).
-  const [prevSelectedKey, setPrevSelectedKey] = useState(defaultSelectedKey);
-  if (defaultSelectedKey !== prevSelectedKey) {
-    setPrevSelectedKey(defaultSelectedKey);
-    const parent = findParentKey(defaultSelectedKey);
-    if (parent && !openGroups.has(parent)) {
-      setOpenGroups((prev) => new Set(prev).add(parent));
-    }
-  }
-
   const filterItemsByRole = (items: MenuItem[]): MenuItem[] => {
     const isAdmin = isAdminRole(userRole);
-    return items
-      .map((item) => ({ ...item, children: item.children ? filterItemsByRole(item.children) : undefined }))
-      .filter((item) => {
-        // A parent whose children were all filtered out renders as a leaf link
-        // to its own page id, which is not a real route. Drop it instead.
-        if (item.children && item.children.length === 0) return false;
-        if (item.key === "llm-playground" && isViewOnly) return false;
-        if (item.key === "organizations" || item.key === "users") {
-          const hasRoleAccess = !item.roles || item.roles.includes(userRole) || isOrgAdmin;
-          if (!hasRoleAccess) return false;
-          if (!isAdmin && enabledPagesInternalUsers != null) return enabledPagesInternalUsers.includes(item.page);
-          return true;
-        }
-        if (item.key === "projects") {
-          if (!enableProjectsUI) return false;
-          if (!isAdmin && !isUserTeamAdminForAnyTeam(teams ?? null, userId ?? "")) return false;
-        }
-        if (item.roles && !item.roles.includes(userRole)) return false;
-        if (!isAdmin && enabledPagesInternalUsers != null) {
-          if (item.children && item.children.length > 0) {
-            const hasVisibleChildren = item.children.some((child) => enabledPagesInternalUsers.includes(child.page));
-            if (hasVisibleChildren) return true;
-          }
-          return enabledPagesInternalUsers.includes(item.page);
-        }
+    return items.filter((item) => {
+      if (item.key === "llm-playground" && isViewOnly) return false;
+      if (item.key === "organizations" || item.key === "users") {
+        const hasRoleAccess = !item.roles || item.roles.includes(userRole) || isOrgAdmin;
+        if (!hasRoleAccess) return false;
+        if (!isAdmin && enabledPagesInternalUsers != null) return enabledPagesInternalUsers.includes(item.page);
         return true;
-      });
+      }
+      if (item.key === "projects") {
+        if (!enableProjectsUI) return false;
+        if (!isAdmin && !isUserTeamAdminForAnyTeam(teams ?? null, userId ?? "")) return false;
+      }
+      if (item.roles && !item.roles.includes(userRole)) return false;
+      if (!isAdmin && enabledPagesInternalUsers != null) {
+        return enabledPagesInternalUsers.includes(item.page);
+      }
+      return true;
+    });
   };
 
   const visibleGroups = menuGroups
     .filter((group) => !group.roles || group.roles.includes(userRole))
     .map((group) => ({ groupLabel: group.groupLabel, items: filterItemsByRole(group.items) }))
     .filter((group) => group.items.length > 0);
-
-  const toggleGroup = (key: string) => {
-    if (collapsed) {
-      onToggleCollapsed?.();
-      setOpenGroups((prev) => new Set(prev).add(key));
-      return;
-    }
-    setOpenGroups((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
-  };
 
   const handleLeafClick = (e: React.MouseEvent, item: MenuItem) => {
     if (item.external_url) return;
@@ -456,41 +399,7 @@ const Sidebar_: React.FC<SidebarProps> = ({
     );
   };
 
-  const renderItem = (item: MenuItem) => {
-    const isGroup = !!item.children && item.children.length > 0;
-    if (!isGroup) {
-      return <SidebarMenuItem key={item.key}>{renderLeaf(item, false)}</SidebarMenuItem>;
-    }
-
-    const active = selectedKey === item.key;
-    const open = openGroups.has(item.key);
-    return (
-      <SidebarMenuItem key={item.key}>
-        <SidebarMenuButton
-          isActive={active}
-          aria-expanded={open}
-          onClick={() => toggleGroup(item.key)}
-          title={collapsed ? labelText(item) : undefined}
-        >
-          {item.icon}
-          <span className="flex-1 truncate group-data-[collapsed=true]/sidebar:hidden">{item.label}</span>
-          <ChevronRight
-            className={cn(
-              "size-4 shrink-0 transition-transform group-data-[collapsed=true]/sidebar:hidden",
-              open && "rotate-90",
-            )}
-          />
-        </SidebarMenuButton>
-        {open && (
-          <SidebarMenuSub>
-            {item.children!.map((child) => (
-              <SidebarMenuItem key={child.key}>{renderLeaf(child, true)}</SidebarMenuItem>
-            ))}
-          </SidebarMenuSub>
-        )}
-      </SidebarMenuItem>
-    );
-  };
+  const renderItem = (item: MenuItem) => <SidebarMenuItem key={item.key}>{renderLeaf(item, false)}</SidebarMenuItem>;
 
   const logoSrc = logoUrl || `${baseUrl}/get_image`;
   const reachableDarkLogo = logoUrlDark === erroredDarkLogo ? null : logoUrlDark;
