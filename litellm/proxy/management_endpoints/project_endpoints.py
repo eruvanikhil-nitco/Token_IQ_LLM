@@ -309,13 +309,15 @@ async def get_project_daily_activity(
     api_key: str | None = None,
     page: int = 1,
     page_size: int = 10,
+    timezone: int | None = None,
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ):
     """What projects spent, by day.
 
     `project_ids` is comma-separated. Leaving it out reports on every project the caller can
-    read. Reads the project daily rollup rather than the raw spend logs, so the cost of a
-    report does not grow with the number of requests.
+    read, and for an admin that includes projects since deleted. Reads the project daily rollup
+    rather than the raw spend logs, so the cost of a report does not grow with the number of requests.
+    `timezone` is the caller's offset in minutes, as JavaScript's Date.getTimezoneOffset() returns it.
     """
     prisma_client: Final = _prisma_or_500()
     readable: Final = MappingProxyType(
@@ -333,7 +335,7 @@ async def get_project_daily_activity(
         prisma_client=prisma_client,
         table_name="litellm_dailyprojectspend",
         entity_id_field="project_id",
-        entity_id=list(requested),
+        entity_id=None if not project_ids and user_api_key_has_admin_view(user_api_key_dict) else list(requested),
         entity_metadata_field={
             project_id: {"project_alias": readable[project_id].project_alias} for project_id in requested
         },
@@ -343,4 +345,5 @@ async def get_project_daily_activity(
         api_key=api_key,
         page=page,
         page_size=page_size,
+        timezone_offset_minutes=timezone,
     )

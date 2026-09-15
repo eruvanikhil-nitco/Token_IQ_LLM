@@ -11460,8 +11460,9 @@ export interface paths {
          * @description What projects spent, by day.
          *
          *     `project_ids` is comma-separated. Leaving it out reports on every project the caller can
-         *     read. Reads the project daily rollup rather than the raw spend logs, so the cost of a
-         *     report does not grow with the number of requests.
+         *     read, and for an admin that includes projects since deleted. Reads the project daily rollup
+         *     rather than the raw spend logs, so the cost of a report does not grow with the number of requests.
+         *     `timezone` is the caller's offset in minutes, as JavaScript's Date.getTimezoneOffset() returns it.
          */
         get: operations["get_project_daily_activity_project_daily_activity_get"];
         put?: never;
@@ -54560,6 +54561,7 @@ export interface operations {
                 api_key?: string | null;
                 page?: number;
                 page_size?: number;
+                timezone?: number | null;
             };
             header?: never;
             path?: never;

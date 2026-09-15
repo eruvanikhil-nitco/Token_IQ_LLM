@@ -463,8 +463,10 @@ async def test_daily_activity_reads_the_project_rollup_not_the_raw_spend_logs():
 
 
 @pytest.mark.asyncio
-async def test_daily_activity_without_named_projects_covers_every_project_the_caller_can_read():
-    """The Usage page's Project view opens before anything is picked and must show the total."""
+async def test_daily_activity_without_named_projects_gives_an_admin_the_whole_total():
+    """The Usage page's Project view opens before anything is picked and must show the total. Filtering
+    to the projects that exist today would drop the spend of deleted projects and build an IN list as
+    long as the project table."""
     from litellm.proxy.management_endpoints.project_endpoints import get_project_daily_activity
 
     recorded, capture = _capture_daily_activity()
@@ -472,13 +474,83 @@ async def test_daily_activity_without_named_projects_covers_every_project_the_ca
         patch("litellm.proxy.proxy_server.prisma_client", _prisma()),
         patch(
             "litellm.repositories.project_repository.ProjectRepository.find_many",
-            AsyncMock(return_value=[_project("p1"), _project("p2")]),
+            AsyncMock(return_value=(_project("p1"), _project("p2"))),
         ),
         patch("litellm.proxy.management_endpoints.project_endpoints.get_daily_activity", capture),
     ):
         await get_project_daily_activity(project_ids=None, user_api_key_dict=VIEWER)
 
-    assert recorded["entity_id"] == ["p1", "p2"]
+    assert recorded["entity_id"] is None
+    assert tuple(
+        (project_id, metadata["project_alias"]) for project_id, metadata in recorded["entity_metadata_field"].items()
+    ) == (("p1", "api-service"), ("p2", "api-service"))
+
+
+@pytest.mark.asyncio
+async def test_daily_activity_without_named_projects_gives_a_team_admin_only_their_projects():
+    from litellm.proxy._types import Member
+    from litellm.proxy.management_endpoints.project_endpoints import get_project_daily_activity
+
+    lead: Final = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
+    mine: Final = _team_row("t1", members_with_roles=(Member(user_id="lead", role="admin").model_dump(),))
+    recorded, capture = _capture_daily_activity()
+    with (
+        patch("litellm.proxy.proxy_server.prisma_client", _prisma_with_teams(mine, _team_row("t2"))),
+        patch(
+            "litellm.repositories.project_repository.ProjectRepository.find_by_team_ids",
+            AsyncMock(return_value=(_project("p1", "t1"),)),
+        ),
+        patch("litellm.proxy.management_endpoints.project_endpoints.get_daily_activity", capture),
+    ):
+        await get_project_daily_activity(project_ids=None, user_api_key_dict=lead)
+
+    assert tuple(recorded["entity_id"]) == ("p1",)
+
+
+@pytest.mark.asyncio
+async def test_daily_activity_is_bucketed_in_the_caller_s_timezone():
+    """The dashboard sends its timezone so a day in the chart is the caller's day, not a UTC day."""
+    from litellm.proxy.management_endpoints.project_endpoints import get_project_daily_activity
+
+    recorded, capture = _capture_daily_activity()
+    with (
+        patch("litellm.proxy.proxy_server.prisma_client", _prisma()),
+        patch(
+            "litellm.repositories.project_repository.ProjectRepository.find_many",
+            AsyncMock(return_value=(_project("p1"),)),
+        ),
+        patch("litellm.proxy.management_endpoints.project_endpoints.get_daily_activity", capture),
+    ):
+        await get_project_daily_activity(project_ids="p1", timezone=-330, user_api_key_dict=ADMIN)
+
+    assert recorded["timezone_offset_minutes"] == -330
+
+
+@pytest.mark.asyncio
+async def test_daily_activity_asking_for_a_readable_and_an_unreadable_project_is_refused_naming_the_unreadable_one():
+    from fastapi import HTTPException
+
+    from litellm.proxy._types import Member
+    from litellm.proxy.management_endpoints.project_endpoints import get_project_daily_activity
+
+    lead: Final = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
+    mine: Final = _team_row("t1", members_with_roles=(Member(user_id="lead", role="admin").model_dump(),))
+    report: Final = AsyncMock()
+    with (
+        patch("litellm.proxy.proxy_server.prisma_client", _prisma_with_teams(mine, _team_row("t2"))),
+        patch(
+            "litellm.repositories.project_repository.ProjectRepository.find_by_team_ids",
+            AsyncMock(return_value=(_project("p1", "t1"),)),
+        ),
+        patch("litellm.proxy.management_endpoints.project_endpoints.get_daily_activity", report),
+        pytest.raises(HTTPException) as exc,
+    ):
+        await get_project_daily_activity(project_ids="p1,p2", user_api_key_dict=lead)
+
+    assert exc.value.status_code == 403
+    assert "p2" in str(exc.value.detail)
+    assert "p1" not in str(exc.value.detail)
+    report.assert_not_awaited()
 
 
 @pytest.mark.asyncio
