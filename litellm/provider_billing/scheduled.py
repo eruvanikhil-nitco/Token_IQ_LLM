@@ -14,6 +14,7 @@ from datetime import datetime, timezone
 from typing import Any, Final
 
 from litellm._logging import verbose_proxy_logger
+from litellm.provider_billing.credential_purpose import is_billing_credential
 
 LOCK_ID: Final = "provider_billing_ingestion"
 
@@ -77,7 +78,7 @@ def build_billing_credential_lookup(
             info = getattr(row, "credential_info", None)
             if not isinstance(info, Mapping):
                 continue
-            if info.get("purpose") != "billing_ingestion" or info.get("provider") != provider:
+            if not is_billing_credential(info) or info.get("provider") != provider:
                 continue
             name = str(getattr(row, "credential_name", ""))
             values = CredentialAccessor.get_credential_values(name)

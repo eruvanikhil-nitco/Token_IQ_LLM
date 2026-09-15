@@ -80,6 +80,40 @@ async def test_without_redis_a_single_process_still_ingests():
 
 
 @pytest.mark.asyncio
+async def test_the_lookup_returns_only_the_credential_marked_for_that_providers_bill():
+    """A model access key for the same provider must never be sent to a cost endpoint."""
+    from types import SimpleNamespace
+    from unittest.mock import patch
+
+    import litellm
+    from litellm.provider_billing.credential_purpose import BILLING_PURPOSE
+    from litellm.provider_billing.scheduled import build_billing_credential_lookup
+    from litellm.types.utils import CredentialItem
+
+    stored = (
+        ("openai-models", {"custom_llm_provider": "openai", "provider": "openai"}, "sk-proj-test-not-real"),
+        ("anthropic-billing", {"purpose": BILLING_PURPOSE, "provider": "anthropic"}, "sk-ant-admin01-test-not-real"),
+        ("openai-billing", {"purpose": BILLING_PURPOSE, "provider": "openai"}, "sk-admin-test-not-real"),
+    )
+    prisma_client = MagicMock()
+    prisma_client.db.litellm_credentialstable.find_many = AsyncMock(
+        return_value=[SimpleNamespace(credential_name=name, credential_info=info) for name, info, _ in stored]
+    )
+    credentials = [
+        CredentialItem(credential_name=name, credential_info=info, credential_values={"api_key": key})
+        for name, info, key in stored
+    ]
+
+    with patch.object(litellm, "credential_list", credentials):
+        credentials_for = build_billing_credential_lookup(prisma_client=prisma_client)
+        openai = await credentials_for("openai")
+        openrouter = await credentials_for("openrouter")
+
+    assert openai == ("openai-billing", {"api_key": "sk-admin-test-not-real"})
+    assert openrouter is None
+
+
+@pytest.mark.asyncio
 async def test_no_lock_manager_at_all_still_ingests():
     """proxy_logging_obj may not carry one. Silently never running would be worse than
     running unlocked on a single replica."""
