@@ -2,6 +2,7 @@
 CRUD endpoints for storing reusable credentials.
 """
 
+from collections.abc import Mapping
 from typing import (
     Final,
     cast,  # noqa: TID251  # jsonify_object in proxy/utils.py is annotated with a bare dict
@@ -13,6 +14,7 @@ import litellm
 from litellm._logging import verbose_proxy_logger
 from litellm.litellm_core_utils.credential_accessor import CredentialAccessor
 from litellm.litellm_core_utils.litellm_logging import _get_masked_values
+from litellm.provider_billing.credential_purpose import billing_credential_problem, is_billing_credential
 from litellm.proxy._types import CommonProxyErrors, UserAPIKeyAuth
 from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
 from litellm.proxy.common_utils.encrypt_decrypt_utils import encrypt_value_helper
@@ -38,6 +40,17 @@ class CredentialHelperUtils:
             credential_values=encrypted_credential_values,
             credential_info=credential.credential_info or {},
         )
+
+
+def _refuse_unfit_billing_credential(
+    credential_info: Mapping[str, object], credential_values: Mapping[str, object], *, require_keys: bool
+) -> None:
+    """A billing credential that cannot read its provider's bill is refused before it is stored."""
+    if not is_billing_credential(credential_info):
+        return
+    problem: Final = billing_credential_problem(credential_info, credential_values, require_keys=require_keys)
+    if problem is not None:
+        raise HTTPException(status_code=400, detail={"error": problem})
 
 
 @router.post(
@@ -84,6 +97,9 @@ async def create_credential(
                 status_code=400,
                 detail="Credential values are required. Unable to infer credential values from model ID.",
             )
+        _refuse_unfit_billing_credential(
+            credential.credential_info, credential.credential_values, require_keys=True
+        )
         processed_credential: Final = CredentialItem(
             credential_name=credential.credential_name,
             credential_values=credential.credential_values,
@@ -128,7 +144,9 @@ async def get_credentials(
         masked_credentials: Final = [
             {
                 "credential_name": credential.credential_name,
-                "credential_values": _get_masked_values(credential.credential_values),
+                "credential_values": {}
+                if is_billing_credential(credential.credential_info)
+                else _get_masked_values(credential.credential_values),
                 "credential_info": credential.credential_info,
             }
             for credential in litellm.credential_list
@@ -158,7 +176,9 @@ async def get_credential_by_name(
             if credential.credential_name == credential_name:
                 masked_credential = CredentialItem(
                     credential_name=credential.credential_name,
-                    credential_values=_get_masked_values(
+                    credential_values={}
+                    if is_billing_credential(credential.credential_info)
+                    else _get_masked_values(
                         credential.credential_values,
                         unmasked_length=4,
                         number_of_asterisks=4,
@@ -314,6 +334,11 @@ async def update_credential(
         db_credential: Final = await credentials_repository.find_by_name(credential_name)
         if db_credential is None:
             raise HTTPException(status_code=404, detail="Credential not found in DB.")
+        _refuse_unfit_billing_credential(
+            {**(db_credential.credential_info or {}), **(credential.credential_info or {})},
+            credential.credential_values or {},
+            require_keys=False,
+        )
         merged_credential: Final = update_db_credential(db_credential, credential)
         credential_object_jsonified: Final = cast(  # cast-ok: deep-copies a model_dump, so keys are str
             "dict[str, object]", jsonify_object(merged_credential.model_dump())

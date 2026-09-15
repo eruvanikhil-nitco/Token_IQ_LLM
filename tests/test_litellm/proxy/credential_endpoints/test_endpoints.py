@@ -86,3 +86,113 @@ def test_update_credential_still_answers_200_on_a_successful_write():
 
     assert response.status_code == 200, response.text
     assert response.json()["success"] is True
+
+
+def _as_admin_request(method: str, path: str, body: dict | None = None):
+    missing = object()
+    previous_override = app.dependency_overrides.get(user_api_key_auth, missing)
+    app.dependency_overrides[user_api_key_auth] = _as_admin
+    try:
+        return client.request(method, path, json=body, headers={"Authorization": "Bearer test-key"})
+    finally:
+        if previous_override is missing:
+            app.dependency_overrides.pop(user_api_key_auth, None)
+        else:
+            app.dependency_overrides[user_api_key_auth] = previous_override
+
+
+def test_creating_a_billing_credential_with_an_ordinary_key_is_refused_before_anything_is_stored():
+    """An ordinary OpenAI key saves fine and then fails every cost sync with a 401."""
+    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()), patch(
+        "litellm.proxy.credential_endpoints.endpoints.CredentialsRepository"
+    ) as repository:
+        repository.return_value.create = AsyncMock(return_value=None)
+
+        response = _as_admin_request(
+            "POST",
+            "/credentials",
+            {
+                "credential_name": "openai-billing",
+                "credential_values": {"api_key": "sk-proj-test-not-real"},
+                "credential_info": {"purpose": "billing_ingestion", "provider": "openai"},
+            },
+        )
+
+    assert response.status_code == 400, response.text
+    assert "sk-admin-" in response.text
+    repository.return_value.create.assert_not_awaited()
+
+
+def test_creating_a_billing_credential_with_an_admin_key_is_stored():
+    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()), patch(
+        "litellm.proxy.proxy_server.master_key", "sk-test-master"
+    ), patch("litellm.proxy.credential_endpoints.endpoints.CredentialsRepository") as repository, patch(
+        "litellm.proxy.credential_endpoints.endpoints.CredentialAccessor.upsert_credentials"
+    ):
+        repository.return_value.create = AsyncMock(return_value=None)
+
+        response = _as_admin_request(
+            "POST",
+            "/credentials",
+            {
+                "credential_name": "openai-billing",
+                "credential_values": {"api_key": "sk-admin-test-not-real"},
+                "credential_info": {"purpose": "billing_ingestion", "provider": "openai"},
+            },
+        )
+
+    assert response.status_code == 200, response.text
+    repository.return_value.create.assert_awaited_once()
+
+
+def test_updating_a_billing_credential_with_an_ordinary_key_is_refused():
+    stored = CredentialItem(
+        credential_name="openai-billing",
+        credential_values={"api_key": "encrypted-stored-value"},
+        credential_info={"purpose": "billing_ingestion", "provider": "openai"},
+    )
+    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()), patch(
+        "litellm.proxy.credential_endpoints.endpoints.CredentialsRepository"
+    ) as repository:
+        repository.return_value.find_by_name = AsyncMock(return_value=stored)
+        repository.return_value.update_by_name = AsyncMock(return_value=None)
+
+        response = _patch_credential(
+            "openai-billing",
+            {
+                "credential_name": "openai-billing",
+                "credential_values": {"api_key": "sk-proj-test-not-real"},
+                "credential_info": {},
+            },
+        )
+
+    assert response.status_code == 400, response.text
+    repository.return_value.update_by_name.assert_not_awaited()
+
+
+def test_listing_credentials_never_returns_any_part_of_a_billing_key():
+    """Billing keys read a whole organisation's costs. Even a masked prefix narrows a
+    leaked key down, so the list returns nothing for them."""
+    import litellm
+
+    billing = CredentialItem(
+        credential_name="anthropic-billing",
+        credential_values={"api_key": "sk-ant-admin01-test-not-real"},
+        credential_info={"purpose": "billing_ingestion", "provider": "anthropic"},
+    )
+    model_access = CredentialItem(
+        credential_name="openai-models",
+        credential_values={"api_key": "sk-proj-test-not-real"},
+        credential_info={"custom_llm_provider": "openai"},
+    )
+    with patch.object(litellm, "credential_list", [billing, model_access]):
+        listed = _as_admin_request("GET", "/credentials")
+        by_name = _as_admin_request("GET", "/credentials/by_name/anthropic-billing")
+
+    assert listed.status_code == 200, listed.text
+    rows = {row["credential_name"]: row for row in listed.json()["credentials"]}
+    assert rows["anthropic-billing"]["credential_values"] == {}
+    assert rows["openai-models"]["credential_values"] != {}
+    assert by_name.status_code == 200, by_name.text
+    assert by_name.json()["credential_values"] == {}
+    assert "sk-ant-admin" not in listed.text + by_name.text
