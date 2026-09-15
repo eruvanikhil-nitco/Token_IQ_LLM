@@ -1,5 +1,6 @@
 import json
 from datetime import datetime, timedelta, timezone
+from typing import Final
 
 import litellm
 import pytest
@@ -28,6 +29,7 @@ from litellm.proxy._types import (
     UpdateKeyRequest,
 )
 from litellm.proxy.auth.auth_checks import _delete_cache_key_object, _project_cache_key
+from litellm.models.project import LiteLLM_ProjectTable
 from litellm.proxy.auth.user_api_key_auth import UserAPIKeyAuth
 from litellm.proxy.common_utils.user_api_key_cache import UserApiKeyCache
 from litellm.proxy.management_endpoints.key_management_endpoints import (
@@ -17535,3 +17537,157 @@ def test_key_generation_check_blank_team_id_uses_personal_permissions(monkeypatc
         )
         is True
     )
+
+
+_KM: Final = "litellm.proxy.management_endpoints.key_management_endpoints"
+_PROXY_ADMIN: Final = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin")
+
+
+async def _generate_key_with_project(
+    data: GenerateKeyRequest,
+    caller: UserAPIKeyAuth,
+    project: LiteLLM_ProjectTable | None,
+    caller_team_role: str | None = None,
+) -> AsyncMock:
+    members: Final = (
+        () if caller_team_role is None else (Member(user_id=caller.user_id, role=caller_team_role).model_dump(),)
+    )
+    team: Final = LiteLLM_TeamTableCachedObj(
+        team_id=data.team_id, members_with_roles=members, team_member_permissions=("/key/generate",)
+    )
+    prisma: Final = AsyncMock()
+    prisma.db.litellm_teamtable.find_unique = AsyncMock(
+        return_value=MagicMock(model_dump=MagicMock(return_value=team.model_dump()))
+    )
+    helper: Final = AsyncMock(return_value=MagicMock())
+    with (
+        patch("litellm.proxy.proxy_server.prisma_client", prisma),
+        patch("litellm.proxy.proxy_server.user_api_key_cache", MagicMock()),
+        patch("litellm.proxy.proxy_server.user_custom_key_generate", None),
+        patch(f"{_KM}.get_team_object", AsyncMock(return_value=team)),
+        patch(f"{_KM}._check_project_key_limits", AsyncMock()),
+        patch(f"{_KM}._common_key_generation_helper", helper),
+        patch("litellm.repositories.project_repository.ProjectRepository.find_by_id", AsyncMock(return_value=project)),
+    ):
+        await generate_key_fn(data=data, user_api_key_dict=caller, litellm_changed_by=None)
+    return helper
+
+
+@pytest.mark.asyncio
+async def test_generate_key_refuses_a_project_of_another_team():
+    """A key spends against its project's team budget, so a project from another team would
+    let the key's spend land on a team it does not belong to."""
+    with pytest.raises(ProxyException) as exc:
+        await _generate_key_with_project(
+            GenerateKeyRequest(team_id="t1", project_id="p-other"),
+            _PROXY_ADMIN,
+            LiteLLM_ProjectTable(project_id="p-other", team_id="t2"),
+        )
+
+    assert str(exc.value.code) == "403"
+    assert "p-other" in exc.value.message
+
+
+@pytest.mark.asyncio
+async def test_generate_key_refuses_a_project_the_caller_cannot_read():
+    """A plain member of a team reads none of its projects, so they cannot attach a key to one."""
+    member: Final = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-m", user_id="member")
+
+    with pytest.raises(ProxyException) as exc:
+        await _generate_key_with_project(
+            GenerateKeyRequest(team_id="t1", project_id="p1"),
+            member,
+            LiteLLM_ProjectTable(project_id="p1", team_id="t1"),
+            caller_team_role="user",
+        )
+
+    assert str(exc.value.code) == "403"
+    assert "p1" in exc.value.message
+
+
+@pytest.mark.asyncio
+async def test_generate_key_refuses_an_unknown_project_the_same_way_as_another_team_s():
+    """A 404 for unknown ids next to a 403 for other teams' ids would let anyone probe which project ids exist."""
+    with pytest.raises(ProxyException) as unknown:
+        await _generate_key_with_project(GenerateKeyRequest(team_id="t1", project_id="p-x"), _PROXY_ADMIN, None)
+    with pytest.raises(ProxyException) as other_team:
+        await _generate_key_with_project(
+            GenerateKeyRequest(team_id="t1", project_id="p-x"),
+            _PROXY_ADMIN,
+            LiteLLM_ProjectTable(project_id="p-x", team_id="t2"),
+        )
+
+    assert str(unknown.value.code) == "403"
+    assert unknown.value.message == other_team.value.message
+
+
+@pytest.mark.asyncio
+async def test_generate_key_accepts_a_readable_project_of_the_key_s_own_team():
+    lead: Final = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
+
+    helper: Final = await _generate_key_with_project(
+        GenerateKeyRequest(team_id="t1", project_id="p1"),
+        lead,
+        LiteLLM_ProjectTable(project_id="p1", team_id="t1"),
+        caller_team_role="admin",
+    )
+
+    helper.assert_awaited_once()
+
+
+def _existing_project_key(team_id: str, project_id: str) -> MagicMock:
+    row: Final = MagicMock()
+    row.user_id = "admin"
+    row.token = "hashed_token"
+    row.team_id = team_id
+    row.organization_id = None
+    row.project_id = project_id
+    return row
+
+
+async def _update_project_key(data: UpdateKeyRequest, project: LiteLLM_ProjectTable) -> AsyncMock:
+    find_project: Final = AsyncMock(return_value=project)
+    with (
+        patch(
+            f"{_KM}.get_team_object", AsyncMock(return_value=LiteLLM_TeamTableCachedObj(team_id=data.team_id or "t1"))
+        ),
+        patch("litellm.repositories.project_repository.ProjectRepository.find_by_id", find_project),
+        patch(f"{_KM}._check_project_key_limits", AsyncMock()),
+    ):
+        await _validate_update_key_data(
+            data=data,
+            existing_key_row=_existing_project_key("t1", project.project_id),
+            user_api_key_dict=_PROXY_ADMIN,
+            llm_router=None,
+            premium_user=False,
+            prisma_client=AsyncMock(),
+            user_api_key_cache=MagicMock(),
+        )
+    return find_project
+
+
+def test_update_key_request_cannot_carry_a_project_id():
+    """Why the update check below guards team changes: /key/update drops project_id, so moving the
+    key to another team is the only way an update can split a key from its project's team."""
+    assert "project_id" not in UpdateKeyRequest(key="sk-test-key", project_id="p-other").model_dump()
+
+
+@pytest.mark.asyncio
+async def test_update_key_moving_a_project_key_to_another_team_is_refused():
+    """Otherwise the key keeps spending through a project, and its budget, of the team it just left."""
+    with pytest.raises(HTTPException) as exc:
+        await _update_project_key(
+            UpdateKeyRequest(key="sk-test-key", team_id="t2"), LiteLLM_ProjectTable(project_id="p1", team_id="t1")
+        )
+
+    assert exc.value.status_code == 403
+    assert "p1" in str(exc.value.detail)
+
+
+@pytest.mark.asyncio
+async def test_update_key_leaves_the_project_check_alone_when_the_team_does_not_change():
+    find_project: Final = await _update_project_key(
+        UpdateKeyRequest(key="sk-test-key", key_alias="renamed"), LiteLLM_ProjectTable(project_id="p1", team_id="t1")
+    )
+
+    find_project.assert_not_awaited()

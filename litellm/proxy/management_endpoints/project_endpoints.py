@@ -35,6 +35,7 @@ from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
 from litellm.proxy.management_endpoints.common_daily_activity import get_daily_activity
 from litellm.proxy.management_endpoints.common_utils import _is_user_team_admin
 from litellm.repositories.project_repository import ProjectRepository
+from litellm.repositories.team_repository import TeamRepository
 from litellm.types.llms.base import LiteLLMPydanticObjectBase
 from litellm.types.proxy.management_endpoints.common_daily_activity import (
     SpendAnalyticsPaginatedResponse,
@@ -99,16 +100,21 @@ async def _authorised_team_or_403(
     )
 
 
+def _may_read_projects_of(team: LiteLLM_TeamTable, user_api_key_dict: UserAPIKeyAuth) -> bool:
+    """Admins read every team's projects. Anyone else reads those of the teams they administer and of
+    the team their key belongs to, which is the same rule `_authorised_team_or_403` applies to a single project."""
+    return (
+        user_api_key_has_admin_view(user_api_key_dict)
+        or team.team_id == user_api_key_dict.team_id
+        or _is_user_team_admin(user_api_key_dict=user_api_key_dict, team_obj=team)
+    )
+
+
 async def _projects_visible_to(
     user_api_key_dict: UserAPIKeyAuth,
     prisma_client: PrismaClient,
 ) -> Sequence[LiteLLM_ProjectTable]:
-    """Every project the caller may read.
-
-    Admins read all of them. Anyone else reads the projects of the teams they administer and
-    of the team their key belongs to, which is the same rule `_authorised_team_or_403` applies
-    to a single project. Prisma cannot filter the members JSON column, so teams are filtered here.
-    """
+    """Every project the caller may read. Prisma cannot filter the members JSON column, so teams are filtered here."""
     repository: Final = ProjectRepository(prisma_client)
     if user_api_key_has_admin_view(user_api_key_dict):
         return await repository.find_many()
@@ -117,12 +123,47 @@ async def _projects_visible_to(
     readable_team_ids: Final = tuple(
         team.team_id
         for team in (LiteLLM_TeamTable.model_validate(row.model_dump()) for row in team_rows)
-        if team.team_id == user_api_key_dict.team_id
-        or _is_user_team_admin(user_api_key_dict=user_api_key_dict, team_obj=team)
+        if _may_read_projects_of(team, user_api_key_dict)
     )
     if not readable_team_ids:
         return []
     return await repository.find_by_team_ids(readable_team_ids)
+
+
+async def _may_read_projects_of_team_id(
+    team_id: str,
+    user_api_key_dict: UserAPIKeyAuth,
+    prisma_client: PrismaClient,
+) -> bool:
+    if user_api_key_has_admin_view(user_api_key_dict):
+        return True
+    team: Final = await TeamRepository(prisma_client).find_by_id(team_id)
+    return team is not None and _may_read_projects_of(team, user_api_key_dict)
+
+
+async def project_a_key_may_join_or_403(
+    project_id: str,
+    key_team_id: str | None,
+    user_api_key_dict: UserAPIKeyAuth,
+    prisma_client: PrismaClient,
+) -> LiteLLM_ProjectTable:
+    """The project, if it belongs to the key's team and the caller may read it.
+
+    Unknown projects get the same refusal as unreadable or other-team ones, so the answer cannot be used
+    to probe which project ids exist.
+    """
+    project: Final = await ProjectRepository(prisma_client).find_by_id(project_id)
+    if (
+        project is not None
+        and project.team_id is not None
+        and project.team_id == key_team_id
+        and await _may_read_projects_of_team_id(project.team_id, user_api_key_dict, prisma_client)
+    ):
+        return project
+    detail: Final[_ErrorDetail] = {
+        "error": f"Project {project_id} is not a project of this key's team that you can read."
+    }
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=detail)
 
 
 def _refuse_budget_unless_proxy_admin(budget_id: str | None, user_api_key_dict: UserAPIKeyAuth) -> None:

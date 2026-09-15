@@ -94,6 +94,7 @@ from litellm.proxy.management_endpoints.common_utils import (
 from litellm.proxy.management_endpoints.model_management_endpoints import (
     _add_model_to_db,
 )
+from litellm.proxy.management_endpoints.project_endpoints import project_a_key_may_join_or_403
 from litellm.proxy.management_helpers.access_group_key_sync import (
     sync_key_access_group_membership,
     sync_key_regeneration_access_group_membership,
@@ -1886,6 +1887,12 @@ async def generate_key_fn(
 
         # Validate key against project limits if project_id is set
         if data.project_id is not None:
+            await project_a_key_may_join_or_403(
+                project_id=data.project_id,
+                key_team_id=data.team_id,
+                user_api_key_dict=user_api_key_dict,
+                prisma_client=prisma_client,
+            )
             await _check_project_key_limits(
                 project_id=data.project_id,
                 data=data,
@@ -2737,6 +2744,17 @@ async def _validate_update_key_data(
         team_table=team_obj,
         access_group_ids=data.access_group_ids,
     )
+
+    # UpdateKeyRequest has no project_id, so a team change is the only way an update can pair a key
+    # with a project of another team.
+    _existing_project_id: Final = existing_key_row.project_id
+    if _existing_project_id is not None and is_different_team(data=data, existing_key_row=existing_key_row):
+        await project_a_key_may_join_or_403(
+            project_id=_existing_project_id,
+            key_team_id=data.team_id,
+            user_api_key_dict=user_api_key_dict,
+            prisma_client=checked_prisma_client,
+        )
 
     # Validate key against project limits if project_id is being set
     _project_id_to_check: Final = getattr(data, "project_id", None) or getattr(existing_key_row, "project_id", None)
