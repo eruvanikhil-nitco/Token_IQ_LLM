@@ -3,6 +3,7 @@ CRUD endpoints for storing reusable credentials.
 """
 
 from collections.abc import Mapping
+from types import MappingProxyType
 from typing import (
     Final,
     cast,  # noqa: TID251  # jsonify_object in proxy/utils.py is annotated with a bare dict
@@ -42,6 +43,9 @@ class CredentialHelperUtils:
         )
 
 
+_NO_CREDENTIAL_VALUES: Final = MappingProxyType({})
+
+
 def _refuse_unfit_billing_credential(
     credential_info: Mapping[str, object], credential_values: Mapping[str, object], *, require_keys: bool
 ) -> None:
@@ -50,7 +54,7 @@ def _refuse_unfit_billing_credential(
         return
     problem: Final = billing_credential_problem(credential_info, credential_values, require_keys=require_keys)
     if problem is not None:
-        raise HTTPException(status_code=400, detail={"error": problem})
+        raise HTTPException(status_code=400, detail=problem)
 
 
 @router.post(
@@ -144,7 +148,7 @@ async def get_credentials(
         masked_credentials: Final = [
             {
                 "credential_name": credential.credential_name,
-                "credential_values": {}
+                "credential_values": _NO_CREDENTIAL_VALUES
                 if is_billing_credential(credential.credential_info)
                 else _get_masked_values(credential.credential_values),
                 "credential_info": credential.credential_info,
@@ -176,7 +180,7 @@ async def get_credential_by_name(
             if credential.credential_name == credential_name:
                 masked_credential = CredentialItem(
                     credential_name=credential.credential_name,
-                    credential_values={}
+                    credential_values=_NO_CREDENTIAL_VALUES
                     if is_billing_credential(credential.credential_info)
                     else _get_masked_values(
                         credential.credential_values,
@@ -335,8 +339,8 @@ async def update_credential(
         if db_credential is None:
             raise HTTPException(status_code=404, detail="Credential not found in DB.")
         _refuse_unfit_billing_credential(
-            {**(db_credential.credential_info or {}), **(credential.credential_info or {})},
-            credential.credential_values or {},
+            MappingProxyType({**db_credential.credential_info, **credential.credential_info}),
+            credential.credential_values,
             require_keys=False,
         )
         merged_credential: Final = update_db_credential(db_credential, credential)

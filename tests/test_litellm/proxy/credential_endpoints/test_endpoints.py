@@ -119,7 +119,9 @@ def test_creating_a_billing_credential_with_an_ordinary_key_is_refused_before_an
         )
 
     assert response.status_code == 400, response.text
-    assert "sk-admin-" in response.text
+    message = response.json()["error"]["message"]
+    assert "sk-admin-" in message
+    assert "{'error'" not in message
     repository.return_value.create.assert_not_awaited()
 
 
