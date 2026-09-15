@@ -8,9 +8,10 @@ import { ApiError } from "@/lib/http/client";
 
 import BudgetPanel from "./budget_panel";
 
-const { getMock, budgetDeleteMock } = vi.hoisted(() => ({
+const { getMock, budgetDeleteMock, mockUseAuthorized } = vi.hoisted(() => ({
   getMock: vi.fn(),
   budgetDeleteMock: vi.fn(),
+  mockUseAuthorized: vi.fn(() => ({ accessToken: "sk-test", userRole: "Admin", userId: "u1" })),
 }));
 
 vi.mock("@/components/networking", () => ({
@@ -22,7 +23,7 @@ vi.mock("@/components/networking", () => ({
 }));
 
 vi.mock("@/app/(dashboard)/hooks/useAuthorized", () => ({
-  default: () => ({ accessToken: "sk-test", userRole: "Admin", userId: "u1" }),
+  default: mockUseAuthorized,
 }));
 
 vi.mock("@/app/(dashboard)/models-and-endpoints/panels/AccessGroupBudgetsPanel", () => ({
@@ -86,6 +87,7 @@ const openFilters = async (user: ReturnType<typeof userEvent.setup>) => {
 describe("Budget Panel", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseAuthorized.mockReturnValue({ accessToken: "sk-test", userRole: "Admin", userId: "u1" });
     respondWith(DEFAULT_ROWS, 1);
   });
 
@@ -271,6 +273,23 @@ describe("Budget Panel", () => {
       "Examples",
       expect.stringContaining("Model Access Group Budgets"),
     ]);
+  });
+
+  // A non-admin's useModelAccessGroups query is disabled server-side, so the tab would
+  // otherwise show a misleading empty state instead of the data it can never see.
+  it("hides the Model Access Group Budgets tab for a non-admin role", async () => {
+    mockUseAuthorized.mockReturnValue({ accessToken: "sk-test", userRole: "Internal User", userId: "u1" });
+    renderPanel();
+    await screen.findByRole("heading", { level: 1, name: "Budgets" });
+
+    expect(screen.queryByRole("tab", { name: /Model Access Group Budgets/ })).not.toBeInTheDocument();
+  });
+
+  it("shows the Model Access Group Budgets tab for an admin role", async () => {
+    renderPanel();
+    await screen.findByRole("heading", { level: 1, name: "Budgets" });
+
+    expect(screen.getByRole("tab", { name: /Model Access Group Budgets/ })).toBeInTheDocument();
   });
 
   it("shows Model Access Group Budgets here now that it has moved from Models", async () => {

@@ -22,7 +22,7 @@ import BudgetTable from "./BudgetTable";
 import EditBudgetModal from "./edit_budget_modal";
 import { CREATE_END_USER_CURL_COMMAND, CHAT_COMPLETIONS_CURL_COMMAND, OPENAI_SDK_PYTHON_CODE } from "./constants";
 import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
-import { isProxyAdminRole } from "@/utils/roles";
+import { all_admin_roles, isProxyAdminRole } from "@/utils/roles";
 
 interface BudgetSettingsPageProps {
   accessToken: string | null;
@@ -38,6 +38,9 @@ const BudgetPanel: React.FC<BudgetSettingsPageProps> = ({ accessToken }) => {
   const { userRole } = useAuthorized();
   // Admin Viewer follows the read-parity rule: see budgets, no writes.
   const canModify = isProxyAdminRole(userRole ?? "");
+  // useModelAccessGroups() only enables its query for all_admin_roles, so a non-admin
+  // opening /budgets directly would otherwise see this tab with a misleading empty state.
+  const canViewAccessGroupBudgets = all_admin_roles.includes(userRole ?? "");
 
   const budgetList = useBudgetList();
   const deleteBudget = useDeleteBudget();
@@ -109,11 +112,16 @@ const BudgetPanel: React.FC<BudgetSettingsPageProps> = ({ accessToken }) => {
               <TabsTrigger value="examples" className="flex-none px-0 py-[7px] data-active:font-semibold">
                 Examples
               </TabsTrigger>
-              <TabsTrigger value="access-group-budgets" className="flex-none px-0 py-[7px] data-active:font-semibold">
-                <span className="flex items-center gap-2">
-                  Model Access Group Budgets <BetaBadge />
-                </span>
-              </TabsTrigger>
+              {canViewAccessGroupBudgets && (
+                <TabsTrigger
+                  value="access-group-budgets"
+                  className="flex-none px-0 py-[7px] data-active:font-semibold"
+                >
+                  <span className="flex items-center gap-2">
+                    Model Access Group Budgets <BetaBadge />
+                  </span>
+                </TabsTrigger>
+              )}
             </TabsList>
           )}
         />
@@ -183,11 +191,13 @@ const BudgetPanel: React.FC<BudgetSettingsPageProps> = ({ accessToken }) => {
             </Tabs>
           </div>
         </TabsContent>
-        <TabsContent value="access-group-budgets" className="min-h-0 flex-1 overflow-y-auto">
-          <div className="pt-6">
-            <AccessGroupBudgetsPanel />
-          </div>
-        </TabsContent>
+        {canViewAccessGroupBudgets && (
+          <TabsContent value="access-group-budgets" className="min-h-0 flex-1 overflow-y-auto">
+            <div className="pt-6">
+              <AccessGroupBudgetsPanel />
+            </div>
+          </TabsContent>
+        )}
       </Tabs>
     </main>
   );
