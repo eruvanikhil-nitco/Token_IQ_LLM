@@ -1,5 +1,6 @@
 import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
 import useIsOrgAdmin from "@/app/(dashboard)/hooks/useIsOrgAdmin";
+import { useTeams } from "@/app/(dashboard)/hooks/teams/useTeams";
 import { useHealthReadinessDetails } from "@/app/(dashboard)/hooks/healthReadiness/useHealthReadinessDetails";
 import { useLogout } from "@/app/(dashboard)/hooks/useLogout";
 import { getProxyBaseUrl } from "@/components/networking";
@@ -60,6 +61,7 @@ import {
   all_admin_roles,
   internalUserRoles,
   isAdminRole,
+  isUserTeamAdminForAnyTeam,
   rolesAllowedToViewWriteScopedPages,
   rolesWithWriteAccess,
 } from "../utils/roles";
@@ -189,13 +191,9 @@ const menuGroups: MenuGroup[] = [
       {
         key: "projects",
         page: "projects",
-        label: (
-          <span className="flex items-center gap-2">
-            Projects <BetaBadge />
-          </span>
-        ),
+        label: "Projects",
         icon: <Folder {...ICON} />,
-        roles: all_admin_roles,
+        roles: [...all_admin_roles, ...internalUserRoles],
       },
       { key: "users", page: "users", label: "Internal Users", icon: <User {...ICON} />, roles: all_admin_roles },
       {
@@ -361,6 +359,7 @@ const Sidebar_: React.FC<SidebarProps> = ({
 }) => {
   const { userId, accessToken, userRole, isViewOnly } = useAuthorized();
   const isOrgAdmin = useIsOrgAdmin();
+  const { data: teams } = useTeams();
   const { logoUrl, logoUrlDark } = useTheme();
   const [erroredDarkLogo, setErroredDarkLogo] = useState<string | null>(null);
   const { data: healthData } = useHealthReadinessDetails(accessToken);
@@ -402,7 +401,10 @@ const Sidebar_: React.FC<SidebarProps> = ({
           if (!isAdmin && enabledPagesInternalUsers != null) return enabledPagesInternalUsers.includes(item.page);
           return true;
         }
-        if (item.key === "projects" && !enableProjectsUI) return false;
+        if (item.key === "projects") {
+          if (!enableProjectsUI) return false;
+          if (!isAdmin && !isUserTeamAdminForAnyTeam(teams ?? null, userId ?? "")) return false;
+        }
         if (item.roles && !item.roles.includes(userRole)) return false;
         if (!isAdmin && enabledPagesInternalUsers != null) {
           if (item.children && item.children.length > 0) {

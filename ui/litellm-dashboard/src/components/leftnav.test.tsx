@@ -13,11 +13,11 @@ vi.mock("../utils/roles", async (importOriginal) => {
     rolesWithWriteAccess: ["admin", "internal"],
     rolesAllowedToViewWriteScopedPages: ["admin", "internal", "admin_viewer"],
     isAdminRole: (role: string) => role === "admin" || role === "admin_viewer",
-    isUserTeamAdminForAnyTeam: () => false,
+    isUserTeamAdminForAnyTeam: () => mockIsTeamAdmin(),
   };
 });
 
-const { mockUseAuthorized, mockUseOrganizations } = vi.hoisted(() => {
+const { mockUseAuthorized, mockUseOrganizations, mockIsTeamAdmin } = vi.hoisted(() => {
   const mockUseAuthorized = vi.fn(() => ({
     userId: "test-user-id",
     accessToken: "test-access-token",
@@ -36,7 +36,9 @@ const { mockUseAuthorized, mockUseOrganizations } = vi.hoisted(() => {
     error: null,
   }));
 
-  return { mockUseAuthorized, mockUseOrganizations };
+  const mockIsTeamAdmin = vi.fn(() => false);
+
+  return { mockUseAuthorized, mockUseOrganizations, mockIsTeamAdmin };
 });
 
 vi.mock("@/app/(dashboard)/hooks/useAuthorized", () => ({
@@ -514,6 +516,49 @@ describe("Sidebar (leftnav)", () => {
 
     expect(container.querySelector('a[href*="cost-optimization"]')).toHaveAttribute("title", "Cost Optimization");
     expect(container.querySelector('a[href*="projects"]')).toHaveAttribute("title", "Projects");
+  });
+
+  describe("Projects entry", () => {
+    const internalAuth = {
+      userId: "lead-user-id",
+      accessToken: "test-access-token",
+      userRole: "internal",
+      isViewOnly: false,
+      token: "test-token",
+      userEmail: "lead@example.com",
+      premiumUser: false,
+      disabledPersonalKeyCreation: false,
+      showSSOBanner: false,
+    };
+
+    afterEach(() => {
+      mockIsTeamAdmin.mockReset();
+    });
+
+    it("shows Projects to an admin without a Beta label", () => {
+      const { container } = renderWithProviders(<Sidebar {...defaultProps} enableProjectsUI />);
+
+      const projects = container.querySelector('a[href*="projects"]');
+      expect(projects).toHaveTextContent("Projects");
+      expect(projects).not.toHaveTextContent("Beta");
+    });
+
+    it("shows Projects to a user who administers a team", () => {
+      mockUseAuthorized.mockReturnValue(internalAuth);
+      mockIsTeamAdmin.mockReturnValue(true);
+      const { container } = renderWithProviders(<Sidebar {...defaultProps} enableProjectsUI />);
+
+      expect(container.querySelector('a[href*="projects"]')).not.toBeNull();
+    });
+
+    it("hides Projects from a user who administers no team", () => {
+      mockUseAuthorized.mockReturnValue(internalAuth);
+      mockIsTeamAdmin.mockReturnValue(false);
+      const { container } = renderWithProviders(<Sidebar {...defaultProps} enableProjectsUI />);
+
+      expect(container.querySelector('a[href*="projects"]')).toBeNull();
+      expect(screen.getByText("Logs")).toBeInTheDocument();
+    });
   });
 });
 

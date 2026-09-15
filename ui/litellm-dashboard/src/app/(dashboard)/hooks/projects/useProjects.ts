@@ -42,7 +42,7 @@ export interface ProjectResponse {
 
 export const projectKeys = createQueryKeys("projects");
 
-const projectReaderRoles = [...all_admin_roles, ...internalUserRoles];
+export const projectReaderRoles = [...all_admin_roles, ...internalUserRoles];
 
 // ── Fetch function ───────────────────────────────────────────────────────────
 
