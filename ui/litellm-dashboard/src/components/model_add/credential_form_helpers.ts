@@ -40,14 +40,14 @@ export function resetCredentialFormOnProviderChange(
 
 export const BILLING_PURPOSE = "billing_ingestion";
 
-export type BillingProvider = "openai" | "anthropic" | "openrouter" | "bedrock";
-
-export const BILLING_PROVIDERS: ReadonlyArray<{ value: BillingProvider; label: string }> = [
+export const BILLING_PROVIDERS = [
   { value: "openai", label: "OpenAI" },
   { value: "anthropic", label: "Anthropic" },
   { value: "openrouter", label: "OpenRouter" },
   { value: "bedrock", label: "Amazon Bedrock" },
-];
+] as const satisfies ReadonlyArray<{ value: string; label: string }>;
+
+export type BillingProvider = (typeof BILLING_PROVIDERS)[number]["value"];
 
 const BEDROCK_BILLING_FIELDS = ["aws_access_key_id", "aws_secret_access_key", "aws_session_token", "service_name"];
 
