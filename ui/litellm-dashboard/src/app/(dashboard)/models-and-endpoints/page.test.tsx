@@ -81,6 +81,14 @@ describe("ModelsAndEndpointsPage", () => {
     expect(screen.getByTestId("panel-all-models")).toBeInTheDocument();
   });
 
+  // The heading must match the sidebar label and breadcrumb ("Models + Endpoints"),
+  // not the pre-rename "Model Management".
+  it("titles the page Models + Endpoints, matching the sidebar label", () => {
+    renderPage();
+    expect(screen.getByRole("heading", { name: "Models + Endpoints" })).toBeInTheDocument();
+    expect(screen.queryByText("Model Management")).not.toBeInTheDocument();
+  });
+
   it("switches tabs in-memory, mounting only the active panel", async () => {
     const user = userEvent.setup();
     renderPage();

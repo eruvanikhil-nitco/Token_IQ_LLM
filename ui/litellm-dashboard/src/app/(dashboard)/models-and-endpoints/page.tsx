@@ -154,7 +154,7 @@ export default function ModelsAndEndpointsPage() {
       <div className="mt-2 flex w-full flex-col gap-2 p-8">
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold">Model Management</h2>
+            <h2 className="text-lg font-semibold">Models + Endpoints</h2>
             {isAdmin ? (
               <p className="text-sm text-muted-foreground">Add and manage models for the proxy</p>
             ) : (
