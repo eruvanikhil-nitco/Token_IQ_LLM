@@ -13,6 +13,7 @@ projects.
 
 from __future__ import annotations
 
+from types import MappingProxyType
 from typing import Any, Final
 
 import fastapi
@@ -239,7 +240,7 @@ async def delete_project(
     dependencies=[Depends(user_api_key_auth)],
 )
 async def get_project_daily_activity(
-    project_id: str = fastapi.Query(description="The project to report on"),
+    project_ids: str | None = None,
     start_date: str | None = None,
     end_date: str | None = None,
     model: str | None = None,
@@ -248,20 +249,32 @@ async def get_project_daily_activity(
     page_size: int = 10,
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ):
-    """What one project spent, by day.
+    """What projects spent, by day.
 
-    Reads the project's daily rollup rather than the raw spend logs, so the cost of a
-    report does not grow with the number of requests the project has made.
+    `project_ids` is comma-separated. Leaving it out reports on every project the caller can
+    read. Reads the project daily rollup rather than the raw spend logs, so the cost of a
+    report does not grow with the number of requests.
     """
     prisma_client: Final = _prisma_or_500()
-    project: Final = await _authorised_project_or_403(project_id, user_api_key_dict, prisma_client, write=False)
+    readable: Final = MappingProxyType(
+        {project.project_id: project for project in await _projects_visible_to(user_api_key_dict, prisma_client)}
+    )
+    requested: Final = tuple(project_ids.split(",")) if project_ids else tuple(readable)
+    unreadable: Final = sorted(set(requested).difference(readable))
+    if unreadable:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={"error": f"You cannot read the spend of project(s) {unreadable}."},
+        )
 
     return await get_daily_activity(
         prisma_client=prisma_client,
         table_name="litellm_dailyprojectspend",
         entity_id_field="project_id",
-        entity_id=project_id,
-        entity_metadata_field={project_id: {"project_alias": project.project_alias}},
+        entity_id=list(requested),
+        entity_metadata_field={
+            project_id: {"project_alias": readable[project_id].project_alias} for project_id in requested
+        },
         start_date=start_date,
         end_date=end_date,
         model=model,

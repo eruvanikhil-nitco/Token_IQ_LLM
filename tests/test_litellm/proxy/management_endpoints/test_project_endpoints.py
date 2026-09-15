@@ -429,54 +429,93 @@ async def test_deleting_is_authorised_per_project_not_once_for_the_batch():
     deleter.assert_not_awaited()
 
 
-@pytest.mark.asyncio
-async def test_daily_activity_reads_the_project_rollup_not_the_raw_spend_logs():
-    from litellm.proxy.management_endpoints.project_endpoints import get_project_daily_activity
-
+def _capture_daily_activity() -> tuple[dict, object]:
     recorded: dict = {}
 
     async def _capture(**kwargs):
         recorded.update(kwargs)
         return "report"
 
+    return recorded, _capture
+
+
+@pytest.mark.asyncio
+async def test_daily_activity_reads_the_project_rollup_not_the_raw_spend_logs():
+    from litellm.proxy.management_endpoints.project_endpoints import get_project_daily_activity
+
+    recorded, capture = _capture_daily_activity()
     with (
         patch("litellm.proxy.proxy_server.prisma_client", _prisma()),
         patch(
-            "litellm.repositories.project_repository.ProjectRepository.find_by_id",
-            AsyncMock(return_value=_project()),
+            "litellm.repositories.project_repository.ProjectRepository.find_many",
+            AsyncMock(return_value=[_project("p1"), _project("p2")]),
         ),
-        patch("litellm.proxy.management_endpoints.project_endpoints.get_daily_activity", _capture),
+        patch("litellm.proxy.management_endpoints.project_endpoints.get_daily_activity", capture),
     ):
-        result = await get_project_daily_activity(project_id="p1", user_api_key_dict=ADMIN)
+        result = await get_project_daily_activity(project_ids="p1", user_api_key_dict=ADMIN)
 
     assert result == "report"
     assert recorded["table_name"] == "litellm_dailyprojectspend"
     assert recorded["entity_id_field"] == "project_id"
-    assert recorded["entity_id"] == "p1"
+    assert recorded["entity_id"] == ["p1"]
     assert recorded["entity_metadata_field"] == {"p1": {"project_alias": "api-service"}}
 
 
 @pytest.mark.asyncio
-async def test_daily_activity_of_another_team_s_project_is_refused_not_empty():
-    from fastapi import HTTPException
-
+async def test_daily_activity_without_named_projects_covers_every_project_the_caller_can_read():
+    """The Usage page's Project view opens before anything is picked and must show the total."""
     from litellm.proxy.management_endpoints.project_endpoints import get_project_daily_activity
 
+    recorded, capture = _capture_daily_activity()
     with (
         patch("litellm.proxy.proxy_server.prisma_client", _prisma()),
         patch(
-            "litellm.repositories.project_repository.ProjectRepository.find_by_id",
-            AsyncMock(return_value=_project()),
+            "litellm.repositories.project_repository.ProjectRepository.find_many",
+            AsyncMock(return_value=[_project("p1"), _project("p2")]),
         ),
-        pytest.raises(HTTPException) as exc,
+        patch("litellm.proxy.management_endpoints.project_endpoints.get_daily_activity", capture),
     ):
-        await get_project_daily_activity(project_id="p1", user_api_key_dict=OUTSIDER)
+        await get_project_daily_activity(project_ids=None, user_api_key_dict=VIEWER)
 
-    assert exc.value.status_code == 403
+    assert recorded["entity_id"] == ["p1", "p2"]
 
 
 @pytest.mark.asyncio
-async def test_daily_activity_for_an_unknown_project_is_a_404():
+async def test_daily_activity_for_a_caller_with_no_projects_filters_to_nothing_not_everything():
+    """An empty id list reaches the query as an empty IN filter. Passing None instead would drop
+    the filter and report every project's spend to someone who can read none of them."""
+    from litellm.proxy.management_endpoints.project_endpoints import get_project_daily_activity
+
+    recorded, capture = _capture_daily_activity()
+    with (
+        patch("litellm.proxy.proxy_server.prisma_client", _prisma_with_teams(_team_row("t1"))),
+        patch("litellm.proxy.management_endpoints.project_endpoints.get_daily_activity", capture),
+    ):
+        await get_project_daily_activity(project_ids=None, user_api_key_dict=OUTSIDER)
+
+    assert recorded["entity_id"] == []
+
+
+@pytest.mark.asyncio
+async def test_daily_activity_of_a_project_the_caller_cannot_read_is_refused_not_empty():
+    from fastapi import HTTPException
+
+    from litellm.proxy.management_endpoints.project_endpoints import get_project_daily_activity
+
+    with (
+        patch("litellm.proxy.proxy_server.prisma_client", _prisma_with_teams(_team_row("t1"))),
+        pytest.raises(HTTPException) as exc,
+    ):
+        await get_project_daily_activity(project_ids="p1", user_api_key_dict=OUTSIDER)
+
+    assert exc.value.status_code == 403
+    assert "p1" in str(exc.value.detail)
+
+
+@pytest.mark.asyncio
+async def test_daily_activity_for_an_unknown_project_is_refused_without_confirming_it_exists():
+    """Answering 404 for unknown ids and 403 for other teams' ids would let anyone probe which
+    project ids exist."""
     from fastapi import HTTPException
 
     from litellm.proxy.management_endpoints.project_endpoints import get_project_daily_activity
@@ -484,14 +523,15 @@ async def test_daily_activity_for_an_unknown_project_is_a_404():
     with (
         patch("litellm.proxy.proxy_server.prisma_client", _prisma()),
         patch(
-            "litellm.repositories.project_repository.ProjectRepository.find_by_id",
-            AsyncMock(return_value=None),
+            "litellm.repositories.project_repository.ProjectRepository.find_many",
+            AsyncMock(return_value=[]),
         ),
         pytest.raises(HTTPException) as exc,
     ):
-        await get_project_daily_activity(project_id="ghost", user_api_key_dict=ADMIN)
+        await get_project_daily_activity(project_ids="ghost", user_api_key_dict=ADMIN)
 
-    assert exc.value.status_code == 404
+    assert exc.value.status_code == 403
+    assert "ghost" in str(exc.value.detail)
 
 
 @pytest.mark.asyncio
