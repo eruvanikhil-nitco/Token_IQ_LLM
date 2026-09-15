@@ -23,7 +23,7 @@ export const pageDescriptions: Record<string, string> = {
   "cost-optimization": "Track and configure cost-saving features: prompt compression, caching, and auto routing",
   logs: "Access request and response logs",
   "guardrails-monitor": "Monitor guardrail performance and view logs",
-  users: "Manage internal user accounts and permissions",
+  users: "Manage user accounts and permissions",
   teams: "Create and manage teams for access control",
   organizations: "Manage organizations and their members",
   projects: "Manage projects within teams",

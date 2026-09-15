@@ -71,7 +71,7 @@ describe("AdminPanel", () => {
   it("should render the admin panel", () => {
     render(<AdminPanel />);
     expect(screen.getByRole("heading", { name: /admin access/i })).toBeInTheDocument();
-    expect(screen.getByText(/go to 'internal users' page to add other admins/i)).toBeInTheDocument();
+    expect(screen.getByText(/go to the users page to add other admins/i)).toBeInTheDocument();
   });
 
   describe("Tabs", () => {
