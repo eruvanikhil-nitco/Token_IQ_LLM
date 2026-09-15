@@ -33,8 +33,7 @@ test.describe("Edit LLM credential", () => {
 
   test("changing only the api base does not overwrite the stored api key with its masked value", async ({ page }) => {
     await page.goto("/ui");
-    await page.getByText("Models + Endpoints").click();
-    await page.getByRole("tab", { name: "LLM Credentials" }).click();
+    await page.getByRole("link", { name: "LLM Provider Credentials", exact: true }).click();
 
     const row = page.locator("tr", { hasText: credentialName });
     await expect(row).toBeVisible({ timeout: 15_000 });

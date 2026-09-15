@@ -7,7 +7,6 @@ import ModelsAndEndpointsPage, { TAB_LABELS } from "./page";
 
 vi.mock("./panels/AllModelsPanel", () => ({ default: () => <div data-testid="panel-all-models" /> }));
 vi.mock("./panels/AddModelPanel", () => ({ default: () => <div data-testid="panel-add" /> }));
-vi.mock("./panels/LlmCredentialsPanel", () => ({ default: () => <div data-testid="panel-credentials" /> }));
 vi.mock("./panels/PassThroughPanel", () => ({ default: () => <div data-testid="panel-pass-through" /> }));
 vi.mock("./panels/HealthStatusPanel", () => ({ default: () => <div data-testid="panel-health" /> }));
 vi.mock("./panels/ModelRetrySettingsPanel", () => ({ default: () => <div data-testid="panel-retry" /> }));
@@ -76,7 +75,7 @@ describe("ModelsAndEndpointsPage", () => {
   it("renders the admin tab bar and the All Models panel by default", () => {
     renderPage();
     expect(screen.getByRole("tab", { name: "All Models" })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: "LLM Credentials" })).toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: "LLM Credentials" })).not.toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Health Status" })).toBeInTheDocument();
     expect(screen.getByTestId("panel-all-models")).toBeInTheDocument();
   });
@@ -130,7 +129,6 @@ describe("ModelsAndEndpointsPage", () => {
   it("hides admin-only tabs for a non-admin user", () => {
     mockUseAuthorized.mockReturnValue(NON_ADMIN);
     renderPage();
-    expect(screen.queryByRole("tab", { name: "LLM Credentials" })).not.toBeInTheDocument();
     expect(screen.queryByRole("tab", { name: "Health Status" })).not.toBeInTheDocument();
   });
 

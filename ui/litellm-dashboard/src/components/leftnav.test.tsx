@@ -172,6 +172,7 @@ describe("Sidebar (leftnav)", () => {
     expect(placements).toEqual({
       ANALYTICS: ["new_usage", "usage", "cost-optimization", "logs"],
       ORGANISATION: ["teams", "projects", "users", "access-groups", "budgets"],
+      "DATA SOURCES": ["llm-provider-credentials"],
       GATEWAY: ["api-keys", "providers", "models", "llm-playground", "transform-request"],
       SAFETY: ["guardrails", "guardrails-monitor", "policies"],
       BUILD: ["mcp-servers", "skills", "prompts", "tag-management", "model-hub-table", "api_ref"],
@@ -188,7 +189,7 @@ describe("Sidebar (leftnav)", () => {
   it("renders the agreed group labels and page names for an admin", () => {
     renderWithProviders(<Sidebar {...defaultProps} enableProjectsUI />);
 
-    ["ANALYTICS", "ORGANISATION", "GATEWAY", "SAFETY", "BUILD", "SETTINGS"].forEach((label) => {
+    ["ANALYTICS", "ORGANISATION", "DATA SOURCES", "GATEWAY", "SAFETY", "BUILD", "SETTINGS"].forEach((label) => {
       expect(screen.getByText(label)).toBeInTheDocument();
     });
     [
@@ -201,6 +202,7 @@ describe("Sidebar (leftnav)", () => {
       "Users",
       "Access Groups",
       "Budgets",
+      "LLM Provider Credentials",
       "Virtual Keys",
       "Providers",
       "Models + Endpoints",
@@ -345,6 +347,14 @@ describe("Sidebar (leftnav)", () => {
       renderWithProviders(<Sidebar {...defaultProps} />);
 
       expect(screen.getByText("Classic Usage")).toBeInTheDocument();
+    });
+
+    it("hides LLM Provider Credentials from internal users", () => {
+      mockUseAuthorized.mockReturnValue(internalAuth);
+      renderWithProviders(<Sidebar {...defaultProps} />);
+
+      expect(screen.getByText("Usage")).toBeInTheDocument();
+      expect(screen.queryByText("LLM Provider Credentials")).not.toBeInTheDocument();
     });
   });
 
@@ -554,6 +564,10 @@ describe("getBreadcrumb", () => {
     expect(getBreadcrumb("usage")).toEqual({ section: "Analytics", title: "Classic Usage" });
     expect(getBreadcrumb("prompts")).toEqual({ section: "Build", title: "Prompts" });
     expect(getBreadcrumb("policies")).toEqual({ section: "Safety", title: "Policies" });
+    expect(getBreadcrumb("llm-provider-credentials")).toEqual({
+      section: "Data Sources",
+      title: "LLM Provider Credentials",
+    });
   });
 
   it("falls back to the prettified page id for a page with no sidebar entry", () => {

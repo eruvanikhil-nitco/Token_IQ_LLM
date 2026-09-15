@@ -15,7 +15,6 @@ import { useModelDetailRouting } from "@/app/(dashboard)/models-and-endpoints/de
 import { useModelDashboardData } from "@/app/(dashboard)/models-and-endpoints/useModelDashboardData";
 import AllModelsPanel from "@/app/(dashboard)/models-and-endpoints/panels/AllModelsPanel";
 import AddModelPanel from "@/app/(dashboard)/models-and-endpoints/panels/AddModelPanel";
-import LlmCredentialsPanel from "@/app/(dashboard)/models-and-endpoints/panels/LlmCredentialsPanel";
 import PassThroughPanel from "@/app/(dashboard)/models-and-endpoints/panels/PassThroughPanel";
 import HealthStatusPanel from "@/app/(dashboard)/models-and-endpoints/panels/HealthStatusPanel";
 import ModelRetrySettingsPanel from "@/app/(dashboard)/models-and-endpoints/panels/ModelRetrySettingsPanel";
@@ -29,7 +28,6 @@ import TabScroller from "@/components/shared/TabScroller";
 
 type ModelTabSlug =
   | "add"
-  | "llm-credentials"
   | "pass-through"
   | "health"
   | "retry-settings"
@@ -42,7 +40,6 @@ const BASE_TAB_KEY = "all-models";
 
 export const TAB_LABELS: Record<ModelTabSlug, string> = {
   add: "Add Model",
-  "llm-credentials": "LLM Credentials",
   "pass-through": "Pass-Through Endpoints",
   health: "Health Status",
   "retry-settings": "Model Retry Settings",
@@ -58,8 +55,6 @@ const renderPanel = (key: string) => {
       return <AllModelsPanel />;
     case "add":
       return <AddModelPanel />;
-    case "llm-credentials":
-      return <LlmCredentialsPanel />;
     case "pass-through":
       return <PassThroughPanel />;
     case "health":
@@ -107,7 +102,6 @@ export default function ModelsAndEndpointsPage() {
       ...(canCreate ? (["add"] as const) : []),
       ...(isAdmin
         ? ([
-            "llm-credentials",
             "pass-through",
             "health",
             "retry-settings",

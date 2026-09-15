@@ -32,6 +32,7 @@ import {
   HeartPulse,
   KeyRound,
   LayoutGrid,
+  LockKeyhole,
   Network,
   Palette,
   PanelLeftClose,
@@ -157,6 +158,18 @@ const menuGroups: MenuGroup[] = [
     ],
   },
   {
+    groupLabel: "DATA SOURCES",
+    items: [
+      {
+        key: "llm-provider-credentials",
+        page: "llm-provider-credentials",
+        label: "LLM Provider Credentials",
+        icon: <LockKeyhole {...ICON} />,
+        roles: all_admin_roles,
+      },
+    ],
+  },
+  {
     groupLabel: "GATEWAY",
     items: [
       { key: "api-keys", page: "api-keys", label: "Virtual Keys", icon: <KeyRound {...ICON} /> },
@@ -276,6 +289,7 @@ const findMenuItemKey = (page: string): string => {
 const SECTION_DISPLAY: Record<string, string> = {
   ANALYTICS: "Analytics",
   ORGANISATION: "Organisation",
+  "DATA SOURCES": "Data Sources",
   GATEWAY: "Gateway",
   SAFETY: "Safety",
   BUILD: "Build",

@@ -29,6 +29,7 @@ export const pageDescriptions: Record<string, string> = {
   projects: "Manage projects within teams",
   "access-groups": "Manage access groups for role-based permissions",
   budgets: "Set and monitor spending budgets",
+  "llm-provider-credentials": "Store provider keys for serving models and read-only keys for reading costs",
   api_ref: "Browse API documentation and endpoints",
   "model-hub-table": "Explore available AI models and providers",
   caching: "Configure response caching and coordination Redis settings",
