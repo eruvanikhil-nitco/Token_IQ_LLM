@@ -9,6 +9,8 @@ export const PROJECT_SPEND_WINDOW_DAYS = 30;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+type ReportPage = { results: DailyData[]; metadata: { total_pages: number } };
+
 export const useProjectSpendByModel = (projectId: string) => {
   const { accessToken, userRole } = useAuthorized();
 
@@ -17,10 +19,13 @@ export const useProjectSpendByModel = (projectId: string) => {
     queryFn: async () => {
       const endTime = new Date();
       const startTime = new Date(endTime.getTime() - PROJECT_SPEND_WINDOW_DAYS * DAY_MS);
-      const report: { results: DailyData[] } = await projectDailyActivityCall(accessToken!, startTime, endTime, 1, [
-        projectId,
-      ]);
-      return spendByModel(report.results);
+      const fetchPage = (page: number): Promise<ReportPage> =>
+        projectDailyActivityCall(accessToken!, startTime, endTime, page, [projectId]);
+      const firstPage = await fetchPage(1);
+      const laterPages = await Promise.all(
+        Array.from({ length: Math.max(firstPage.metadata.total_pages - 1, 0) }, (_, index) => fetchPage(index + 2)),
+      );
+      return spendByModel([firstPage, ...laterPages].flatMap((page) => page.results));
     },
     enabled: Boolean(accessToken && projectId) && projectReaderRoles.includes(userRole ?? ""),
   });
