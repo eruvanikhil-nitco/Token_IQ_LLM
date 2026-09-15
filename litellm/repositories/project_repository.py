@@ -36,7 +36,7 @@ class ProjectRepository(BaseRepository[LiteLLM_ProjectTable]):
         """Find all projects belonging to a team."""
         return await self.find_many(where={"team_id": team_id})
 
-    async def find_by_team_ids(self, team_ids: Sequence[str]) -> list[LiteLLM_ProjectTable]:
+    async def find_by_team_ids(self, team_ids: Sequence[str]) -> Sequence[LiteLLM_ProjectTable]:
         """Every project owned by any of these teams."""
         return await self.find_many(where={"team_id": {"in": list(team_ids)}})
 

@@ -13,8 +13,9 @@ projects.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from types import MappingProxyType
-from typing import Any, Final
+from typing import TYPE_CHECKING, Any, Final
 
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -37,6 +38,9 @@ from litellm.types.llms.base import LiteLLMPydanticObjectBase
 from litellm.types.proxy.management_endpoints.common_daily_activity import (
     SpendAnalyticsPaginatedResponse,
 )
+
+if TYPE_CHECKING:
+    from litellm.proxy.utils import PrismaClient
 
 router: Final = APIRouter()
 
@@ -92,8 +96,8 @@ async def _authorised_team_or_403(
 
 async def _projects_visible_to(
     user_api_key_dict: UserAPIKeyAuth,
-    prisma_client: Any,  # any-ok: untyped wrapper
-) -> list[LiteLLM_ProjectTable]:
+    prisma_client: PrismaClient,
+) -> Sequence[LiteLLM_ProjectTable]:
     """Every project the caller may read.
 
     Admins read all of them. Anyone else reads the projects of the teams they administer and
