@@ -1,0 +1,51 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+from fastapi import HTTPException
+
+from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from litellm.proxy.management_endpoints.audit_log_endpoints import list_audit_logs
+
+
+def _prisma_with_no_rows() -> MagicMock:
+    client = MagicMock()
+    client.db.litellm_auditlog.count = AsyncMock(return_value=0)
+    client.db.litellm_auditlog.find_many = AsyncMock(return_value=[])
+    return client
+
+
+async def _list_as(role: LitellmUserRoles):
+    with patch("litellm.proxy.proxy_server.prisma_client", _prisma_with_no_rows()):
+        return await list_audit_logs(
+            user_api_key_dict=UserAPIKeyAuth(user_role=role),
+            table_name=None,
+            action=None,
+            object_id=None,
+            changed_by=None,
+            start_date=None,
+            end_date=None,
+            page=1,
+            size=50,
+            include_noise=False,
+        )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("role", [LitellmUserRoles.PROXY_ADMIN, LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY])
+async def test_admins_can_read_the_audit_trail(role):
+    response = await _list_as(role)
+
+    assert response.entries == []
+    assert response.total == 0
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "role",
+    [LitellmUserRoles.ORG_ADMIN, LitellmUserRoles.INTERNAL_USER, LitellmUserRoles.INTERNAL_USER_VIEW_ONLY],
+)
+async def test_the_installation_wide_audit_trail_is_refused_to_everyone_else(role):
+    with pytest.raises(HTTPException) as refused:
+        await _list_as(role)
+
+    assert refused.value.status_code == 403
