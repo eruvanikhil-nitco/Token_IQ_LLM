@@ -5,7 +5,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
-
 from litellm.proxy._types import UserAPIKeyAuth
 from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
 from litellm.proxy.proxy_server import app
@@ -170,6 +169,106 @@ def test_updating_a_billing_credential_with_an_ordinary_key_is_refused():
 
     assert response.status_code == 400, response.text
     repository.return_value.update_by_name.assert_not_awaited()
+
+
+def _patch_stored_credential(stored: CredentialItem, body: dict):
+    import litellm
+
+    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()), patch(
+        "litellm.proxy.proxy_server.master_key", "sk-test-master"
+    ), patch("litellm.proxy.credential_endpoints.endpoints.CredentialsRepository") as repository, patch.object(
+        litellm, "credential_list", []
+    ):
+        repository.return_value.find_by_name = AsyncMock(return_value=stored)
+        repository.return_value.update_by_name = AsyncMock(return_value=None)
+        response = _patch_credential(stored.credential_name, body)
+    return response, repository.return_value.update_by_name
+
+
+def _written_credential_info(update_by_name: AsyncMock) -> dict:
+    import json
+
+    written = update_by_name.await_args.kwargs["data"]["credential_info"]
+    return json.loads(written) if isinstance(written, str) else written
+
+
+@pytest.mark.parametrize(
+    "stored_info",
+    [
+        {"purpose": "billing_ingestion", "provider": "openai"},
+        {"custom_llm_provider": "openai"},
+    ],
+    ids=["billing", "model_access"],
+)
+def test_patching_credential_info_keeps_the_stored_info_in_the_database(stored_info):
+    """Regression: the database copy was replaced by the patch's info, so a billing
+    credential lost its marker on the next reload and was served as a model key."""
+    stored = CredentialItem(
+        credential_name="stored-credential",
+        credential_values={"api_key": "encrypted-stored-value"},
+        credential_info=dict(stored_info),
+    )
+
+    response, update_by_name = _patch_stored_credential(
+        stored,
+        {"credential_name": "stored-credential", "credential_values": {}, "credential_info": {"description": "costs"}},
+    )
+
+    assert response.status_code == 200, response.text
+    assert _written_credential_info(update_by_name) == {**stored_info, "description": "costs"}
+    assert stored.credential_info == stored_info
+
+
+_BILLING_OPENAI = {"purpose": "billing_ingestion", "provider": "openai"}
+_PURPOSE_CHANGE_REFUSED = "The purpose and provider of a credential cannot be changed. Delete it and create a new one."
+
+
+@pytest.mark.parametrize(
+    "stored_info,patched_info",
+    [
+        ({"custom_llm_provider": "openai"}, _BILLING_OPENAI),
+        (_BILLING_OPENAI, {"purpose": "model_access"}),
+        (_BILLING_OPENAI, {"provider": "anthropic"}),
+    ],
+    ids=["model_access_to_billing", "billing_to_other_purpose", "billing_openai_to_anthropic"],
+)
+def test_changing_the_purpose_or_provider_of_a_billing_credential_is_refused(stored_info, patched_info):
+    """A key checked for one purpose and provider must not skip that check by being relabelled."""
+    stored = CredentialItem(
+        credential_name="stored-credential",
+        credential_values={"api_key": "encrypted-stored-value"},
+        credential_info=dict(stored_info),
+    )
+
+    response, update_by_name = _patch_stored_credential(
+        stored,
+        {"credential_name": "stored-credential", "credential_values": {}, "credential_info": patched_info},
+    )
+
+    assert response.status_code == 400, response.text
+    assert response.json()["error"]["message"] == _PURPOSE_CHANGE_REFUSED
+    update_by_name.assert_not_awaited()
+
+
+def test_resending_the_same_purpose_and_provider_with_a_new_admin_key_is_accepted():
+    """The dashboard sends the stored purpose and provider back on every edit."""
+    stored = CredentialItem(
+        credential_name="openai-billing",
+        credential_values={"api_key": "encrypted-stored-value"},
+        credential_info=dict(_BILLING_OPENAI),
+    )
+
+    response, update_by_name = _patch_stored_credential(
+        stored,
+        {
+            "credential_name": "openai-billing",
+            "credential_values": {"api_key": "sk-admin-new-test-not-real"},
+            "credential_info": dict(_BILLING_OPENAI),
+        },
+    )
+
+    assert response.status_code == 200, response.text
+    assert _written_credential_info(update_by_name) == _BILLING_OPENAI
 
 
 def test_listing_credentials_never_returns_any_part_of_a_billing_key():

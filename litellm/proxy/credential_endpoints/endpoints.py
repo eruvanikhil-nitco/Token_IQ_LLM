@@ -101,9 +101,7 @@ async def create_credential(
                 status_code=400,
                 detail="Credential values are required. Unable to infer credential values from model ID.",
             )
-        _refuse_unfit_billing_credential(
-            credential.credential_info, credential.credential_values, require_keys=True
-        )
+        _refuse_unfit_billing_credential(credential.credential_info, credential.credential_values, require_keys=True)
         processed_credential: Final = CredentialItem(
             credential_name=credential.credential_name,
             credential_values=credential.credential_values,
@@ -277,38 +275,35 @@ def update_db_credential(
     updated_patch: CredentialItem,
     new_encryption_key: str | None = None,
 ) -> CredentialItem:
-    """
-    Update a credential in the DB.
-    """
-    merged_credential: Final = CredentialItem(
-        credential_name=db_credential.credential_name,
-        credential_info=db_credential.credential_info,
-        credential_values=db_credential.credential_values,
+    """The stored credential with the patch's name, encrypted values and info laid over it, key by key."""
+    encrypted_patch: Final = CredentialHelperUtils.encrypt_credential_values(updated_patch, new_encryption_key)
+    return CredentialItem.model_validate(
+        MappingProxyType(
+            {
+                "credential_name": encrypted_patch.credential_name or db_credential.credential_name,
+                "credential_values": MappingProxyType(
+                    {**db_credential.credential_values, **encrypted_patch.credential_values}
+                ),
+                "credential_info": MappingProxyType(
+                    {**db_credential.credential_info, **encrypted_patch.credential_info}
+                ),
+            }
+        )
     )
 
-    encrypted_credential: Final = CredentialHelperUtils.encrypt_credential_values(
-        updated_patch,
-        new_encryption_key,
-    )
-    # update model name
-    if encrypted_credential.credential_name:
-        merged_credential.credential_name = encrypted_credential.credential_name
 
-    # update litellm params
-    if encrypted_credential.credential_values:
-        # Encrypt any sensitive values
-        encrypted_params: Final = {k: v for k, v in encrypted_credential.credential_values.items()}
+_PURPOSE_KEYS: Final = ("purpose", "provider")
 
-        merged_credential.credential_values.update(encrypted_params)
 
-    # update model info
-    if encrypted_credential.credential_info:
-        """Update credential info"""
-        if "credential_info" not in merged_credential.credential_info:
-            merged_credential.credential_info = {}
-        merged_credential.credential_info.update(encrypted_credential.credential_info)
-
-    return merged_credential
+def _refuse_purpose_or_provider_change(stored_info: Mapping[str, object], patched_info: Mapping[str, object]) -> None:
+    """A billing key is checked for its purpose and provider when stored, so relabelling it would skip that check."""
+    if not (is_billing_credential(stored_info) or is_billing_credential(patched_info)):
+        return
+    if any(key in patched_info and patched_info[key] != stored_info.get(key) for key in _PURPOSE_KEYS):
+        raise HTTPException(
+            status_code=400,
+            detail="The purpose and provider of a credential cannot be changed. Delete it and create a new one.",
+        )
 
 
 @router.patch(
@@ -338,11 +333,9 @@ async def update_credential(
         db_credential: Final = await credentials_repository.find_by_name(credential_name)
         if db_credential is None:
             raise HTTPException(status_code=404, detail="Credential not found in DB.")
-        _refuse_unfit_billing_credential(
-            MappingProxyType({**db_credential.credential_info, **credential.credential_info}),
-            credential.credential_values,
-            require_keys=False,
-        )
+        merged_info: Final = MappingProxyType({**db_credential.credential_info, **credential.credential_info})
+        _refuse_purpose_or_provider_change(db_credential.credential_info, merged_info)
+        _refuse_unfit_billing_credential(merged_info, credential.credential_values, require_keys=False)
         merged_credential: Final = update_db_credential(db_credential, credential)
         credential_object_jsonified: Final = cast(  # cast-ok: deep-copies a model_dump, so keys are str
             "dict[str, object]", jsonify_object(merged_credential.model_dump())
