@@ -114,7 +114,7 @@ const menuGroups: MenuGroup[] = [
         label: "Usage",
       },
       {
-        key: "4",
+        key: "usage",
         page: "usage",
         label: "Classic Usage",
         icon: <BarChart3 {...ICON} />,
