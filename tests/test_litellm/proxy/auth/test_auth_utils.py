@@ -3417,3 +3417,38 @@ class TestIsRequestBodySafeBlocksAwsIdentitySelectors:
             )
             is True
         )
+
+
+class TestStoredCredentialSelectionBlocked:
+    """A client body naming a stored credential had the proxy load that credential's keys in
+    place of the deployment's, so any caller could spend through any stored key, including a
+    billing admin key."""
+
+    @pytest.mark.parametrize(
+        "request_body",
+        [
+            {"litellm_credential_name": "openai-billing"},
+            {"extra_body": {"litellm_credential_name": "openai-billing"}},
+            {"metadata": {"litellm_credential_name": "openai-billing"}},
+        ],
+        ids=["top_level", "extra_body", "metadata"],
+    )
+    def test_naming_a_stored_credential_is_rejected(self, request_body):
+        with pytest.raises(ValueError, match="litellm_credential_name is not allowed in request body"):
+            is_request_body_safe(
+                request_body={"model": "gpt-4o", **request_body},
+                general_settings={},
+                llm_router=None,
+                model="gpt-4o",
+            )
+
+    def test_naming_a_stored_credential_is_allowed_under_proxy_wide_opt_in(self):
+        assert (
+            is_request_body_safe(
+                request_body={"model": "gpt-4o", "litellm_credential_name": "openai-models"},
+                general_settings={"allow_client_side_credentials": True},
+                llm_router=None,
+                model="gpt-4o",
+            )
+            is True
+        )

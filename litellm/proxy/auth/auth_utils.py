@@ -317,6 +317,9 @@ _BANNED_REQUEST_BODY_PARAMS: Final[tuple[str, ...]] = (
     "aws_session_name",
     "aws_external_id",
     "vertex_credentials",
+    # Names a stored credential whose values load_credentials_from_list lays into the call
+    # in place of the deployment's, so a caller could spend through any stored key.
+    "litellm_credential_name",
     # Azure managed-identity / federated-auth token. The Azure provider
     # transformer reads ``azure_ad_token`` (top-level or via
     # ``extra_body``) and resolves it through ``get_secret`` before
