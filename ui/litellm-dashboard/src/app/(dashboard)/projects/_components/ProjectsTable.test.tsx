@@ -165,3 +165,33 @@ describe("ProjectsTable pagination URL state", () => {
     expect(screen.getByTestId("pagination-page")).toHaveTextContent("Page 1 of 2");
   });
 });
+
+describe("ProjectsTable spend and budget", () => {
+  it("shows each project's spend next to its budget", () => {
+    const budgeted: ProjectResponse = {
+      ...makeProject(1),
+      spend: 42,
+      litellm_budget_table: {
+        budget_id: "b1",
+        max_budget: 100,
+        soft_budget: null,
+        max_parallel_requests: null,
+        tpm_limit: null,
+        rpm_limit: null,
+        model_max_budget: null,
+        budget_duration: "30d",
+      },
+    };
+    const unbudgeted: ProjectResponse = { ...makeProject(2), spend: 3.5 };
+
+    renderTable({ projects: [budgeted, unbudgeted] });
+
+    expect(screen.getByRole("columnheader", { name: /Spend/ })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: /Budget/ })).toBeInTheDocument();
+    expect(firstDataRow().getByText("$42.00")).toBeInTheDocument();
+    expect(firstDataRow().getByText("$100.00 (42% used)")).toBeInTheDocument();
+    const secondRow = within(screen.getAllByRole("row")[2]);
+    expect(secondRow.getByText("$3.50")).toBeInTheDocument();
+    expect(secondRow.getByText("No limit")).toBeInTheDocument();
+  });
+});

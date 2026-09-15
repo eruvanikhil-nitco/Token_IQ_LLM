@@ -8,6 +8,7 @@ import { DataTableSortHeader } from "@/components/shared/DataTable";
 import { CellTooltip, DateCell, IdentityCell, StatusBadge } from "@/components/shared/table_cells";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatProjectSpend, projectBudgetLabel } from "./projectBudget";
 
 function ProjectTeamCell({
   project,
@@ -99,6 +100,23 @@ export const getProjectsTableColumns = ({
     cell: ({ row }) => (
       <ProjectTeamCell project={row.original} teamAliasMap={teamAliasMap} isTeamsLoading={isTeamsLoading} />
     ),
+  },
+  {
+    id: "spend",
+    accessorKey: "spend",
+    meta: { title: "Spend" },
+    header: ({ column }) => <DataTableSortHeader column={column} title="Spend" />,
+    size: 110,
+    enableSorting: true,
+    cell: ({ row }) => <span className="text-sm tabular-nums">{formatProjectSpend(row.original.spend)}</span>,
+  },
+  {
+    id: "budget",
+    meta: { title: "Budget" },
+    header: "Budget",
+    size: 170,
+    enableSorting: false,
+    cell: ({ row }) => <span className="text-sm tabular-nums">{projectBudgetLabel(row.original)}</span>,
   },
   {
     id: "models",
