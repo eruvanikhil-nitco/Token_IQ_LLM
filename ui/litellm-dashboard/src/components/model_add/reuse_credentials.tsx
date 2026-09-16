@@ -99,7 +99,7 @@ const ReuseCredentialsModal: React.FC<ReuseCredentialsModalProps> = ({
                   <Button type="button" variant="outline" onClick={handleCancel}>
                     Cancel
                   </Button>
-                  <Button type="submit">Reuse Credentials</Button>
+                  <Button type="submit">Save and use</Button>
                 </div>
               </div>
             </FieldGroup>

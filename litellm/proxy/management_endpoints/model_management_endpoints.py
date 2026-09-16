@@ -630,6 +630,19 @@ def _ptu_priced_deployment(model_params: Deployment) -> Deployment:
     )
 
 
+# Fields that hold a secret on the model row. They may be cleared only in the same update
+# that attaches a stored credential, which is how a typed key moves into one.
+CREDENTIAL_CARRYING_PARAMS: Final = (
+    "api_key",
+    "aws_access_key_id",
+    "aws_secret_access_key",
+    "aws_session_token",
+    "vertex_credentials",
+    "azure_ad_token",
+    "client_secret",
+)
+
+
 def update_db_model(db_model: Deployment, updated_patch: updateDeployment) -> PrismaCompatibleUpdateDBModel:
     if updated_patch.model_info is not None:
         _raise_if_ptu_cost_attribution_disabled(updated_patch.model_info.model_dump(exclude_none=True))
@@ -671,6 +684,10 @@ def update_db_model(db_model: Deployment, updated_patch: updateDeployment) -> Pr
                 merged_litellm_params.pop(field, None)
         for field in _explicitly_cleared_ptu_fields(updated_patch.model_info):
             merged_model_info.pop(field, None)
+    if updated_patch.litellm_params and updated_patch.litellm_params.litellm_credential_name is not None:
+        for field in updated_patch.litellm_params.model_fields_set:
+            if field in CREDENTIAL_CARRYING_PARAMS and getattr(updated_patch.litellm_params, field) is None:
+                merged_litellm_params.pop(field, None)
 
     _validate_ptu_model_info(merged_model_info)
     ptu_pricing, ptu_released = _ptu_pricing_delta(

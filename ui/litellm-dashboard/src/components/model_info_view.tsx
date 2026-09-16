@@ -27,6 +27,7 @@ import { useTeams } from "@/app/(dashboard)/hooks/teams/useTeams";
 import DeleteResourceModal from "./common_components/DeleteResourceModal";
 import EditAutoRouterModal from "./edit_auto_router/edit_auto_router_modal";
 import ReuseCredentialsModal from "./model_add/reuse_credentials";
+import { applyMoveKeyUpdate, buildMoveKeyRequests } from "./model_info_view/moveKeyToCredential";
 import { toast } from "@/lib/toast";
 import {
   CredentialItem,
@@ -285,16 +286,25 @@ export default function ModelInfoView({
 
   const handleReuseCredential = async (values: any) => {
     if (!accessToken) return;
-    let credentialItem = {
-      credential_name: values.credential_name,
-      model_id: modelId,
-      credential_info: {
-        custom_llm_provider: localModelData.litellm_params?.custom_llm_provider,
-      },
-    };
+    const { credential, modelUpdate } = buildMoveKeyRequests(
+      modelId,
+      values.credential_name,
+      localModelData.litellm_params?.custom_llm_provider,
+      localModelData.litellm_params ?? {},
+    );
+
     toast.info("Storing credential..");
-    let credentialResponse = await credentialCreateCall(accessToken, credentialItem);
-    toast.success("Credential stored successfully");
+    await credentialCreateCall(accessToken, credential);
+    await modelPatchUpdateCall(accessToken, { litellm_params: modelUpdate.litellm_params }, modelId);
+
+    const updatedModelData = {
+      ...localModelData,
+      litellm_params: applyMoveKeyUpdate(localModelData.litellm_params ?? {}, modelUpdate.litellm_params),
+    };
+    setLocalModelData(updatedModelData);
+    onModelUpdate?.(updatedModelData);
+
+    toast.success(`Key moved into credential ${values.credential_name}`);
   };
 
   const handleModelUpdate = async (
@@ -648,7 +658,7 @@ export default function ModelInfoView({
                 data-testid="reuse-credentials-button"
               >
                 <KeyIcon className="h-4 w-4" />
-                Re-use Credentials
+                Move key into a credential
               </Button>
             </>
           )}

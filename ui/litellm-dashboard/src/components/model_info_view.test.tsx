@@ -310,16 +310,55 @@ describe("ModelInfoView", () => {
   it("should display reuse credentials button for admin users", async () => {
     render(<ModelInfoView {...DEFAULT_ADMIN_PROPS} />, { wrapper });
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: /re-use credentials/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /move key into a credential/i })).toBeInTheDocument();
     });
   });
 
   it("should disable reuse credentials button for non-admin users", async () => {
     render(<ModelInfoView {...DEFAULT_ADMIN_PROPS} userRole="User" />, { wrapper });
     await waitFor(() => {
-      const button = screen.getByRole("button", { name: /re-use credentials/i });
+      const button = screen.getByRole("button", { name: /move key into a credential/i });
       expect(button).toBeDisabled();
     });
+  });
+
+  it("moves the model onto the credential it just saved", async () => {
+    mockCredentialGetCall.mockResolvedValue({
+      credential_name: "",
+      credential_values: {},
+      credential_info: {},
+    });
+    mockUseModelsInfo.mockReturnValue({
+      data: {
+        data: [
+          {
+            ...defaultModelData,
+            litellm_params: {
+              model: "gpt-4",
+              api_base: "https://api.openai.com/v1",
+              custom_llm_provider: "openai",
+              api_key: "sk-test-not-real",
+            },
+          },
+        ],
+      },
+      isLoading: false,
+      error: null,
+    });
+
+    const user = userEvent.setup();
+    render(<ModelInfoView {...DEFAULT_ADMIN_PROPS} />, { wrapper });
+
+    await user.click(await screen.findByTestId("reuse-credentials-button"));
+    fireEvent.change(screen.getByLabelText(/Credential name/i), { target: { value: "openai-prod" } });
+    await user.click(screen.getByRole("button", { name: /Save and use/i }));
+
+    await waitFor(() => expect(mockCredentialCreateCall).toHaveBeenCalled());
+    await waitFor(() => expect(mockModelPatchUpdateCall).toHaveBeenCalled());
+
+    const payload = mockModelPatchUpdateCall.mock.calls.at(-1)?.[1] as { litellm_params: Record<string, unknown> };
+    expect(payload.litellm_params.litellm_credential_name).toBe("openai-prod");
+    expect(payload.litellm_params.api_key).toBeNull();
   });
 
   it("should display delete model button", async () => {

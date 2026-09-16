@@ -29,7 +29,7 @@ const renderModal = (existingCredential: CredentialItem | null = EXISTING_CREDEN
 };
 
 const submit = async (user: ReturnType<typeof userEvent.setup>) =>
-  await user.click(screen.getByRole("button", { name: "Reuse Credentials" }));
+  await user.click(screen.getByRole("button", { name: "Save and use" }));
 
 describe("ReuseCredentialsModal", () => {
   it("submits the typed name alongside every stored credential value", async () => {

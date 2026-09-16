@@ -1,7 +1,7 @@
 import inspect
 import asyncio
 import json
-from typing import Dict, Optional
+from typing import Dict, Final, Optional
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -3470,6 +3470,49 @@ class TestUpdateDBModelClearPricing:
         assert info["input_cost_per_token"] == 0.000001
         assert info["output_cost_per_token"] == 0.000002
         assert info["cache_creation_input_token_cost"] == 0.000003
+
+    def test_attaching_a_credential_clears_the_typed_key_it_replaces(self, monkeypatch):
+        """Moving a model onto a stored credential has to remove the key typed into the model,
+        or the secret stays in the model row for ever."""
+        monkeypatch.setenv("LITELLM_SALT_KEY", "sk-1234")
+        from litellm.proxy.management_endpoints.model_management_endpoints import (
+            update_db_model,
+        )
+        from litellm.types.router import ModelInfo, updateLiteLLMParams
+
+        db_model: Final = Deployment(
+            model_name="gpt-4o",
+            litellm_params=LiteLLM_Params(model="gpt-4o", api_key="sk-test-not-real"),
+            model_info=ModelInfo(id="m-1"),
+        )
+        patch_data: Final = updateDeployment(
+            litellm_params=updateLiteLLMParams(litellm_credential_name="openai-models", api_key=None),
+        )
+
+        updated: Final = update_db_model(db_model=db_model, updated_patch=patch_data)
+        params: Final = json.loads(updated["litellm_params"])
+
+        assert "api_key" not in params
+        assert params["litellm_credential_name"] is not None
+
+    def test_a_null_key_without_a_credential_does_not_clear_anything(self):
+        """Only the move action may clear a key, so a stray null cannot strip a working model."""
+        from litellm.proxy.management_endpoints.model_management_endpoints import (
+            update_db_model,
+        )
+        from litellm.types.router import ModelInfo, updateLiteLLMParams
+
+        db_model: Final = Deployment(
+            model_name="gpt-4o",
+            litellm_params=LiteLLM_Params(model="gpt-4o", api_key="sk-test-not-real"),
+            model_info=ModelInfo(id="m-1"),
+        )
+        patch_data: Final = updateDeployment(litellm_params=updateLiteLLMParams(api_key=None))
+
+        updated: Final = update_db_model(db_model=db_model, updated_patch=patch_data)
+        params: Final = json.loads(updated["litellm_params"])
+
+        assert params["api_key"] is not None
 
 
 class TestGetModelInfoWithIdBlocked:
