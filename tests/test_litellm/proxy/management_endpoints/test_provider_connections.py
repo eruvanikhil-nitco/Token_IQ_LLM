@@ -38,7 +38,7 @@ async def test_a_provider_with_no_credential_is_reported_not_connected():
     )
 
     assert result.providers[0].state == "not_connected"
-    assert result.providers[0].accounts == []
+    assert result.providers[0].accounts == ()
 
 
 @pytest.mark.asyncio

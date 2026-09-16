@@ -245,12 +245,12 @@ class ProviderConnection(BaseModel):
     state: str
     """not_connected, waiting_for_first_data, healthy, or needs_attention"""
 
-    accounts: list[ProviderConnectionAccount]
+    accounts: tuple[ProviderConnectionAccount, ...]
     fetches: ProviderFetchDetail
 
 
 class ProviderConnectionsResponse(BaseModel):
-    providers: list[ProviderConnection]
+    providers: tuple[ProviderConnection, ...]
 
 
 class ProviderSyncHistoryRow(BaseModel):
@@ -266,7 +266,7 @@ class ProviderSyncHistoryRow(BaseModel):
 
 
 class ProviderSyncHistoryResponse(BaseModel):
-    rows: list[ProviderSyncHistoryRow]
+    rows: tuple[ProviderSyncHistoryRow, ...]
 
 
 class DailyReconciliationRow(BaseModel):

@@ -98,7 +98,7 @@ def _connection(
         provider=provider,
         display_name=profile.display_name,
         state=provider_state(tuple(state for _, _, state, _ in results)),
-        accounts=[
+        accounts=tuple(
             ProviderConnectionAccount(
                 credential_name=credential.name,
                 state=state,
@@ -108,7 +108,7 @@ def _connection(
                 facts_stored=counts.get(credential.name, 0),
             )
             for credential, last_run, state, detail in results
-        ],
+        ),
         fetches=_fetch_detail(profile),
     )
 
@@ -129,7 +129,7 @@ async def build_provider_connections(
     credential_sets: Final = await asyncio.gather(*(credentials_for(provider) for provider in providers))
 
     return ProviderConnectionsResponse(
-        providers=[
+        providers=tuple(
             _connection(
                 provider=provider,
                 credentials=credentials,
@@ -137,7 +137,7 @@ async def build_provider_connections(
                 counts=fact_counts_for(provider),
             )
             for provider, credentials in zip(providers, credential_sets)
-        ]
+        )
     )
 
 
@@ -181,7 +181,7 @@ async def provider_sync_history(
     runs: Final = await ProviderSyncRunRepository(prisma_client).recent(provider=provider, limit=limit)
 
     return ProviderSyncHistoryResponse(
-        rows=[
+        rows=tuple(
             ProviderSyncHistoryRow(
                 provider=run.provider,
                 credential_name=run.credential_name,
@@ -194,5 +194,5 @@ async def provider_sync_history(
                 detail=run.detail,
             )
             for run in runs
-        ]
+        )
     )
