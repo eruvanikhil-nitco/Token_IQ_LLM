@@ -584,10 +584,12 @@ async def update_vector_store(
     Update vector store details in both database and in-memory registry.
     The updated data is immediately synchronized to the in-memory registry.
 
-    ``litellm_credential_name`` may only be set by a proxy admin.
+    ``litellm_credential_name`` may only be set or cleared by a proxy admin.
     """
     await check_feature_access_for_user(user_api_key_dict, "vector_stores")
-    if data.litellm_credential_name is not None:
+    # Presence, not value: ``exclude_unset`` keeps an explicit ``null``, which clears the
+    # credential, so gating on the value would leave clearing open to any caller who can write.
+    if "litellm_credential_name" in data.model_fields_set:
         assert_proxy_admin_for_credential_attachment(user_api_key_dict)
 
     from litellm.proxy.proxy_server import prisma_client
