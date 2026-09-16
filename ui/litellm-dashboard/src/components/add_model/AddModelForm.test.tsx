@@ -204,10 +204,14 @@ const createTestProps = (userRole = "proxy_admin", userId = "user-1", isTeamAdmi
 };
 
 describe("AddModelForm", () => {
-  const renderForm = async (overrides: { credentials?: CredentialItem[] } = {}) => {
+  const renderForm = async (
+    overrides: { credentials?: CredentialItem[]; handleOk?: () => Promise<boolean> } = {},
+    onProps?: (props: ReturnType<typeof createTestProps>) => Partial<ReturnType<typeof createTestProps>>,
+  ) => {
     const mockUseAuthorized = vi.mocked(await import("@/app/(dashboard)/hooks/useAuthorized"));
     mockUseAuthorized.default.mockReturnValue(mockAuthorizedUser("proxy_admin", "user-1", true));
-    const props = { ...createTestProps(), ...overrides };
+    const base = createTestProps();
+    const props = { ...base, ...(onProps?.(base) ?? {}), ...overrides };
     renderWithProviders(<AddModelForm {...props} />);
     await screen.findByText("Provider");
     return props;
@@ -237,9 +241,7 @@ describe("AddModelForm", () => {
 
     await waitFor(() => expect(credentialCreateCall).toHaveBeenCalled());
     // The SearchSelect renders the chosen credential as an <input> value, not text content.
-    await waitFor(() =>
-      expect(screen.getByRole("combobox", { name: "Existing Credentials" })).toHaveValue("new-cred"),
-    );
+    await waitFor(() => expect(screen.getByRole("combobox", { name: "Existing Credentials" })).toHaveValue("new-cred"));
   });
 
   it("leaves billing credentials out of the picker", async () => {
@@ -261,18 +263,15 @@ describe("AddModelForm", () => {
   });
 
   it("refuses a submit with no credential chosen and says what to do about it", async () => {
-    const mockUseAuthorized = vi.mocked(await import("@/app/(dashboard)/hooks/useAuthorized"));
-    mockUseAuthorized.default.mockReturnValue(mockAuthorizedUser("proxy_admin", "user-1", true));
-    const props = createTestProps();
-    // The panel that owns this form validates the mounted fields before it submits; the
-    // prop is a stub here, so it has to do the same for the rule to reach the screen.
-    const handleOk = vi.fn(async () => {
-      await props.form.trigger(props.registry.mountedNames() as string[]);
-      return false;
-    });
     const user = userEvent.setup();
-    renderWithProviders(<AddModelForm {...props} handleOk={handleOk} />);
-    await screen.findByText("Provider");
+    // The panel that owns this form validates the mounted fields before it submits; the prop
+    // is a stub here, so it has to do the same for the rule to reach the screen.
+    await renderForm({}, (props) => ({
+      handleOk: vi.fn(async () => {
+        await props.form.trigger(props.registry.mountedNames() as string[]);
+        return false;
+      }),
+    }));
 
     await user.click(screen.getByRole("button", { name: "Add Model" }));
 
