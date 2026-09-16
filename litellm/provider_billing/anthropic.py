@@ -14,6 +14,7 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping, Sequence
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
+from types import MappingProxyType
 from typing import Any, Final, TypeAlias
 
 from litellm.types.proxy.provider_billing import (
@@ -81,7 +82,7 @@ def _raw_for(bucket: Mapping[str, object], model: str, rows: Sequence[_Row]) -> 
     dict/list rather than the frozen types the rest of this module builds with.
     """
     matched: Final = [dict(row) for key, _, row in rows if key == model]  # mutable-ok: provider's own JSON shape
-    return {"starting_at": bucket.get("starting_at"), "results": matched}  # mutable-ok: Json column needs a plain dict
+    return MappingProxyType({"starting_at": bucket.get("starting_at"), "results": matched})
 
 
 def _facts_from(buckets: Sequence[object], credential_name: str) -> tuple[ProviderUsageFact, ...]:
