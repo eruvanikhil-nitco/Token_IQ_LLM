@@ -60,7 +60,8 @@ class ProviderSyncRunRepository:
 
     @property
     def _table(self) -> Any:  # any-ok: PrismaClient is an untyped runtime wrapper
-        return self._prisma_client.db.litellm_providersyncrun  # pyright: ignore[reportAttributeAccessIssue]
+        db: Final = self._prisma_client.db  # pyright: ignore[reportAttributeAccessIssue]  # object has no .db attr
+        return db.litellm_providersyncrun
 
     async def record(self, run: ProviderSyncRun) -> None:
         await self._table.create(

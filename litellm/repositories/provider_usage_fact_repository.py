@@ -36,7 +36,8 @@ class ProviderUsageFactRepository:
 
     @property
     def _table(self) -> Any:  # any-ok: PrismaClient is an untyped runtime wrapper
-        return self._prisma_client.db.litellm_providerusagefact  # pyright: ignore[reportAttributeAccessIssue]
+        db: Final = self._prisma_client.db  # pyright: ignore[reportAttributeAccessIssue]  # object has no .db attr
+        return db.litellm_providerusagefact
 
     async def upsert_many(self, facts: Sequence[ProviderUsageFact]) -> int:
         """Write facts, overwriting any already stored under the same fact_key."""
