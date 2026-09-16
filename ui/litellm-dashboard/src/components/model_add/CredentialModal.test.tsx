@@ -98,6 +98,33 @@ describe("CredentialModal", () => {
         expect(screen.getByPlaceholderText("https://api.openai.com/v1")).toBeInTheDocument();
       });
     });
+
+    it("keeps a provider text field controlled from first render through typing, clearing, and a Purpose switch", async () => {
+      const user = userEvent.setup();
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+      renderModal({ mode: "add" });
+
+      const apiBaseInput = (await screen.findByLabelText("API Base")) as HTMLInputElement;
+      expect(apiBaseInput).toHaveValue("");
+
+      fireEvent.change(apiBaseInput, { target: { value: "https://custom.example.com/v1" } });
+      expect(apiBaseInput).toHaveValue("https://custom.example.com/v1");
+
+      fireEvent.change(apiBaseInput, { target: { value: "" } });
+      expect(apiBaseInput).toHaveValue("");
+
+      await user.click(screen.getByRole("radio", { name: /Billing access/ }));
+      await user.click(screen.getByRole("radio", { name: /Model access/ }));
+
+      expect(await screen.findByLabelText("API Base")).toHaveValue("");
+
+      const controlledWarnings = consoleErrorSpy.mock.calls.filter((call) =>
+        call.some((arg) => typeof arg === "string" && /controlled input/i.test(arg)),
+      );
+      expect(controlledWarnings).toHaveLength(0);
+
+      consoleErrorSpy.mockRestore();
+    });
   });
 
   describe("edit mode", () => {
