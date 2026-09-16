@@ -25,6 +25,7 @@ import {
 } from "../common_components/MountedFormField";
 import type { Team } from "../key_team_helpers/key_list";
 import { modelAccessCredentials } from "../model_add/credential_form_helpers";
+import NewCredentialButton from "../model_add/NewCredentialButton";
 import { type CredentialItem, type ProviderCreateInfo, modelAvailableCall } from "../networking";
 import { Providers } from "../provider_info_helpers";
 import { ProviderLogo } from "../molecules/models/ProviderLogo";
@@ -33,10 +34,10 @@ import AdvancedSettings from "./advanced_settings";
 import ConditionalPublicModelName from "./conditional_public_model_name";
 import LiteLLMModelNameField from "./litellm_model_name";
 import ConnectionErrorDisplay from "./model_connection_test";
-import ProviderSpecificFields from "./provider_specific_fields";
 import { TEST_MODES } from "./add_model_modes";
 import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { migratedHref } from "@/utils/migratedPages";
 
 interface AddModelFormProps {
   form: UseFormReturn<MountedFormValues>; // For the Add Model tab
@@ -92,7 +93,7 @@ const AddModelForm: React.FC<AddModelFormProps> = ({
   const { data: guardrailsData } = useGuardrails();
   const guardrailsList = guardrailsData?.guardrails.map((g) => g.guardrail_name);
   const { data: tagsList } = useTags();
-  const selectedCredentialName = useWatch({ control: form.control, name: "litellm_credential_name" });
+  const selectedTeamId = useWatch({ control: form.control, name: "team_id" }) as string | undefined;
 
   const handleTestConnection = async () => {
     setIsTestingConnection(true);
@@ -131,13 +132,11 @@ const AddModelForm: React.FC<AddModelFormProps> = ({
   );
 
   const credentialOptions: SearchSelectOption[] = useMemo(
-    () => [
-      { label: "None", value: "" },
-      ...modelAccessCredentials(credentials).map((credential) => ({
+    () =>
+      modelAccessCredentials(credentials).map((credential) => ({
         label: credential.credential_name,
         value: credential.credential_name,
       })),
-    ],
     [credentials],
   );
 
@@ -288,16 +287,16 @@ const AddModelForm: React.FC<AddModelFormProps> = ({
 
                       {/* Credentials */}
                       <div className="mb-4">
-                        <span className="text-sm text-muted-foreground">
-                          Either select existing credentials OR enter new provider credentials below
-                        </span>
+                        <span className="text-sm text-muted-foreground">Choose a saved credential for this provider.</span>
                       </div>
 
                       <MountedFormField
                         label="Existing Credentials"
                         name="litellm_credential_name"
                         defaultValue={null}
-                        className="mb-4"
+                        required
+                        rules={{ validate: { required: requiredRule("Select a credential, or create one") } }}
+                        className="mb-2"
                       >
                         {(control) => (
                           <SearchSelect
@@ -310,17 +309,18 @@ const AddModelForm: React.FC<AddModelFormProps> = ({
                         )}
                       </MountedFormField>
 
-                      {/* Only show provider specific fields if no credentials selected */}
-                      {!selectedCredentialName && (
-                        <>
-                          <div className="flex items-center my-4">
-                            <div className="grow border-t border-border"></div>
-                            <span className="px-4 text-muted-foreground text-sm">OR</span>
-                            <div className="grow border-t border-border"></div>
-                          </div>
-                          <ProviderSpecificFields selectedProvider={selectedProvider} />
-                        </>
-                      )}
+                      <div className="flex items-center gap-4 mb-4">
+                        <NewCredentialButton
+                          teamId={selectedTeamId}
+                          onCreated={(name) => form.setValue("litellm_credential_name", name)}
+                        />
+                        <a
+                          href={migratedHref("llm-provider-credentials")}
+                          className="text-sm text-primary hover:underline"
+                        >
+                          Manage LLM Provider Credentials
+                        </a>
+                      </div>
                       <div className="flex items-center my-4">
                         <div className="grow border-t border-border"></div>
                         <span className="px-4 text-muted-foreground text-sm">Additional Model Info Settings</span>

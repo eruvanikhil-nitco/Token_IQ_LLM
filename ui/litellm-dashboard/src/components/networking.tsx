@@ -282,6 +282,7 @@ export interface CredentialItem {
     required?: boolean;
     purpose?: string;
     provider?: string;
+    team_id?: string;
   };
 }
 

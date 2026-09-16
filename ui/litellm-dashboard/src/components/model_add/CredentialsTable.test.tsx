@@ -138,4 +138,24 @@ describe("CredentialsTable", () => {
     expect(screen.queryByTestId("credential-actions-b-openai-key")).not.toBeInTheDocument();
     expect(screen.queryByTestId("credential-actions-a-azure-key")).not.toBeInTheDocument();
   });
+
+  it("should show which team owns a credential", () => {
+    render(
+      <CredentialsTable
+        {...defaultProps}
+        credentials={[
+          { credential_name: "shared-openai", credential_values: {}, credential_info: { custom_llm_provider: "OpenAI" } },
+          {
+            credential_name: "team-a-openai",
+            credential_values: {},
+            credential_info: { custom_llm_provider: "OpenAI", team_id: "team-a" },
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getByRole("columnheader", { name: /Owner/ })).toBeInTheDocument();
+    expect(screen.getByText("Whole installation")).toBeInTheDocument();
+    expect(screen.getByText("team-a")).toBeInTheDocument();
+  });
 });

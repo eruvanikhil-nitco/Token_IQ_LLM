@@ -132,6 +132,16 @@ export const getCredentialsTableColumns = ({
       enableSorting: false,
       cell: ({ row }) => <span className="text-sm">{credentialPurposeLabel(row.original)}</span>,
     },
+    {
+      id: "owner",
+      meta: { title: "Owner" },
+      header: "Owner",
+      size: 160,
+      enableSorting: false,
+      cell: ({ row }) => (
+        <span className="text-sm">{row.original.credential_info?.team_id ?? "Whole installation"}</span>
+      ),
+    },
   ];
 
   if (!canModifyCredentials) {

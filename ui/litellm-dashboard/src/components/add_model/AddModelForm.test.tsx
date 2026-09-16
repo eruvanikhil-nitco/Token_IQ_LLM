@@ -2,7 +2,7 @@ import { renderHook, screen, waitFor, renderWithProviders } from "../../../tests
 import userEvent, { PointerEventsCheckLevel } from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type { Team } from "../key_team_helpers/key_list";
-import type { CredentialItem } from "../networking";
+import { credentialCreateCall, type CredentialItem } from "../networking";
 import { Providers } from "../provider_info_helpers";
 import { projectMountedValues, useMountRegistry, type MountedFormValues } from "../common_components/MountedFormField";
 import { useForm } from "react-hook-form";
@@ -16,6 +16,32 @@ vi.mock("../molecules/models/ProviderLogo", () => ({
   ),
 }));
 
+// Stub the modal so the New credential dialog can be driven directly, the way
+// CredentialsPanel.test.tsx stubs it: the button fires onSubmit with fixed values.
+vi.mock("@/components/model_add/CredentialModal", () => ({
+  default: function CredentialModalMock({
+    mode,
+    open,
+    onSubmit,
+  }: {
+    mode: "add" | "edit";
+    open: boolean;
+    onSubmit: (values: Record<string, unknown>) => void;
+  }) {
+    if (!open) {
+      return null;
+    }
+    return (
+      <button
+        data-testid={`credential-modal-${mode}-submit`}
+        onClick={() => onSubmit({ credential_name: "new-cred", custom_llm_provider: "openai" })}
+      >
+        submit {mode}
+      </button>
+    );
+  },
+}));
+
 vi.mock("../networking", async () => {
   const actual = await vi.importActual("../networking");
   return {
@@ -24,6 +50,7 @@ vi.mock("../networking", async () => {
       guardrails: [{ guardrail_name: "test-guardrail-1" }, { guardrail_name: "test-guardrail-2" }],
     }),
     tagListCall: vi.fn().mockResolvedValue({}),
+    credentialCreateCall: vi.fn().mockResolvedValue(undefined),
     modelAvailableCall: vi.fn().mockResolvedValue({
       data: [{ id: "model-group-1" }, { id: "model-group-2" }],
     }),
@@ -177,6 +204,62 @@ const createTestProps = (userRole = "proxy_admin", userId = "user-1", isTeamAdmi
 };
 
 describe("AddModelForm", () => {
+  const renderForm = async (overrides: { credentials?: CredentialItem[] } = {}) => {
+    const mockUseAuthorized = vi.mocked(await import("@/app/(dashboard)/hooks/useAuthorized"));
+    mockUseAuthorized.default.mockReturnValue(mockAuthorizedUser("proxy_admin", "user-1", true));
+    const props = { ...createTestProps(), ...overrides };
+    renderWithProviders(<AddModelForm {...props} />);
+    await screen.findByText("Provider");
+    return props;
+  };
+
+  it("offers saved credentials and no field for typing a provider key", async () => {
+    await renderForm();
+
+    expect(await screen.findByText("Existing Credentials")).toBeInTheDocument();
+    expect(
+      screen.queryByText(/Either select existing credentials OR enter new provider credentials/),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/^API Key/)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /New credential/ })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Manage LLM Provider Credentials/ })).toHaveAttribute(
+      "href",
+      expect.stringContaining("llm-provider-credentials"),
+    );
+  });
+
+  it("selects a credential created from the New credential dialog", async () => {
+    const user = userEvent.setup();
+    await renderForm();
+
+    await user.click(await screen.findByRole("button", { name: /New credential/ }));
+    await user.click(await screen.findByTestId("credential-modal-add-submit"));
+
+    await waitFor(() => expect(credentialCreateCall).toHaveBeenCalled());
+    // The SearchSelect renders the chosen credential as an <input> value, not text content.
+    await waitFor(() =>
+      expect(screen.getByRole("combobox", { name: "Existing Credentials" })).toHaveValue("new-cred"),
+    );
+  });
+
+  it("leaves billing credentials out of the picker", async () => {
+    const user = userEvent.setup();
+    await renderForm({
+      credentials: [
+        { credential_name: "openai-models", credential_values: {}, credential_info: { custom_llm_provider: "openai" } },
+        {
+          credential_name: "anthropic-costs",
+          credential_values: {},
+          credential_info: { purpose: "billing_ingestion", provider: "anthropic" },
+        },
+      ],
+    });
+
+    await user.click(screen.getByRole("combobox", { name: "Existing Credentials" }));
+    expect(await screen.findByText("openai-models")).toBeInTheDocument();
+    expect(screen.queryByText("anthropic-costs")).not.toBeInTheDocument();
+  });
+
   it("should render", async () => {
     const mockUseAuthorized = vi.mocked(await import("@/app/(dashboard)/hooks/useAuthorized"));
     mockUseAuthorized.default.mockReturnValue(mockAuthorizedUser("proxy_admin", "user-1", true));
