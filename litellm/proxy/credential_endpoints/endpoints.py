@@ -129,6 +129,7 @@ async def create_credential(
             )
         _refuse_unfit_billing_credential(credential.credential_info, credential.credential_values, require_keys=True)
         is_admin, administered_teams = await _caller_scope(user_api_key_dict, prisma_client)
+        _refuse_billing_credential_from_a_non_admin(credential.credential_info, is_admin=is_admin)
         requested_team: Final = credential_team(credential.credential_info)
         if not is_admin and not administered_teams:
             raise HTTPException(
@@ -376,6 +377,20 @@ def _refuse_purpose_or_provider_change(stored_info: Mapping[str, object], patche
             status_code=400,
             detail="The purpose and provider of a credential cannot be changed. Delete it and create a new one.",
         )
+
+
+def _refuse_billing_credential_from_a_non_admin(credential_info: Mapping[str, object], *, is_admin: bool) -> None:
+    """The billing lookup scans every credential row and ignores team_id, so a team admin's
+    billing credential can become the key the whole installation reads its bills with."""
+    if is_admin or not is_billing_credential(credential_info):
+        return
+    raise HTTPException(
+        status_code=403,
+        detail=(
+            "A billing credential is set up by a proxy admin on the LLM Provider Credentials page. "
+            "Store a model access credential instead."
+        ),
+    )
 
 
 def _refuse_team_reassignment(

@@ -343,6 +343,33 @@ def test_a_team_admin_creating_a_credential_gets_their_team_recorded_on_it():
     assert (json.loads(info) if isinstance(info, str) else info)["team_id"] == "team-a"
 
 
+def test_a_team_admin_cannot_create_a_billing_credential():
+    """A billing credential is what the installation's cost ingestion runs on, and the lookup
+    that picks one ignores team_id, so a team admin's row could become the key every provider
+    bill is read with. Only a proxy admin may mark one."""
+    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()), patch(
+        "litellm.proxy.proxy_server.master_key", "sk-test-master"
+    ), patch("litellm.proxy.credential_endpoints.endpoints.CredentialsRepository") as repository, patch(
+        "litellm.proxy.credential_endpoints.endpoints.teams_user_administers",
+        AsyncMock(return_value=frozenset({"team-a"})),
+    ), patch("litellm.proxy.credential_endpoints.endpoints.CredentialAccessor.upsert_credentials"):
+        repository.return_value.create = AsyncMock(return_value=None)
+
+        response = _as_team_admin_request(
+            "POST",
+            "/credentials",
+            {
+                "credential_name": "openai-billing",
+                "credential_values": {"api_key": "sk-admin-test-not-real"},
+                "credential_info": {"purpose": "billing_ingestion", "provider": "openai"},
+            },
+        )
+
+    assert response.status_code == 403, response.text
+    assert "proxy admin" in response.json()["error"]["message"]
+    repository.return_value.create.assert_not_awaited()
+
+
 def test_a_team_admin_who_administers_no_team_cannot_create_a_credential():
     with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()), patch(
         "litellm.proxy.credential_endpoints.endpoints.CredentialsRepository"
