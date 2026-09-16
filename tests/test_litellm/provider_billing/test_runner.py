@@ -217,6 +217,19 @@ async def test_a_successful_fetch_is_recorded_with_what_it_wrote():
 
 
 @pytest.mark.asyncio
+async def test_a_recorded_run_never_finishes_before_it_started():
+    """started_at and finished_at are both real wall-clock reads taken around the fetch, not
+    the `now` window parameter. A run that finished before it started would tell a customer
+    every sync completes in negative time, which reads as broken software."""
+    runs = _sync_runs()
+
+    await _run((_Connector("openai", Fetched(facts=(_fact(),), watermark=NOW)),), sync_runs=runs)
+
+    recorded = runs.record.await_args.args[0]
+    assert recorded.finished_at >= recorded.started_at
+
+
+@pytest.mark.asyncio
 async def test_a_refused_key_is_recorded_with_the_reason_the_provider_gave():
     """A customer whose admin key was revoked sees Needs attention with the provider's own
     words. Recording only 'failed' would make them open a support ticket to learn why."""

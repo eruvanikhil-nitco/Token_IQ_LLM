@@ -71,6 +71,7 @@ async def run_ingestion(
                     credential_values=credential.values,
                 )
             except Exception as exc:  # noqa: BLE001  # a connector bug must not end the run for other accounts
+                failed_at: Final = datetime.now(timezone.utc)
                 verbose_proxy_logger.exception("billing connector %s raised: %s", connector.provider, exc)
                 failed.append(connector.provider)
                 await _record(
@@ -79,7 +80,7 @@ async def run_ingestion(
                         provider=connector.provider,
                         credential_name=credential.name,
                         started_at=started,
-                        finished_at=now,
+                        finished_at=failed_at,
                         outcome="failed",
                         facts_written=0,
                         window_start=window_start,
@@ -89,6 +90,7 @@ async def run_ingestion(
                 )
                 continue
 
+            finished: Final = datetime.now(timezone.utc)
             match result:
                 case Fetched(facts=facts):
                     count: Final = await repository.upsert_many(facts)
@@ -99,7 +101,7 @@ async def run_ingestion(
                             provider=connector.provider,
                             credential_name=credential.name,
                             started_at=started,
-                            finished_at=now,
+                            finished_at=finished,
                             outcome="fetched",
                             facts_written=count,
                             window_start=window_start,
@@ -117,7 +119,7 @@ async def run_ingestion(
                             provider=connector.provider,
                             credential_name=credential.name,
                             started_at=started,
-                            finished_at=now,
+                            finished_at=finished,
                             outcome="not_configured",
                             facts_written=0,
                             window_start=window_start,
@@ -140,7 +142,7 @@ async def run_ingestion(
                             provider=connector.provider,
                             credential_name=credential.name,
                             started_at=started,
-                            finished_at=now,
+                            finished_at=finished,
                             outcome="failed",
                             facts_written=0,
                             window_start=window_start,
