@@ -88,6 +88,22 @@ export const isBillingCredential = (credential: CredentialItem): boolean =>
 export const modelAccessCredentials = (credentials: readonly CredentialItem[]): CredentialItem[] =>
   credentials.filter((credential) => !isBillingCredential(credential));
 
+/**
+ * The credentials a caller may actually attach to the model they are describing.
+ *
+ * GET /credentials returns shared teamless credentials to a team admin so they can see what
+ * exists, but the proxy refuses a shared credential on a team admin's model, so offering one
+ * here would be an option that always fails at submit.
+ */
+export const attachableCredentials = (
+  credentials: readonly CredentialItem[],
+  scope: { isProxyAdmin: boolean; teamId: string | undefined },
+): CredentialItem[] =>
+  modelAccessCredentials(credentials).filter(
+    (credential) =>
+      scope.isProxyAdmin || (scope.teamId !== undefined && credential.credential_info?.team_id === scope.teamId),
+  );
+
 export const credentialPurposeLabel = (credential: CredentialItem): string =>
   isBillingCredential(credential) ? "Billing access (read-only)" : "Model access";
 

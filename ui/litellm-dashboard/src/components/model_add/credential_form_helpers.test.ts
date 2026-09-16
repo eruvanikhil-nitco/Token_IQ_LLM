@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { CredentialItem } from "../networking";
 import { Providers } from "../provider_info_helpers";
 import {
+  attachableCredentials,
   BILLING_PROVIDERS,
   buildCredentialPayload,
   credentialPurposeLabel,
@@ -110,6 +111,44 @@ describe("credential purpose", () => {
 
   it("keeps billing credentials out of the lists used to serve models", () => {
     expect(modelAccessCredentials([billing, modelAccess]).map((c) => c.credential_name)).toEqual(["openai-models"]);
+  });
+
+  describe("attachableCredentials", () => {
+    const shared: CredentialItem = {
+      credential_name: "shared-openai",
+      credential_values: {},
+      credential_info: { custom_llm_provider: "openai" },
+    };
+    const teamA: CredentialItem = {
+      credential_name: "team-a-openai",
+      credential_values: {},
+      credential_info: { custom_llm_provider: "openai", team_id: "team-a" },
+    };
+    const teamB: CredentialItem = {
+      credential_name: "team-b-openai",
+      credential_values: {},
+      credential_info: { custom_llm_provider: "openai", team_id: "team-b" },
+    };
+
+    it("offers a team admin only their selected team's credentials, since the proxy refuses the rest", () => {
+      expect(
+        attachableCredentials([billing, shared, teamA, teamB], { isProxyAdmin: false, teamId: "team-a" }).map(
+          (c) => c.credential_name,
+        ),
+      ).toEqual(["team-a-openai"]);
+    });
+
+    it("offers a team admin nothing until they pick the team the model belongs to", () => {
+      expect(attachableCredentials([shared, teamA], { isProxyAdmin: false, teamId: undefined })).toEqual([]);
+    });
+
+    it("offers a proxy admin every model access credential, team-owned or shared", () => {
+      expect(
+        attachableCredentials([billing, shared, teamA, teamB], { isProxyAdmin: true, teamId: undefined }).map(
+          (c) => c.credential_name,
+        ),
+      ).toEqual(["shared-openai", "team-a-openai", "team-b-openai"]);
+    });
   });
 
   it("labels each purpose in plain words", () => {

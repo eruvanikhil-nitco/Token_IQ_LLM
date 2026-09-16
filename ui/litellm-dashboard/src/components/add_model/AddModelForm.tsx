@@ -24,7 +24,7 @@ import {
   type MountedFormValues,
 } from "../common_components/MountedFormField";
 import type { Team } from "../key_team_helpers/key_list";
-import { modelAccessCredentials } from "../model_add/credential_form_helpers";
+import { attachableCredentials } from "../model_add/credential_form_helpers";
 import NewCredentialButton from "../model_add/NewCredentialButton";
 import { type CredentialItem, type ProviderCreateInfo, modelAvailableCall } from "../networking";
 import { Providers } from "../provider_info_helpers";
@@ -133,11 +133,13 @@ const AddModelForm: React.FC<AddModelFormProps> = ({
 
   const credentialOptions: SearchSelectOption[] = useMemo(
     () =>
-      modelAccessCredentials(credentials).map((credential) => ({
-        label: credential.credential_name,
-        value: credential.credential_name,
-      })),
-    [credentials],
+      attachableCredentials(credentials, { isProxyAdmin: all_admin_roles.includes(userRole), teamId: selectedTeamId }).map(
+        (credential) => ({
+          label: credential.credential_name,
+          value: credential.credential_name,
+        }),
+      ),
+    [credentials, userRole, selectedTeamId],
   );
 
   const applyProviderSelection = (provider: Providers) => {
