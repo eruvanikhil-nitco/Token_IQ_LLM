@@ -2779,6 +2779,40 @@ export const providerConnectionsCall = async (accessToken: string): Promise<Prov
   }
 };
 
+export type ProviderSyncOutcome = "fetched" | "not_configured" | "failed";
+
+export interface ProviderSyncHistoryRow {
+  provider: string;
+  credential_name: string;
+  started_at: string;
+  finished_at: string;
+  outcome: ProviderSyncOutcome;
+  facts_written: number;
+  window_start: string;
+  window_end: string;
+  detail: string | null;
+}
+
+export interface ProviderSyncHistoryResponse {
+  rows: ProviderSyncHistoryRow[];
+}
+
+export const providerSyncHistoryCall = async (
+  accessToken: string,
+  provider: string,
+  limit: number,
+): Promise<ProviderSyncHistoryResponse> => {
+  try {
+    return await apiClient.get<ProviderSyncHistoryResponse>(
+      `/provider/sync-history?provider=${encodeURIComponent(provider)}&limit=${limit}`,
+      { accessToken },
+    );
+  } catch (error) {
+    console.error("Failed to read provider sync history:", error);
+    throw error;
+  }
+};
+
 export const credentialListCall = async (accessToken: string) => {
   /**
    * Get all available teams on proxy

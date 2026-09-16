@@ -4,6 +4,8 @@ import { useProviderConnections } from "@/app/(dashboard)/hooks/providerApis/use
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ConnectionTab from "./ConnectionTab";
+import SyncHistoryTab from "./SyncHistoryTab";
+import WhatWeFetchTab from "./WhatWeFetchTab";
 import { STATE_LABELS, stateBadgeVariant } from "./connectionState";
 
 export default function ProviderApisPanel() {
@@ -33,7 +35,22 @@ export default function ProviderApisPanel() {
       </TabsList>
       {connections.map((connection) => (
         <TabsContent key={connection.provider} value={connection.provider} className="pt-6">
-          <ConnectionTab connection={connection} />
+          <Tabs defaultValue="connection">
+            <TabsList>
+              <TabsTrigger value="connection">Connection</TabsTrigger>
+              <TabsTrigger value="what-we-fetch">What We Fetch</TabsTrigger>
+              <TabsTrigger value="sync-history">Sync History</TabsTrigger>
+            </TabsList>
+            <TabsContent value="connection" className="pt-6">
+              <ConnectionTab connection={connection} />
+            </TabsContent>
+            <TabsContent value="what-we-fetch" className="pt-6">
+              <WhatWeFetchTab fetches={connection.fetches} />
+            </TabsContent>
+            <TabsContent value="sync-history" className="pt-6">
+              <SyncHistoryTab provider={connection.provider} />
+            </TabsContent>
+          </Tabs>
         </TabsContent>
       ))}
     </Tabs>
