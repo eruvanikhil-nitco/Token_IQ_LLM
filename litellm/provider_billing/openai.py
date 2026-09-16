@@ -70,7 +70,7 @@ def _facts_from(buckets: Sequence[object], credential_name: str) -> tuple[Provid
             line_item = raw_line_item if isinstance(raw_line_item, str) else UNATTRIBUTED
             facts.append(
                 ProviderUsageFact(
-                    fact_key=f"openai:{day.date().isoformat()}:{line_item}",
+                    fact_key=f"openai:{credential_name}:{day.date().isoformat()}:{line_item}",
                     provider="openai",
                     credential_name=credential_name,
                     grain="day",

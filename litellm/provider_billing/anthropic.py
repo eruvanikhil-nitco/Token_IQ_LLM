@@ -101,7 +101,7 @@ def _facts_from(buckets: Sequence[object], credential_name: str) -> tuple[Provid
 
         facts.extend(
             ProviderUsageFact(
-                fact_key=f"anthropic:{day.date().isoformat()}:{model}",
+                fact_key=f"anthropic:{credential_name}:{day.date().isoformat()}:{model}",
                 provider="anthropic",
                 credential_name=credential_name,
                 grain="day",

@@ -85,7 +85,7 @@ def _facts_from(
 
         facts.extend(
             ProviderUsageFact(
-                fact_key=f"bedrock:{day.date().isoformat()}:{usage_type}",
+                fact_key=f"bedrock:{credential_name}:{day.date().isoformat()}:{usage_type}",
                 provider="bedrock",
                 credential_name=credential_name,
                 grain="day",

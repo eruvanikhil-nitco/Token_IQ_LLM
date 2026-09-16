@@ -87,7 +87,8 @@ async def test_the_lookup_returns_only_the_credential_marked_for_that_providers_
 
     import litellm
     from litellm.provider_billing.credential_purpose import BILLING_PURPOSE
-    from litellm.provider_billing.scheduled import build_billing_credential_lookup
+    from litellm.provider_billing.scheduled import build_billing_credentials_lookup
+    from litellm.types.proxy.provider_billing import BillingCredential
     from litellm.types.utils import CredentialItem
 
     stored = (
@@ -105,12 +106,47 @@ async def test_the_lookup_returns_only_the_credential_marked_for_that_providers_
     ]
 
     with patch.object(litellm, "credential_list", credentials):
-        credentials_for = build_billing_credential_lookup(prisma_client=prisma_client)
+        credentials_for = build_billing_credentials_lookup(prisma_client=prisma_client)
         openai = await credentials_for("openai")
         openrouter = await credentials_for("openrouter")
 
-    assert openai == ("openai-billing", {"api_key": "sk-admin-test-not-real"})
-    assert openrouter is None
+    assert openai == (BillingCredential(name="openai-billing", values={"api_key": "sk-admin-test-not-real"}),)
+    assert openrouter == ()
+
+
+@pytest.mark.asyncio
+async def test_the_lookup_returns_every_matching_credential_not_just_the_first():
+    """A company with two OpenAI organisations stores two billing credentials. Returning
+    only the first would silently drop one organisation's spend from every ingestion run."""
+    from types import SimpleNamespace
+    from unittest.mock import patch
+
+    import litellm
+    from litellm.provider_billing.credential_purpose import BILLING_PURPOSE
+    from litellm.provider_billing.scheduled import build_billing_credentials_lookup
+    from litellm.types.proxy.provider_billing import BillingCredential
+    from litellm.types.utils import CredentialItem
+
+    stored = (
+        ("openai-prod", {"purpose": BILLING_PURPOSE, "provider": "openai"}, "sk-admin-prod-not-real"),
+        ("openai-staging", {"purpose": BILLING_PURPOSE, "provider": "openai"}, "sk-admin-staging-not-real"),
+    )
+    prisma_client = MagicMock()
+    prisma_client.db.litellm_credentialstable.find_many = AsyncMock(
+        return_value=[SimpleNamespace(credential_name=name, credential_info=info) for name, info, _ in stored]
+    )
+    credentials = [
+        CredentialItem(credential_name=name, credential_info=info, credential_values={"api_key": key})
+        for name, info, key in stored
+    ]
+
+    with patch.object(litellm, "credential_list", credentials):
+        openai = await build_billing_credentials_lookup(prisma_client=prisma_client)("openai")
+
+    assert openai == (
+        BillingCredential(name="openai-prod", values={"api_key": "sk-admin-prod-not-real"}),
+        BillingCredential(name="openai-staging", values={"api_key": "sk-admin-staging-not-real"}),
+    )
 
 
 @pytest.mark.asyncio

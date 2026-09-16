@@ -45,6 +45,14 @@ class ProviderUsageFact:
 
 
 @dataclass(frozen=True, slots=True)
+class BillingCredential:
+    """One stored credential a connector may read a provider's bill with."""
+
+    name: str
+    values: Mapping[str, str]
+
+
+@dataclass(frozen=True, slots=True)
 class Fetched:
     facts: tuple[ProviderUsageFact, ...]
     watermark: datetime

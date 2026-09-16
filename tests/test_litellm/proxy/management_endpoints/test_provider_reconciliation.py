@@ -125,11 +125,13 @@ def _connector_returning(result: object, provider: str = "anthropic"):
 
 
 async def _creds(_provider: str):
-    return ("acme", {"api_key": "sk-ant-admin01-x"})
+    from litellm.types.proxy.provider_billing import BillingCredential
+
+    return (BillingCredential(name="acme", values={"api_key": "sk-ant-admin01-x"}),)
 
 
 async def _no_creds(_provider: str):
-    return None
+    return ()
 
 
 @pytest.mark.asyncio
@@ -160,6 +162,7 @@ async def test_the_probe_reports_a_working_connector_without_writing_anything():
     assert result.outcome == "fetched"
     assert result.facts_found == 1
     assert result.sample_cost == "1.25"
+    assert result.credential_name == "acme"
 
 
 @pytest.mark.asyncio
@@ -172,6 +175,7 @@ async def test_the_probe_names_a_missing_credential_rather_than_failing():
 
     assert result.outcome == "not_configured"
     assert "billing_ingestion" in (result.detail or "")
+    assert result.credential_name is None
 
 
 @pytest.mark.asyncio

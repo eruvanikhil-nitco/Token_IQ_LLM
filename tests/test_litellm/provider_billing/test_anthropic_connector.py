@@ -102,7 +102,7 @@ async def test_the_fact_key_is_stable_so_a_refetch_overwrites():
     second = await _fetch(_http(payload))
 
     assert isinstance(first, Fetched) and isinstance(second, Fetched)
-    assert first.facts[0].fact_key == second.facts[0].fact_key == "anthropic:2026-09-12:claude-opus-5"
+    assert first.facts[0].fact_key == second.facts[0].fact_key == "anthropic:acme-anthropic:2026-09-12:claude-opus-5"
 
 
 @pytest.mark.asyncio
@@ -156,7 +156,7 @@ async def test_a_cost_with_no_model_is_still_recorded():
 
     assert isinstance(result, Fetched)
     assert result.facts[0].billed_cost == Decimal("5.00")
-    assert result.facts[0].fact_key == "anthropic:2026-09-12:unattributed"
+    assert result.facts[0].fact_key == "anthropic:acme-anthropic:2026-09-12:unattributed"
 
 
 @pytest.mark.asyncio

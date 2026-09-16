@@ -15,6 +15,7 @@ from typing import Any, Final
 
 from litellm._logging import verbose_proxy_logger
 from litellm.provider_billing.credential_purpose import is_billing_credential
+from litellm.types.proxy.provider_billing import BillingCredential
 
 LOCK_ID: Final = "provider_billing_ingestion"
 
@@ -52,39 +53,30 @@ async def _guarded(run: Callable[..., Awaitable[object]], now: datetime) -> None
         verbose_proxy_logger.exception("provider billing ingestion failed: %s", exc)
 
 
-def build_billing_credential_lookup(
+def build_billing_credentials_lookup(
     *, prisma_client: Any  # any-ok: PrismaClient is an untyped runtime wrapper
-) -> Callable[[str], Awaitable[tuple[str, Mapping[str, str]] | None]]:
-    """The stored credential marked for reading a provider's bill.
+) -> Callable[[str], Awaitable[tuple[BillingCredential, ...]]]:
+    """Every stored credential marked for reading a provider's bill.
 
     Rows come through CredentialsRepository, which that module documents as the only place
-    that talks to its table. Values come through CredentialAccessor rather than off the
-    row, so the decryption this needs is the same code path the request router uses.
+    that talks to its table. Values come through CredentialAccessor rather than off the row,
+    so the decryption this needs is the same code path the request router uses.
     """
 
-    async def credentials_for(provider: str) -> tuple[str, Mapping[str, str]] | None:
-        """The stored credential marked for reading this provider's bill.
-
-        Rows come through CredentialsRepository, which that module documents as the only
-        place that talks to its table. Values come through CredentialAccessor rather than
-        off the row, so the decryption this needs is the same code path the request router
-        already uses.
-        """
+    async def credentials_for(provider: str) -> tuple[BillingCredential, ...]:
         from litellm.litellm_core_utils.credential_accessor import CredentialAccessor
         from litellm.repositories.credentials_repository import CredentialsRepository
 
-        rows = await CredentialsRepository(prisma_client).find_all()
-        for row in rows:
-            info = getattr(row, "credential_info", None)
-            if not isinstance(info, Mapping):
-                continue
-            if not is_billing_credential(info) or info.get("provider") != provider:
-                continue
-            name = str(getattr(row, "credential_name", ""))
-            values = CredentialAccessor.get_credential_values(name)
-            if values:
-                return (name, {key: str(value) for key, value in values.items()})
-        return None
+        rows: Final = await CredentialsRepository(prisma_client).find_all()
+        return tuple(
+            BillingCredential(name=name, values={key: str(value) for key, value in values.items()})
+            for row in rows
+            if isinstance(info := getattr(row, "credential_info", None), Mapping)
+            and is_billing_credential(info)
+            and info.get("provider") == provider
+            and (name := str(getattr(row, "credential_name", "")))
+            and (values := CredentialAccessor.get_credential_values(name))
+        )
 
     return credentials_for
 
@@ -99,7 +91,7 @@ def build_provider_billing_job(
 
     repository: Final = ProviderUsageFactRepository(prisma_client)
 
-    credentials_for: Final = build_billing_credential_lookup(prisma_client=prisma_client)
+    credentials_for: Final = build_billing_credentials_lookup(prisma_client=prisma_client)
 
     async def job() -> None:
         await ingest_provider_billing(

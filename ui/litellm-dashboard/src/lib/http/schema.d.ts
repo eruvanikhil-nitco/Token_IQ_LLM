@@ -23843,6 +23843,8 @@ export interface components {
          * @description One on-demand fetch from a provider's billing API, reported without storing anything
          */
         BillingProbeResponse: {
+            /** Credential Name */
+            credential_name: string | null;
             /** Detail */
             detail: string | null;
             /** Facts Found */

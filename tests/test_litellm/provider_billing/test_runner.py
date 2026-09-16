@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from collections.abc import Mapping
 from datetime import datetime, timezone
 from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock
@@ -8,6 +7,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from litellm.types.proxy.provider_billing import (
+    BillingCredential,
     Fetched,
     FetchFailed,
     NotConfigured,
@@ -44,8 +44,8 @@ class _Connector:
         return self._result
 
 
-async def _creds(_provider: str) -> tuple[str, Mapping[str, str]] | None:
-    return ("c", {"api_key": "k"})
+async def _creds(_provider: str) -> tuple[BillingCredential, ...]:
+    return (BillingCredential(name="c", values={"api_key": "k"}),)
 
 
 def _repo() -> MagicMock:
@@ -112,8 +112,8 @@ async def test_a_provider_with_no_credential_is_skipped_quietly():
     """Most customers configure one or two providers. Treating the rest as failures would
     make a healthy run look broken on every tick."""
 
-    async def no_creds(_provider: str) -> tuple[str, Mapping[str, str]] | None:
-        return None
+    async def no_creds(_provider: str) -> tuple[BillingCredential, ...]:
+        return ()
 
     repo = _repo()
     report = await _run((_Connector("a", Fetched(facts=(_fact(),), watermark=NOW)),), no_creds, repo)
@@ -149,3 +149,46 @@ async def test_the_window_asked_for_overlaps_the_last_one():
 
     assert seen["until"] == NOW
     assert seen["since"] == NOW - LOOKBACK
+
+
+@pytest.mark.asyncio
+async def test_every_account_for_a_provider_is_fetched_separately():
+    """A company with two OpenAI organisations has two billing credentials. Reading only the
+    first silently halves their reported bill, and nothing in the product would say so."""
+    seen: list[str] = []
+
+    class _Recording(_Connector):
+        async def fetch(self, *, credential_name: str, **_: object):
+            seen.append(credential_name)
+            return Fetched(facts=(_fact(),), watermark=NOW)
+
+    async def two(_provider: str) -> tuple[BillingCredential, ...]:
+        return (
+            BillingCredential(name="prod", values={"api_key": "k1"}),
+            BillingCredential(name="staging", values={"api_key": "k2"}),
+        )
+
+    report = await _run((_Recording("openai", None),), two)
+
+    assert seen == ["prod", "staging"]
+    assert report.written == 2
+
+
+@pytest.mark.asyncio
+async def test_one_account_failing_does_not_stop_the_others_on_the_same_provider():
+    async def two(_provider: str) -> tuple[BillingCredential, ...]:
+        return (
+            BillingCredential(name="broken", values={"api_key": "k1"}),
+            BillingCredential(name="fine", values={"api_key": "k2"}),
+        )
+
+    class _PerCredential(_Connector):
+        async def fetch(self, *, credential_name: str, **_: object):
+            if credential_name == "broken":
+                return FetchFailed(reason="401", retryable=False)
+            return Fetched(facts=(_fact(),), watermark=NOW)
+
+    report = await _run((_PerCredential("openai", None),), two)
+
+    assert report.written == 1
+    assert report.failed == ("openai",)

@@ -201,6 +201,9 @@ class BillingProbeResponse(BaseModel):
     """One on-demand fetch from a provider's billing API, reported without storing anything"""
 
     provider: str
+    credential_name: str | None
+    """Which stored credential was tried, when one was found"""
+
     outcome: str
     """fetched, not_configured, failed, or no_connector"""
 

@@ -151,7 +151,7 @@ async def test_a_cost_with_no_line_item_is_still_recorded():
 
     assert isinstance(result, Fetched)
     assert result.facts[0].billed_cost == Decimal("3.0")
-    assert result.facts[0].fact_key == "openai:2026-09-12:unattributed"
+    assert result.facts[0].fact_key == "openai:acme-openai:2026-09-12:unattributed"
 
 
 @pytest.mark.asyncio
@@ -186,3 +186,21 @@ def test_each_fact_keeps_the_result_openai_sent():
     )
 
     assert facts[0].raw == {"line_item": "gpt-4o", "amount": {"value": 1.25, "currency": "usd"}}
+
+
+def test_two_openai_accounts_do_not_share_a_fact_key():
+    """fact_key is the upsert key. Without the credential in it, the second account's row for
+    a day overwrites the first account's row for that day and the total silently halves."""
+    from litellm.provider_billing.openai import _facts_from
+
+    bucket = [
+        {
+            "start_time": 1789344000,
+            "results": [{"line_item": "gpt-4o", "amount": {"value": 1.25, "currency": "usd"}}],
+        }
+    ]
+
+    prod = _facts_from(bucket, "prod")
+    staging = _facts_from(bucket, "staging")
+
+    assert prod[0].fact_key != staging[0].fact_key

@@ -18,7 +18,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from litellm.provider_billing.connector import BillingConnector, registered_connectors
 from litellm.provider_billing.runner import LOOKBACK
-from litellm.provider_billing.scheduled import build_billing_credential_lookup
+from litellm.provider_billing.scheduled import build_billing_credentials_lookup
 from litellm.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
 from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
 from litellm.types.proxy.management_endpoints.team_endpoints import (
@@ -28,7 +28,7 @@ from litellm.types.proxy.management_endpoints.team_endpoints import (
     ReconciliationResponse,
     ReconciliationRow,
 )
-from litellm.types.proxy.provider_billing import Fetched, FetchFailed, NotConfigured
+from litellm.types.proxy.provider_billing import BillingCredential, Fetched, FetchFailed, NotConfigured
 
 router: Final = APIRouter()
 
@@ -141,7 +141,7 @@ async def run_billing_probe(
     *,
     provider: str,
     connectors: Sequence[BillingConnector],
-    credentials_for: Callable[[str], Awaitable[tuple[str, Mapping[str, str]] | None]],
+    credentials_for: Callable[[str], Awaitable[tuple[BillingCredential, ...]]],
 ) -> BillingProbeResponse:
     """One fetch from a provider's billing API, reported without storing anything.
 
@@ -153,16 +153,18 @@ async def run_billing_probe(
     if connector is None:
         return BillingProbeResponse(
             provider=provider,
+            credential_name=None,
             outcome="no_connector",
             facts_found=0,
             sample_cost=None,
             detail="This build ships no billing connector for that provider.",
         )
 
-    credential: Final = await credentials_for(provider)
-    if credential is None:
+    credentials: Final = await credentials_for(provider)
+    if not credentials:
         return BillingProbeResponse(
             provider=provider,
+            credential_name=None,
             outcome="not_configured",
             facts_found=0,
             sample_cost=None,
@@ -171,20 +173,21 @@ async def run_billing_probe(
                 f'credential_info is {{"purpose": "billing_ingestion", "provider": "{provider}"}}.'
             ),
         )
-    credential_name, credential_values = credential
+    credential: Final = credentials[0]
 
     now: Final = datetime.now(timezone.utc)
     result: Final = await connector.fetch(
         since=now - LOOKBACK,
         until=now,
-        credential_name=credential_name,
-        credential_values=credential_values,
+        credential_name=credential.name,
+        credential_values=credential.values,
     )
 
     match result:
         case Fetched(facts=facts):
             return BillingProbeResponse(
                 provider=provider,
+                credential_name=credential.name,
                 outcome="fetched",
                 facts_found=len(facts),
                 sample_cost=_plain(facts[0].billed_cost) if facts else None,
@@ -192,11 +195,17 @@ async def run_billing_probe(
             )
         case NotConfigured(reason=reason):
             return BillingProbeResponse(
-                provider=provider, outcome="not_configured", facts_found=0, sample_cost=None, detail=reason
+                provider=provider,
+                credential_name=credential.name,
+                outcome="not_configured",
+                facts_found=0,
+                sample_cost=None,
+                detail=reason,
             )
         case FetchFailed(reason=reason, retryable=retryable):
             return BillingProbeResponse(
                 provider=provider,
+                credential_name=credential.name,
                 outcome="failed",
                 facts_found=0,
                 sample_cost=None,
@@ -226,7 +235,7 @@ async def provider_billing_probe(
     return await run_billing_probe(
         provider=provider,
         connectors=registered_connectors(),
-        credentials_for=build_billing_credential_lookup(prisma_client=prisma_client),
+        credentials_for=build_billing_credentials_lookup(prisma_client=prisma_client),
     )
 
 

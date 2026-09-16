@@ -61,7 +61,7 @@ async def test_a_grouped_cost_becomes_a_day_fact():
     assert fact.grain == "day"
     assert fact.billed_cost == Decimal("1.25")
     assert fact.bucket_start.date().isoformat() == "2026-09-11"
-    assert fact.fact_key == "bedrock:2026-09-11:USE1-Bedrock-Input-Tokens"
+    assert fact.fact_key == "bedrock:acme-aws:2026-09-11:USE1-Bedrock-Input-Tokens"
 
 
 @pytest.mark.asyncio
@@ -181,7 +181,7 @@ async def test_an_ungrouped_total_is_still_recorded():
 
     assert isinstance(result, Fetched)
     assert result.facts[0].billed_cost == Decimal("3.50")
-    assert result.facts[0].fact_key == "bedrock:2026-09-11:all"
+    assert result.facts[0].fact_key == "bedrock:acme-aws:2026-09-11:all"
 
 
 def test_each_fact_keeps_the_cost_explorer_group_it_came_from():
