@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from types import SimpleNamespace
+from typing import Final
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -78,27 +79,42 @@ async def test_recent_without_a_provider_reads_every_provider():
     assert table.find_many.await_args.kwargs["where"] == {}
 
 
+def _valid_row_fields() -> dict[str, object]:
+    return {
+        "provider": "openai",
+        "credential_name": "prod",
+        "started_at": STARTED,
+        "finished_at": FINISHED,
+        "outcome": "fetched",
+        "facts_written": 0,
+        "window_start": STARTED,
+        "window_end": FINISHED,
+        "detail": None,
+    }
+
+
+@pytest.mark.parametrize(
+    ("field", "bad_value"),
+    [
+        pytest.param("outcome", "nonsense", id="outcome-not-in-allowed-set"),
+        pytest.param("provider", 123, id="provider-not-a-string"),
+        pytest.param("credential_name", 123, id="credential_name-not-a-string"),
+        pytest.param("started_at", "not-a-datetime", id="started_at-not-a-datetime"),
+        pytest.param("finished_at", "not-a-datetime", id="finished_at-not-a-datetime"),
+        pytest.param("window_start", "not-a-datetime", id="window_start-not-a-datetime"),
+        pytest.param("window_end", "not-a-datetime", id="window_end-not-a-datetime"),
+    ],
+)
 @pytest.mark.asyncio
-async def test_a_row_missing_its_outcome_is_dropped_rather_than_guessed():
+async def test_a_row_failing_any_guard_is_dropped_rather_than_guessed(field: str, bad_value: object):
     """Reporting an unreadable row as healthy would tell a customer their key works when we
-    have no idea whether it does."""
+    have no idea whether it does. Every guard below must independently drop the row, not just
+    the outcome check."""
     from litellm.repositories.provider_sync_run_repository import ProviderSyncRunRepository
 
+    row_fields: Final = _valid_row_fields() | {field: bad_value}
+
     client, table = _client()
-    table.find_many = AsyncMock(
-        return_value=[
-            SimpleNamespace(
-                provider="openai",
-                credential_name="prod",
-                started_at=STARTED,
-                finished_at=FINISHED,
-                outcome="nonsense",
-                facts_written=0,
-                window_start=STARTED,
-                window_end=FINISHED,
-                detail=None,
-            )
-        ]
-    )
+    table.find_many = AsyncMock(return_value=[SimpleNamespace(**row_fields)])
 
     assert await ProviderSyncRunRepository(client).recent(provider="openai") == ()
