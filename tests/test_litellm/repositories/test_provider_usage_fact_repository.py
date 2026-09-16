@@ -125,3 +125,45 @@ async def test_the_providers_own_payload_is_written_to_the_raw_column():
 
     written = table.upsert.await_args.kwargs["data"]["create"]
     assert written["raw"] == {"line_item": "gpt-4o", "amount": {"value": 1.25, "currency": "usd"}}
+
+
+@pytest.mark.asyncio
+async def test_counts_by_credential_reads_the_all_count_prisma_actually_returns():
+    """prisma-client-py's group_by(count=True) nests the tally under _count._all, not under
+    the grouped field name. Reading the wrong key would silently report every account as
+    having zero facts, which is indistinguishable from a connection that has never worked."""
+    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+
+    client = _client()
+    client.db.litellm_providerusagefact.group_by = AsyncMock(
+        return_value=[
+            {"credential_name": "prod", "_count": {"_all": 40}},
+            {"credential_name": "staging", "_count": {"_all": 0}},
+        ]
+    )
+
+    counts = await ProviderUsageFactRepository(client).counts_by_credential("openai")
+
+    assert dict(counts) == {"prod": 40, "staging": 0}
+    client.db.litellm_providerusagefact.group_by.assert_awaited_once_with(
+        by=["credential_name"], where={"provider": "openai"}, count=True
+    )
+
+
+@pytest.mark.asyncio
+async def test_counts_by_credential_drops_a_row_it_cannot_read():
+    """A row missing the fields we depend on must not crash the connections screen or be
+    guessed at as zero facts for some other account."""
+    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+
+    client = _client()
+    client.db.litellm_providerusagefact.group_by = AsyncMock(
+        return_value=[
+            {"credential_name": "prod", "_count": {"_all": 5}},
+            {"_count": {"_all": 3}},
+        ]
+    )
+
+    counts = await ProviderUsageFactRepository(client).counts_by_credential("openai")
+
+    assert dict(counts) == {"prod": 5}

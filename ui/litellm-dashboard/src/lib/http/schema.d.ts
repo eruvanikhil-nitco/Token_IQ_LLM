@@ -11993,6 +11993,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/provider/connections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Provider Connections
+         * @description Every provider this build can read a bill from, and the state of each connection.
+         */
+        get: operations["provider_connections_provider_connections_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/provider/model-usage": {
         parameters: {
             query?: never;
@@ -12088,6 +12108,26 @@ export interface paths {
          *     is the single most valuable row here: it is spend that bypassed the gateway entirely.
          */
         get: operations["daily_reconciliation_provider_reconciliation_daily_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/provider/sync-history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Provider Sync History
+         * @description Recent fetch attempts for one provider, newest first.
+         */
+        get: operations["provider_sync_history_provider_sync_history_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -34074,6 +34114,41 @@ export interface components {
             /** Time Period */
             time_period: string | null;
         };
+        /** ProviderConnection */
+        ProviderConnection: {
+            /** Accounts */
+            accounts: components["schemas"]["ProviderConnectionAccount"][];
+            /** Display Name */
+            display_name: string;
+            fetches: components["schemas"]["ProviderFetchDetail"];
+            /** Provider */
+            provider: string;
+            /** State */
+            state: string;
+        };
+        /**
+         * ProviderConnectionAccount
+         * @description One stored billing credential's standing against its provider
+         */
+        ProviderConnectionAccount: {
+            /** Credential Name */
+            credential_name: string;
+            /** Detail */
+            detail: string | null;
+            /** Facts Stored */
+            facts_stored: number;
+            /** Last Outcome */
+            last_outcome: string | null;
+            /** Last Sync At */
+            last_sync_at: string | null;
+            /** State */
+            state: string;
+        };
+        /** ProviderConnectionsResponse */
+        ProviderConnectionsResponse: {
+            /** Providers */
+            providers: components["schemas"]["ProviderConnection"][];
+        };
         /**
          * ProviderCourierCoverageResponse
          * @description What one provider will do for a team running in courier mode
@@ -34128,6 +34203,26 @@ export interface components {
             required: boolean;
             /** Tooltip */
             tooltip?: string | null;
+        };
+        /**
+         * ProviderFetchDetail
+         * @description What this build reads from one provider
+         */
+        ProviderFetchDetail: {
+            /** Delay Note */
+            delay_note: string;
+            /** Endpoint */
+            endpoint: string;
+            /** Endpoint Url */
+            endpoint_url: string;
+            /** Grain */
+            grain: string;
+            /** History Note */
+            history_note: string;
+            /** Refresh Seconds */
+            refresh_seconds: number;
+            /** Window Hours */
+            window_hours: number;
         };
         /** ProviderModelsResponse */
         ProviderModelsResponse: {
@@ -34207,6 +34302,32 @@ export interface components {
              * @default 0
              */
             spend: number;
+        };
+        /** ProviderSyncHistoryResponse */
+        ProviderSyncHistoryResponse: {
+            /** Rows */
+            rows: components["schemas"]["ProviderSyncHistoryRow"][];
+        };
+        /** ProviderSyncHistoryRow */
+        ProviderSyncHistoryRow: {
+            /** Credential Name */
+            credential_name: string;
+            /** Detail */
+            detail: string | null;
+            /** Facts Written */
+            facts_written: number;
+            /** Finished At */
+            finished_at: string;
+            /** Outcome */
+            outcome: string;
+            /** Provider */
+            provider: string;
+            /** Started At */
+            started_at: string;
+            /** Window End */
+            window_end: string;
+            /** Window Start */
+            window_start: string;
         };
         /**
          * ProxyChatCompletionRequest
@@ -55106,6 +55227,26 @@ export interface operations {
             };
         };
     };
+    provider_connections_provider_connections_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProviderConnectionsResponse"];
+                };
+            };
+        };
+    };
     provider_model_usage_provider_model_usage_get: {
         parameters: {
             query?: {
@@ -55241,6 +55382,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DailyReconciliationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    provider_sync_history_provider_sync_history_get: {
+        parameters: {
+            query: {
+                /** @description Which provider's fetch history to read */
+                provider: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProviderSyncHistoryResponse"];
                 };
             };
             /** @description Validation Error */

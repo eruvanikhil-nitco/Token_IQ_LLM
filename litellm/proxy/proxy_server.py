@@ -503,6 +503,9 @@ from litellm.proxy.management_endpoints.team_callback_endpoints import (
 from litellm.provider_billing.scheduled import INTERVAL_SECONDS as PROVIDER_BILLING_INTERVAL_SECONDS
 from litellm.provider_billing.scheduled import build_provider_billing_job
 from litellm.provider_billing.startup import register_billing_connectors
+from litellm.proxy.management_endpoints.provider_connections import (
+    router as provider_connections_router,
+)
 from litellm.proxy.management_endpoints.provider_reconciliation import (
     router as provider_reconciliation_router,
 )
@@ -18125,6 +18128,7 @@ app.include_router(internal_user_router)
 app.include_router(team_router)
 app.include_router(project_router)
 app.include_router(provider_reconciliation_router)
+app.include_router(provider_connections_router)
 app.include_router(ui_sso_router)
 app.include_router(organization_router)
 app.include_router(customer_router)

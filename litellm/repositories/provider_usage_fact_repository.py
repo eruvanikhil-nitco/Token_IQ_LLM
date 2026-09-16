@@ -3,9 +3,21 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from types import MappingProxyType
 from typing import Any, Final
 
 from litellm.types.proxy.provider_billing import ProviderUsageFact
+
+
+def _read(row: object, key: str) -> object:
+    return row.get(key) if isinstance(row, Mapping) else getattr(row, key, None)
+
+
+def _count_of(row: object) -> object:
+    counted: Final = _read(row, "_count")
+    if isinstance(counted, Mapping):
+        return counted.get("credential_name") or counted.get("_all")
+    return counted
 
 
 def _row(fact: ProviderUsageFact) -> dict[str, object]:
@@ -58,4 +70,16 @@ class ProviderUsageFactRepository:
         )
         return frozenset(
             found for row in rows if isinstance(found := getattr(row, "provider_request_id", None), str)
+        )
+
+    async def counts_by_credential(self, provider: str) -> Mapping[str, int]:
+        """How many facts each account has produced, for deciding whether it has ever worked."""
+        rows: Final = await self._table.group_by(by=["credential_name"], where={"provider": provider}, count=True)
+        return MappingProxyType(
+            {
+                name: count
+                for row in rows
+                if isinstance(name := _read(row, "credential_name"), str)
+                and isinstance(count := _count_of(row), int)
+            }
         )

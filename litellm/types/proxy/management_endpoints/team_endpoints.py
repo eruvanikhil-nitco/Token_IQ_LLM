@@ -212,6 +212,63 @@ class BillingProbeResponse(BaseModel):
     detail: str | None
 
 
+class ProviderFetchDetail(BaseModel):
+    """What this build reads from one provider"""
+
+    endpoint: str
+    endpoint_url: str
+    grain: str
+    """request or day"""
+
+    refresh_seconds: int
+    window_hours: int
+    delay_note: str
+    history_note: str
+
+
+class ProviderConnectionAccount(BaseModel):
+    """One stored billing credential's standing against its provider"""
+
+    credential_name: str
+    state: str
+    """waiting_for_first_data, healthy, or needs_attention"""
+
+    detail: str | None
+    last_sync_at: str | None
+    last_outcome: str | None
+    facts_stored: int
+
+
+class ProviderConnection(BaseModel):
+    provider: str
+    display_name: str
+    state: str
+    """not_connected, waiting_for_first_data, healthy, or needs_attention"""
+
+    accounts: list[ProviderConnectionAccount]
+    fetches: ProviderFetchDetail
+
+
+class ProviderConnectionsResponse(BaseModel):
+    providers: list[ProviderConnection]
+
+
+class ProviderSyncHistoryRow(BaseModel):
+    provider: str
+    credential_name: str
+    started_at: str
+    finished_at: str
+    outcome: str
+    facts_written: int
+    window_start: str
+    window_end: str
+    detail: str | None
+
+
+class ProviderSyncHistoryResponse(BaseModel):
+    rows: list[ProviderSyncHistoryRow]
+
+
 class DailyReconciliationRow(BaseModel):
     """One day, charged twice"""
 
