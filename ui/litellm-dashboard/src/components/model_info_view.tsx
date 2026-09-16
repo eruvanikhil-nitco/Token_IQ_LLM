@@ -27,7 +27,7 @@ import { useTeams } from "@/app/(dashboard)/hooks/teams/useTeams";
 import DeleteResourceModal from "./common_components/DeleteResourceModal";
 import EditAutoRouterModal from "./edit_auto_router/edit_auto_router_modal";
 import ReuseCredentialsModal from "./model_add/reuse_credentials";
-import { applyMoveKeyUpdate, buildMoveKeyRequests } from "./model_info_view/moveKeyToCredential";
+import { moveKeyToCredential } from "./model_info_view/moveKeyToCredential";
 import { toast } from "@/lib/toast";
 import {
   CredentialItem,
@@ -286,24 +286,23 @@ export default function ModelInfoView({
 
   const handleReuseCredential = async (values: any) => {
     if (!accessToken) return;
-    const { credential, modelUpdate } = buildMoveKeyRequests(
-      modelId,
-      values.credential_name,
-      localModelData.litellm_params?.custom_llm_provider,
-      localModelData.litellm_params ?? {},
-    );
-
     toast.info("Storing credential..");
-    await credentialCreateCall(accessToken, credential);
-    await modelPatchUpdateCall(accessToken, { litellm_params: modelUpdate.litellm_params }, modelId);
+    const result = await moveKeyToCredential({
+      modelId,
+      credentialName: values.credential_name,
+      provider: localModelData.litellm_params?.custom_llm_provider,
+      litellmParams: localModelData.litellm_params ?? {},
+      createCredential: (credential) => credentialCreateCall(accessToken, credential),
+      updateModel: (update) => modelPatchUpdateCall(accessToken, update, modelId),
+    });
 
-    const updatedModelData = {
-      ...localModelData,
-      litellm_params: applyMoveKeyUpdate(localModelData.litellm_params ?? {}, modelUpdate.litellm_params),
-    };
+    if (result.status === "credential_failed") return toast.fromError("Failed to store credential. Nothing was changed.");
+    if (result.status === "model_update_failed")
+      return toast.warning(`Credential "${values.credential_name}" was saved, but the model update failed. Select it from the credential list to attach it.`);
+
+    const updatedModelData = { ...localModelData, litellm_params: result.litellmParams };
     setLocalModelData(updatedModelData);
     onModelUpdate?.(updatedModelData);
-
     toast.success(`Key moved into credential ${values.credential_name}`);
   };
 

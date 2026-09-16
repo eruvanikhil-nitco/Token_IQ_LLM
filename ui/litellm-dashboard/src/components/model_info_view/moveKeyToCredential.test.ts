@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { applyMoveKeyUpdate, buildMoveKeyRequests } from "./moveKeyToCredential";
+import { describe, expect, it, vi } from "vitest";
+import { applyMoveKeyUpdate, buildMoveKeyRequests, moveKeyToCredential } from "./moveKeyToCredential";
 
 describe("buildMoveKeyRequests", () => {
   it("saves the model's key as a credential and switches the model onto it", () => {
@@ -53,5 +53,54 @@ describe("applyMoveKeyUpdate", () => {
       api_base: "https://api.openai.com/v1",
       litellm_credential_name: "openai-prod",
     });
+  });
+});
+
+describe("moveKeyToCredential", () => {
+  const baseInput = {
+    modelId: "m-1",
+    credentialName: "openai-prod",
+    provider: "openai",
+    litellmParams: { model: "gpt-4o", api_key: "sk-test-not-real" },
+  };
+
+  it("reports success and the cleared params once both calls succeed", async () => {
+    const createCredential = vi.fn().mockResolvedValue({});
+    const updateModel = vi.fn().mockResolvedValue({});
+
+    const result = await moveKeyToCredential({ ...baseInput, createCredential, updateModel });
+
+    expect(createCredential).toHaveBeenCalledWith({
+      credential_name: "openai-prod",
+      model_id: "m-1",
+      credential_info: { custom_llm_provider: "openai" },
+    });
+    expect(updateModel).toHaveBeenCalledWith({
+      litellm_params: { litellm_credential_name: "openai-prod", api_key: null },
+    });
+    expect(result).toEqual({
+      status: "success",
+      litellmParams: { model: "gpt-4o", litellm_credential_name: "openai-prod" },
+    });
+  });
+
+  it("reports credential_failed and never attempts the model update when the credential save rejects", async () => {
+    const createCredential = vi.fn().mockRejectedValue(new Error("network error"));
+    const updateModel = vi.fn().mockResolvedValue({});
+
+    const result = await moveKeyToCredential({ ...baseInput, createCredential, updateModel });
+
+    expect(result).toEqual({ status: "credential_failed" });
+    expect(updateModel).not.toHaveBeenCalled();
+  });
+
+  it("reports model_update_failed when the credential saved but the model update rejects", async () => {
+    const createCredential = vi.fn().mockResolvedValue({});
+    const updateModel = vi.fn().mockRejectedValue(new Error("billing credential"));
+
+    const result = await moveKeyToCredential({ ...baseInput, createCredential, updateModel });
+
+    expect(createCredential).toHaveBeenCalled();
+    expect(result).toEqual({ status: "model_update_failed" });
   });
 });

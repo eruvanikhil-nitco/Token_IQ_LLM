@@ -44,3 +44,42 @@ export const applyMoveKeyUpdate = (
   update: Record<string, unknown>,
 ): Record<string, unknown> =>
   Object.fromEntries(Object.entries({ ...litellmParams, ...update }).filter(([, value]) => value !== null));
+
+export type MoveKeyResult =
+  | { status: "success"; litellmParams: Record<string, unknown> }
+  | { status: "credential_failed" }
+  | { status: "model_update_failed" };
+
+export interface MoveKeyToCredentialInput {
+  modelId: string;
+  credentialName: string;
+  provider: string;
+  litellmParams: Record<string, unknown>;
+  createCredential: (credential: MoveKeyRequests["credential"]) => Promise<unknown>;
+  updateModel: (update: { litellm_params: Record<string, unknown> }) => Promise<unknown>;
+}
+
+// Two calls, two ways to fail partway through: the credential never gets created, or it does
+// but the model never picks it up. The caller decides how to tell the admin about each; this
+// function only decides which one happened, and never rolls the credential back on the second
+// failure, since the typed key is already safely stored under that name either way.
+export const moveKeyToCredential = async (input: MoveKeyToCredentialInput): Promise<MoveKeyResult> => {
+  const { modelId, credentialName, provider, litellmParams, createCredential, updateModel } = input;
+  const { credential, modelUpdate } = buildMoveKeyRequests(modelId, credentialName, provider, litellmParams);
+
+  try {
+    await createCredential(credential);
+  } catch (error) {
+    console.error("Error storing credential:", error);
+    return { status: "credential_failed" };
+  }
+
+  try {
+    await updateModel({ litellm_params: modelUpdate.litellm_params });
+  } catch (error) {
+    console.error("Error moving model onto stored credential:", error);
+    return { status: "model_update_failed" };
+  }
+
+  return { status: "success", litellmParams: applyMoveKeyUpdate(litellmParams, modelUpdate.litellm_params) };
+};
