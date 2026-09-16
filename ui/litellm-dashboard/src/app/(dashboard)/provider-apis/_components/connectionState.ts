@@ -1,4 +1,6 @@
-export type ConnectionState = "not_connected" | "waiting_for_first_data" | "healthy" | "needs_attention";
+import type { ProviderConnectionState } from "@/components/networking";
+
+export type ConnectionState = ProviderConnectionState;
 
 export const STATE_LABELS: Record<ConnectionState, string> = {
   not_connected: "Not connected",

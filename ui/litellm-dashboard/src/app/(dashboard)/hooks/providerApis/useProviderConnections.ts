@@ -3,34 +3,14 @@ import { useQuery } from "@tanstack/react-query";
 import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
 import { providerConnectionsCall } from "@/components/networking";
 import { all_admin_roles } from "@/utils/roles";
-import type { ConnectionState } from "@/app/(dashboard)/provider-apis/_components/connectionState";
+import type {
+  ProviderConnection,
+  ProviderConnectionAccount,
+  ProviderConnectionState,
+  ProviderFetchDetail,
+} from "@/components/networking";
 
-export interface ProviderConnectionAccount {
-  credential_name: string;
-  state: ConnectionState;
-  detail: string | null;
-  last_sync_at: string | null;
-  last_outcome: string | null;
-  facts_stored: number;
-}
-
-export interface ProviderFetchDetail {
-  endpoint: string;
-  endpoint_url: string;
-  grain: string;
-  refresh_seconds: number;
-  window_hours: number;
-  delay_note: string;
-  history_note: string;
-}
-
-export interface ProviderConnection {
-  provider: string;
-  display_name: string;
-  state: ConnectionState;
-  accounts: ProviderConnectionAccount[];
-  fetches: ProviderFetchDetail;
-}
+export type { ProviderConnection, ProviderConnectionAccount, ProviderConnectionState, ProviderFetchDetail };
 
 export const providerConnectionKeys = {
   all: ["provider-connections"] as const,

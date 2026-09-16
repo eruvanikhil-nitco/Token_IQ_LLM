@@ -84,6 +84,9 @@ describe("ConnectionTab", () => {
   it("says the keys are only ever read from", () => {
     render(<ConnectionTab connection={connection()} />);
 
-    expect(screen.getByText(/read-only/i)).toBeInTheDocument();
+    expect(screen.getByText("Read-only")).toBeInTheDocument();
+    // Pin the substantive clause, not just the word "read-only": a copy regression that reversed
+    // the sentence's meaning would still contain "read-only" and pass a looser assertion.
+    expect(screen.getByText(/keys stored here/i)).toHaveTextContent("cannot send traffic or spend money");
   });
 });

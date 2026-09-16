@@ -2737,9 +2737,42 @@ export const credentialCreateCall = async (
   }
 };
 
-export const providerConnectionsCall = async (accessToken: string) => {
+export type ProviderConnectionState = "not_connected" | "waiting_for_first_data" | "healthy" | "needs_attention";
+
+export interface ProviderConnectionAccount {
+  credential_name: string;
+  state: ProviderConnectionState;
+  detail: string | null;
+  last_sync_at: string | null;
+  last_outcome: string | null;
+  facts_stored: number;
+}
+
+export interface ProviderFetchDetail {
+  endpoint: string;
+  endpoint_url: string;
+  grain: string;
+  refresh_seconds: number;
+  window_hours: number;
+  delay_note: string;
+  history_note: string;
+}
+
+export interface ProviderConnection {
+  provider: string;
+  display_name: string;
+  state: ProviderConnectionState;
+  accounts: ProviderConnectionAccount[];
+  fetches: ProviderFetchDetail;
+}
+
+export interface ProviderConnectionsResponse {
+  providers: ProviderConnection[];
+}
+
+export const providerConnectionsCall = async (accessToken: string): Promise<ProviderConnectionsResponse> => {
   try {
-    return await apiClient.get(`/provider/connections`, { accessToken });
+    return await apiClient.get<ProviderConnectionsResponse>(`/provider/connections`, { accessToken });
   } catch (error) {
     console.error("Failed to read provider connections:", error);
     throw error;
