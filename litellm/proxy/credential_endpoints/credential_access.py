@@ -11,6 +11,9 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any, Final
 
+from pydantic import ValidationError
+
+from litellm._logging import verbose_proxy_logger
 from litellm.proxy._types import LiteLLM_TeamTable, LitellmUserRoles, UserAPIKeyAuth
 from litellm.proxy.management_endpoints.common_utils import _is_user_team_admin
 
@@ -25,6 +28,16 @@ def credential_team(credential_info: Mapping[str, object] | None) -> str | None:
     return team if isinstance(team, str) and team else None
 
 
+def _validated_team_row(row: Any) -> LiteLLM_TeamTable | None:  # any-ok: PrismaClient row is untyped
+    """A team row as a validated model, or None when the row itself is malformed."""
+    dumped: Final = row.model_dump()
+    try:
+        return LiteLLM_TeamTable.model_validate(dumped)
+    except ValidationError:
+        verbose_proxy_logger.debug("Skipping malformed team row (team_id=%s)", dumped.get("team_id"))
+        return None
+
+
 async def teams_user_administers(
     user_api_key_dict: UserAPIKeyAuth,
     prisma_client: Any,  # any-ok: PrismaClient is an untyped runtime wrapper
@@ -33,9 +46,10 @@ async def teams_user_administers(
     if user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN:
         return frozenset()
     rows: Final = await prisma_client.db.litellm_teamtable.find_many()
+    valid_teams: Final = (team for team in (_validated_team_row(row) for row in rows) if team is not None)
     return frozenset(
         team.team_id
-        for team in (LiteLLM_TeamTable.model_validate(row.model_dump()) for row in rows)
+        for team in valid_teams
         if _is_user_team_admin(user_api_key_dict=user_api_key_dict, team_obj=team)
     )
 

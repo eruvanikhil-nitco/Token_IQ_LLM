@@ -74,3 +74,30 @@ async def test_an_admin_needs_no_team_lookup():
 
     assert await teams_user_administers(admin, prisma) == frozenset()
     prisma.db.litellm_teamtable.find_many.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_a_malformed_team_row_is_skipped_not_fatal():
+    """One bad row must not deny every team admin access to every credential."""
+    caller = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
+    rows = [
+        MagicMock(model_dump=lambda: {"team_id": None, "members_with_roles": []}),
+        MagicMock(model_dump=lambda: {"team_id": "team-a", "members_with_roles": [Member(user_id="lead", role="admin").model_dump()]}),
+    ]
+    prisma = MagicMock()
+    prisma.db.litellm_teamtable.find_many = AsyncMock(return_value=rows)
+
+    assert await teams_user_administers(caller, prisma) == frozenset({"team-a"})
+
+
+@pytest.mark.asyncio
+async def test_every_row_malformed_yields_an_empty_set_not_an_exception():
+    caller = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
+    rows = [
+        MagicMock(model_dump=lambda: {"team_id": None, "members_with_roles": []}),
+        MagicMock(model_dump=lambda: {"team_id": "team-b", "members_with_roles": [{"user_id": "lead", "role": "owner"}]}),
+    ]
+    prisma = MagicMock()
+    prisma.db.litellm_teamtable.find_many = AsyncMock(return_value=rows)
+
+    assert await teams_user_administers(caller, prisma) == frozenset()
