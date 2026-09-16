@@ -133,12 +133,13 @@ const AddModelForm: React.FC<AddModelFormProps> = ({
 
   const credentialOptions: SearchSelectOption[] = useMemo(
     () =>
-      attachableCredentials(credentials, { isProxyAdmin: all_admin_roles.includes(userRole), teamId: selectedTeamId }).map(
-        (credential) => ({
-          label: credential.credential_name,
-          value: credential.credential_name,
-        }),
-      ),
+      attachableCredentials(credentials, {
+        isProxyAdmin: all_admin_roles.includes(userRole),
+        teamId: selectedTeamId,
+      }).map((credential) => ({
+        label: credential.credential_name,
+        value: credential.credential_name,
+      })),
     [credentials, userRole, selectedTeamId],
   );
 
@@ -289,7 +290,9 @@ const AddModelForm: React.FC<AddModelFormProps> = ({
 
                       {/* Credentials */}
                       <div className="mb-4">
-                        <span className="text-sm text-muted-foreground">Choose a saved credential for this provider.</span>
+                        <span className="text-sm text-muted-foreground">
+                          Choose a saved credential for this provider.
+                        </span>
                       </div>
 
                       <MountedFormField

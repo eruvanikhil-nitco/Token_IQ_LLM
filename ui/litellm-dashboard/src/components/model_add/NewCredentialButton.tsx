@@ -50,9 +50,7 @@ export default function NewCredentialButton({ teamId, onCreated }: NewCredential
         <Plus className="size-4" />
         New credential
       </Button>
-      {isOpen && (
-        <CredentialModal mode="add" open={isOpen} onCancel={() => setIsOpen(false)} onSubmit={handleSubmit} />
-      )}
+      {isOpen && <CredentialModal mode="add" open={isOpen} onCancel={() => setIsOpen(false)} onSubmit={handleSubmit} />}
     </>
   );
 }

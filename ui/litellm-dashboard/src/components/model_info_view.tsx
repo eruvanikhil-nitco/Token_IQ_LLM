@@ -296,7 +296,8 @@ export default function ModelInfoView({
       updateModel: (update) => modelPatchUpdateCall(accessToken, update, modelId),
     });
 
-    if (result.status === "credential_failed") return toast.fromError("Failed to store credential. Nothing was changed.");
+    if (result.status === "credential_failed")
+      return toast.fromError("Failed to store credential. Nothing was changed.");
     if (result.status === "model_update_failed")
       return toast.warning(
         `The key is saved as credential "${values.credential_name}", but the model update failed. Run the action again to finish attaching it.`,
