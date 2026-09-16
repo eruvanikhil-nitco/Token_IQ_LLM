@@ -434,7 +434,7 @@ describe("ModelInfoView", () => {
     await waitFor(() => expect(mockCredentialCreateCall).toHaveBeenCalled());
     await waitFor(() =>
       expect(mockToast.warning).toHaveBeenCalledWith(
-        expect.stringContaining('Credential "openai-prod" was saved, but the model update failed'),
+        'The key is saved as credential "openai-prod", but the model update failed. Run the action again to finish attaching it.',
       ),
     );
   });

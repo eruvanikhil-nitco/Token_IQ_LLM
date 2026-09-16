@@ -99,6 +99,8 @@ async def create_credential(
     Stores credential in DB.
     Reloads credentials in memory.
     """
+    from prisma.errors import UniqueViolationError
+
     from litellm.proxy.proxy_server import llm_router, prisma_client
 
     try:
@@ -159,13 +161,19 @@ async def create_credential(
         credentials_dict_jsonified: Final = cast(  # cast-ok: deep-copies a model_dump, so keys are str
             "dict[str, object]", jsonify_object(credentials_dict)
         )
-        await CredentialsRepository(prisma_client).create(
-            data={
-                **credentials_dict_jsonified,
-                "created_by": user_api_key_dict.user_id,
-                "updated_by": user_api_key_dict.user_id,
-            }
-        )
+        try:
+            await CredentialsRepository(prisma_client).create(
+                data={
+                    **credentials_dict_jsonified,
+                    "created_by": user_api_key_dict.user_id,
+                    "updated_by": user_api_key_dict.user_id,
+                }
+            )
+        except UniqueViolationError:
+            raise HTTPException(
+                status_code=409,
+                detail=f"A credential named {credential.credential_name} already exists.",
+            )
 
         ## ADD TO LITELLM ##
         CredentialAccessor.upsert_credentials([processed_credential])

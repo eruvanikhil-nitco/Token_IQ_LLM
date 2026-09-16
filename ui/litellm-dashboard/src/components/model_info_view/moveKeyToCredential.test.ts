@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { ApiError } from "@/lib/http/client";
 import { applyMoveKeyUpdate, buildMoveKeyRequests, moveKeyToCredential } from "./moveKeyToCredential";
 
 describe("buildMoveKeyRequests", () => {
@@ -86,6 +87,33 @@ describe("moveKeyToCredential", () => {
 
   it("reports credential_failed and never attempts the model update when the credential save rejects", async () => {
     const createCredential = vi.fn().mockRejectedValue(new Error("network error"));
+    const updateModel = vi.fn().mockResolvedValue({});
+
+    const result = await moveKeyToCredential({ ...baseInput, createCredential, updateModel });
+
+    expect(result).toEqual({ status: "credential_failed" });
+    expect(updateModel).not.toHaveBeenCalled();
+  });
+
+  it("finishes the move when an earlier attempt already stored the credential of that name", async () => {
+    const createCredential = vi
+      .fn()
+      .mockRejectedValue(new ApiError("A credential named openai-prod already exists.", 409, {}));
+    const updateModel = vi.fn().mockResolvedValue({});
+
+    const result = await moveKeyToCredential({ ...baseInput, createCredential, updateModel });
+
+    expect(updateModel).toHaveBeenCalledWith({
+      litellm_params: { litellm_credential_name: "openai-prod", api_key: null },
+    });
+    expect(result).toEqual({
+      status: "success",
+      litellmParams: { model: "gpt-4o", litellm_credential_name: "openai-prod" },
+    });
+  });
+
+  it("still reports credential_failed when the credential is refused for a reason other than its name", async () => {
+    const createCredential = vi.fn().mockRejectedValue(new ApiError("Only a proxy admin may store this", 403, {}));
     const updateModel = vi.fn().mockResolvedValue({});
 
     const result = await moveKeyToCredential({ ...baseInput, createCredential, updateModel });

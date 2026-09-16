@@ -147,6 +147,35 @@ def test_creating_a_billing_credential_with_an_admin_key_is_stored():
     repository.return_value.create.assert_awaited_once()
 
 
+def test_creating_a_credential_whose_name_is_already_taken_answers_409():
+    """The dashboard's move-key action retries against this status to finish a move whose
+    credential was already stored, so the duplicate has to be distinguishable from a 500."""
+    from prisma.errors import UniqueViolationError
+
+    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()), patch(
+        "litellm.proxy.proxy_server.master_key", "sk-test-master"
+    ), patch("litellm.proxy.credential_endpoints.endpoints.CredentialsRepository") as repository, patch(
+        "litellm.proxy.credential_endpoints.endpoints.CredentialAccessor.upsert_credentials"
+    ) as upsert:
+        repository.return_value.create = AsyncMock(
+            side_effect=UniqueViolationError({}, message="Unique constraint failed")
+        )
+
+        response = _as_admin_request(
+            "POST",
+            "/credentials",
+            {
+                "credential_name": "taken",
+                "credential_values": {"api_key": "sk-test-not-real"},
+                "credential_info": {"custom_llm_provider": "openai"},
+            },
+        )
+
+    assert response.status_code == 409, response.text
+    assert "taken" in response.json()["error"]["message"]
+    upsert.assert_not_called()
+
+
 def test_updating_a_billing_credential_with_an_ordinary_key_is_refused():
     stored = CredentialItem(
         credential_name="openai-billing",

@@ -62,10 +62,17 @@ export interface MoveKeyToCredentialInput {
   updateModel: (update: { litellm_params: Record<string, unknown> }) => Promise<unknown>;
 }
 
+// /credentials answers 409 and nothing else when the name is taken, so this is the one
+// rejection that means the key is already stored rather than lost.
+const isNameAlreadyStored = (error: unknown): boolean =>
+  typeof error === "object" && error !== null && (error as { status?: unknown }).status === 409;
+
 // Two calls, two ways to fail partway through: the credential never gets created, or it does
 // but the model never picks it up. The caller decides how to tell the admin about each; this
 // function only decides which one happened, and never rolls the credential back on the second
-// failure, since the typed key is already safely stored under that name either way.
+// failure, since the typed key is already safely stored under that name either way. Running the
+// action again after that second failure is how the admin finishes the move, so a credential
+// that already exists under the name counts as stored and the model update goes ahead.
 export const moveKeyToCredential = async (input: MoveKeyToCredentialInput): Promise<MoveKeyResult> => {
   const { modelId, credentialName, provider, litellmParams, createCredential, updateModel } = input;
   const { credential, modelUpdate } = buildMoveKeyRequests(modelId, credentialName, provider, litellmParams);
@@ -73,8 +80,10 @@ export const moveKeyToCredential = async (input: MoveKeyToCredentialInput): Prom
   try {
     await createCredential(credential);
   } catch (error) {
-    console.error("Error storing credential:", error);
-    return { status: "credential_failed" };
+    if (!isNameAlreadyStored(error)) {
+      console.error("Error storing credential:", error);
+      return { status: "credential_failed" };
+    }
   }
 
   try {
