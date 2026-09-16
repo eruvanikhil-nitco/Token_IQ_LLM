@@ -52,6 +52,25 @@ class BillingCredential:
     values: Mapping[str, str]
 
 
+SyncOutcome = Literal["fetched", "not_configured", "failed"]
+"""fetched: the provider answered and whatever it returned was stored.
+not_configured: the credential cannot be used, for example it carries no api_key.
+failed: the provider refused, rate limited, or the connector raised."""
+
+
+@dataclass(frozen=True, slots=True)
+class ProviderSyncRun:
+    provider: str
+    credential_name: str
+    started_at: datetime
+    finished_at: datetime
+    outcome: SyncOutcome
+    facts_written: int
+    window_start: datetime
+    window_end: datetime
+    detail: str | None = None
+
+
 @dataclass(frozen=True, slots=True)
 class Fetched:
     facts: tuple[ProviderUsageFact, ...]

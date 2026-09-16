@@ -71,6 +71,24 @@ model LiteLLM_ProviderUsageFact {
     @@index([credential_name, bucket_start])
 }
 
+// One record per provider fetch attempt, per account. Sync History reads it, and the
+// newest row per account decides whether that connection is healthy or needs attention.
+model LiteLLM_ProviderSyncRun {
+    id              String   @id @default(uuid())
+    provider        String
+    credential_name String
+    started_at      DateTime
+    finished_at     DateTime
+    outcome         String   // fetched | not_configured | failed
+    facts_written   Int      @default(0)
+    window_start    DateTime
+    window_end      DateTime
+    detail          String?
+
+    @@index([provider, started_at])
+    @@index([credential_name, started_at])
+}
+
 // Models on proxy
 model LiteLLM_ProxyModelTable {
   model_id String @id @default(uuid())
