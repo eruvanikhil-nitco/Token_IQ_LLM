@@ -21,6 +21,7 @@ from typing import TYPE_CHECKING, Annotated, Final, Literal, Protocol, cast
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
+import litellm
 from litellm._logging import verbose_proxy_logger
 from litellm._uuid import uuid
 from litellm.constants import LITELLM_PROXY_ADMIN_NAME
@@ -230,8 +231,49 @@ async def get_db_model(model_id: str, prisma_client: PrismaClient) -> Deployment
     return deployment_pydantic_obj
 
 
+def _is_unchanged_credential_name(
+    litellm_params: GenericLiteLLMParams | None,
+    existing_litellm_params: GenericLiteLLMParams | None,
+) -> bool:
+    """Whether litellm_params names the same credential existing_litellm_params already has --
+    the existing name is encrypted at rest, so it must be decrypted before comparing."""
+    if litellm_params is None or litellm_params.litellm_credential_name is None:
+        return False
+    if existing_litellm_params is None or existing_litellm_params.litellm_credential_name is None:
+        return False
+    existing_credential_name: Final = decrypt_value_helper(
+        value=existing_litellm_params.litellm_credential_name,
+        key="litellm_credential_name",
+        exception_type="debug",
+        return_original_value=True,
+    )
+    return litellm_params.litellm_credential_name == existing_credential_name
+
+
+def _credential_info_from_memory(credential_name: str) -> Mapping[str, object] | None:
+    """The named credential's `credential_info` from the in-memory list the router already
+    holds -- no database round trip, so re-checking an unchanged name never costs a query."""
+    for credential in litellm.credential_list:
+        if credential.credential_name == credential_name:
+            return credential.credential_info
+    return None
+
+
+def _billing_credential_attach_refusal(credential_name: str) -> ProxyException:
+    return ProxyException(
+        message=(
+            f"Credential {credential_name} is a billing credential and cannot serve models. "
+            "Use a model access credential."
+        ),
+        type=ProxyErrorTypes.auth_error.value,
+        code=status.HTTP_403_FORBIDDEN,
+        param="litellm_credential_name",
+    )
+
+
 async def _credential_info_for_attach(
     litellm_params: GenericLiteLLMParams | None,
+    existing_litellm_params: GenericLiteLLMParams | None,
     user_api_key_dict: UserAPIKeyAuth,
     model_team_id: str | None,
     prisma_client: PrismaClient,
@@ -239,8 +281,12 @@ async def _credential_info_for_attach(
     """The named credential's `credential_info`, looked up only when the attach decision can
     turn on it: a proxy admin still needs it to catch a billing credential, and a team model
     needs it to compare ownership. A non-admin request against a non-team model is refused
-    either way, so it skips the database round trip."""
+    either way, so it skips the database round trip. An unchanged name is judged from the
+    in-memory list instead (see `can_user_attach_credential`), so it is never looked up here --
+    that keeps a save that doesn't touch the credential working even if the row was deleted."""
     if litellm_params is None or litellm_params.litellm_credential_name is None:
+        return None
+    if _is_unchanged_credential_name(litellm_params, existing_litellm_params):
         return None
     if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN and model_team_id is None:
         return None
@@ -729,11 +775,19 @@ async def patch_model(
                 param=None,
             )
 
+        patch_model_team_id: Final = db_model.model_info.team_id if db_model.model_info is not None else None
+        patch_model_team_obj: Final = (
+            await ModelManagementAuthChecks._team_row(team_id=patch_model_team_id, prisma_client=prisma_client)
+            if patch_model_team_id is not None
+            else None
+        )
+
         await ModelManagementAuthChecks.can_user_make_model_call(
             model_params=db_model,
             user_api_key_dict=user_api_key_dict,
             prisma_client=prisma_client,
             premium_user=premium_user,
+            team_obj=patch_model_team_obj,
         )
 
         # Pause/resume (`blocked`) is a proxy-admin-only privilege. Team admins
@@ -747,18 +801,19 @@ async def patch_model(
                 param="blocked",
             )
 
-        patch_model_team_id: Final = db_model.model_info.team_id if db_model.model_info is not None else None
         ModelManagementAuthChecks.can_user_attach_credential(
             litellm_params=patch_data.litellm_params,
             user_api_key_dict=user_api_key_dict,
             existing_litellm_params=db_model.litellm_params,
             credential_info=await _credential_info_for_attach(
                 litellm_params=patch_data.litellm_params,
+                existing_litellm_params=db_model.litellm_params,
                 user_api_key_dict=user_api_key_dict,
                 model_team_id=patch_model_team_id,
                 prisma_client=prisma_client,
             ),
             model_team_id=patch_model_team_id,
+            team_obj=patch_model_team_obj,
         )
 
         _raise_on_strategy_router_write_violation(
@@ -1532,35 +1587,31 @@ class ModelManagementAuthChecks:
         *,
         credential_info: Mapping[str, object] | None = None,
         model_team_id: str | None = None,
+        team_obj: LiteLLM_TeamTable | None = None,
     ) -> Literal[True]:
         if litellm_params is None or litellm_params.litellm_credential_name is None:
             return True
-        if existing_litellm_params is not None and existing_litellm_params.litellm_credential_name is not None:
-            existing_credential_name: Final = decrypt_value_helper(
-                value=existing_litellm_params.litellm_credential_name,
-                key="litellm_credential_name",
-                exception_type="debug",
-                return_original_value=True,
-            )
-            if litellm_params.litellm_credential_name == existing_credential_name:
-                return True
+        if _is_unchanged_credential_name(litellm_params, existing_litellm_params):
+            # An unchanged name needs no fresh grant, but the credential could have been
+            # repurposed for billing since it was attached -- re-check that, from the
+            # in-memory list so this never costs a database query.
+            if is_billing_credential(_credential_info_from_memory(litellm_params.litellm_credential_name)):
+                raise _billing_credential_attach_refusal(litellm_params.litellm_credential_name)
+            return True
         if is_billing_credential(credential_info):
-            raise ProxyException(
-                message=(
-                    f"Credential {litellm_params.litellm_credential_name} is a billing credential and cannot "
-                    "serve models. Use a model access credential."
-                ),
-                type=ProxyErrorTypes.auth_error.value,
-                code=status.HTTP_403_FORBIDDEN,
-                param="litellm_credential_name",
-            )
+            raise _billing_credential_attach_refusal(litellm_params.litellm_credential_name)
         if user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN:
             return True
-        # can_user_make_model_call already proved, against the DB-backed team row, that a
-        # non-admin caller reaching this point administers model_team_id -- so matching the
-        # credential's own team is enough, without a second team-membership lookup here.
+        # Team-admin rights are proved here, not assumed: team_obj is the same DB-backed row
+        # allow_team_model_action/can_user_make_model_call verify team-admin status against,
+        # passed in by the caller so this doesn't cost a second lookup.
         owner: Final = credential_team(credential_info)
-        if owner is not None and owner == model_team_id:
+        if (
+            owner is not None
+            and owner == model_team_id
+            and team_obj is not None
+            and _is_user_team_admin(user_api_key_dict=user_api_key_dict, team_obj=team_obj)
+        ):
             return True
         raise ProxyException(
             message=(
@@ -1608,19 +1659,33 @@ class ModelManagementAuthChecks:
         return True
 
     @staticmethod
+    async def _team_row(team_id: str, prisma_client: PrismaClient) -> LiteLLM_TeamTable | None:
+        """A model's team, as the row a team-admin check can be proved against, or None
+        when the team no longer exists."""
+        team_obj_row: Final = await _repo_team_table(prisma_client).find_unique(where={"team_id": team_id})
+        if team_obj_row is None:
+            return None
+        return LiteLLM_TeamTable.model_validate(team_obj_row.model_dump())
+
+    @staticmethod
     async def can_user_make_model_call(
         model_params: Deployment,
         user_api_key_dict: UserAPIKeyAuth,
         prisma_client: PrismaClient,
         premium_user: bool,
         allow_missing_team: bool = False,
+        team_obj: LiteLLM_TeamTable | None = None,
     ) -> Literal[True]:
         ## Check team model auth
         if model_params.model_info is not None and model_params.model_info.team_id is not None:
-            team_obj_row: Final = await _repo_team_table(prisma_client).find_unique(
-                where={"team_id": model_params.model_info.team_id}
+            resolved_team_obj: Final = (
+                team_obj
+                if team_obj is not None
+                else await ModelManagementAuthChecks._team_row(
+                    team_id=model_params.model_info.team_id, prisma_client=prisma_client
+                )
             )
-            if team_obj_row is None:
+            if resolved_team_obj is None:
                 # The team was deleted. Callers that opt in (e.g. model deletion) may
                 # act on the orphaned model, but only as a proxy admin -- without the
                 # team there is no team-admin membership left to verify.
@@ -1635,12 +1700,11 @@ class ModelManagementAuthChecks:
                     status_code=400,
                     detail={"error": f"Team id={model_params.model_info.team_id} does not exist in db"},
                 )
-            team_obj: Final = LiteLLM_TeamTable.model_validate(team_obj_row.model_dump())
 
             return ModelManagementAuthChecks.can_user_make_team_model_call(
                 team_id=model_params.model_info.team_id,
                 user_api_key_dict=user_api_key_dict,
-                team_obj=team_obj,
+                team_obj=resolved_team_obj,
                 premium_user=premium_user,
             )
         ## Check non-team model auth
@@ -1887,12 +1951,20 @@ async def add_new_model(
                 },
             )
 
+        add_model_team_id: Final = model_params.model_info.team_id
+        add_model_team_obj: Final = (
+            await ModelManagementAuthChecks._team_row(team_id=add_model_team_id, prisma_client=prisma_client)
+            if add_model_team_id is not None
+            else None
+        )
+
         ## Auth check
         await ModelManagementAuthChecks.can_user_make_model_call(
             model_params=model_params,
             user_api_key_dict=user_api_key_dict,
             prisma_client=prisma_client,
             premium_user=premium_user,
+            team_obj=add_model_team_obj,
         )
 
         ModelManagementAuthChecks.can_user_attach_credential(
@@ -1900,11 +1972,13 @@ async def add_new_model(
             user_api_key_dict=user_api_key_dict,
             credential_info=await _credential_info_for_attach(
                 litellm_params=model_params.litellm_params,
+                existing_litellm_params=None,
                 user_api_key_dict=user_api_key_dict,
-                model_team_id=model_params.model_info.team_id,
+                model_team_id=add_model_team_id,
                 prisma_client=prisma_client,
             ),
-            model_team_id=model_params.model_info.team_id,
+            model_team_id=add_model_team_id,
+            team_obj=add_model_team_obj,
         )
 
         _raise_on_strategy_router_write_violation(
@@ -2072,11 +2146,19 @@ async def update_model(
                 raise Exception("model not found")
         deployment: Final = Deployment(**_existing_litellm_params.model_dump())
 
+        update_model_team_id: Final = deployment.model_info.team_id
+        update_model_team_obj: Final = (
+            await ModelManagementAuthChecks._team_row(team_id=update_model_team_id, prisma_client=prisma_client)
+            if update_model_team_id is not None
+            else None
+        )
+
         await ModelManagementAuthChecks.can_user_make_model_call(
             model_params=deployment,
             user_api_key_dict=user_api_key_dict,
             prisma_client=prisma_client,
             premium_user=premium_user,
+            team_obj=update_model_team_obj,
         )
 
         ModelManagementAuthChecks.can_user_attach_credential(
@@ -2085,11 +2167,13 @@ async def update_model(
             existing_litellm_params=deployment.litellm_params,
             credential_info=await _credential_info_for_attach(
                 litellm_params=model_params.litellm_params,
+                existing_litellm_params=deployment.litellm_params,
                 user_api_key_dict=user_api_key_dict,
-                model_team_id=deployment.model_info.team_id,
+                model_team_id=update_model_team_id,
                 prisma_client=prisma_client,
             ),
-            model_team_id=deployment.model_info.team_id,
+            model_team_id=update_model_team_id,
+            team_obj=update_model_team_obj,
         )
 
         _raise_on_strategy_router_write_violation(

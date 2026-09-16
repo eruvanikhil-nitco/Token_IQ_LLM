@@ -7,7 +7,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
+import litellm
 from litellm._uuid import uuid
+from litellm.models.credentials import CredentialItem
 
 from litellm.proxy._types import (
     LiteLLM_ModelTable,
@@ -22,6 +24,7 @@ from litellm.proxy._types import (
 from litellm.proxy.common_utils.encrypt_decrypt_utils import encrypt_value_helper
 from litellm.proxy.management_endpoints.model_management_endpoints import (
     ModelManagementAuthChecks,
+    _credential_info_for_attach,
     _get_team_deployments,
     _raise_if_rate_limits_required_but_missing,
     clear_cache,
@@ -412,6 +415,9 @@ class TestModelManagementAuthChecks:
 
     def test_can_user_attach_credential_allows_a_team_admin_their_own_team_s_credential(self):
         lead = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
+        team_a = LiteLLM_TeamTable(
+            team_id="team-a", team_alias="team-a", members_with_roles=[Member(user_id="lead", role="admin")]
+        )
 
         assert (
             ModelManagementAuthChecks.can_user_attach_credential(
@@ -419,12 +425,17 @@ class TestModelManagementAuthChecks:
                 user_api_key_dict=lead,
                 credential_info={"custom_llm_provider": "openai", "team_id": "team-a"},
                 model_team_id="team-a",
+                team_obj=team_a,
             )
             is True
         )
 
     def test_can_user_attach_credential_refuses_a_team_admin_another_team_s_credential(self):
+        """Proof that lead administers team-a still doesn't help - the credential belongs to team-b."""
         lead = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
+        team_a = LiteLLM_TeamTable(
+            team_id="team-a", team_alias="team-a", members_with_roles=[Member(user_id="lead", role="admin")]
+        )
 
         with pytest.raises(ProxyException):
             ModelManagementAuthChecks.can_user_attach_credential(
@@ -432,6 +443,7 @@ class TestModelManagementAuthChecks:
                 user_api_key_dict=lead,
                 credential_info={"custom_llm_provider": "openai", "team_id": "team-b"},
                 model_team_id="team-a",
+                team_obj=team_a,
             )
 
     def test_can_user_attach_credential_refuses_a_team_credential_on_a_model_of_another_team(self):
@@ -448,6 +460,9 @@ class TestModelManagementAuthChecks:
 
     def test_can_user_attach_credential_still_refuses_a_shared_credential_for_a_team_admin(self):
         lead = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
+        team_a = LiteLLM_TeamTable(
+            team_id="team-a", team_alias="team-a", members_with_roles=[Member(user_id="lead", role="admin")]
+        )
 
         with pytest.raises(ProxyException):
             ModelManagementAuthChecks.can_user_attach_credential(
@@ -455,7 +470,81 @@ class TestModelManagementAuthChecks:
                 user_api_key_dict=lead,
                 credential_info={"custom_llm_provider": "openai"},
                 model_team_id="team-a",
+                team_obj=team_a,
             )
+
+    def test_can_user_attach_credential_refuses_a_team_admin_when_proof_is_absent(self):
+        """Even a perfectly matching owner/model team must be refused if nothing proves the
+        caller administers that team - the credential path must not assume an earlier,
+        unrelated call already checked this."""
+        lead = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
+
+        with pytest.raises(ProxyException):
+            ModelManagementAuthChecks.can_user_attach_credential(
+                litellm_params=GenericLiteLLMParams(litellm_credential_name="team-a-openai"),
+                user_api_key_dict=lead,
+                credential_info={"custom_llm_provider": "openai", "team_id": "team-a"},
+                model_team_id="team-a",
+                team_obj=None,
+            )
+
+    def test_can_user_attach_credential_refuses_a_team_admin_when_proof_is_false(self):
+        """The team object is supplied, but lead isn't actually one of its admins."""
+        lead = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
+        team_a_without_lead = LiteLLM_TeamTable(
+            team_id="team-a", team_alias="team-a", members_with_roles=[Member(user_id="someone-else", role="admin")]
+        )
+
+        with pytest.raises(ProxyException):
+            ModelManagementAuthChecks.can_user_attach_credential(
+                litellm_params=GenericLiteLLMParams(litellm_credential_name="team-a-openai"),
+                user_api_key_dict=lead,
+                credential_info={"custom_llm_provider": "openai", "team_id": "team-a"},
+                model_team_id="team-a",
+                team_obj=team_a_without_lead,
+            )
+
+    @pytest.mark.asyncio
+    async def test_credential_info_for_attach_skips_lookup_for_an_unchanged_name(self):
+        """Regression: editing an unrelated field on a model must not require its untouched
+        credential to still exist in the DB. Before the fix this always looked the name up,
+        so a deleted-but-unchanged credential 400'd a save that never touched it."""
+        mock_prisma = MagicMock()  # any DB access here would raise on await - proving none happens
+
+        result = await _credential_info_for_attach(
+            litellm_params=LiteLLM_Params(model="test_model", litellm_credential_name="shared-credential"),
+            existing_litellm_params=LiteLLM_Params(model="test_model", litellm_credential_name="shared-credential"),
+            user_api_key_dict=self.admin_user,
+            model_team_id=None,
+            prisma_client=mock_prisma,
+        )
+
+        assert result is None
+
+    def test_can_user_attach_credential_refuses_an_unchanged_name_repurposed_for_billing(self, monkeypatch):
+        """Regression: leaving the name alone must not skip re-checking billing status - the
+        credential could have been repurposed for billing after it was first attached."""
+        monkeypatch.setattr(
+            litellm,
+            "credential_list",
+            [
+                CredentialItem(
+                    credential_name="shared-credential",
+                    credential_values={},
+                    credential_info={"purpose": "billing_ingestion", "provider": "anthropic"},
+                )
+            ],
+        )
+
+        with pytest.raises(ProxyException) as exc:
+            ModelManagementAuthChecks.can_user_attach_credential(
+                litellm_params=LiteLLM_Params(model="test_model", litellm_credential_name="shared-credential"),
+                user_api_key_dict=self.admin_user,
+                existing_litellm_params=LiteLLM_Params(model="test_model", litellm_credential_name="shared-credential"),
+            )
+
+        assert exc.value.code == "403"
+        assert "billing" in str(exc.value.message).lower()
 
 
 class MockModelTable:
