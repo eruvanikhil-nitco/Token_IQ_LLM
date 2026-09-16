@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { chooseSelectOption } from "../../../tests/test-utils";
@@ -29,6 +29,7 @@ vi.mock("../networking", async () => {
             label: "API Base",
             field_type: "text",
             placeholder: "https://api.openai.com/v1",
+            default_value: "https://api.openai.com/v1",
           },
         ],
       },
@@ -78,6 +79,23 @@ const renderModal = (props: Partial<React.ComponentProps<typeof CredentialModal>
     </QueryClientProvider>,
   );
 
+// The Provider field starts unselected regardless of the internally preselected provider, so
+// the admin (and this test) must pick OpenAI, the provider with a declared api_base default
+// in the mocked metadata above, before its fields appear. Each option also carries a provider
+// logo whose alt text folds into its accessible name, so match on the label text itself
+// rather than role name to avoid colliding with "OpenAI Text Completion" and friends.
+const chooseProviderWithDefaultApiBase = async () => {
+  const user = userEvent.setup();
+  await user.click(screen.getByLabelText("Provider:"));
+  const options = await screen.findAllByRole("option");
+  const openAiOption = options.find((option) => within(option).queryByText("OpenAI", { exact: true }) !== null);
+  if (!openAiOption) {
+    throw new Error("OpenAI option not found in the provider list");
+  }
+  await user.click(openAiOption);
+  await screen.findByLabelText("API Base");
+};
+
 describe("CredentialModal", () => {
   describe("add mode", () => {
     it("renders the add title and an editable credential name", () => {
@@ -105,7 +123,7 @@ describe("CredentialModal", () => {
       renderModal({ mode: "add" });
 
       const apiBaseInput = (await screen.findByLabelText("API Base")) as HTMLInputElement;
-      expect(apiBaseInput).toHaveValue("");
+      expect(apiBaseInput).toHaveValue("https://api.openai.com/v1");
 
       fireEvent.change(apiBaseInput, { target: { value: "https://custom.example.com/v1" } });
       expect(apiBaseInput).toHaveValue("https://custom.example.com/v1");
@@ -116,7 +134,9 @@ describe("CredentialModal", () => {
       await user.click(screen.getByRole("radio", { name: /Billing access/ }));
       await user.click(screen.getByRole("radio", { name: /Model access/ }));
 
-      expect(await screen.findByLabelText("API Base")).toHaveValue("");
+      // ProviderSpecificFields remounts fresh on this switch, so it reseeds the
+      // provider's declared default rather than keeping the cleared value around.
+      expect(await screen.findByLabelText("API Base")).toHaveValue("https://api.openai.com/v1");
 
       const controlledWarnings = consoleErrorSpy.mock.calls.filter((call) =>
         call.some((arg) => typeof arg === "string" && /controlled input/i.test(arg)),
@@ -124,6 +144,22 @@ describe("CredentialModal", () => {
       expect(controlledWarnings).toHaveLength(0);
 
       consoleErrorSpy.mockRestore();
+    });
+
+    it("saves the provider's declared default when the admin does not change it", async () => {
+      // The default is shown as if it were part of the credential. A payload without it stores a
+      // credential the form implied was complete, and the admin finds out at first use.
+      const onSubmit = vi.fn();
+      renderModal({ onSubmit });
+
+      await chooseProviderWithDefaultApiBase();
+      fireEvent.change(screen.getByLabelText("Credential Name:"), { target: { value: "acct" } });
+      fireEvent.change(screen.getByLabelText("OpenAI API Key"), { target: { value: "sk-test" } });
+      fireEvent.click(screen.getByRole("button", { name: /Add Credential/ }));
+
+      await waitFor(() =>
+        expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ api_base: "https://api.openai.com/v1" })),
+      );
     });
   });
 

@@ -16,6 +16,7 @@ import {
 import { CredentialItem, ProviderCredentialFieldMetadata } from "../networking";
 import { provider_map, Providers } from "../provider_info_helpers";
 import { labelWithHint } from "@/components/shared/form/LabelWithHint";
+import { defaultsToSeed } from "./providerFieldDefaults";
 
 interface ProviderSpecificFieldsProps {
   selectedProvider: Providers;
@@ -200,6 +201,12 @@ const ProviderSpecificFields: React.FC<ProviderSpecificFieldsProps> = ({ selecte
     }
     return mapped;
   }, [selectedProviderEnum, selectedProvider, providerMetadata]);
+
+  React.useEffect(() => {
+    for (const [key, value] of defaultsToSeed(allFields, form.getValues())) {
+      form.setValue(key, value);
+    }
+  }, [allFields, form]);
 
   const hasApiVersionField = React.useMemo(() => allFields.some((field) => field.key === "api_version"), [allFields]);
   const lastInferredApiVersionRef = React.useRef<string | null>(null);
