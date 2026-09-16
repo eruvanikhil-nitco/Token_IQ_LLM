@@ -1,12 +1,17 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from unittest.mock import MagicMock, patch
 
 import pytest
 
+from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 from litellm.types.proxy.provider_billing import BillingCredential, ProviderSyncRun
 
 NOW = datetime(2026, 9, 16, 9, 0, tzinfo=timezone.utc)
+
+ADMIN = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin")
+NON_ADMIN = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-u", user_id="u")
 
 
 def _run(provider: str, credential_name: str, outcome: str, detail: str | None = None) -> ProviderSyncRun:
@@ -107,3 +112,58 @@ async def test_every_connection_says_what_it_fetches():
     assert fetches.grain == "request"
     assert fetches.refresh_seconds == 300
     assert "30 days" in fetches.delay_note
+
+
+@pytest.mark.asyncio
+async def test_only_an_admin_may_read_provider_connections():
+    """This route names every stored billing credential and what it has produced, across
+    every provider in the deployment. A non-admin caller must never reach that data."""
+    from fastapi import HTTPException
+
+    from litellm.proxy.management_endpoints.provider_connections import provider_connections
+
+    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()):
+        with pytest.raises(HTTPException) as exc:
+            await provider_connections(user_api_key_dict=NON_ADMIN)
+
+    assert exc.value.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_provider_connections_without_a_database_answers_500_not_a_crash():
+    from fastapi import HTTPException
+
+    from litellm.proxy.management_endpoints.provider_connections import provider_connections
+
+    with patch("litellm.proxy.proxy_server.prisma_client", None):
+        with pytest.raises(HTTPException) as exc:
+            await provider_connections(user_api_key_dict=ADMIN)
+
+    assert exc.value.status_code == 500
+
+
+@pytest.mark.asyncio
+async def test_only_an_admin_may_read_sync_history():
+    """Sync history exposes which credential was tried and why it failed, per provider."""
+    from fastapi import HTTPException
+
+    from litellm.proxy.management_endpoints.provider_connections import provider_sync_history
+
+    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()):
+        with pytest.raises(HTTPException) as exc:
+            await provider_sync_history(provider="openrouter", limit=50, user_api_key_dict=NON_ADMIN)
+
+    assert exc.value.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_sync_history_without_a_database_answers_500_not_a_crash():
+    from fastapi import HTTPException
+
+    from litellm.proxy.management_endpoints.provider_connections import provider_sync_history
+
+    with patch("litellm.proxy.proxy_server.prisma_client", None):
+        with pytest.raises(HTTPException) as exc:
+            await provider_sync_history(provider="openrouter", limit=50, user_api_key_dict=ADMIN)
+
+    assert exc.value.status_code == 500
