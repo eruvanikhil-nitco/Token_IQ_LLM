@@ -5,6 +5,7 @@ CRUD endpoints for storing reusable credentials.
 from collections.abc import Mapping
 from types import MappingProxyType
 from typing import (
+    Any,
     Final,
     cast,  # noqa: TID251  # jsonify_object in proxy/utils.py is annotated with a bare dict
 )
@@ -16,9 +17,16 @@ from litellm._logging import verbose_proxy_logger
 from litellm.litellm_core_utils.credential_accessor import CredentialAccessor
 from litellm.litellm_core_utils.litellm_logging import _get_masked_values
 from litellm.provider_billing.credential_purpose import billing_credential_problem, is_billing_credential
-from litellm.proxy._types import CommonProxyErrors, UserAPIKeyAuth
+from litellm.proxy._types import CommonProxyErrors, UserAPIKeyAuth, user_api_key_has_admin_view
 from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
 from litellm.proxy.common_utils.encrypt_decrypt_utils import encrypt_value_helper
+from litellm.proxy.credential_endpoints.credential_access import (
+    CREDENTIAL_TEAM_KEY,
+    credential_team,
+    may_change_credential,
+    may_read_credential,
+    teams_user_administers,
+)
 from litellm.proxy.utils import handle_exception_on_proxy, jsonify_object
 from litellm.repositories.credentials_repository import CredentialsRepository
 from litellm.types.utils import CreateCredentialItem, CredentialItem
@@ -55,6 +63,24 @@ def _refuse_unfit_billing_credential(
     problem: Final = billing_credential_problem(credential_info, credential_values, require_keys=require_keys)
     if problem is not None:
         raise HTTPException(status_code=400, detail=problem)
+
+
+async def _caller_scope(
+    user_api_key_dict: UserAPIKeyAuth,
+    prisma_client: Any,  # any-ok: PrismaClient is an untyped runtime wrapper
+) -> tuple[bool, frozenset[str]]:
+    """Whether the caller is an admin, and which teams they administer."""
+    is_admin: Final = user_api_key_has_admin_view(user_api_key_dict)
+    if is_admin:
+        return True, frozenset()
+    return False, await teams_user_administers(user_api_key_dict, prisma_client)
+
+
+def _prisma_or_none() -> Any:  # any-ok: PrismaClient is an untyped runtime wrapper
+    """The proxy's prisma client, or None when the database is not connected."""
+    from litellm.proxy.proxy_server import prisma_client
+
+    return prisma_client
 
 
 @router.post(
@@ -102,10 +128,30 @@ async def create_credential(
                 detail="Credential values are required. Unable to infer credential values from model ID.",
             )
         _refuse_unfit_billing_credential(credential.credential_info, credential.credential_values, require_keys=True)
+        is_admin, administered_teams = await _caller_scope(user_api_key_dict, prisma_client)
+        requested_team: Final = credential_team(credential.credential_info)
+        if not is_admin and not administered_teams:
+            raise HTTPException(
+                status_code=403,
+                detail="Only a proxy admin or a team admin can store a credential.",
+            )
+        if not is_admin and requested_team is not None and requested_team not in administered_teams:
+            raise HTTPException(
+                status_code=403,
+                detail=f"You do not administer team {requested_team}, so you cannot store a credential for it.",
+            )
+        # A team admin's credential is stamped with their team so the list can scope it to
+        # them; an admin's request keeps whatever team_id (or none) it already carries.
+        owning_team: Final = None if is_admin else (requested_team or sorted(administered_teams)[0])
+        credential_info: Final = (
+            credential.credential_info
+            if owning_team is None
+            else MappingProxyType({**credential.credential_info, CREDENTIAL_TEAM_KEY: owning_team})
+        )
         processed_credential: Final = CredentialItem(
             credential_name=credential.credential_name,
             credential_values=credential.credential_values,
-            credential_info=credential.credential_info,
+            credential_info=credential_info,
         )
         encrypted_credential: Final = CredentialHelperUtils.encrypt_credential_values(processed_credential)
         credentials_dict: Final = encrypted_credential.model_dump()
@@ -143,6 +189,7 @@ async def get_credentials(
     [BETA] endpoint. This might change unexpectedly.
     """
     try:
+        is_admin, administered_teams = await _caller_scope(user_api_key_dict, _prisma_or_none())
         masked_credentials: Final = [
             {
                 "credential_name": credential.credential_name,
@@ -152,6 +199,9 @@ async def get_credentials(
                 "credential_info": credential.credential_info,
             }
             for credential in litellm.credential_list
+            if may_read_credential(
+                credential.credential_info, is_admin=is_admin, administered_teams=administered_teams
+            )
         ]
         return {"success": True, "credentials": masked_credentials}
     except Exception as e:
@@ -173,9 +223,19 @@ async def get_credential_by_name(
     """
     [BETA] endpoint. This might change unexpectedly.
     """
+    from litellm.proxy.proxy_server import prisma_client
+
     try:
         for credential in litellm.credential_list:
             if credential.credential_name == credential_name:
+                is_admin, administered_teams = await _caller_scope(user_api_key_dict, prisma_client)
+                if not may_read_credential(
+                    credential.credential_info, is_admin=is_admin, administered_teams=administered_teams
+                ):
+                    raise HTTPException(
+                        status_code=403,
+                        detail="You do not administer the team that owns this credential.",
+                    )
                 masked_credential = CredentialItem(
                     credential_name=credential.credential_name,
                     credential_values=_NO_CREDENTIAL_VALUES
@@ -261,13 +321,25 @@ async def delete_credential(
                 status_code=500,
                 detail={"error": CommonProxyErrors.db_not_connected_error.value},
             )
-        await CredentialsRepository(prisma_client).delete_by_name(credential_name)
+        credentials_repository: Final = CredentialsRepository(prisma_client)
+        db_credential: Final = await credentials_repository.find_by_name(credential_name)
+        if db_credential is None:
+            raise HTTPException(status_code=404, detail="Credential not found in DB.")
+        is_admin, administered_teams = await _caller_scope(user_api_key_dict, prisma_client)
+        if not may_change_credential(
+            db_credential.credential_info, is_admin=is_admin, administered_teams=administered_teams
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail="You do not administer the team that owns this credential.",
+            )
+        await credentials_repository.delete_by_name(credential_name)
 
         ## DELETE FROM LITELLM ##
         litellm.credential_list = [cred for cred in litellm.credential_list if cred.credential_name != credential_name]
         return {"success": True, "message": "Credential deleted successfully"}
     except Exception as e:
-        return handle_exception_on_proxy(e)
+        raise handle_exception_on_proxy(e)
 
 
 def update_db_credential(
@@ -306,6 +378,20 @@ def _refuse_purpose_or_provider_change(stored_info: Mapping[str, object], patche
         )
 
 
+def _refuse_team_reassignment(
+    patched_info: Mapping[str, object], *, is_admin: bool, administered_teams: frozenset[str]
+) -> None:
+    """A team admin may not move a credential into a team they do not administer."""
+    if is_admin:
+        return
+    new_team: Final = credential_team(patched_info)
+    if new_team is not None and new_team not in administered_teams:
+        raise HTTPException(
+            status_code=403,
+            detail=f"You do not administer team {new_team}, so you cannot move a credential there.",
+        )
+
+
 @router.patch(
     "/credentials/{credential_name:path}",
     dependencies=[Depends(user_api_key_auth)],
@@ -333,7 +419,16 @@ async def update_credential(
         db_credential: Final = await credentials_repository.find_by_name(credential_name)
         if db_credential is None:
             raise HTTPException(status_code=404, detail="Credential not found in DB.")
+        is_admin, administered_teams = await _caller_scope(user_api_key_dict, prisma_client)
+        if not may_change_credential(
+            db_credential.credential_info, is_admin=is_admin, administered_teams=administered_teams
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail="You do not administer the team that owns this credential.",
+            )
         merged_info: Final = MappingProxyType({**db_credential.credential_info, **credential.credential_info})
+        _refuse_team_reassignment(merged_info, is_admin=is_admin, administered_teams=administered_teams)
         _refuse_purpose_or_provider_change(db_credential.credential_info, merged_info)
         _refuse_unfit_billing_credential(merged_info, credential.credential_values, require_keys=False)
         merged_credential: Final = update_db_credential(db_credential, credential)

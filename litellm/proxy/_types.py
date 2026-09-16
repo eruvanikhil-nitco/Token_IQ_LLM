@@ -871,6 +871,12 @@ class LiteLLMRoutes(enum.Enum):
         # Agent registry - reads are role-scoped and writes are proxy-admin-gated
         # inside agent_endpoints/endpoints.py
         *agent_management_routes,
+        # Credential routes - the endpoints scope every read and write to the
+        # teams the caller administers, and a non-admin who administers no team
+        # is refused there.
+        "/credentials",
+        "/credentials/by_name/{credential_name}",
+        "/credentials/{credential_name}",
     ]  # routes that manage their own allowed/disallowed logic
 
     ## Org Admin Routes ##

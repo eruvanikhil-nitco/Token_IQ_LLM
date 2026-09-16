@@ -1,11 +1,12 @@
 """Tests for the credential management endpoints."""
 
+import json
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
 
-from litellm.proxy._types import UserAPIKeyAuth
+from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
 from litellm.proxy.proxy_server import app
 from litellm.types.utils import CredentialItem
@@ -297,3 +298,221 @@ def test_listing_credentials_never_returns_any_part_of_a_billing_key():
     assert by_name.status_code == 200, by_name.text
     assert by_name.json()["credential_values"] == {}
     assert "sk-ant-admin" not in listed.text + by_name.text
+
+
+TEAM_ADMIN = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-lead", user_id="lead")
+
+
+def _as_team_admin_request(method: str, path: str, body: dict | None = None):
+    missing = object()
+    previous_override = app.dependency_overrides.get(user_api_key_auth, missing)
+    app.dependency_overrides[user_api_key_auth] = lambda: TEAM_ADMIN
+    try:
+        return client.request(method, path, json=body, headers={"Authorization": "Bearer sk-lead"})
+    finally:
+        if previous_override is missing:
+            app.dependency_overrides.pop(user_api_key_auth, None)
+        else:
+            app.dependency_overrides[user_api_key_auth] = previous_override
+
+
+def test_a_team_admin_creating_a_credential_gets_their_team_recorded_on_it():
+    """Condition 2 of the spec: a team admin's credential belongs to their team, so the
+    list can show them only their own."""
+    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()), patch(
+        "litellm.proxy.proxy_server.master_key", "sk-test-master"
+    ), patch("litellm.proxy.credential_endpoints.endpoints.CredentialsRepository") as repository, patch(
+        "litellm.proxy.credential_endpoints.endpoints.teams_user_administers",
+        AsyncMock(return_value=frozenset({"team-a"})),
+    ), patch("litellm.proxy.credential_endpoints.endpoints.CredentialAccessor.upsert_credentials"):
+        repository.return_value.create = AsyncMock(return_value=None)
+
+        response = _as_team_admin_request(
+            "POST",
+            "/credentials",
+            {
+                "credential_name": "team-a-openai",
+                "credential_values": {"api_key": "sk-test-not-real"},
+                "credential_info": {"custom_llm_provider": "openai"},
+            },
+        )
+
+    assert response.status_code == 200, response.text
+    written = repository.return_value.create.await_args.kwargs["data"]
+    info = written["credential_info"]
+    assert (json.loads(info) if isinstance(info, str) else info)["team_id"] == "team-a"
+
+
+def test_a_team_admin_who_administers_no_team_cannot_create_a_credential():
+    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()), patch(
+        "litellm.proxy.credential_endpoints.endpoints.CredentialsRepository"
+    ) as repository, patch(
+        "litellm.proxy.credential_endpoints.endpoints.teams_user_administers",
+        AsyncMock(return_value=frozenset()),
+    ):
+        repository.return_value.create = AsyncMock(return_value=None)
+
+        response = _as_team_admin_request(
+            "POST",
+            "/credentials",
+            {
+                "credential_name": "nope",
+                "credential_values": {"api_key": "sk-test-not-real"},
+                "credential_info": {"custom_llm_provider": "openai"},
+            },
+        )
+
+    assert response.status_code == 403, response.text
+    repository.return_value.create.assert_not_awaited()
+
+
+def test_a_team_admin_cannot_put_a_credential_in_another_team():
+    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()), patch(
+        "litellm.proxy.credential_endpoints.endpoints.CredentialsRepository"
+    ) as repository, patch(
+        "litellm.proxy.credential_endpoints.endpoints.teams_user_administers",
+        AsyncMock(return_value=frozenset({"team-a"})),
+    ):
+        repository.return_value.create = AsyncMock(return_value=None)
+
+        response = _as_team_admin_request(
+            "POST",
+            "/credentials",
+            {
+                "credential_name": "sneaky",
+                "credential_values": {"api_key": "sk-test-not-real"},
+                "credential_info": {"custom_llm_provider": "openai", "team_id": "team-b"},
+            },
+        )
+
+    assert response.status_code == 403, response.text
+    repository.return_value.create.assert_not_awaited()
+
+
+def test_the_list_shows_a_team_admin_only_their_own_and_the_shared_credentials():
+    import litellm
+
+    mine = CredentialItem(
+        credential_name="team-a-openai",
+        credential_values={"api_key": "sk-test-not-real"},
+        credential_info={"custom_llm_provider": "openai", "team_id": "team-a"},
+    )
+    theirs = CredentialItem(
+        credential_name="team-b-openai",
+        credential_values={"api_key": "sk-test-not-real"},
+        credential_info={"custom_llm_provider": "openai", "team_id": "team-b"},
+    )
+    shared = CredentialItem(
+        credential_name="shared-openai",
+        credential_values={"api_key": "sk-test-not-real"},
+        credential_info={"custom_llm_provider": "openai"},
+    )
+    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()), patch.object(
+        litellm, "credential_list", [mine, theirs, shared]
+    ), patch(
+        "litellm.proxy.credential_endpoints.endpoints.teams_user_administers",
+        AsyncMock(return_value=frozenset({"team-a"})),
+    ):
+        response = _as_team_admin_request("GET", "/credentials")
+
+    assert response.status_code == 200, response.text
+    names = {row["credential_name"] for row in response.json()["credentials"]}
+    assert names == {"team-a-openai", "shared-openai"}
+
+
+def test_a_team_admin_cannot_read_another_team_s_credential_by_name():
+    import litellm
+
+    theirs = CredentialItem(
+        credential_name="team-b-openai",
+        credential_values={"api_key": "sk-test-not-real"},
+        credential_info={"custom_llm_provider": "openai", "team_id": "team-b"},
+    )
+    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()), patch.object(
+        litellm, "credential_list", [theirs]
+    ), patch(
+        "litellm.proxy.credential_endpoints.endpoints.teams_user_administers",
+        AsyncMock(return_value=frozenset({"team-a"})),
+    ):
+        response = _as_team_admin_request("GET", "/credentials/by_name/team-b-openai")
+
+    assert response.status_code == 403, response.text
+
+
+def test_a_team_admin_cannot_change_a_shared_credential():
+    """A shared credential serves teams they do not run."""
+    stored = CredentialItem(
+        credential_name="shared-openai",
+        credential_values={"api_key": "sk-test-not-real"},
+        credential_info={"custom_llm_provider": "openai"},
+    )
+    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()), patch(
+        "litellm.proxy.credential_endpoints.endpoints.CredentialsRepository"
+    ) as repository, patch(
+        "litellm.proxy.credential_endpoints.endpoints.teams_user_administers",
+        AsyncMock(return_value=frozenset({"team-a"})),
+    ):
+        repository.return_value.find_by_name = AsyncMock(return_value=stored)
+        repository.return_value.update_by_name = AsyncMock(return_value=None)
+        repository.return_value.delete_by_name = AsyncMock(return_value=None)
+
+        patched = _as_team_admin_request(
+            "PATCH",
+            "/credentials/shared-openai",
+            {"credential_name": "shared-openai", "credential_values": {"api_key": "sk-test-not-real-2"}, "credential_info": {}},
+        )
+        deleted = _as_team_admin_request("DELETE", "/credentials/shared-openai")
+
+    assert patched.status_code == 403, patched.text
+    assert deleted.status_code == 403, deleted.text
+    repository.return_value.update_by_name.assert_not_awaited()
+    repository.return_value.delete_by_name.assert_not_awaited()
+
+
+def test_a_team_admin_may_change_their_own_team_s_credential():
+    stored = CredentialItem(
+        credential_name="team-a-openai",
+        credential_values={"api_key": "sk-test-not-real"},
+        credential_info={"custom_llm_provider": "openai", "team_id": "team-a"},
+    )
+    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()), patch(
+        "litellm.proxy.proxy_server.master_key", "sk-test-master"
+    ), patch("litellm.proxy.credential_endpoints.endpoints.CredentialsRepository") as repository, patch(
+        "litellm.proxy.credential_endpoints.endpoints.teams_user_administers",
+        AsyncMock(return_value=frozenset({"team-a"})),
+    ):
+        repository.return_value.find_by_name = AsyncMock(return_value=stored)
+        repository.return_value.update_by_name = AsyncMock(return_value=None)
+
+        response = _as_team_admin_request(
+            "PATCH",
+            "/credentials/team-a-openai",
+            {"credential_name": "team-a-openai", "credential_values": {"api_key": "sk-test-not-real-2"}, "credential_info": {}},
+        )
+
+    assert response.status_code == 200, response.text
+    repository.return_value.update_by_name.assert_awaited_once()
+
+
+def test_a_credential_with_connection_details_and_no_secret_is_accepted():
+    """Condition 3 of the spec: Bedrock and Vertex on cloud permissions, and a local
+    Ollama, carry a base URL or a region but no key."""
+    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()), patch(
+        "litellm.proxy.proxy_server.master_key", "sk-test-master"
+    ), patch("litellm.proxy.credential_endpoints.endpoints.CredentialsRepository") as repository, patch(
+        "litellm.proxy.credential_endpoints.endpoints.CredentialAccessor.upsert_credentials"
+    ):
+        repository.return_value.create = AsyncMock(return_value=None)
+
+        response = _as_admin_request(
+            "POST",
+            "/credentials",
+            {
+                "credential_name": "local-ollama",
+                "credential_values": {"api_base": "http://localhost:11434"},
+                "credential_info": {"custom_llm_provider": "ollama"},
+            },
+        )
+
+    assert response.status_code == 200, response.text
+    repository.return_value.create.assert_awaited_once()
