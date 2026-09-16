@@ -2737,6 +2737,15 @@ export const credentialCreateCall = async (
   }
 };
 
+export const providerConnectionsCall = async (accessToken: string) => {
+  try {
+    return await apiClient.get(`/provider/connections`, { accessToken });
+  } catch (error) {
+    console.error("Failed to read provider connections:", error);
+    throw error;
+  }
+};
+
 export const credentialListCall = async (accessToken: string) => {
   /**
    * Get all available teams on proxy

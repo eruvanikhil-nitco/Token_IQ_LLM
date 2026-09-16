@@ -172,7 +172,7 @@ describe("Sidebar (leftnav)", () => {
     expect(placements).toEqual({
       ANALYTICS: ["new_usage", "usage", "cost-optimization", "logs"],
       ORGANISATION: ["teams", "projects", "users", "access-groups", "budgets"],
-      "DATA SOURCES": ["llm-provider-credentials"],
+      "DATA SOURCES": ["provider-apis", "llm-provider-credentials"],
       GATEWAY: ["api-keys", "providers", "models", "llm-playground", "transform-request"],
       SAFETY: ["guardrails", "guardrails-monitor", "policies"],
       BUILD: ["mcp-servers", "skills", "prompts", "tag-management", "model-hub-table", "api_ref"],

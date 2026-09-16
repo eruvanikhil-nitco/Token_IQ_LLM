@@ -39,6 +39,7 @@ import {
   PanelLeftOpen,
   PiggyBank,
   PlayCircle,
+  Plug,
   Route,
   ScrollText,
   Server,
@@ -160,6 +161,13 @@ const menuGroups: MenuGroup[] = [
   {
     groupLabel: "DATA SOURCES",
     items: [
+      {
+        key: "provider-apis",
+        page: "provider-apis",
+        label: "Provider APIs",
+        icon: <Plug {...ICON} />,
+        roles: all_admin_roles,
+      },
       {
         key: "llm-provider-credentials",
         page: "llm-provider-credentials",

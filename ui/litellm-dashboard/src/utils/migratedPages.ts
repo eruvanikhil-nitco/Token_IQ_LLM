@@ -21,6 +21,7 @@ export const MIGRATED_PAGES: Record<string, string> = {
   "access-groups": "access-groups",
   budgets: "budgets",
   "llm-provider-credentials": "llm-provider-credentials",
+  "provider-apis": "provider-apis",
   workflows: "workflows",
   "guardrails-monitor": "guardrails-monitor",
   "mcp-servers": "mcp-servers",
