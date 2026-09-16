@@ -1,3 +1,7 @@
+// Every name here must be a declared field on the proxy's CredentialLiteLLMParams, or the move
+// deletes the secret instead of storing it; the backend test
+// test_every_cleared_param_is_a_field_a_credential_can_hold enforces that against the matching
+// CREDENTIAL_CARRYING_PARAMS list, which this must stay in step with.
 const SECRET_FIELDS = [
   "api_key",
   "aws_access_key_id",
@@ -5,7 +9,6 @@ const SECRET_FIELDS = [
   "aws_session_token",
   "vertex_credentials",
   "azure_ad_token",
-  "client_secret",
 ] as const;
 
 export interface MoveKeyRequests {

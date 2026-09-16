@@ -631,7 +631,10 @@ def _ptu_priced_deployment(model_params: Deployment) -> Deployment:
 
 
 # Fields that hold a secret on the model row. They may be cleared only in the same update
-# that attaches a stored credential, which is how a typed key moves into one.
+# that attaches a stored credential, which is how a typed key moves into one. Every name here
+# must be a declared field on CredentialLiteLLMParams, or the move deletes the secret instead
+# of storing it; test_every_cleared_param_is_a_field_a_credential_can_hold enforces that. Keep
+# it in step with SECRET_FIELDS in the dashboard's moveKeyToCredential.ts.
 CREDENTIAL_CARRYING_PARAMS: Final = (
     "api_key",
     "aws_access_key_id",
@@ -639,7 +642,6 @@ CREDENTIAL_CARRYING_PARAMS: Final = (
     "aws_session_token",
     "vertex_credentials",
     "azure_ad_token",
-    "client_secret",
 )
 
 

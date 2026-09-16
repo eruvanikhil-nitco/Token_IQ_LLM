@@ -3495,30 +3495,19 @@ class TestUpdateDBModelClearPricing:
         assert "api_key" not in params
         assert params["litellm_credential_name"] is not None
 
-    def test_attaching_a_credential_clears_a_client_secret_it_replaces(self, monkeypatch):
-        """client_secret (Azure AD app-auth) is not a declared field on updateLiteLLMParams --
-        it only reaches model_fields_set because GenericLiteLLMParams allows extra fields.
-        This locks in that the clear path still catches it, not only the declared fields."""
-        monkeypatch.setenv("LITELLM_SALT_KEY", "sk-1234")
+    def test_every_cleared_param_is_a_field_a_credential_can_hold(self):
+        """A move clears the field off the model row and stores the value in a credential, so a
+        field the credential model cannot hold would destroy the secret instead of moving it."""
         from litellm.proxy.management_endpoints.model_management_endpoints import (
-            update_db_model,
+            CREDENTIAL_CARRYING_PARAMS,
         )
-        from litellm.types.router import ModelInfo, updateLiteLLMParams
+        from litellm.types.router import CredentialLiteLLMParams
 
-        db_model: Final = Deployment(
-            model_name="azure-gpt-4o",
-            litellm_params=LiteLLM_Params(model="azure/gpt-4o", client_secret="not-a-real-secret"),
-            model_info=ModelInfo(id="m-2"),
-        )
-        patch_data: Final = updateDeployment(
-            litellm_params=updateLiteLLMParams(litellm_credential_name="azure-models", client_secret=None),
+        unstorable: Final = tuple(
+            field for field in CREDENTIAL_CARRYING_PARAMS if field not in CredentialLiteLLMParams.model_fields
         )
 
-        updated: Final = update_db_model(db_model=db_model, updated_patch=patch_data)
-        params: Final = json.loads(updated["litellm_params"])
-
-        assert "client_secret" not in params
-        assert params["litellm_credential_name"] is not None
+        assert unstorable == ()
 
     def test_a_null_key_without_a_credential_does_not_clear_anything(self):
         """Only the move action may clear a key, so a stray null cannot strip a working model."""
