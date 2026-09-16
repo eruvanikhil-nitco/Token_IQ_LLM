@@ -370,12 +370,29 @@ _BANNED_REQUEST_BODY_PARAMS: Final[tuple[str, ...]] = (
     *sorted(CustomPricingLiteLLMParams.model_fields.keys()),
 )
 
+# ``litellm_credential_name`` names the stored credential a managed vector store is
+# registered with, so these routes carry it as a field of their own body rather than as a
+# per-call override of an LLM deployment. This check runs before the key is read from the
+# DB and cannot see the caller's role, so it only lifts the ban for the route; the
+# proxy-admin requirement is enforced in the endpoints themselves via
+# ``assert_proxy_admin_for_credential_attachment``.
+_CREDENTIAL_ATTACHMENT_ROUTES: Final[frozenset[str]] = frozenset(("/vector_store/new", "/vector_store/update"))
+_CREDENTIAL_ATTACHMENT_PARAMS: Final[frozenset[str]] = frozenset(("litellm_credential_name",))
+
+
+def _route_exempt_params(route: str | None) -> frozenset[str]:
+    """Banned params a specific management route may carry at the top level of its own body."""
+    if route in _CREDENTIAL_ATTACHMENT_ROUTES:
+        return _CREDENTIAL_ATTACHMENT_PARAMS
+    return frozenset()
+
 
 def _check_banned_params(
     body: dict,
     general_settings: dict,
     llm_router: Router | None,
     model: str,
+    exempt_params: frozenset[str] = frozenset(),
 ) -> None:
     """Raise ``ValueError`` if ``body`` carries a banned param without admin opt-in.
 
@@ -383,7 +400,7 @@ def _check_banned_params(
     new banned param only needs to be added in one place.
     """
     for param in _BANNED_REQUEST_BODY_PARAMS:
-        if param not in body:
+        if param not in body or param in exempt_params:
             continue
         if general_settings.get("allow_client_side_credentials") is True:
             # Proxy-wide opt-in: every banned param is permitted, exit
@@ -468,7 +485,13 @@ def _reject_url_valued_fallback_target(value: str) -> None:
         )
 
 
-def is_request_body_safe(request_body: dict, general_settings: dict, llm_router: Router | None, model: str) -> bool:
+def is_request_body_safe(
+    request_body: dict,
+    general_settings: dict,
+    llm_router: Router | None,
+    model: str,
+    route: str | None = None,
+) -> bool:
     """
     Check if the request body is safe.
 
@@ -496,7 +519,7 @@ def is_request_body_safe(request_body: dict, general_settings: dict, llm_router:
     """
     if "model_list" in request_body:
         raise ValueError("Rejected Request: model_list is not allowed in the request body.")
-    _check_banned_params(request_body, general_settings, llm_router, model)
+    _check_banned_params(request_body, general_settings, llm_router, model, _route_exempt_params(route))
     for nested_key in _NESTED_CONFIG_KEYS:
         nested = _coerce_metadata_to_dict(request_body.get(nested_key))
         if nested is not None:
@@ -581,6 +604,7 @@ async def pre_db_read_auth_checks(
         general_settings=general_settings,
         llm_router=llm_router,
         model=request_data.get("model", ""),  # [TODO] use model passed in url as well (azure openai routes)
+        route=route,
     )
 
     # Check 3. Check if IP address is allowed

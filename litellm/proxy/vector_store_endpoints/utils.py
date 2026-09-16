@@ -52,6 +52,24 @@ def assert_proxy_admin_for_vector_store_index_management(
     )
 
 
+def assert_proxy_admin_for_credential_attachment(user_api_key_dict: UserAPIKeyAuth) -> None:
+    """Raise 403 unless the caller is a proxy admin.
+
+    A vector store registered with ``litellm_credential_name`` has that credential resolved and
+    used by the proxy at search time, so attaching one spends through a stored key the caller
+    may not otherwise hold.
+    """
+    if _is_proxy_admin(user_api_key_dict):
+        return
+    raise HTTPException(
+        status_code=403,
+        detail=(
+            "Only a proxy admin can attach a saved credential (litellm_credential_name) to a "
+            f"vector store. Your role={user_api_key_dict.user_role}."
+        ),
+    )
+
+
 def _suffix_after_index_name(request_path: str, index_name: str) -> str | None:
     """Return the path suffix after ``/indexes/{index_name}``, or None if absent."""
     match: Final = re.search(rf"/indexes/{re.escape(index_name)}(?=$|[/?])", request_path)

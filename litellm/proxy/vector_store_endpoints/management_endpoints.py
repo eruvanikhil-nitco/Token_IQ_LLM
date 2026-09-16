@@ -30,7 +30,10 @@ from litellm.proxy._types import (
 )
 from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
 from litellm.proxy.common_utils.rbac_utils import check_feature_access_for_user
-from litellm.proxy.vector_store_endpoints.utils import can_user_access_vector_store
+from litellm.proxy.vector_store_endpoints.utils import (
+    assert_proxy_admin_for_credential_attachment,
+    can_user_access_vector_store,
+)
 from litellm.repositories.prisma_protocols import TableActions
 from litellm.repositories.table_repositories import ManagedVectorStoresRepository
 from litellm.types.vector_stores import (
@@ -257,8 +260,12 @@ async def new_vector_store(
     - vector_store_name: Optional[str] - Name of the vector store
     - vector_store_description: Optional[str] - Description of the vector store
     - vector_store_metadata: Optional[Dict] - Additional metadata for the vector store
+    - litellm_credential_name: Optional[str] - Saved credential to register the store with
+      (proxy admins only)
     """
     await check_feature_access_for_user(user_api_key_dict, "vector_stores")
+    if vector_store.get("litellm_credential_name") is not None:
+        assert_proxy_admin_for_credential_attachment(user_api_key_dict)
 
     from litellm.proxy.proxy_server import prisma_client
 
@@ -576,8 +583,12 @@ async def update_vector_store(
     """
     Update vector store details in both database and in-memory registry.
     The updated data is immediately synchronized to the in-memory registry.
+
+    ``litellm_credential_name`` may only be set by a proxy admin.
     """
     await check_feature_access_for_user(user_api_key_dict, "vector_stores")
+    if data.litellm_credential_name is not None:
+        assert_proxy_admin_for_credential_attachment(user_api_key_dict)
 
     from litellm.proxy.proxy_server import prisma_client
     from litellm.types.router import GenericLiteLLMParams

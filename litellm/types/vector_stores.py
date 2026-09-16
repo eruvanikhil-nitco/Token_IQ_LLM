@@ -60,6 +60,7 @@ class VectorStoreUpdateRequest(BaseModel):
     vector_store_name: str | None = None
     vector_store_description: str | None = None
     vector_store_metadata: dict | None = None
+    litellm_credential_name: str | None = None
 
 
 class VectorStoreDeleteRequest(BaseModel):

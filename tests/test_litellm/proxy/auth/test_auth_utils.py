@@ -3452,3 +3452,166 @@ class TestStoredCredentialSelectionBlocked:
             )
             is True
         )
+
+
+class TestStoredCredentialAllowedOnVectorStoreManagementRoutes:
+    """The vector store management routes carry ``litellm_credential_name`` at the top level of
+    their own body: it names the stored credential the store is registered with, not a per-call
+    override of an LLM deployment. Banning it outright broke attaching a credential for everyone,
+    so the route is exempted here and the proxy-admin requirement is enforced in the endpoint
+    (this check runs before the key is read from the DB, so no role is available yet)."""
+
+    @pytest.mark.parametrize("route", ["/vector_store/new", "/vector_store/update"])
+    def test_vector_store_management_route_may_carry_the_field(self, route):
+        assert (
+            is_request_body_safe(
+                request_body={
+                    "vector_store_id": "vs_fake_store",
+                    "custom_llm_provider": "bedrock",
+                    "litellm_credential_name": "fake-bedrock-cred",
+                },
+                general_settings={},
+                llm_router=None,
+                model="",
+                route=route,
+            )
+            is True
+        )
+
+    @pytest.mark.parametrize(
+        "route",
+        [
+            "/chat/completions",
+            "/v1/chat/completions",
+            "/embeddings",
+            "/v1/vector_stores/vs_fake_store/search",
+            "/vector_store/delete",
+        ],
+    )
+    def test_every_other_route_still_rejects_the_field(self, route):
+        # Role is deliberately irrelevant here: the original hole stays closed on the
+        # LLM-serving routes even for a proxy admin.
+        with pytest.raises(ValueError, match="litellm_credential_name is not allowed in request body"):
+            is_request_body_safe(
+                request_body={"model": "gpt-4o", "litellm_credential_name": "openai-billing"},
+                general_settings={},
+                llm_router=None,
+                model="gpt-4o",
+                route=route,
+            )
+
+    @pytest.mark.parametrize(
+        "nested_key",
+        ["extra_body", "metadata", "litellm_metadata", "litellm_embedding_config"],
+    )
+    def test_nested_field_is_rejected_even_on_the_vector_store_route(self, nested_key):
+        # Only the top level of the vector store body is a real registration field.
+        # A nested copy is the smuggling shape the ban exists for.
+        with pytest.raises(ValueError, match="litellm_credential_name is not allowed in request body"):
+            is_request_body_safe(
+                request_body={
+                    "vector_store_id": "vs_fake_store",
+                    nested_key: {"litellm_credential_name": "openai-billing"},
+                },
+                general_settings={},
+                llm_router=None,
+                model="",
+                route="/vector_store/new",
+            )
+
+    @pytest.mark.parametrize("param", ["api_base", "aws_profile_name", "vertex_credentials"])
+    def test_other_banned_params_still_rejected_on_the_vector_store_route(self, param):
+        with pytest.raises(ValueError, match=f"{param} is not allowed in request body"):
+            is_request_body_safe(
+                request_body={"vector_store_id": "vs_fake_store", param: "attacker-value"},
+                general_settings={},
+                llm_router=None,
+                model="",
+                route="/vector_store/new",
+            )
+
+    def test_vector_store_body_without_the_field_is_unaffected(self):
+        assert (
+            is_request_body_safe(
+                request_body={"vector_store_id": "vs_fake_store", "custom_llm_provider": "bedrock"},
+                general_settings={},
+                llm_router=None,
+                model="",
+                route="/vector_store/new",
+            )
+            is True
+        )
+
+    def test_route_is_matched_exactly_not_by_prefix(self):
+        # A look-alike path must not inherit the exemption.
+        with pytest.raises(ValueError, match="litellm_credential_name is not allowed in request body"):
+            is_request_body_safe(
+                request_body={"litellm_credential_name": "openai-billing"},
+                general_settings={},
+                llm_router=None,
+                model="",
+                route="/vector_store/new/../chat/completions",
+            )
+
+    def test_omitted_route_keeps_the_field_banned(self):
+        # Callers that never pass a route (transform_request, prompt tests, RAG ingest)
+        # must keep the strict behaviour by default.
+        with pytest.raises(ValueError, match="litellm_credential_name is not allowed in request body"):
+            is_request_body_safe(
+                request_body={"litellm_credential_name": "openai-billing"},
+                general_settings={},
+                llm_router=None,
+                model="",
+            )
+
+
+class TestPreDbReadAuthChecksForwardsRoute:
+    """``pre_db_read_auth_checks`` is the only caller that knows the route, so the exemption is
+    worthless unless it actually forwards it to the body check."""
+
+    @staticmethod
+    def _request(path: str) -> Request:
+        return Request(
+            {
+                "type": "http",
+                "http_version": "1.1",
+                "method": "POST",
+                "scheme": "http",
+                "path": path,
+                "raw_path": path.encode(),
+                "query_string": b"",
+                "root_path": "",
+                "headers": [],
+                "client": ("1.2.3.4", 1234),
+                "server": ("testserver", 80),
+            }
+        )
+
+    @pytest.mark.asyncio
+    async def test_vector_store_create_route_admits_the_credential_field(self):
+        from litellm.proxy.auth.auth_utils import pre_db_read_auth_checks
+
+        body = {
+            "vector_store_id": "vs_fake_store",
+            "custom_llm_provider": "bedrock",
+            "litellm_credential_name": "fake-bedrock-cred",
+        }
+        with patch("litellm.proxy.proxy_server.general_settings", {}):
+            await pre_db_read_auth_checks(
+                request=self._request("/vector_store/new"),
+                request_data=body,
+                route="/vector_store/new",
+            )
+
+    @pytest.mark.asyncio
+    async def test_chat_route_still_rejects_the_credential_field(self):
+        from litellm.proxy.auth.auth_utils import pre_db_read_auth_checks
+
+        body = {"model": "gpt-4o", "litellm_credential_name": "openai-billing"}
+        with patch("litellm.proxy.proxy_server.general_settings", {}):
+            with pytest.raises(ValueError, match="litellm_credential_name is not allowed in request body"):
+                await pre_db_read_auth_checks(
+                    request=self._request("/chat/completions"),
+                    request_data=body,
+                    route="/chat/completions",
+                )

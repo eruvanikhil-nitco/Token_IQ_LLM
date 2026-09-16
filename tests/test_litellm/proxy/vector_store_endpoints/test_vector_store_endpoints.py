@@ -2953,3 +2953,229 @@ def test_vector_store_search_rejects_caller_embedding_selection_params(blocked_k
 
     assert response.status_code == 400, response.json()
     assert blocked_key in str(response.json())
+
+
+class TestVectorStoreCredentialAttachmentRequiresProxyAdmin:
+    """
+    Only a proxy admin may point a managed vector store at a stored credential.
+
+    ``VectorStoreRegistry.get_credentials_for_vector_store`` resolves that name at search time
+    and the proxy then calls the provider with those keys, so letting anyone who clears the
+    ``vector_stores`` feature gate attach one is the same credential-theft hole as naming a
+    stored credential on a chat request, reached through a different door.
+    """
+
+    @staticmethod
+    def _create_capturing_prisma(captured: dict) -> MagicMock:
+        client = MagicMock()
+        client.db.litellm_managedvectorstorestable.find_unique = AsyncMock(return_value=None)
+
+        async def _create(*args, **kwargs):
+            data = kwargs.get("data", {})
+            captured.update(data)
+            row = MagicMock()
+            row.model_dump.return_value = {
+                "vector_store_id": data.get("vector_store_id"),
+                "custom_llm_provider": data.get("custom_llm_provider"),
+                "litellm_credential_name": data.get("litellm_credential_name"),
+                "litellm_params": data.get("litellm_params"),
+            }
+            return row
+
+        client.db.litellm_managedvectorstorestable.create = AsyncMock(side_effect=_create)
+        return client
+
+    @staticmethod
+    def _update_capturing_prisma(captured: dict) -> MagicMock:
+        client = MagicMock()
+        existing = MagicMock()
+        existing.model_dump.return_value = {
+            "vector_store_id": "vs_fake_store",
+            "team_id": "team-fake",
+        }
+        client.db.litellm_managedvectorstorestable.find_unique = AsyncMock(return_value=existing)
+
+        async def _update(*args, **kwargs):
+            data = kwargs.get("data", {})
+            captured.update(data)
+            row = MagicMock()
+            row.model_dump.return_value = {
+                "vector_store_id": "vs_fake_store",
+                "team_id": "team-fake",
+                "litellm_credential_name": data.get("litellm_credential_name"),
+            }
+            return row
+
+        client.db.litellm_managedvectorstorestable.update = AsyncMock(side_effect=_update)
+        return client
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "user_role",
+        [
+            LitellmUserRoles.INTERNAL_USER,
+            LitellmUserRoles.INTERNAL_USER_VIEW_ONLY,
+            LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY,
+            None,
+        ],
+    )
+    async def test_non_proxy_admin_cannot_attach_credential_on_create(self, user_role):
+        captured: dict = {}
+        mock_prisma = self._create_capturing_prisma(captured)
+
+        with (
+            patch(
+                "litellm.proxy.vector_store_endpoints.management_endpoints.check_feature_access_for_user",
+                new_callable=AsyncMock,
+            ),
+            patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
+            patch.object(litellm, "vector_store_registry", None),
+        ):
+            with pytest.raises(HTTPException) as exc_info:
+                await new_vector_store(
+                    vector_store={
+                        "vector_store_id": "vs_fake_store",
+                        "custom_llm_provider": "bedrock",
+                        "litellm_credential_name": "fake-bedrock-cred",
+                    },
+                    user_api_key_dict=UserAPIKeyAuth(user_id="fake-user", user_role=user_role),
+                )
+
+        assert exc_info.value.status_code == 403
+        detail = str(exc_info.value.detail)
+        assert "litellm_credential_name" in detail
+        assert "proxy admin" in detail.lower()
+        mock_prisma.db.litellm_managedvectorstorestable.create.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_proxy_admin_can_attach_credential_on_create(self):
+        captured: dict = {}
+        mock_prisma = self._create_capturing_prisma(captured)
+
+        with (
+            patch(
+                "litellm.proxy.vector_store_endpoints.management_endpoints.check_feature_access_for_user",
+                new_callable=AsyncMock,
+            ),
+            patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
+            patch.object(litellm, "vector_store_registry", None),
+        ):
+            result = await new_vector_store(
+                vector_store={
+                    "vector_store_id": "vs_fake_store",
+                    "custom_llm_provider": "bedrock",
+                    "litellm_credential_name": "fake-bedrock-cred",
+                },
+                user_api_key_dict=UserAPIKeyAuth(
+                    user_id="fake-admin",
+                    user_role=LitellmUserRoles.PROXY_ADMIN,
+                ),
+            )
+
+        assert result["status"] == "success"
+        assert captured["litellm_credential_name"] == "fake-bedrock-cred"
+
+    @pytest.mark.asyncio
+    async def test_internal_user_create_without_credential_is_unaffected(self):
+        captured: dict = {}
+        mock_prisma = self._create_capturing_prisma(captured)
+
+        with (
+            patch(
+                "litellm.proxy.vector_store_endpoints.management_endpoints.check_feature_access_for_user",
+                new_callable=AsyncMock,
+            ),
+            patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
+            patch.object(litellm, "vector_store_registry", None),
+        ):
+            result = await new_vector_store(
+                vector_store={
+                    "vector_store_id": "vs_fake_store",
+                    "custom_llm_provider": "bedrock",
+                },
+                user_api_key_dict=UserAPIKeyAuth(
+                    user_id="fake-user",
+                    user_role=LitellmUserRoles.INTERNAL_USER,
+                ),
+            )
+
+        assert result["status"] == "success"
+        assert "litellm_credential_name" not in captured
+        mock_prisma.db.litellm_managedvectorstorestable.create.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_non_proxy_admin_cannot_attach_credential_on_update(self):
+        from litellm.proxy.vector_store_endpoints.management_endpoints import (
+            update_vector_store,
+        )
+        from litellm.types.vector_stores import VectorStoreUpdateRequest
+
+        captured: dict = {}
+        mock_prisma = self._update_capturing_prisma(captured)
+
+        with (
+            patch(
+                "litellm.proxy.vector_store_endpoints.management_endpoints.check_feature_access_for_user",
+                new_callable=AsyncMock,
+            ),
+            patch(
+                "litellm.proxy.vector_store_endpoints.management_endpoints._check_vector_store_access",
+                new_callable=AsyncMock,
+                return_value=True,
+            ),
+            patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
+            patch.object(litellm, "vector_store_registry", None),
+        ):
+            with pytest.raises(HTTPException) as exc_info:
+                await update_vector_store(
+                    data=VectorStoreUpdateRequest(
+                        vector_store_id="vs_fake_store",
+                        litellm_credential_name="fake-bedrock-cred",
+                    ),
+                    user_api_key_dict=UserAPIKeyAuth(
+                        user_id="fake-user",
+                        team_id="team-fake",
+                        user_role=LitellmUserRoles.INTERNAL_USER,
+                    ),
+                )
+
+        assert exc_info.value.status_code == 403
+        assert "proxy admin" in str(exc_info.value.detail).lower()
+        mock_prisma.db.litellm_managedvectorstorestable.update.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_proxy_admin_can_attach_credential_on_update(self):
+        from litellm.proxy.vector_store_endpoints.management_endpoints import (
+            update_vector_store,
+        )
+        from litellm.types.vector_stores import VectorStoreUpdateRequest
+
+        captured: dict = {}
+        mock_prisma = self._update_capturing_prisma(captured)
+
+        with (
+            patch(
+                "litellm.proxy.vector_store_endpoints.management_endpoints.check_feature_access_for_user",
+                new_callable=AsyncMock,
+            ),
+            patch(
+                "litellm.proxy.vector_store_endpoints.management_endpoints._check_vector_store_access",
+                new_callable=AsyncMock,
+                return_value=True,
+            ),
+            patch("litellm.proxy.proxy_server.prisma_client", mock_prisma),
+            patch.object(litellm, "vector_store_registry", None),
+        ):
+            response = await update_vector_store(
+                data=VectorStoreUpdateRequest(
+                    vector_store_id="vs_fake_store",
+                    litellm_credential_name="fake-bedrock-cred",
+                ),
+                user_api_key_dict=UserAPIKeyAuth(
+                    user_id="fake-admin",
+                    user_role=LitellmUserRoles.PROXY_ADMIN,
+                ),
+            )
+
+        assert response["status"] == "success"
+        assert captured["litellm_credential_name"] == "fake-bedrock-cred"
