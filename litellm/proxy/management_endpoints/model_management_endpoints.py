@@ -33,6 +33,7 @@ from litellm.litellm_core_utils.ptu_pricing import (
     SEARCH_CONTEXT_SIZES,
     ptu_config_error,
 )
+from litellm.provider_billing.credential_purpose import is_billing_credential
 from litellm.proxy._types import (
     BlockModelRequest,
     CommonProxyErrors,
@@ -59,6 +60,7 @@ from litellm.proxy.common_utils.encrypt_decrypt_utils import (
     encrypt_value_helper,
 )
 from litellm.proxy.common_utils.user_api_key_cache import UserApiKeyCache
+from litellm.proxy.credential_endpoints.credential_access import credential_team
 from litellm.proxy.management_endpoints.common_utils import _is_user_team_admin
 from litellm.proxy.management_endpoints.team_endpoints import (
     _refresh_cached_team,
@@ -74,6 +76,7 @@ from litellm.proxy.spend_tracking.ptu_feature_flag import (
     is_ptu_cost_attribution_enabled,
 )
 from litellm.proxy.utils import PrismaClient, ProxyLogging
+from litellm.repositories.credentials_repository import CredentialsRepository
 from litellm.repositories.model_repository import ModelRepository
 from litellm.repositories.prisma_protocols import TableActions
 from litellm.repositories.table_repositories import ModelTableRepository
@@ -225,6 +228,31 @@ async def get_db_model(model_id: str, prisma_client: PrismaClient) -> Deployment
 
     deployment_pydantic_obj: Final = Deployment(**db_model.model_dump(exclude_none=True))
     return deployment_pydantic_obj
+
+
+async def _credential_info_for_attach(
+    litellm_params: GenericLiteLLMParams | None,
+    user_api_key_dict: UserAPIKeyAuth,
+    model_team_id: str | None,
+    prisma_client: PrismaClient,
+) -> Mapping[str, object] | None:
+    """The named credential's `credential_info`, looked up only when the attach decision can
+    turn on it: a proxy admin still needs it to catch a billing credential, and a team model
+    needs it to compare ownership. A non-admin request against a non-team model is refused
+    either way, so it skips the database round trip."""
+    if litellm_params is None or litellm_params.litellm_credential_name is None:
+        return None
+    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN and model_team_id is None:
+        return None
+    credential: Final = await CredentialsRepository(prisma_client).find_by_name(litellm_params.litellm_credential_name)
+    if credential is None:
+        raise ProxyException(
+            message=f"Credential {litellm_params.litellm_credential_name} was not found.",
+            type=ProxyErrorTypes.validation_error.value,
+            code=status.HTTP_400_BAD_REQUEST,
+            param="litellm_credential_name",
+        )
+    return credential.credential_info
 
 
 def _strategy_router_write_violation(
@@ -719,10 +747,18 @@ async def patch_model(
                 param="blocked",
             )
 
+        patch_model_team_id: Final = db_model.model_info.team_id if db_model.model_info is not None else None
         ModelManagementAuthChecks.can_user_attach_credential(
             litellm_params=patch_data.litellm_params,
             user_api_key_dict=user_api_key_dict,
             existing_litellm_params=db_model.litellm_params,
+            credential_info=await _credential_info_for_attach(
+                litellm_params=patch_data.litellm_params,
+                user_api_key_dict=user_api_key_dict,
+                model_team_id=patch_model_team_id,
+                prisma_client=prisma_client,
+            ),
+            model_team_id=patch_model_team_id,
         )
 
         _raise_on_strategy_router_write_violation(
@@ -1493,6 +1529,9 @@ class ModelManagementAuthChecks:
         litellm_params: GenericLiteLLMParams | None,
         user_api_key_dict: UserAPIKeyAuth,
         existing_litellm_params: GenericLiteLLMParams | None = None,
+        *,
+        credential_info: Mapping[str, object] | None = None,
+        model_team_id: str | None = None,
     ) -> Literal[True]:
         if litellm_params is None or litellm_params.litellm_credential_name is None:
             return True
@@ -1505,10 +1544,30 @@ class ModelManagementAuthChecks:
             )
             if litellm_params.litellm_credential_name == existing_credential_name:
                 return True
+        if is_billing_credential(credential_info):
+            raise ProxyException(
+                message=(
+                    f"Credential {litellm_params.litellm_credential_name} is a billing credential and cannot "
+                    "serve models. Use a model access credential."
+                ),
+                type=ProxyErrorTypes.auth_error.value,
+                code=status.HTTP_403_FORBIDDEN,
+                param="litellm_credential_name",
+            )
         if user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN:
             return True
+        # can_user_make_model_call already proved, against the DB-backed team row, that a
+        # non-admin caller reaching this point administers model_team_id -- so matching the
+        # credential's own team is enough, without a second team-membership lookup here.
+        owner: Final = credential_team(credential_info)
+        if owner is not None and owner == model_team_id:
+            return True
         raise ProxyException(
-            message=f"Only a proxy admin can attach a stored credential (litellm_credential_name) to a model. Your role={user_api_key_dict.user_role}.",
+            message=(
+                "Only a proxy admin can attach a stored credential (litellm_credential_name) to a model, "
+                "or a team admin attaching their own team's credential to that team's model. "
+                f"Your role={user_api_key_dict.user_role}."
+            ),
             type=ProxyErrorTypes.auth_error.value,
             code=status.HTTP_403_FORBIDDEN,
             param="litellm_credential_name",
@@ -1839,6 +1898,13 @@ async def add_new_model(
         ModelManagementAuthChecks.can_user_attach_credential(
             litellm_params=model_params.litellm_params,
             user_api_key_dict=user_api_key_dict,
+            credential_info=await _credential_info_for_attach(
+                litellm_params=model_params.litellm_params,
+                user_api_key_dict=user_api_key_dict,
+                model_team_id=model_params.model_info.team_id,
+                prisma_client=prisma_client,
+            ),
+            model_team_id=model_params.model_info.team_id,
         )
 
         _raise_on_strategy_router_write_violation(
@@ -2017,6 +2083,13 @@ async def update_model(
             litellm_params=model_params.litellm_params,
             user_api_key_dict=user_api_key_dict,
             existing_litellm_params=deployment.litellm_params,
+            credential_info=await _credential_info_for_attach(
+                litellm_params=model_params.litellm_params,
+                user_api_key_dict=user_api_key_dict,
+                model_team_id=deployment.model_info.team_id,
+                prisma_client=prisma_client,
+            ),
+            model_team_id=deployment.model_info.team_id,
         )
 
         _raise_on_strategy_router_write_violation(

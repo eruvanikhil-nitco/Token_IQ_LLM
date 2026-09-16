@@ -15,6 +15,7 @@ from litellm.proxy._types import (
     LiteLLM_TeamTable,
     LitellmUserRoles,
     Member,
+    ProxyException,
     ReconcileOutcome,
     UserAPIKeyAuth,
 )
@@ -27,7 +28,12 @@ from litellm.proxy.management_endpoints.model_management_endpoints import (
     delete_team_models,
 )
 from litellm.proxy.utils import PrismaClient
-from litellm.types.router import Deployment, LiteLLM_Params, updateDeployment
+from litellm.types.router import (
+    Deployment,
+    GenericLiteLLMParams,
+    LiteLLM_Params,
+    updateDeployment,
+)
 
 
 class MockPrismaClient:
@@ -388,6 +394,68 @@ class TestModelManagementAuthChecks:
                 user_api_key_dict=self.normal_user,
             )
         assert exc_info.value.code == "403"
+
+    def test_can_user_attach_credential_refuses_a_billing_credential_for_an_admin(self):
+        """A billing credential is a read-only cost key. Serving models with it would spend
+        against the organisation's admin key and, for OpenAI and Anthropic, would not work."""
+        admin = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-a", user_id="admin")
+
+        with pytest.raises(ProxyException) as exc:
+            ModelManagementAuthChecks.can_user_attach_credential(
+                litellm_params=GenericLiteLLMParams(litellm_credential_name="anthropic-costs"),
+                user_api_key_dict=admin,
+                credential_info={"purpose": "billing_ingestion", "provider": "anthropic"},
+            )
+
+        assert exc.value.code == "403"
+        assert "billing" in str(exc.value.message).lower()
+
+    def test_can_user_attach_credential_allows_a_team_admin_their_own_team_s_credential(self):
+        lead = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
+
+        assert (
+            ModelManagementAuthChecks.can_user_attach_credential(
+                litellm_params=GenericLiteLLMParams(litellm_credential_name="team-a-openai"),
+                user_api_key_dict=lead,
+                credential_info={"custom_llm_provider": "openai", "team_id": "team-a"},
+                model_team_id="team-a",
+            )
+            is True
+        )
+
+    def test_can_user_attach_credential_refuses_a_team_admin_another_team_s_credential(self):
+        lead = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
+
+        with pytest.raises(ProxyException):
+            ModelManagementAuthChecks.can_user_attach_credential(
+                litellm_params=GenericLiteLLMParams(litellm_credential_name="team-b-openai"),
+                user_api_key_dict=lead,
+                credential_info={"custom_llm_provider": "openai", "team_id": "team-b"},
+                model_team_id="team-a",
+            )
+
+    def test_can_user_attach_credential_refuses_a_team_credential_on_a_model_of_another_team(self):
+        """Otherwise a team admin could lend their key to a model any other team can call."""
+        lead = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
+
+        with pytest.raises(ProxyException):
+            ModelManagementAuthChecks.can_user_attach_credential(
+                litellm_params=GenericLiteLLMParams(litellm_credential_name="team-a-openai"),
+                user_api_key_dict=lead,
+                credential_info={"custom_llm_provider": "openai", "team_id": "team-a"},
+                model_team_id=None,
+            )
+
+    def test_can_user_attach_credential_still_refuses_a_shared_credential_for_a_team_admin(self):
+        lead = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
+
+        with pytest.raises(ProxyException):
+            ModelManagementAuthChecks.can_user_attach_credential(
+                litellm_params=GenericLiteLLMParams(litellm_credential_name="shared-openai"),
+                user_api_key_dict=lead,
+                credential_info={"custom_llm_provider": "openai"},
+                model_team_id="team-a",
+            )
 
 
 class MockModelTable:
