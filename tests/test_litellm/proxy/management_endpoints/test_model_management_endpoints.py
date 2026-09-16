@@ -521,6 +521,73 @@ class TestModelManagementAuthChecks:
 
         assert result is None
 
+    @pytest.mark.asyncio
+    async def test_credential_info_for_attach_finds_a_config_file_credential(self, monkeypatch):
+        """Regression: credentials declared in config.yaml live only in litellm.credential_list,
+        never in the table, so a database-only lookup refused every one of them."""
+        monkeypatch.setattr(
+            litellm,
+            "credential_list",
+            [
+                CredentialItem(
+                    credential_name="config-openai",
+                    credential_values={},
+                    credential_info={"custom_llm_provider": "openai"},
+                )
+            ],
+        )
+        mock_prisma = MagicMock()  # any DB access here would raise on await - proving none happens
+
+        result = await _credential_info_for_attach(
+            litellm_params=LiteLLM_Params(model="test_model", litellm_credential_name="config-openai"),
+            existing_litellm_params=None,
+            user_api_key_dict=self.admin_user,
+            model_team_id=None,
+            prisma_client=mock_prisma,
+        )
+
+        assert result == {"custom_llm_provider": "openai"}
+
+    @pytest.mark.asyncio
+    async def test_credential_info_for_attach_finds_a_database_credential(self, monkeypatch):
+        monkeypatch.setattr(litellm, "credential_list", [])
+        mock_prisma = MagicMock()
+        mock_prisma.db.litellm_credentialstable.find_unique = AsyncMock(
+            return_value={
+                "credential_name": "db-openai",
+                "credential_values": {},
+                "credential_info": {"custom_llm_provider": "openai", "team_id": "team-a"},
+            }
+        )
+
+        result = await _credential_info_for_attach(
+            litellm_params=LiteLLM_Params(model="test_model", litellm_credential_name="db-openai"),
+            existing_litellm_params=None,
+            user_api_key_dict=self.admin_user,
+            model_team_id=None,
+            prisma_client=mock_prisma,
+        )
+
+        assert result == {"custom_llm_provider": "openai", "team_id": "team-a"}
+
+    @pytest.mark.asyncio
+    async def test_credential_info_for_attach_refuses_a_name_in_neither_source(self, monkeypatch):
+        monkeypatch.setattr(litellm, "credential_list", [])
+        mock_prisma = MagicMock()
+        mock_prisma.db.litellm_credentialstable.find_unique = AsyncMock(return_value=None)
+
+        with pytest.raises(ProxyException) as exc:
+            await _credential_info_for_attach(
+                litellm_params=LiteLLM_Params(model="test_model", litellm_credential_name="nowhere"),
+                existing_litellm_params=None,
+                user_api_key_dict=self.admin_user,
+                model_team_id=None,
+                prisma_client=mock_prisma,
+            )
+
+        assert exc.value.code == "400"
+        assert "nowhere" in str(exc.value.message)
+
     def test_can_user_attach_credential_refuses_an_unchanged_name_repurposed_for_billing(self, monkeypatch):
         """Regression: leaving the name alone must not skip re-checking billing status - the
         credential could have been repurposed for billing after it was first attached."""

@@ -283,13 +283,19 @@ async def _credential_info_for_attach(
     needs it to compare ownership. A non-admin request against a non-team model is refused
     either way, so it skips the database round trip. An unchanged name is judged from the
     in-memory list instead (see `can_user_attach_credential`), so it is never looked up here --
-    that keeps a save that doesn't touch the credential working even if the row was deleted."""
+    that keeps a save that doesn't touch the credential working even if the row was deleted.
+    The in-memory list is read first because credentials declared in config.yaml are loaded
+    straight into it and never written to the table, so a database-only lookup would refuse
+    every one of them."""
     if litellm_params is None or litellm_params.litellm_credential_name is None:
         return None
     if _is_unchanged_credential_name(litellm_params, existing_litellm_params):
         return None
     if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN and model_team_id is None:
         return None
+    in_memory: Final = _credential_info_from_memory(litellm_params.litellm_credential_name)
+    if in_memory is not None:
+        return in_memory
     credential: Final = await CredentialsRepository(prisma_client).find_by_name(litellm_params.litellm_credential_name)
     if credential is None:
         raise ProxyException(
