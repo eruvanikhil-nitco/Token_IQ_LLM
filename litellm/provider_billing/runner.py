@@ -9,13 +9,20 @@ from __future__ import annotations
 
 from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Final
 
 from litellm._logging import verbose_proxy_logger
 from litellm.provider_billing.connector import BillingConnector
+from litellm.repositories.provider_sync_run_repository import ProviderSyncRunRepository
 from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
-from litellm.types.proxy.provider_billing import BillingCredential, Fetched, FetchFailed, NotConfigured
+from litellm.types.proxy.provider_billing import (
+    BillingCredential,
+    Fetched,
+    FetchFailed,
+    NotConfigured,
+    ProviderSyncRun,
+)
 
 LOOKBACK: Final = timedelta(days=1)
 """Each run re-reads the last day. A watermark with no overlap loses anything a provider
@@ -32,6 +39,7 @@ class IngestionReport:
 async def run_ingestion(
     *,
     repository: ProviderUsageFactRepository,
+    sync_runs: ProviderSyncRunRepository,
     connectors: Sequence[BillingConnector],
     credentials_for: Callable[[str], Awaitable[tuple[BillingCredential, ...]]],
     now: datetime,
@@ -45,6 +53,7 @@ async def run_ingestion(
     written = 0  # rebind-ok: accumulated across awaits in a loop
     skipped: list[str] = []  # mutable-ok: accumulated across awaits in a loop
     failed: list[str] = []  # mutable-ok: accumulated across awaits in a loop
+    window_start: Final = now - LOOKBACK
 
     for connector in connectors:
         credentials = await credentials_for(connector.provider)
@@ -53,9 +62,10 @@ async def run_ingestion(
             continue
 
         for credential in credentials:
+            started: Final = datetime.now(timezone.utc)
             try:
                 result = await connector.fetch(
-                    since=now - LOOKBACK,
+                    since=window_start,
                     until=now,
                     credential_name=credential.name,
                     credential_values=credential.values,
@@ -63,16 +73,58 @@ async def run_ingestion(
             except Exception as exc:  # noqa: BLE001  # a connector bug must not end the run for other accounts
                 verbose_proxy_logger.exception("billing connector %s raised: %s", connector.provider, exc)
                 failed.append(connector.provider)
+                await _record(
+                    sync_runs,
+                    ProviderSyncRun(
+                        provider=connector.provider,
+                        credential_name=credential.name,
+                        started_at=started,
+                        finished_at=now,
+                        outcome="failed",
+                        facts_written=0,
+                        window_start=window_start,
+                        window_end=now,
+                        detail=f"{type(exc).__name__}: {exc}",
+                    ),
+                )
                 continue
 
             match result:
                 case Fetched(facts=facts):
-                    written += await repository.upsert_many(facts)
+                    count: Final = await repository.upsert_many(facts)
+                    written += count
+                    await _record(
+                        sync_runs,
+                        ProviderSyncRun(
+                            provider=connector.provider,
+                            credential_name=credential.name,
+                            started_at=started,
+                            finished_at=now,
+                            outcome="fetched",
+                            facts_written=count,
+                            window_start=window_start,
+                            window_end=now,
+                        ),
+                    )
                 case NotConfigured(reason=reason):
                     verbose_proxy_logger.debug(
                         "billing connector %s skipped %s: %s", connector.provider, credential.name, reason
                     )
                     skipped.append(connector.provider)
+                    await _record(
+                        sync_runs,
+                        ProviderSyncRun(
+                            provider=connector.provider,
+                            credential_name=credential.name,
+                            started_at=started,
+                            finished_at=now,
+                            outcome="not_configured",
+                            facts_written=0,
+                            window_start=window_start,
+                            window_end=now,
+                            detail=reason,
+                        ),
+                    )
                 case FetchFailed(reason=reason, retryable=retryable):
                     verbose_proxy_logger.warning(
                         "billing connector %s failed for %s (retryable=%s): %s",
@@ -82,5 +134,28 @@ async def run_ingestion(
                         reason,
                     )
                     failed.append(connector.provider)
+                    await _record(
+                        sync_runs,
+                        ProviderSyncRun(
+                            provider=connector.provider,
+                            credential_name=credential.name,
+                            started_at=started,
+                            finished_at=now,
+                            outcome="failed",
+                            facts_written=0,
+                            window_start=window_start,
+                            window_end=now,
+                            detail=reason,
+                        ),
+                    )
 
     return IngestionReport(written=written, skipped=tuple(skipped), failed=tuple(failed))
+
+
+async def _record(sync_runs: ProviderSyncRunRepository, run: ProviderSyncRun) -> None:
+    """The history is a convenience; the facts are the product. A bookkeeping insert that
+    fails must not take a day of real cost data with it."""
+    try:
+        await sync_runs.record(run)
+    except Exception as exc:  # noqa: BLE001  # see docstring: never lose facts over a history row
+        verbose_proxy_logger.warning("could not record the %s sync run: %s", run.provider, exc)

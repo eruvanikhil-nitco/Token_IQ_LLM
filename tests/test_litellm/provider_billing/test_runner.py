@@ -54,11 +54,18 @@ def _repo() -> MagicMock:
     return repo
 
 
-async def _run(connectors, credentials_for=_creds, repo=None):
+def _sync_runs() -> MagicMock:
+    runs = MagicMock()
+    runs.record = AsyncMock()
+    return runs
+
+
+async def _run(connectors, credentials_for=_creds, repo=None, sync_runs=None):
     from litellm.provider_billing.runner import run_ingestion
 
     return await run_ingestion(
         repository=repo or _repo(),
+        sync_runs=sync_runs or _sync_runs(),
         connectors=connectors,
         credentials_for=credentials_for,
         now=NOW,
@@ -192,3 +199,71 @@ async def test_one_account_failing_does_not_stop_the_others_on_the_same_provider
 
     assert report.written == 1
     assert report.failed == ("openai",)
+
+
+@pytest.mark.asyncio
+async def test_a_successful_fetch_is_recorded_with_what_it_wrote():
+    runs = _sync_runs()
+
+    await _run((_Connector("openai", Fetched(facts=(_fact(),), watermark=NOW)),), sync_runs=runs)
+
+    recorded = runs.record.await_args.args[0]
+    assert recorded.provider == "openai"
+    assert recorded.credential_name == "c"
+    assert recorded.outcome == "fetched"
+    assert recorded.facts_written == 1
+    assert recorded.window_end == NOW
+    assert recorded.detail is None
+
+
+@pytest.mark.asyncio
+async def test_a_refused_key_is_recorded_with_the_reason_the_provider_gave():
+    """A customer whose admin key was revoked sees Needs attention with the provider's own
+    words. Recording only 'failed' would make them open a support ticket to learn why."""
+    runs = _sync_runs()
+
+    failure = FetchFailed(reason="openai refused credential c", retryable=False)
+    await _run((_Connector("openai", failure),), sync_runs=runs)
+
+    recorded = runs.record.await_args.args[0]
+    assert recorded.outcome == "failed"
+    assert "refused" in recorded.detail
+
+
+@pytest.mark.asyncio
+async def test_a_connector_that_raises_is_still_recorded_as_a_failed_run():
+    """Without this the worst failure, a crashing connector, is the one that leaves no trace
+    and shows as a connection that simply stopped updating."""
+    runs = _sync_runs()
+
+    await _run((_Connector("openai", RuntimeError("boom")),), sync_runs=runs)
+
+    recorded = runs.record.await_args.args[0]
+    assert recorded.outcome == "failed"
+    assert "boom" in recorded.detail
+
+
+@pytest.mark.asyncio
+async def test_a_provider_with_no_credential_records_nothing():
+    """Not connected is the absence of a connection, not a failing one. A row here would put
+    every unconfigured provider permanently in Needs attention."""
+
+    async def none(_provider: str):
+        return ()
+
+    runs = _sync_runs()
+    await _run((_Connector("openai", Fetched(facts=(), watermark=NOW)),), none, sync_runs=runs)
+
+    runs.record.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_a_failure_writing_the_run_does_not_lose_the_facts():
+    """The history is a convenience. Losing a day of the customer's real cost data because a
+    bookkeeping insert failed would be the wrong trade."""
+    runs = _sync_runs()
+    runs.record = AsyncMock(side_effect=RuntimeError("db down"))
+
+    report = await _run((_Connector("openai", Fetched(facts=(_fact(),), watermark=NOW)),), sync_runs=runs)
+
+    assert report.written == 1

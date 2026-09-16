@@ -87,9 +87,11 @@ def build_provider_billing_job(
     """Compose the repository, the registered connectors and the credential lookup."""
     from litellm.provider_billing.connector import registered_connectors
     from litellm.provider_billing.runner import run_ingestion
+    from litellm.repositories.provider_sync_run_repository import ProviderSyncRunRepository
     from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
 
     repository: Final = ProviderUsageFactRepository(prisma_client)
+    sync_runs: Final = ProviderSyncRunRepository(prisma_client)
 
     credentials_for: Final = build_billing_credentials_lookup(prisma_client=prisma_client)
 
@@ -100,6 +102,7 @@ def build_provider_billing_job(
             ),
             run=lambda now: run_ingestion(
                 repository=repository,
+                sync_runs=sync_runs,
                 connectors=registered_connectors(),
                 credentials_for=credentials_for,
                 now=now,
