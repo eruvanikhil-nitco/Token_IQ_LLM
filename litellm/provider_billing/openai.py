@@ -78,6 +78,7 @@ def _facts_from(buckets: Sequence[object], credential_name: str) -> tuple[Provid
                     evidence="reconciled",
                     billed_cost=dollars,
                     model=None if line_item == UNATTRIBUTED else line_item,
+                    raw=dict(item),
                 )
             )
     return tuple(facts)

@@ -11,11 +11,10 @@ so the rows have to be summed per model or the same day's cost lands several tim
 
 from __future__ import annotations
 
-from collections import defaultdict
 from collections.abc import Callable, Mapping, Sequence
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
-from typing import Any, Final
+from typing import Any, Final, TypeAlias
 
 from litellm.types.proxy.provider_billing import (
     Fetched,
@@ -60,6 +59,31 @@ def _day(bucket: Mapping[str, object]) -> datetime | None:
         return None
 
 
+_Row: TypeAlias = tuple[str, Decimal, Mapping[str, object]]
+
+
+def _row(item: object) -> _Row | None:
+    """The model, dollar amount, and raw row for one token-type line, or None if unusable."""
+    if not isinstance(item, Mapping):
+        return None
+    cents: Final = _decimal(item.get("amount"))
+    if cents is None:
+        return None
+    model: Final = item.get("model")
+    key: Final = model if isinstance(model, str) else UNATTRIBUTED
+    return key, cents / _CENTS_PER_DOLLAR, item
+
+
+def _raw_for(bucket: Mapping[str, object], model: str, rows: Sequence[_Row]) -> Mapping[str, object]:
+    """Every row Anthropic sent for this model, alongside the bucket it came from.
+
+    Raw Data must reproduce the provider's own payload verbatim, which means plain
+    dict/list rather than the frozen types the rest of this module builds with.
+    """
+    matched: Final = [dict(row) for key, _, row in rows if key == model]  # mutable-ok: provider's own JSON shape
+    return {"starting_at": bucket.get("starting_at"), "results": matched}  # mutable-ok: Json column needs a plain dict
+
+
 def _facts_from(buckets: Sequence[object], credential_name: str) -> tuple[ProviderUsageFact, ...]:
     """One fact per model per day, summing the token-type rows within a bucket."""
     facts: list[ProviderUsageFact] = []  # mutable-ok: accumulated across buckets
@@ -71,15 +95,8 @@ def _facts_from(buckets: Sequence[object], credential_name: str) -> tuple[Provid
         if day is None or not isinstance(results, Sequence):
             continue
 
-        per_model: dict[str, Decimal] = defaultdict(Decimal)  # mutable-ok: accumulator per bucket
-        for item in results:
-            if not isinstance(item, Mapping):
-                continue
-            cents = _decimal(item.get("amount"))
-            if cents is None:
-                continue
-            model = item.get("model")
-            per_model[model if isinstance(model, str) else UNATTRIBUTED] += cents / _CENTS_PER_DOLLAR
+        rows: Final[tuple[_Row, ...]] = tuple(parsed for item in results if (parsed := _row(item)) is not None)
+        models: Final[tuple[str, ...]] = tuple(sorted(frozenset(key for key, _, _ in rows)))
 
         facts.extend(
             ProviderUsageFact(
@@ -89,10 +106,11 @@ def _facts_from(buckets: Sequence[object], credential_name: str) -> tuple[Provid
                 grain="day",
                 bucket_start=day,
                 evidence="reconciled",
-                billed_cost=dollars,
+                billed_cost=sum((dollars for key, dollars, _ in rows if key == model), Decimal(0)),
                 model=None if model == UNATTRIBUTED else model,
+                raw=_raw_for(bucket, model, rows),
             )
-            for model, dollars in sorted(per_model.items())
+            for model in models
         )
     return tuple(facts)
 

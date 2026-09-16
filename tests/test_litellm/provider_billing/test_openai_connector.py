@@ -170,3 +170,19 @@ async def test_a_rate_limit_is_retryable_and_a_bad_key_is_not():
 
     assert isinstance(limited, FetchFailed) and limited.retryable is True
     assert isinstance(refused, FetchFailed) and refused.retryable is False
+
+
+def test_each_fact_keeps_the_result_openai_sent():
+    from litellm.provider_billing.openai import _facts_from
+
+    facts = _facts_from(
+        [
+            {
+                "start_time": 1789344000,
+                "results": [{"line_item": "gpt-4o", "amount": {"value": 1.25, "currency": "usd"}}],
+            }
+        ],
+        "acct",
+    )
+
+    assert facts[0].raw == {"line_item": "gpt-4o", "amount": {"value": 1.25, "currency": "usd"}}

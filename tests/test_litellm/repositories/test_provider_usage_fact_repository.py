@@ -97,3 +97,31 @@ async def test_asking_about_no_requests_does_not_query():
         provider="openrouter", request_ids=[]
     ) == frozenset()
     client.db.litellm_providerusagefact.find_many.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_the_providers_own_payload_is_written_to_the_raw_column():
+    """Raw Data shows the provider's fields verbatim. A fact whose payload was dropped at
+    parse time can never be shown, and the provider will not serve that day again."""
+    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+
+    table = MagicMock()
+    table.upsert = AsyncMock()
+    client = MagicMock()
+    client.db.litellm_providerusagefact = table
+
+    fact = ProviderUsageFact(
+        fact_key="openai:acct:2026-09-15:gpt-4o",
+        provider="openai",
+        credential_name="acct",
+        grain="day",
+        bucket_start=datetime(2026, 9, 15, tzinfo=timezone.utc),
+        evidence="reconciled",
+        billed_cost=Decimal("1.25"),
+        raw={"line_item": "gpt-4o", "amount": {"value": 1.25, "currency": "usd"}},
+    )
+
+    await ProviderUsageFactRepository(client).upsert_many([fact])
+
+    written = table.upsert.await_args.kwargs["data"]["create"]
+    assert written["raw"] == {"line_item": "gpt-4o", "amount": {"value": 1.25, "currency": "usd"}}

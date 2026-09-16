@@ -44,7 +44,7 @@ UNGROUPED: Final = "all"
 _PERMANENT: Final = ("AccessDenied", "UnrecognizedClient", "InvalidClientTokenId", "SignatureDoesNotMatch")
 
 
-def _amounts_in(period: Mapping[str, object]) -> tuple[tuple[str, object], ...]:
+def _amounts_in(period: Mapping[str, object]) -> tuple[tuple[str, object, Mapping[str, object]], ...]:
     """Every charge in one day, labelled by usage type.
 
     A period with no Groups but a Total is a real charge Cost Explorer could not break
@@ -57,6 +57,7 @@ def _amounts_in(period: Mapping[str, object]) -> tuple[tuple[str, object], ...]:
                 keys[0] if isinstance(keys := group.get("Keys"), Sequence) and keys and isinstance(keys[0], str)
                 else UNGROUPED,
                 metric.get("Amount"),
+                dict(group),
             )
             for group in groups
             if isinstance(group, Mapping)
@@ -66,7 +67,7 @@ def _amounts_in(period: Mapping[str, object]) -> tuple[tuple[str, object], ...]:
 
     total: Final = period.get("Total")
     if isinstance(total, Mapping) and isinstance(metric := total.get(METRIC), Mapping):
-        return ((UNGROUPED, metric.get("Amount")),)
+        return ((UNGROUPED, metric.get("Amount"), dict(total)),)
     return ()
 
 
@@ -92,8 +93,9 @@ def _facts_from(
                 evidence="reconciled",
                 billed_cost=amount,
                 model=None if usage_type == UNGROUPED else usage_type,
+                raw=group,
             )
-            for usage_type, raw in _amounts_in(period)
+            for usage_type, raw, group in _amounts_in(period)
             if (amount := decimal_or_none(raw)) is not None
         )
     return tuple(facts)

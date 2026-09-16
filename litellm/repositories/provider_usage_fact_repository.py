@@ -26,6 +26,7 @@ def _row(fact: ProviderUsageFact) -> dict[str, object]:
         "output_tokens": fact.output_tokens,
         "cached_input_tokens": fact.cached_input_tokens,
         "cache_write_tokens": fact.cache_write_tokens,
+        "raw": None if fact.raw is None else dict(fact.raw),
     }
 
 

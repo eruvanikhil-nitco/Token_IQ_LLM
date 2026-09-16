@@ -182,3 +182,16 @@ async def test_an_ungrouped_total_is_still_recorded():
     assert isinstance(result, Fetched)
     assert result.facts[0].billed_cost == Decimal("3.50")
     assert result.facts[0].fact_key == "bedrock:2026-09-11:all"
+
+
+def test_each_fact_keeps_the_cost_explorer_group_it_came_from():
+    from litellm.provider_billing.bedrock import _facts_from
+
+    group = {"Keys": ["USE1-BedrockTokens"], "Metrics": {"UnblendedCost": {"Amount": "3.50", "Unit": "USD"}}}
+    facts = _facts_from(
+        [{"TimePeriod": {"Start": "2026-09-14"}, "Groups": [group]}],
+        "acct",
+        datetime(2026, 9, 16, tzinfo=timezone.utc),
+    )
+
+    assert facts[0].raw == group

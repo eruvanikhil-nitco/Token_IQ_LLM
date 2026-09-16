@@ -198,3 +198,28 @@ async def test_an_empty_window_is_a_successful_empty_run():
 
     assert isinstance(result, Fetched)
     assert result.facts == ()
+
+
+def test_each_fact_keeps_every_anthropic_row_that_fed_it():
+    from litellm.provider_billing.anthropic import _facts_from
+
+    facts = _facts_from(
+        [
+            {
+                "starting_at": "2026-09-15T00:00:00Z",
+                "results": [
+                    {"model": "claude-sonnet-4", "amount": "100", "token_type": "input"},
+                    {"model": "claude-sonnet-4", "amount": "200", "token_type": "output"},
+                ],
+            }
+        ],
+        "acct",
+    )
+
+    assert facts[0].raw == {
+        "starting_at": "2026-09-15T00:00:00Z",
+        "results": [
+            {"model": "claude-sonnet-4", "amount": "100", "token_type": "input"},
+            {"model": "claude-sonnet-4", "amount": "200", "token_type": "output"},
+        ],
+    }

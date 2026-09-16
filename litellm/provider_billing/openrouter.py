@@ -127,6 +127,7 @@ class OpenRouterBillingConnector:
                     model=_str(data.get("model")),
                     input_tokens=_tokens(data, "native_tokens_prompt", "tokens_prompt"),
                     output_tokens=_tokens(data, "native_tokens_completion", "tokens_completion"),
+                    raw=dict(data),
                 )
             )
 

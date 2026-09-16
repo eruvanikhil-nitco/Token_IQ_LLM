@@ -191,3 +191,29 @@ async def test_the_normalised_counts_are_used_when_no_native_ones_are_given():
     assert isinstance(result, Fetched)
     assert result.facts[0].input_tokens == 10
     assert result.facts[0].output_tokens == 5
+
+
+@pytest.mark.asyncio
+async def test_each_fact_keeps_the_generation_body_openrouter_sent():
+    from litellm.provider_billing.openrouter import OpenRouterBillingConnector
+
+    body = {"id": "gen-1", "total_cost": "0.004", "model": "openai/gpt-4o"}
+    response = MagicMock()
+    response.status_code = 200
+    response.json = MagicMock(return_value={"data": body})
+    client = MagicMock()
+    client.get = AsyncMock(return_value=response)
+
+    async def unpriced():
+        return ("gen-1",)
+
+    result = await OpenRouterBillingConnector(
+        unpriced_request_ids=unpriced, http_client_factory=lambda: client
+    ).fetch(
+        since=datetime(2026, 9, 15, tzinfo=timezone.utc),
+        until=datetime(2026, 9, 16, tzinfo=timezone.utc),
+        credential_name="acct",
+        credential_values={"api_key": "k"},
+    )
+
+    assert result.facts[0].raw == body
