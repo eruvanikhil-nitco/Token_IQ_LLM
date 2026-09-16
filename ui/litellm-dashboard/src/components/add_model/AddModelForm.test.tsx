@@ -260,6 +260,25 @@ describe("AddModelForm", () => {
     expect(screen.queryByText("anthropic-costs")).not.toBeInTheDocument();
   });
 
+  it("refuses a submit with no credential chosen and says what to do about it", async () => {
+    const mockUseAuthorized = vi.mocked(await import("@/app/(dashboard)/hooks/useAuthorized"));
+    mockUseAuthorized.default.mockReturnValue(mockAuthorizedUser("proxy_admin", "user-1", true));
+    const props = createTestProps();
+    // The panel that owns this form validates the mounted fields before it submits; the
+    // prop is a stub here, so it has to do the same for the rule to reach the screen.
+    const handleOk = vi.fn(async () => {
+      await props.form.trigger(props.registry.mountedNames() as string[]);
+      return false;
+    });
+    const user = userEvent.setup();
+    renderWithProviders(<AddModelForm {...props} handleOk={handleOk} />);
+    await screen.findByText("Provider");
+
+    await user.click(screen.getByRole("button", { name: "Add Model" }));
+
+    expect(await screen.findByText("Select a credential, or create one")).toBeInTheDocument();
+  });
+
   it("should render", async () => {
     const mockUseAuthorized = vi.mocked(await import("@/app/(dashboard)/hooks/useAuthorized"));
     mockUseAuthorized.default.mockReturnValue(mockAuthorizedUser("proxy_admin", "user-1", true));
