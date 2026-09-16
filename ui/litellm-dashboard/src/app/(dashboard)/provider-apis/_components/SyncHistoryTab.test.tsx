@@ -49,4 +49,19 @@ describe("SyncHistoryTab", () => {
 
     expect(screen.getByText("openai refused credential prod")).toBeInTheDocument();
   });
+
+  it("shows an outcome it does not recognise plainly, not as a calm success", () => {
+    // A build one release behind the backend can see a new outcome value. Blanking the badge or
+    // colouring it like a routine fetch would hide exactly the run a human needs to notice.
+    useProviderSyncHistory.mockReturnValue({
+      data: [row({ outcome: "delayed_retry" })],
+      isLoading: false,
+      error: null,
+    });
+
+    render(<SyncHistoryTab provider="openai" />);
+
+    const badge = screen.getByText("delayed_retry");
+    expect(badge).toHaveClass("text-destructive");
+  });
 });

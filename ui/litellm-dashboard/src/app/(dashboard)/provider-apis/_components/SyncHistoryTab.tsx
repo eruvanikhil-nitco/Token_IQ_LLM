@@ -17,6 +17,15 @@ const OUTCOME_VARIANTS: Record<ProviderSyncOutcome, "default" | "secondary" | "d
   failed: "destructive",
 };
 
+// row.outcome is typed as ProviderSyncOutcome, but it arrives from the network unvalidated: a
+// build one release behind the backend can see a fourth value here. Look it up defensively rather
+// than trusting the type, and fail toward "unexpected" (visible, destructive), never toward calm.
+const outcomeLabel = (outcome: ProviderSyncOutcome): string =>
+  outcome in OUTCOME_LABELS ? OUTCOME_LABELS[outcome] : outcome;
+
+const outcomeVariant = (outcome: ProviderSyncOutcome): "default" | "secondary" | "destructive" =>
+  outcome in OUTCOME_VARIANTS ? OUTCOME_VARIANTS[outcome] : "destructive";
+
 export default function SyncHistoryTab({ provider }: { provider: string }) {
   const { data: rows, isLoading, error } = useProviderSyncHistory(provider);
 
@@ -47,7 +56,7 @@ export default function SyncHistoryTab({ provider }: { provider: string }) {
             <TableCell>{new Date(row.started_at).toLocaleString()}</TableCell>
             <TableCell>{row.credential_name}</TableCell>
             <TableCell>
-              <Badge variant={OUTCOME_VARIANTS[row.outcome]}>{OUTCOME_LABELS[row.outcome]}</Badge>
+              <Badge variant={outcomeVariant(row.outcome)}>{outcomeLabel(row.outcome)}</Badge>
             </TableCell>
             <TableCell>{row.facts_written}</TableCell>
             <TableCell className="text-muted-foreground">{row.detail ?? ""}</TableCell>
