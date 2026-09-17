@@ -62,8 +62,7 @@ def build_usage_summary(rows: Sequence[SummaryRow], tokens: TokenTotals) -> Usag
                 )
                 for model in models
             ),
-            key=lambda spend: spend.billed_cost,
-            reverse=True,
+            key=lambda spend: (-spend.billed_cost, spend.model is None, spend.model or ""),
         )
     )
 
@@ -80,8 +79,7 @@ def build_usage_summary(rows: Sequence[SummaryRow], tokens: TokenTotals) -> Usag
                 )
                 for account in accounts
             ),
-            key=lambda spend: spend.billed_cost,
-            reverse=True,
+            key=lambda spend: (-spend.billed_cost, spend.credential_name),
         )
     )
 

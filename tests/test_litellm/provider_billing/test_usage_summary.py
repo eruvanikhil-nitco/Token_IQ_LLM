@@ -93,3 +93,28 @@ def test_an_empty_window_summarises_to_zero_rather_than_failing():
     assert summary.total_cost == Decimal(0)
     assert summary.by_model == ()
     assert summary.facts == 0
+
+
+def test_models_tied_on_cost_break_the_tie_by_name_so_order_is_stable_across_runs():
+    """Set iteration order is not stable across process runs. Two models at the exact same
+    cost must still come out in the same order every time, or a spend ranking would appear
+    to reshuffle itself between page loads with no data having changed."""
+    from litellm.provider_billing.usage_summary import build_usage_summary
+
+    summary = build_usage_summary(
+        (_row("zeta", cost="3"), _row("alpha", cost="3"), _row(None, cost="3")),
+        TOKENS,
+    )
+
+    assert [m.model for m in summary.by_model] == ["alpha", "zeta", None]
+
+
+def test_accounts_tied_on_cost_break_the_tie_by_name_so_order_is_stable_across_runs():
+    from litellm.provider_billing.usage_summary import build_usage_summary
+
+    summary = build_usage_summary(
+        (_row("gpt-4o", "zeta-account", cost="3"), _row("o3", "alpha-account", cost="3")),
+        TOKENS,
+    )
+
+    assert [a.credential_name for a in summary.by_account] == ["alpha-account", "zeta-account"]
