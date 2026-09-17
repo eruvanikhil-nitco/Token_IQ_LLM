@@ -146,6 +146,24 @@ class _FakeRawRepository:
 
 
 @pytest.mark.asyncio
+async def test_an_unknown_provider_is_refused_on_the_raw_route_too():
+    """The summary route already refuses a typo'd provider instead of answering an empty
+    result; the raw route must agree, or the same mistake means two different things
+    depending on which screen the customer happens to be looking at."""
+    from fastapi import HTTPException
+
+    from litellm.proxy.management_endpoints.provider_usage import provider_usage_raw
+
+    with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()):
+        with pytest.raises(HTTPException) as exc:
+            await provider_usage_raw(provider="notreal", limit=50, before=None, user_api_key_dict=ADMIN)
+
+    assert exc.value.status_code == 404
+    assert "notreal" in exc.value.detail["error"]
+    assert "openrouter" in exc.value.detail["error"]
+
+
+@pytest.mark.asyncio
 async def test_only_an_admin_may_read_provider_raw_usage():
     """This is the provider's own billing payload for every account. A non-admin reaching
     it leaks financial detail across teams."""

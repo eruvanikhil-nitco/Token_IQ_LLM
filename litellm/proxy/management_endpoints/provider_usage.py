@@ -53,6 +53,19 @@ def _admin_or_403(user_api_key_dict: UserAPIKeyAuth) -> None:
         raise _proxy_error(status.HTTP_403_FORBIDDEN, "Only a proxy admin may read provider usage.")
 
 
+def _known_provider_or_404(provider: str) -> None:
+    """Refuse a typo'd provider rather than answering an empty result.
+
+    An empty summary or an empty raw page for a mistyped slug reads as "this provider sent
+    nothing", which is a different and more alarming message than "no such provider".
+    """
+    if provider not in BILLING_PROVIDERS:
+        raise _proxy_error(
+            status.HTTP_404_NOT_FOUND,
+            f"Unknown provider {provider!r}. Valid providers: {', '.join(sorted(BILLING_PROVIDERS))}.",
+        )
+
+
 def usage_summary_response(*, provider: str, days: int, summary: UsageSummary) -> ProviderUsageSummaryResponse:
     """Shape the pure `UsageSummary` into the response the dashboard reads.
 
@@ -98,11 +111,7 @@ async def provider_usage_summary(
     from litellm.proxy.proxy_server import prisma_client
 
     _admin_or_403(user_api_key_dict)
-    if provider not in BILLING_PROVIDERS:
-        raise _proxy_error(
-            status.HTTP_404_NOT_FOUND,
-            f"Unknown provider {provider!r}. Valid providers: {', '.join(sorted(BILLING_PROVIDERS))}.",
-        )
+    _known_provider_or_404(provider)
     if prisma_client is None:
         raise _proxy_error(status.HTTP_500_INTERNAL_SERVER_ERROR, CommonProxyErrors.db_not_connected_error.value)
 
@@ -173,6 +182,7 @@ async def provider_usage_raw(
     from litellm.proxy.proxy_server import prisma_client
 
     _admin_or_403(user_api_key_dict)
+    _known_provider_or_404(provider)
     if prisma_client is None:
         raise _proxy_error(status.HTTP_500_INTERNAL_SERVER_ERROR, CommonProxyErrors.db_not_connected_error.value)
 

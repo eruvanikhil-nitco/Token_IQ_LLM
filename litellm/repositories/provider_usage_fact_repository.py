@@ -110,6 +110,30 @@ def _summary_row_or_none(row: object) -> SummaryRow | None:
     )
 
 
+def _recent_facts_where(
+    provider: str, before: datetime | None, before_fact_key: str | None
+) -> Mapping[str, object]:
+    """The `where` clause for `recent_facts`, one immutable mapping per branch.
+
+    bucket_start alone is not unique (see `recent_facts`), so once a caller carries a
+    fact_key forward the filter has to become an OR across two conditions rather than a
+    single comparison.
+    """
+    if before is None:
+        return MappingProxyType({"provider": provider})
+    if before_fact_key is None:
+        return MappingProxyType({"provider": provider, "bucket_start": {"lt": before}})
+    return MappingProxyType(
+        {
+            "provider": provider,
+            "OR": [
+                {"bucket_start": {"lt": before}},
+                {"bucket_start": before, "fact_key": {"lt": before_fact_key}},
+            ],
+        }
+    )
+
+
 def _fact_or_none(row: object) -> ProviderUsageFact | None:
     """A row we cannot read is dropped rather than guessed at.
 
@@ -273,19 +297,12 @@ class ProviderUsageFactRepository:
         fact_key unique, gives every row a place in one total order, so a caller that carries
         the fact_key half of a cursor forward never loses or repeats a row across pages.
         """
-        if before is None:
-            where: Final[dict[str, object]] = {"provider": provider}
-        elif before_fact_key is None:
-            where = {"provider": provider, "bucket_start": {"lt": before}}
-        else:
-            where = {
-                "provider": provider,
-                "OR": [
-                    {"bucket_start": {"lt": before}},
-                    {"bucket_start": before, "fact_key": {"lt": before_fact_key}},
-                ],
-            }
+        where: Final = _recent_facts_where(provider, before, before_fact_key)
+        # prisma-client-py's query builder json.dumps()s `where` directly and has no encoder
+        # for mappingproxy (verified live: `TypeError: Type <class 'mappingproxy'> not
+        # serializable`), so the immutable mapping built above is unwrapped once, right here,
+        # rather than built as a mutable dict throughout.
         rows: Final = await self._table.find_many(
-            where=where, order=[{"bucket_start": "desc"}, {"fact_key": "desc"}], take=limit
+            where=dict(where), order=[{"bucket_start": "desc"}, {"fact_key": "desc"}], take=limit
         )
         return tuple(fact for row in rows if (fact := _fact_or_none(row)) is not None)
