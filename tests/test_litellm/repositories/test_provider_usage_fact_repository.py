@@ -188,6 +188,48 @@ async def test_summary_rows_aggregate_in_sql_and_are_bounded_by_the_window():
 
 
 @pytest.mark.asyncio
+async def test_summary_sql_casts_the_summed_cost_to_text():
+    """asyncpg decodes a bare SUM(::numeric) as a Python float, which has already lost the
+    exact digits billed_cost exists to preserve. Casting the sum to text is what keeps the
+    value exact from the database to _decimal."""
+    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+
+    client = MagicMock()
+    client.db.query_raw = AsyncMock(return_value=[])
+
+    await ProviderUsageFactRepository(client).summary_rows(provider="openai", days=7)
+
+    sql, *_ = client.db.query_raw.await_args.args
+    assert "sum(f.billed_cost::numeric)::text" in sql.lower()
+
+
+@pytest.mark.asyncio
+async def test_a_string_cost_from_the_driver_becomes_an_exact_decimal():
+    """A value routed through float first would already be damaged by the time it reaches
+    here: Decimal(str(0.00780515)) matches, but Decimal(str(some_float)) for a value with
+    more digits would not. Feeding the exact digits as a string is the only way this
+    matters."""
+    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+
+    client = MagicMock()
+    client.db.query_raw = AsyncMock(
+        return_value=[
+            {
+                "model": "gpt-4o",
+                "credential_name": "prod",
+                "evidence": "reconciled",
+                "billed_cost": "0.00780515",
+                "facts": 1,
+            }
+        ]
+    )
+
+    rows = await ProviderUsageFactRepository(client).summary_rows(provider="openai", days=7)
+
+    assert rows[0].billed_cost == Decimal("0.00780515")
+
+
+@pytest.mark.asyncio
 async def test_summary_rows_carry_model_account_cost_and_request_count():
     from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
 

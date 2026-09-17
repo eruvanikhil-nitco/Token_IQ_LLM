@@ -15,7 +15,7 @@ _SUMMARY_SQL: Final = """
 SELECT f.model,
        f.credential_name,
        f.evidence,
-       SUM(f.billed_cost::numeric) AS billed_cost,
+       SUM(f.billed_cost::numeric)::text AS billed_cost,
        COUNT(*)                    AS facts
   FROM "LiteLLM_ProviderUsageFact" f
  WHERE f.provider = $1
