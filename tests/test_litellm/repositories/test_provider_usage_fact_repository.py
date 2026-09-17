@@ -324,3 +324,141 @@ async def test_token_totals_survive_the_driver_decoding_bigint_sums_as_float():
 
     assert (totals.input_tokens, totals.output_tokens) == (3372, 20)
     assert (totals.cached_input_tokens, totals.cache_write_tokens) == (5, 2)
+
+
+@pytest.mark.asyncio
+async def test_recent_facts_are_bounded_ordered_newest_first_in_the_database():
+    """Rendered on every page of the Raw Data view against a table that grows on every
+    tick. An unbounded or Python-sorted read would eventually take the database down.
+
+    The order carries fact_key as well as bucket_start: a live check against real data
+    found 47 openrouter facts sharing one bucket_start (one connector run stamps every
+    fact it writes with the same watermark), and ordering on bucket_start alone gives no
+    guarantee about which of those rows a page boundary lands on, which is exactly what
+    the fact_key tiebreaker in the cursor below depends on to stay correct."""
+    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+
+    table = MagicMock()
+    table.find_many = AsyncMock(return_value=[])
+    client = MagicMock()
+    client.db.litellm_providerusagefact = table
+
+    await ProviderUsageFactRepository(client).recent_facts(provider="openai", limit=50, before=None)
+
+    call = table.find_many.await_args.kwargs
+    assert call["where"] == {"provider": "openai"}
+    assert call["order"] == [{"bucket_start": "desc"}, {"fact_key": "desc"}]
+    assert call["take"] == 50
+
+
+@pytest.mark.asyncio
+async def test_paging_asks_only_for_rows_older_than_the_cursor():
+    """Offset paging re-reads everything before the page. This table is append-heavy, so a
+    keyset cursor is the difference between a fast page ten and a slow one.
+
+    Without a fact_key half, the cursor can only filter on bucket_start, which is the
+    best-effort fallback for a caller that has nothing else; the composite cursor below is
+    what a full page from this repository actually hands back."""
+    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+
+    table = MagicMock()
+    table.find_many = AsyncMock(return_value=[])
+    client = MagicMock()
+    client.db.litellm_providerusagefact = table
+    cursor = datetime(2026, 9, 15, tzinfo=timezone.utc)
+
+    await ProviderUsageFactRepository(client).recent_facts(provider="openai", limit=10, before=cursor)
+
+    assert table.find_many.await_args.kwargs["where"] == {
+        "provider": "openai",
+        "bucket_start": {"lt": cursor},
+    }
+
+
+@pytest.mark.asyncio
+async def test_the_fact_key_tiebreaker_keeps_rows_tied_on_bucket_start_reachable():
+    """A page boundary that lands inside a group of facts sharing one bucket_start must
+    defer the whole group rather than lose whichever of them did not fit the page. Filtering
+    on bucket_start alone at that boundary would exclude every tied row forever, including
+    ones a previous page never returned; the fact_key half makes the exclusion exact instead
+    of blanket."""
+    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+
+    table = MagicMock()
+    table.find_many = AsyncMock(return_value=[])
+    client = MagicMock()
+    client.db.litellm_providerusagefact = table
+    cursor = datetime(2026, 9, 15, tzinfo=timezone.utc)
+
+    await ProviderUsageFactRepository(client).recent_facts(
+        provider="openai", limit=10, before=cursor, before_fact_key="openai:acct:2026-09-15:gpt-4o"
+    )
+
+    assert table.find_many.await_args.kwargs["where"] == {
+        "provider": "openai",
+        "OR": [
+            {"bucket_start": {"lt": cursor}},
+            {"bucket_start": cursor, "fact_key": {"lt": "openai:acct:2026-09-15:gpt-4o"}},
+        ],
+    }
+
+
+def _fact_row(**overrides: object) -> MagicMock:
+    fields: dict[str, object] = {
+        "fact_key": "openrouter:gen-1",
+        "provider": "openrouter",
+        "credential_name": "acme-openrouter",
+        "grain": "request",
+        "bucket_start": datetime(2026, 9, 15, tzinfo=timezone.utc),
+        "evidence": "reconciled",
+        "billed_cost": "0.0000025",
+        "billing_currency": "USD",
+        "provider_request_id": "gen-1",
+        "provider_api_key_id": None,
+        "model": "gpt-4o",
+        "input_tokens": 100,
+        "output_tokens": 20,
+        "cached_input_tokens": 5,
+        "cache_write_tokens": 2,
+        "raw": {"id": "gen-1", "total_cost": 0.0000025},
+        "fetched_at": datetime(2026, 9, 15, 1, tzinfo=timezone.utc),
+    }
+    fields.update(overrides)
+    return MagicMock(**fields)
+
+
+@pytest.mark.asyncio
+async def test_recent_facts_carry_the_raw_payload_and_exact_cost_unchanged():
+    """Raw Data exists to show exactly what the provider sent. A read path that reshapes or
+    rounds `raw` or `billed_cost` defeats the entire reason this column was stored."""
+    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+
+    table = MagicMock()
+    table.find_many = AsyncMock(return_value=[_fact_row()])
+    client = MagicMock()
+    client.db.litellm_providerusagefact = table
+
+    facts = await ProviderUsageFactRepository(client).recent_facts(provider="openrouter", limit=50, before=None)
+
+    assert len(facts) == 1
+    assert dict(facts[0].raw) == {"id": "gen-1", "total_cost": 0.0000025}
+    assert facts[0].billed_cost == Decimal("0.0000025")
+    assert isinstance(facts[0].billed_cost, Decimal)
+
+
+@pytest.mark.asyncio
+async def test_recent_facts_drops_a_row_it_cannot_read_rather_than_fabricating_it():
+    """A fabricated row on the Raw Data screen is worse than a missing one: the whole point
+    of that screen is to show exactly what the provider said, nothing invented."""
+    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+
+    table = MagicMock()
+    table.find_many = AsyncMock(
+        return_value=[_fact_row(), _fact_row(fact_key="openrouter:gen-2", evidence="guessed")]
+    )
+    client = MagicMock()
+    client.db.litellm_providerusagefact = table
+
+    facts = await ProviderUsageFactRepository(client).recent_facts(provider="openrouter", limit=50, before=None)
+
+    assert [fact.fact_key for fact in facts] == ["openrouter:gen-1"]

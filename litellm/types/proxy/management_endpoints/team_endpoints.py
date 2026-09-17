@@ -299,6 +299,30 @@ class ProviderUsageSummaryResponse(BaseModel):
     settling_note: str
 
 
+class ProviderRawFact(BaseModel):
+    bucket_start: str
+    grain: UsageGrain
+    evidence: EvidenceLevel
+    credential_name: str
+    model: str | None
+    provider_request_id: str | None
+    provider_api_key_id: str | None
+    billed_cost: str
+    billing_currency: str
+    input_tokens: int | None
+    output_tokens: int | None
+    cached_input_tokens: int | None
+    cache_write_tokens: int | None
+    raw: Mapping[str, object] | None
+    fetched_at: str
+
+
+class ProviderUsageRawResponse(BaseModel):
+    provider: str
+    rows: tuple[ProviderRawFact, ...]
+    next_before: str | None
+
+
 class DailyReconciliationRow(BaseModel):
     """One day, charged twice"""
 

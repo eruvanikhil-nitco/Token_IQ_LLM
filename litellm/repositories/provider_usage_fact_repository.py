@@ -3,13 +3,21 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from datetime import datetime
 from decimal import Decimal, InvalidOperation
 from types import MappingProxyType
 from typing import Any, Final, get_args
 
-from litellm.types.proxy.provider_billing import EvidenceLevel, ProviderUsageFact, SummaryRow, TokenTotals
+from litellm.types.proxy.provider_billing import (
+    EvidenceLevel,
+    ProviderUsageFact,
+    SummaryRow,
+    TokenTotals,
+    UsageGrain,
+)
 
 _EVIDENCE_LEVELS: Final[frozenset[str]] = frozenset(get_args(EvidenceLevel))
+_GRAINS: Final[frozenset[str]] = frozenset(get_args(UsageGrain))
 
 _SUMMARY_SQL: Final = """
 SELECT f.model,
@@ -99,6 +107,62 @@ def _summary_row_or_none(row: object) -> SummaryRow | None:
         evidence=evidence,
         billed_cost=billed_cost,
         facts=facts,
+    )
+
+
+def _fact_or_none(row: object) -> ProviderUsageFact | None:
+    """A row we cannot read is dropped rather than guessed at.
+
+    Raw Data exists to show exactly what the provider said, so a corrupted or partial row
+    must disappear from the page rather than render with fabricated fields.
+    """
+    fact_key: Final = _read(row, "fact_key")
+    provider: Final = _read(row, "provider")
+    credential_name: Final = _read(row, "credential_name")
+    if not isinstance(fact_key, str) or not isinstance(provider, str) or not isinstance(credential_name, str):
+        return None
+    grain: Final = _read(row, "grain")
+    if grain not in _GRAINS:
+        return None
+    bucket_start: Final = _read(row, "bucket_start")
+    if not isinstance(bucket_start, datetime):
+        return None
+    evidence: Final = _read(row, "evidence")
+    if evidence not in _EVIDENCE_LEVELS:
+        return None
+    billed_cost: Final = _decimal(_read(row, "billed_cost"))
+    if billed_cost is None:
+        return None
+    billing_currency: Final = _read(row, "billing_currency")
+    if not isinstance(billing_currency, str):
+        return None
+    fetched_at: Final = _read(row, "fetched_at")
+    if not isinstance(fetched_at, datetime):
+        return None
+    raw: Final = _read(row, "raw")
+    if raw is not None and not isinstance(raw, Mapping):
+        return None
+    model: Final = _read(row, "model")
+    provider_request_id: Final = _read(row, "provider_request_id")
+    provider_api_key_id: Final = _read(row, "provider_api_key_id")
+    return ProviderUsageFact(
+        fact_key=fact_key,
+        provider=provider,
+        credential_name=credential_name,
+        grain=grain,
+        bucket_start=bucket_start,
+        evidence=evidence,
+        billed_cost=billed_cost,
+        billing_currency=billing_currency,
+        provider_request_id=provider_request_id if isinstance(provider_request_id, str) else None,
+        provider_api_key_id=provider_api_key_id if isinstance(provider_api_key_id, str) else None,
+        model=model if isinstance(model, str) else None,
+        input_tokens=_bigint(_read(row, "input_tokens")),
+        output_tokens=_bigint(_read(row, "output_tokens")),
+        cached_input_tokens=_bigint(_read(row, "cached_input_tokens")),
+        cache_write_tokens=_bigint(_read(row, "cache_write_tokens")),
+        raw=MappingProxyType(dict(raw)) if raw is not None else None,
+        fetched_at=fetched_at,
     )
 
 
@@ -195,3 +259,33 @@ class ProviderUsageFactRepository:
             cached_input_tokens=_bigint(_read(row, "cached_input")) or 0,
             cache_write_tokens=_bigint(_read(row, "cache_write")) or 0,
         )
+
+    async def recent_facts(
+        self, *, provider: str, limit: int, before: datetime | None, before_fact_key: str | None = None
+    ) -> tuple[ProviderUsageFact, ...]:
+        """The newest facts for one provider, keyset-paged on bucket_start with fact_key as a tiebreaker.
+
+        bucket_start alone is not unique: every fact one connector run fetches shares that
+        run's watermark, and every day-grain fact shares its calendar day. A page boundary
+        that falls inside such a group and then filters strictly on ``bucket_start`` alone
+        would exclude every row at that exact value forever, including ones the earlier page
+        never returned. Ordering and filtering on ``(bucket_start, fact_key)`` together, with
+        fact_key unique, gives every row a place in one total order, so a caller that carries
+        the fact_key half of a cursor forward never loses or repeats a row across pages.
+        """
+        if before is None:
+            where: Final[dict[str, object]] = {"provider": provider}
+        elif before_fact_key is None:
+            where = {"provider": provider, "bucket_start": {"lt": before}}
+        else:
+            where = {
+                "provider": provider,
+                "OR": [
+                    {"bucket_start": {"lt": before}},
+                    {"bucket_start": before, "fact_key": {"lt": before_fact_key}},
+                ],
+            }
+        rows: Final = await self._table.find_many(
+            where=where, order=[{"bucket_start": "desc"}, {"fact_key": "desc"}], take=limit
+        )
+        return tuple(fact for row in rows if (fact := _fact_or_none(row)) is not None)

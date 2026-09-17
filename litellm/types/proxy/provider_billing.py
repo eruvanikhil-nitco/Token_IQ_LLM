@@ -42,6 +42,7 @@ class ProviderUsageFact:
     cached_input_tokens: int | None = None
     cache_write_tokens: int | None = None
     raw: Mapping[str, object] | None = None
+    fetched_at: datetime | None = None
 
 
 @dataclass(frozen=True, slots=True)

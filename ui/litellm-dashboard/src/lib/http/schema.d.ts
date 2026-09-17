@@ -12136,6 +12136,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/provider/usage/raw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Provider Usage Raw
+         * @description The provider's own payload for one provider, newest first, keyset-paged on bucket_start.
+         */
+        get: operations["provider_usage_raw_provider_usage_raw_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/provider/usage/summary": {
         parameters: {
             query?: never;
@@ -34299,6 +34319,47 @@ export interface components {
             /** Total Spend */
             total_spend: number;
         };
+        /** ProviderRawFact */
+        ProviderRawFact: {
+            /** Billed Cost */
+            billed_cost: string;
+            /** Billing Currency */
+            billing_currency: string;
+            /** Bucket Start */
+            bucket_start: string;
+            /** Cache Write Tokens */
+            cache_write_tokens: number | null;
+            /** Cached Input Tokens */
+            cached_input_tokens: number | null;
+            /** Credential Name */
+            credential_name: string;
+            /**
+             * Evidence
+             * @enum {string}
+             */
+            evidence: "reconciled" | "priced" | "allocated";
+            /** Fetched At */
+            fetched_at: string;
+            /**
+             * Grain
+             * @enum {string}
+             */
+            grain: "request" | "day";
+            /** Input Tokens */
+            input_tokens: number | null;
+            /** Model */
+            model: string | null;
+            /** Output Tokens */
+            output_tokens: number | null;
+            /** Provider Api Key Id */
+            provider_api_key_id: string | null;
+            /** Provider Request Id */
+            provider_request_id: string | null;
+            /** Raw */
+            raw: {
+                [key: string]: unknown;
+            } | null;
+        };
         /**
          * ProviderRow
          * @description One provider, as the Overview table renders it.
@@ -34382,6 +34443,15 @@ export interface components {
             input_tokens: number;
             /** Output Tokens */
             output_tokens: number;
+        };
+        /** ProviderUsageRawResponse */
+        ProviderUsageRawResponse: {
+            /** Next Before */
+            next_before: string | null;
+            /** Provider */
+            provider: string;
+            /** Rows */
+            rows: components["schemas"]["ProviderRawFact"][];
         };
         /** ProviderUsageSummaryResponse */
         ProviderUsageSummaryResponse: {
@@ -55500,6 +55570,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProviderSyncHistoryResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    provider_usage_raw_provider_usage_raw_get: {
+        parameters: {
+            query: {
+                /** @description Which provider's raw usage rows to read, for example openrouter */
+                provider: string;
+                limit?: number;
+                /** @description Cursor from a previous page's next_before, to read older rows */
+                before?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProviderUsageRawResponse"];
                 };
             };
             /** @description Validation Error */
