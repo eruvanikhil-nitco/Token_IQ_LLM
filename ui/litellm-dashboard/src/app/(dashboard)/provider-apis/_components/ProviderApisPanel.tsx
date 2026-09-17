@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ConnectionTab from "./ConnectionTab";
 import SyncHistoryTab from "./SyncHistoryTab";
 import WhatWeFetchTab from "./WhatWeFetchTab";
-import { STATE_LABELS, stateBadgeVariant } from "./connectionState";
+import { stateBadgeVariant, stateLabel } from "./connectionState";
 
 export default function ProviderApisPanel() {
   const { data: connections, isLoading, error } = useProviderConnections();
@@ -28,7 +28,7 @@ export default function ProviderApisPanel() {
           <TabsTrigger key={connection.provider} value={connection.provider}>
             <span className="flex items-center gap-2">
               {connection.display_name}
-              <Badge variant={stateBadgeVariant(connection.state)}>{STATE_LABELS[connection.state]}</Badge>
+              <Badge variant={stateBadgeVariant(connection.state)}>{stateLabel(connection.state)}</Badge>
             </span>
           </TabsTrigger>
         ))}

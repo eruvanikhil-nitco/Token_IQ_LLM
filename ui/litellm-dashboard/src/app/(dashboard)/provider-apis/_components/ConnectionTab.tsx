@@ -6,7 +6,7 @@ import type { ProviderConnection } from "@/app/(dashboard)/hooks/providerApis/us
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { migratedHref } from "@/utils/migratedPages";
-import { STATE_LABELS, stateBadgeVariant } from "./connectionState";
+import { stateBadgeVariant, stateLabel } from "./connectionState";
 
 const whenever = (value: string | null): string => (value === null ? "Never" : new Date(value).toLocaleString());
 
@@ -14,7 +14,7 @@ export default function ConnectionTab({ connection }: { connection: ProviderConn
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center gap-3">
-        <Badge variant={stateBadgeVariant(connection.state)}>{STATE_LABELS[connection.state]}</Badge>
+        <Badge variant={stateBadgeVariant(connection.state)}>{stateLabel(connection.state)}</Badge>
         <Badge variant="outline">Read-only</Badge>
         <p className="text-sm text-muted-foreground">
           {connection.display_name} keys stored here are only ever used to read cost reports. They cannot send
@@ -46,7 +46,7 @@ export default function ConnectionTab({ connection }: { connection: ProviderConn
               <TableRow key={account.credential_name}>
                 <TableCell>{account.credential_name}</TableCell>
                 <TableCell>
-                  <Badge variant={stateBadgeVariant(account.state)}>{STATE_LABELS[account.state]}</Badge>
+                  <Badge variant={stateBadgeVariant(account.state)}>{stateLabel(account.state)}</Badge>
                 </TableCell>
                 <TableCell>{whenever(account.last_sync_at)}</TableCell>
                 <TableCell>{account.facts_stored}</TableCell>
