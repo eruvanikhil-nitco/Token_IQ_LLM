@@ -22,9 +22,22 @@ export interface EvidenceRow {
 }
 
 const EVIDENCE_LEVELS: ReadonlyArray<{ level: string; label: string; description: string }> = [
-  { level: "reconciled", label: "Reconciled", description: "The provider asserted these dollars directly" },
-  { level: "priced", label: "Priced", description: "The provider asserted tokens; we applied rates" },
-  { level: "allocated", label: "Allocated", description: "Only our own gateway events exist here" },
+  {
+    level: "reconciled",
+    label: "Reconciled",
+    description: "The provider billed this amount. These are their figures, not ours.",
+  },
+  {
+    level: "priced",
+    label: "Priced",
+    description: "The provider reported the usage but not the cost, so we applied their published rates.",
+  },
+  {
+    level: "allocated",
+    label: "Allocated",
+    description:
+      "The provider has not reported this at all. It is our own estimate from traffic that passed through the gateway, and it may change.",
+  },
 ];
 
 // by_evidence arrives as a plain string-keyed map, not a typed union: look each level up

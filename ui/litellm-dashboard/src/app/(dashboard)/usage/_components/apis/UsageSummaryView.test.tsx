@@ -70,6 +70,15 @@ describe("UsageSummaryView", () => {
     expect(screen.getByText("Priced")).toBeInTheDocument();
     expect(screen.getByText("Allocated")).toBeInTheDocument();
     expect(screen.getAllByText("$0")).toHaveLength(2);
+    expect(screen.getByText("The provider billed this amount. These are their figures, not ours.")).toBeInTheDocument();
+    expect(
+      screen.getByText("The provider reported the usage but not the cost, so we applied their published rates."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "The provider has not reported this at all. It is our own estimate from traffic that passed through the gateway, and it may change.",
+      ),
+    ).toBeInTheDocument();
   });
 
   it("renders both the delay note and the settling note as distinct, unmerged text", () => {

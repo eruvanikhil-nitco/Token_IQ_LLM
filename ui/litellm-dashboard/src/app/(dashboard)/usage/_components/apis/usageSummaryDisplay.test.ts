@@ -67,4 +67,18 @@ describe("evidenceRows", () => {
 
     expect(rows[0].cost).toBe("0.123456789012345");
   });
+
+  it("tells the reader how much to trust each level, in plain language a finance reader can act on", () => {
+    const rows = evidenceRows({ reconciled: "1", priced: "1", allocated: "1" });
+
+    expect(rows.find((row) => row.level === "reconciled")?.description).toBe(
+      "The provider billed this amount. These are their figures, not ours.",
+    );
+    expect(rows.find((row) => row.level === "priced")?.description).toBe(
+      "The provider reported the usage but not the cost, so we applied their published rates.",
+    );
+    expect(rows.find((row) => row.level === "allocated")?.description).toBe(
+      "The provider has not reported this at all. It is our own estimate from traffic that passed through the gateway, and it may change.",
+    );
+  });
 });

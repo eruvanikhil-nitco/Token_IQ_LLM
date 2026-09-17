@@ -5,8 +5,6 @@ import { providerUsageSummaryCall } from "@/components/networking";
 import { all_admin_roles } from "@/utils/roles";
 import type { ProviderUsageSummaryResponse } from "@/components/networking";
 
-export type { ProviderUsageSummaryResponse };
-
 export const useProviderUsageSummary = (provider: string, days: number) => {
   const { accessToken, userRole } = useAuthorized();
 
