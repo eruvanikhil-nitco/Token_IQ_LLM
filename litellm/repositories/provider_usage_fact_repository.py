@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from decimal import Decimal, InvalidOperation
 from types import MappingProxyType
-from typing import Any, Final, cast, get_args
+from typing import Any, Final, get_args
 
 from litellm.types.proxy.provider_billing import EvidenceLevel, ProviderUsageFact, SummaryRow, TokenTotals
 
@@ -79,7 +79,7 @@ def _summary_row_or_none(row: object) -> SummaryRow | None:
     return SummaryRow(
         model=model if isinstance(model, str) else None,
         credential_name=credential_name,
-        evidence=cast(EvidenceLevel, evidence),
+        evidence=evidence,
         billed_cost=billed_cost,
         facts=facts,
     )

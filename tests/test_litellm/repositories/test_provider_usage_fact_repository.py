@@ -226,6 +226,29 @@ async def test_a_row_we_cannot_read_is_dropped_rather_than_guessed():
 
 
 @pytest.mark.asyncio
+async def test_a_row_with_an_unrecognised_evidence_level_is_dropped():
+    """evidence tells a reader which figures the provider asserted and which we derived.
+    A value outside the known levels must not reach the Summary screen labeled as if it
+    were one of them."""
+    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+
+    client = MagicMock()
+    client.db.query_raw = AsyncMock(
+        return_value=[
+            {
+                "model": "gpt-4o",
+                "credential_name": "prod",
+                "evidence": "guessed",
+                "billed_cost": Decimal("12.5"),
+                "facts": 3,
+            }
+        ]
+    )
+
+    assert await ProviderUsageFactRepository(client).summary_rows(provider="openai", days=7) == ()
+
+
+@pytest.mark.asyncio
 async def test_token_totals_sum_each_token_type_separately():
     """Input, output, cache read and cache write are priced differently. Collapsing them
     into one number hides the thing a reader is looking for."""
