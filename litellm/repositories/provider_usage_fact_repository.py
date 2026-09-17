@@ -113,25 +113,33 @@ def _summary_row_or_none(row: object) -> SummaryRow | None:
 def _recent_facts_where(
     provider: str, before: datetime | None, before_fact_key: str | None
 ) -> Mapping[str, object]:
-    """The `where` clause for `recent_facts`, one immutable mapping per branch.
+    """The `where` clause for `recent_facts`.
 
     bucket_start alone is not unique (see `recent_facts`), so once a caller carries a
     fact_key forward the filter has to become an OR across two conditions rather than a
-    single comparison.
+    single comparison. Every dict and list literal below is `mutable-ok`: prisma-client-py
+    serialises this filter with `json.dumps` and has no encoder for `mappingproxy` (verified
+    live: `TypeError: Type <class 'mappingproxy'> not serializable`), and Prisma's own filter
+    syntax is nested dicts and lists, so no immutable container can stand in for them here.
     """
     if before is None:
-        return MappingProxyType({"provider": provider})
+        return {"provider": provider}  # mutable-ok: prisma json.dumps() has no mappingproxy encoder
+    lt_before: Final = {"lt": before}  # mutable-ok: prisma json.dumps() has no mappingproxy encoder
     if before_fact_key is None:
-        return MappingProxyType({"provider": provider, "bucket_start": {"lt": before}})
-    return MappingProxyType(
-        {
+        return {  # mutable-ok: prisma json.dumps() has no mappingproxy encoder
             "provider": provider,
-            "OR": [
-                {"bucket_start": {"lt": before}},
-                {"bucket_start": before, "fact_key": {"lt": before_fact_key}},
-            ],
+            "bucket_start": lt_before,
         }
-    )
+    return {  # mutable-ok: prisma json.dumps() has no mappingproxy encoder
+        "provider": provider,
+        "OR": [  # mutable-ok: prisma json.dumps() has no mappingproxy encoder
+            {"bucket_start": lt_before},  # mutable-ok: prisma json.dumps() has no mappingproxy encoder
+            {  # mutable-ok: prisma json.dumps() has no mappingproxy encoder
+                "bucket_start": before,
+                "fact_key": {"lt": before_fact_key},  # mutable-ok: prisma json.dumps() has no mappingproxy encoder
+            },
+        ],
+    }
 
 
 def _fact_or_none(row: object) -> ProviderUsageFact | None:
@@ -298,11 +306,9 @@ class ProviderUsageFactRepository:
         the fact_key half of a cursor forward never loses or repeats a row across pages.
         """
         where: Final = _recent_facts_where(provider, before, before_fact_key)
-        # prisma-client-py's query builder json.dumps()s `where` directly and has no encoder
-        # for mappingproxy (verified live: `TypeError: Type <class 'mappingproxy'> not
-        # serializable`), so the immutable mapping built above is unwrapped once, right here,
-        # rather than built as a mutable dict throughout.
-        rows: Final = await self._table.find_many(
-            where=dict(where), order=[{"bucket_start": "desc"}, {"fact_key": "desc"}], take=limit
-        )
+        order: Final = [  # mutable-ok: prisma json.dumps() has no mappingproxy encoder
+            {"bucket_start": "desc"},  # mutable-ok: prisma json.dumps() has no mappingproxy encoder
+            {"fact_key": "desc"},  # mutable-ok: prisma json.dumps() has no mappingproxy encoder
+        ]
+        rows: Final = await self._table.find_many(where=where, order=order, take=limit)
         return tuple(fact for row in rows if (fact := _fact_or_none(row)) is not None)
