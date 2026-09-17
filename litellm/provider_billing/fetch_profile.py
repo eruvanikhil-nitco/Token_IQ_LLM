@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Final
 
+from litellm.provider_billing.bedrock import SETTLING_HOURS
 from litellm.provider_billing.runner import LOOKBACK
 from litellm.provider_billing.scheduled import INTERVAL_SECONDS
 from litellm.types.proxy.provider_billing import UsageGrain
@@ -19,6 +20,16 @@ from litellm.types.proxy.provider_billing import UsageGrain
 _NO_BACKFILL: Final = (
     "Each run re-reads the most recent window. There is no first-connection backfill yet, so "
     "cost from before this connection was made is not loaded."
+)
+
+_NO_VERIFIED_SETTLING: Final = (
+    "How long this provider keeps adjusting recent figures has not been verified against "
+    "a real account, so treat the most recent days as provisional."
+)
+
+_BEDROCK_SETTLING_NOTE: Final = (
+    f"Cost Explorer settles over about {SETTLING_HOURS} hours, so the most recent day is "
+    "deliberately not read until it stops moving."
 )
 
 
@@ -33,10 +44,17 @@ class FetchProfile:
     window_hours: int
     delay_note: str
     history_note: str
+    settling_note: str
 
 
 def _profile(
-    provider: str, display_name: str, endpoint: str, endpoint_url: str, grain: UsageGrain, delay_note: str
+    provider: str,
+    display_name: str,
+    endpoint: str,
+    endpoint_url: str,
+    grain: UsageGrain,
+    delay_note: str,
+    settling_note: str,
 ) -> FetchProfile:
     return FetchProfile(
         provider=provider,
@@ -48,6 +66,7 @@ def _profile(
         window_hours=int(LOOKBACK.total_seconds() // 3600),
         delay_note=delay_note,
         history_note=_NO_BACKFILL,
+        settling_note=settling_note,
     )
 
 
@@ -61,6 +80,7 @@ FETCH_PROFILES: Final[Mapping[str, FetchProfile]] = MappingProxyType(
             "day",
             "OpenAI reports cost by day for the whole organisation, so the finest comparison "
             "against gateway traffic is by model and day. Recent days can still change.",
+            _NO_VERIFIED_SETTLING,
         ),
         "anthropic": _profile(
             "anthropic",
@@ -70,6 +90,7 @@ FETCH_PROFILES: Final[Mapping[str, FetchProfile]] = MappingProxyType(
             "day",
             "Anthropic reports cost by day against its own workspace rather than our teams, so "
             "the finest comparison against gateway traffic is by model and day.",
+            _NO_VERIFIED_SETTLING,
         ),
         "openrouter": _profile(
             "openrouter",
@@ -80,6 +101,7 @@ FETCH_PROFILES: Final[Mapping[str, FetchProfile]] = MappingProxyType(
             "OpenRouter prices each request individually, so every gateway request can be "
             "checked against what OpenRouter charged for it. OpenRouter drops this history "
             "after about 30 days, so the newest requests are read first.",
+            _NO_VERIFIED_SETTLING,
         ),
         "bedrock": _profile(
             "bedrock",
@@ -89,6 +111,7 @@ FETCH_PROFILES: Final[Mapping[str, FetchProfile]] = MappingProxyType(
             "day",
             "Cost Explorer reports by day and settles over the following days, so the most "
             "recent day is deliberately not read until it stops moving.",
+            _BEDROCK_SETTLING_NOTE,
         ),
     }
 )
