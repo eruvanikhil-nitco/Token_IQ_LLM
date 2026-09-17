@@ -1,5 +1,5 @@
 import type { ProviderRawFact } from "@/components/networking";
-import { fieldsNotReported } from "./coverage";
+import { fieldsNotReported, joinWithAnd } from "./coverage";
 
 const NOT_COLLECTED_NOTE =
   "Service tier, region, and per-user attribution are not collected by this build, for any provider.";
@@ -9,7 +9,7 @@ export default function CoverageNote({ rows }: { rows: readonly ProviderRawFact[
 
   return (
     <div className="flex flex-col gap-1 text-sm text-muted-foreground">
-      {missing.length > 0 && <p>This provider did not report {missing.join(", ")} for any row in this window.</p>}
+      {missing.length > 0 && <p>This provider did not report {joinWithAnd(missing)} for any row in this window.</p>}
       <p>{NOT_COLLECTED_NOTE}</p>
     </div>
   );

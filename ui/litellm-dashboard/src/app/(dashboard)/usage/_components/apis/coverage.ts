@@ -6,7 +6,7 @@ import type { ProviderRawFact } from "@/components/networking";
 const NULLABLE_FIELDS: ReadonlyArray<{ field: keyof ProviderRawFact; label: string }> = [
   { field: "model", label: "Model" },
   { field: "provider_request_id", label: "Provider request ID" },
-  { field: "provider_api_key_id", label: "API key" },
+  { field: "provider_api_key_id", label: "Provider's own key ID" },
   { field: "cached_input_tokens", label: "Cached input tokens" },
   { field: "cache_write_tokens", label: "Cache write tokens" },
 ];
@@ -16,4 +16,14 @@ export const fieldsNotReported = (rows: readonly ProviderRawFact[]): readonly st
     return [];
   }
   return NULLABLE_FIELDS.filter(({ field }) => rows.every((row) => row[field] === null)).map(({ label }) => label);
+};
+
+export const joinWithAnd = (items: readonly string[]): string => {
+  if (items.length <= 1) {
+    return items[0] ?? "";
+  }
+  if (items.length === 2) {
+    return `${items[0]} and ${items[1]}`;
+  }
+  return `${items.slice(0, -1).join(", ")}, and ${items[items.length - 1]}`;
 };

@@ -163,6 +163,23 @@ describe("RawDataView", () => {
 
     render(<RawDataView provider="openrouter" displayName="OpenRouter" />);
 
-    expect(screen.getByText("This provider did not report API key for any row in this window.")).toBeInTheDocument();
+    expect(
+      screen.getByText("This provider did not report Provider's own key ID for any row in this window."),
+    ).toBeInTheDocument();
+  });
+
+  it("gives the payload toggle the same accessible name as the text it visibly shows", () => {
+    const bucketStart = "2026-09-16T12:40:50.477000+00:00";
+    useProviderUsageRaw.mockReturnValue({
+      data: page([row({ bucket_start: bucketStart })]),
+      isLoading: false,
+      error: null,
+    });
+
+    render(<RawDataView provider="openrouter" displayName="OpenRouter" />);
+
+    const expectedLabel = `Show payload for the row at ${new Date(bucketStart).toLocaleString()}`;
+    const toggle = screen.getByRole("button", { name: expectedLabel });
+    expect(toggle).toHaveTextContent(expectedLabel);
   });
 });

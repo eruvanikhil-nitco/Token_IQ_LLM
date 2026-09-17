@@ -88,10 +88,12 @@ export default function RawDataView({ provider, displayName }: { provider: strin
           {data.rows.map((row, index) => {
             const rowKey = `${row.bucket_start}-${row.credential_name}-${row.provider_request_id ?? index}`;
             const isExpanded = expanded.has(rowKey);
+            const formattedTime = new Date(row.bucket_start).toLocaleString();
+            const toggleLabel = `${isExpanded ? "Hide" : "Show"} payload for the row at ${formattedTime}`;
             return (
               <Fragment key={rowKey}>
                 <TableRow>
-                  <TableCell>{new Date(row.bucket_start).toLocaleString()}</TableCell>
+                  <TableCell>{formattedTime}</TableCell>
                   <TableCell>{row.model ?? "Unknown model"}</TableCell>
                   <TableCell>{row.credential_name}</TableCell>
                   <TableCell>{EVIDENCE_LABEL[row.evidence]}</TableCell>
@@ -102,14 +104,8 @@ export default function RawDataView({ provider, displayName }: { provider: strin
                   <TableCell>{row.provider_request_id ?? "-"}</TableCell>
                   <TableCell>{row.provider_api_key_id ?? "-"}</TableCell>
                   <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      aria-expanded={isExpanded}
-                      aria-label={`${isExpanded ? "Hide" : "Show"} payload for the row at ${row.bucket_start}`}
-                      onClick={() => toggleExpanded(rowKey)}
-                    >
-                      {isExpanded ? "Hide payload" : "Show payload"}
+                    <Button variant="ghost" size="sm" aria-expanded={isExpanded} onClick={() => toggleExpanded(rowKey)}>
+                      {toggleLabel}
                     </Button>
                   </TableCell>
                 </TableRow>

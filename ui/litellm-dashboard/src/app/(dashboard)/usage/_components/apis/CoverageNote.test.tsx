@@ -23,18 +23,39 @@ const row = (overrides: Partial<ProviderRawFact> = {}): ProviderRawFact => ({
 });
 
 describe("CoverageNote", () => {
-  it("names the fields this provider did not populate anywhere in the window", () => {
+  it("names the fields this provider did not populate anywhere in the window, without saying 'API key'", () => {
     render(<CoverageNote rows={[row({ provider_api_key_id: null })]} />);
 
     expect(
-      screen.getByText("This provider did not report API key for any row in this window."),
+      screen.getByText("This provider did not report Provider's own key ID for any row in this window."),
     ).toBeInTheDocument();
+    expect(screen.queryByText(/\bAPI key\b/)).not.toBeInTheDocument();
   });
 
   it("does not name a field that at least one row in the window did populate", () => {
     render(<CoverageNote rows={[row({ provider_api_key_id: null }), row({ provider_api_key_id: "key-1" })]} />);
 
-    expect(screen.queryByText("This provider did not report API key for any row in this window.")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("This provider did not report Provider's own key ID for any row in this window."),
+    ).not.toBeInTheDocument();
+  });
+
+  it("joins three or more missing fields with an Oxford comma, matching the not-collected sentence's style", () => {
+    render(<CoverageNote rows={[row({ model: null, provider_api_key_id: null, cached_input_tokens: null })]} />);
+
+    expect(
+      screen.getByText(
+        "This provider did not report Model, Provider's own key ID, and Cached input tokens for any row in this window.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("joins exactly two missing fields with a plain 'and' and no comma", () => {
+    render(<CoverageNote rows={[row({ model: null, provider_api_key_id: null })]} />);
+
+    expect(
+      screen.getByText("This provider did not report Model and Provider's own key ID for any row in this window."),
+    ).toBeInTheDocument();
   });
 
   it("makes no claim about missing fields for an empty window", () => {

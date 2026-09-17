@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ProviderRawFact } from "@/components/networking";
-import { fieldsNotReported } from "./coverage";
+import { fieldsNotReported, joinWithAnd } from "./coverage";
 
 const row = (overrides: Partial<ProviderRawFact> = {}): ProviderRawFact => ({
   bucket_start: "2026-09-16T12:40:50.477000+00:00",
@@ -23,13 +23,13 @@ const row = (overrides: Partial<ProviderRawFact> = {}): ProviderRawFact => ({
 
 describe("fieldsNotReported", () => {
   it("names a field no row in the window populated", () => {
-    expect(fieldsNotReported([row({ provider_api_key_id: null })])).toContain("API key");
+    expect(fieldsNotReported([row({ provider_api_key_id: null })])).toContain("Provider's own key ID");
   });
 
   it("does not name a field some row did populate", () => {
     expect(
       fieldsNotReported([row({ provider_api_key_id: null }), row({ provider_api_key_id: "k" })]),
-    ).not.toContain("API key");
+    ).not.toContain("Provider's own key ID");
   });
 
   it("says nothing at all for an empty window rather than claiming everything is missing", () => {
@@ -50,7 +50,7 @@ describe("fieldsNotReported", () => {
     expect(fieldsNotReported(rows)).toEqual([
       "Model",
       "Provider request ID",
-      "API key",
+      "Provider's own key ID",
       "Cached input tokens",
       "Cache write tokens",
     ]);
@@ -63,5 +63,25 @@ describe("fieldsNotReported", () => {
     ];
 
     expect(fieldsNotReported(rows)).toEqual([]);
+  });
+});
+
+describe("joinWithAnd", () => {
+  it("returns the single item alone, with no trailing conjunction", () => {
+    expect(joinWithAnd(["Model"])).toBe("Model");
+  });
+
+  it("joins two items with a plain 'and' and no comma", () => {
+    expect(joinWithAnd(["Model", "Provider's own key ID"])).toBe("Model and Provider's own key ID");
+  });
+
+  it("joins three or more items with an Oxford comma before the final 'and'", () => {
+    expect(joinWithAnd(["Model", "Provider's own key ID", "Cached input tokens"])).toBe(
+      "Model, Provider's own key ID, and Cached input tokens",
+    );
+  });
+
+  it("returns an empty string for no items", () => {
+    expect(joinWithAnd([])).toBe("");
   });
 });
