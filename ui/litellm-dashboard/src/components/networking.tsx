@@ -2862,6 +2862,48 @@ export const providerUsageSummaryCall = async (
   }
 };
 
+export interface ProviderRawFact {
+  bucket_start: string;
+  grain: "request" | "day";
+  evidence: "reconciled" | "priced" | "allocated";
+  credential_name: string;
+  model: string | null;
+  provider_request_id: string | null;
+  provider_api_key_id: string | null;
+  billed_cost: string;
+  billing_currency: string;
+  input_tokens: number | null;
+  output_tokens: number | null;
+  cached_input_tokens: number | null;
+  cache_write_tokens: number | null;
+  raw: Record<string, unknown> | null;
+  fetched_at: string;
+}
+
+export interface ProviderUsageRawResponse {
+  provider: string;
+  rows: ProviderRawFact[];
+  next_before: string | null;
+}
+
+export const providerUsageRawCall = async (
+  accessToken: string,
+  provider: string,
+  limit: number,
+  before: string | null,
+): Promise<ProviderUsageRawResponse> => {
+  const beforeParam = before !== null ? `&before=${encodeURIComponent(before)}` : "";
+  try {
+    return await apiClient.get<ProviderUsageRawResponse>(
+      `/provider/usage/raw?provider=${encodeURIComponent(provider)}&limit=${limit}${beforeParam}`,
+      { accessToken },
+    );
+  } catch (error) {
+    console.error("Failed to read provider raw usage:", error);
+    throw error;
+  }
+};
+
 export const credentialListCall = async (accessToken: string) => {
   /**
    * Get all available teams on proxy

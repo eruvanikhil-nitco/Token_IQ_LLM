@@ -2,6 +2,7 @@
 
 import { useProviderConnections } from "@/app/(dashboard)/hooks/providerApis/useProviderConnections";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import RawDataView from "./RawDataView";
 import UsageSummaryView from "./UsageSummaryView";
 
 const USAGE_WINDOW_DAYS = 30;
@@ -30,7 +31,18 @@ export default function ProviderUsagePanel() {
       </TabsList>
       {connections.map((connection) => (
         <TabsContent key={connection.provider} value={connection.provider} className="pt-6">
-          <UsageSummaryView provider={connection.provider} days={USAGE_WINDOW_DAYS} />
+          <Tabs defaultValue="summary">
+            <TabsList>
+              <TabsTrigger value="summary">Summary</TabsTrigger>
+              <TabsTrigger value="raw">Raw Data</TabsTrigger>
+            </TabsList>
+            <TabsContent value="summary" className="pt-6">
+              <UsageSummaryView provider={connection.provider} days={USAGE_WINDOW_DAYS} />
+            </TabsContent>
+            <TabsContent value="raw" className="pt-6">
+              <RawDataView provider={connection.provider} displayName={connection.display_name} />
+            </TabsContent>
+          </Tabs>
         </TabsContent>
       ))}
     </Tabs>
