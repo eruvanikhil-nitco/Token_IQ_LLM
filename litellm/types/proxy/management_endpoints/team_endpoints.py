@@ -2,6 +2,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from litellm.provider_billing.connection_state import ConnectionState
 from litellm.proxy._types import (
     KeyManagementRoutes,
     LiteLLM_DeletedTeamTable,
@@ -9,6 +10,7 @@ from litellm.proxy._types import (
     LiteLLM_TeamTable,
     Member,
 )
+from litellm.types.proxy.provider_billing import SyncOutcome
 from litellm.types.proxy.team_api_access import TeamApiAccessMode
 
 TeamIdSearchMatch = Literal["exact", "prefix"]
@@ -230,9 +232,7 @@ class ProviderConnectionAccount(BaseModel):
     """One stored billing credential's standing against its provider"""
 
     credential_name: str
-    state: str
-    """waiting_for_first_data, healthy, or needs_attention"""
-
+    state: ConnectionState
     detail: str | None
     last_sync_at: str | None
     last_outcome: str | None
@@ -242,9 +242,7 @@ class ProviderConnectionAccount(BaseModel):
 class ProviderConnection(BaseModel):
     provider: str
     display_name: str
-    state: str
-    """not_connected, waiting_for_first_data, healthy, or needs_attention"""
-
+    state: ConnectionState
     accounts: tuple[ProviderConnectionAccount, ...]
     fetches: ProviderFetchDetail
 
@@ -258,7 +256,7 @@ class ProviderSyncHistoryRow(BaseModel):
     credential_name: str
     started_at: str
     finished_at: str
-    outcome: str
+    outcome: SyncOutcome
     facts_written: int
     window_start: str
     window_end: str

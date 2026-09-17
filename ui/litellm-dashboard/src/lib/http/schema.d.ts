@@ -34123,8 +34123,11 @@ export interface components {
             fetches: components["schemas"]["ProviderFetchDetail"];
             /** Provider */
             provider: string;
-            /** State */
-            state: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "not_connected" | "waiting_for_first_data" | "healthy" | "needs_attention";
         };
         /**
          * ProviderConnectionAccount
@@ -34141,8 +34144,11 @@ export interface components {
             last_outcome: string | null;
             /** Last Sync At */
             last_sync_at: string | null;
-            /** State */
-            state: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "not_connected" | "waiting_for_first_data" | "healthy" | "needs_attention";
         };
         /** ProviderConnectionsResponse */
         ProviderConnectionsResponse: {
@@ -34318,8 +34324,11 @@ export interface components {
             facts_written: number;
             /** Finished At */
             finished_at: string;
-            /** Outcome */
-            outcome: string;
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "fetched" | "not_configured" | "failed";
             /** Provider */
             provider: string;
             /** Started At */

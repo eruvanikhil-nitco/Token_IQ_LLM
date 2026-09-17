@@ -108,6 +108,7 @@ import {
   registerErrorHandler,
 } from "@/lib/http/runtime";
 import { serverRootPath, setServerRootPath } from "@/lib/serverRootPath";
+import type { components } from "@/lib/http/schema";
 
 export { serverRootPath };
 
@@ -2737,7 +2738,7 @@ export const credentialCreateCall = async (
   }
 };
 
-export type ProviderConnectionState = "not_connected" | "waiting_for_first_data" | "healthy" | "needs_attention";
+export type ProviderConnectionState = components["schemas"]["ProviderConnection"]["state"];
 
 export interface ProviderConnectionAccount {
   credential_name: string;
@@ -2779,7 +2780,7 @@ export const providerConnectionsCall = async (accessToken: string): Promise<Prov
   }
 };
 
-export type ProviderSyncOutcome = "fetched" | "not_configured" | "failed";
+export type ProviderSyncOutcome = components["schemas"]["ProviderSyncHistoryRow"]["outcome"];
 
 export interface ProviderSyncHistoryRow {
   provider: string;
