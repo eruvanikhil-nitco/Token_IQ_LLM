@@ -2814,6 +2814,54 @@ export const providerSyncHistoryCall = async (
   }
 };
 
+export interface ProviderModelSpend {
+  model: string | null;
+  billed_cost: string;
+}
+
+export interface ProviderAccountSpend {
+  credential_name: string;
+  billed_cost: string;
+}
+
+export interface ProviderTokenTotals {
+  input_tokens: number;
+  output_tokens: number;
+  cached_input_tokens: number;
+  cache_write_tokens: number;
+}
+
+export interface ProviderUsageSummaryResponse {
+  provider: string;
+  display_name: string;
+  days: number;
+  total_cost: string;
+  facts: number;
+  by_model: ProviderModelSpend[];
+  by_account: ProviderAccountSpend[];
+  by_evidence: Record<string, string>;
+  tokens: ProviderTokenTotals;
+  grain: "request" | "day";
+  delay_note: string;
+  settling_note: string;
+}
+
+export const providerUsageSummaryCall = async (
+  accessToken: string,
+  provider: string,
+  days: number,
+): Promise<ProviderUsageSummaryResponse> => {
+  try {
+    return await apiClient.get<ProviderUsageSummaryResponse>(
+      `/provider/usage/summary?provider=${encodeURIComponent(provider)}&days=${days}`,
+      { accessToken },
+    );
+  } catch (error) {
+    console.error("Failed to read provider usage summary:", error);
+    throw error;
+  }
+};
+
 export const credentialListCall = async (accessToken: string) => {
   /**
    * Get all available teams on proxy

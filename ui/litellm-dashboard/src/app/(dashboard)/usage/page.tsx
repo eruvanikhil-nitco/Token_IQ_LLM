@@ -1,5 +1,6 @@
 "use client";
 
+import ProviderUsagePanel from "./_components/apis/ProviderUsagePanel";
 import NewUsagePage from "./_components/components/UsagePageView";
 import UsageTabs from "./_components/UsageTabs";
 import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
@@ -13,7 +14,7 @@ export default function UsagePage() {
   return (
     <UsageTabs
       gateway={<NewUsagePage teams={teams ?? []} organizations={organizations ?? []} />}
-      apis={<p className="text-sm text-muted-foreground">APIs usage is coming soon.</p>}
+      apis={<ProviderUsagePanel />}
     />
   );
 }
