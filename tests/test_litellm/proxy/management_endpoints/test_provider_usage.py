@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from litellm.provider_billing.fetch_profile import FETCH_PROFILES
 from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 from litellm.types.proxy.provider_billing import SummaryRow, TokenTotals
 
@@ -88,8 +89,12 @@ async def test_the_response_carries_the_settling_note_so_recent_figures_are_not_
         with patch("litellm.proxy.management_endpoints.provider_usage.ProviderUsageFactRepository", fake_repository):
             result = await provider_usage_summary(provider="bedrock", days=30, user_api_key_dict=ADMIN)
 
+    bedrock_delay_note = FETCH_PROFILES["bedrock"].delay_note
+    delay_marker = bedrock_delay_note.split(",")[0]
+
     assert result.total_cost == "1.50"
     assert isinstance(result.total_cost, str)
     assert "settles over about" in result.settling_note
-    assert result.delay_note
+    assert delay_marker in result.delay_note
+    assert delay_marker not in result.settling_note
     assert result.grain == "day"
