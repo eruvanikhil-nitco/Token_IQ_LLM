@@ -15,7 +15,8 @@ export default function UsageTabs({ gateway, apis }: UsageTabsProps) {
         <TabsTrigger value="gateway">Gateway</TabsTrigger>
         <TabsTrigger value="apis">APIs</TabsTrigger>
       </TabsList>
-      <TabsContent value="gateway" className="pt-6">
+      {/* keepMounted: switching to APIs and back must not reset the Gateway view's filters */}
+      <TabsContent value="gateway" className="pt-6" keepMounted>
         {gateway}
       </TabsContent>
       <TabsContent value="apis" className="pt-6">
