@@ -167,3 +167,76 @@ async def test_counts_by_credential_drops_a_row_it_cannot_read():
     counts = await ProviderUsageFactRepository(client).counts_by_credential("openai")
 
     assert dict(counts) == {"prod": 5}
+
+
+@pytest.mark.asyncio
+async def test_summary_rows_aggregate_in_sql_and_are_bounded_by_the_window():
+    """This table grows on every scheduler tick. Summing in Python would mean reading the
+    whole history to render one screen."""
+    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+
+    client = MagicMock()
+    client.db.query_raw = AsyncMock(return_value=[])
+
+    await ProviderUsageFactRepository(client).summary_rows(provider="openai", days=30)
+
+    sql, *params = client.db.query_raw.await_args.args
+    assert "group by" in sql.lower()
+    assert "sum(" in sql.lower()
+    assert params[0] == "openai"
+    assert params[1] == "30"
+
+
+@pytest.mark.asyncio
+async def test_summary_rows_carry_model_account_cost_and_request_count():
+    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+
+    client = MagicMock()
+    client.db.query_raw = AsyncMock(
+        return_value=[
+            {
+                "model": "gpt-4o",
+                "credential_name": "prod",
+                "evidence": "reconciled",
+                "billed_cost": Decimal("12.5"),
+                "facts": 3,
+            }
+        ]
+    )
+
+    rows = await ProviderUsageFactRepository(client).summary_rows(provider="openai", days=7)
+
+    assert rows[0].model == "gpt-4o"
+    assert rows[0].credential_name == "prod"
+    assert rows[0].evidence == "reconciled"
+    assert rows[0].billed_cost == Decimal("12.5")
+    assert rows[0].facts == 3
+
+
+@pytest.mark.asyncio
+async def test_a_row_we_cannot_read_is_dropped_rather_than_guessed():
+    """A malformed aggregate row must not become a zero-cost line that silently understates
+    the bill."""
+    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+
+    client = MagicMock()
+    client.db.query_raw = AsyncMock(return_value=[{"model": "gpt-4o", "billed_cost": "not-a-number"}])
+
+    assert await ProviderUsageFactRepository(client).summary_rows(provider="openai", days=7) == ()
+
+
+@pytest.mark.asyncio
+async def test_token_totals_sum_each_token_type_separately():
+    """Input, output, cache read and cache write are priced differently. Collapsing them
+    into one number hides the thing a reader is looking for."""
+    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+
+    client = MagicMock()
+    client.db.query_raw = AsyncMock(
+        return_value=[{"input": 100, "output": 20, "cached_input": 5, "cache_write": 2}]
+    )
+
+    totals = await ProviderUsageFactRepository(client).token_totals(provider="openai", days=7)
+
+    assert (totals.input_tokens, totals.output_tokens) == (100, 20)
+    assert (totals.cached_input_tokens, totals.cache_write_tokens) == (5, 2)

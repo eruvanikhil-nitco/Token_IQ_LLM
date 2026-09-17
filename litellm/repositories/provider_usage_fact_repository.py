@@ -3,10 +3,36 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from decimal import Decimal, InvalidOperation
 from types import MappingProxyType
-from typing import Any, Final
+from typing import Any, Final, cast, get_args
 
-from litellm.types.proxy.provider_billing import ProviderUsageFact
+from litellm.types.proxy.provider_billing import EvidenceLevel, ProviderUsageFact, SummaryRow, TokenTotals
+
+_EVIDENCE_LEVELS: Final[frozenset[str]] = frozenset(get_args(EvidenceLevel))
+
+_SUMMARY_SQL: Final = """
+SELECT f.model,
+       f.credential_name,
+       f.evidence,
+       SUM(f.billed_cost::numeric) AS billed_cost,
+       COUNT(*)                    AS facts
+  FROM "LiteLLM_ProviderUsageFact" f
+ WHERE f.provider = $1
+   AND f.bucket_start >= NOW() - ($2 || ' days')::interval
+ GROUP BY f.model, f.credential_name, f.evidence
+ ORDER BY 4 DESC
+"""
+
+_TOKENS_SQL: Final = """
+SELECT COALESCE(SUM(f.input_tokens), 0)        AS input,
+       COALESCE(SUM(f.output_tokens), 0)       AS output,
+       COALESCE(SUM(f.cached_input_tokens), 0) AS cached_input,
+       COALESCE(SUM(f.cache_write_tokens), 0)  AS cache_write
+  FROM "LiteLLM_ProviderUsageFact" f
+ WHERE f.provider = $1
+   AND f.bucket_start >= NOW() - ($2 || ' days')::interval
+"""
 
 
 def _read(row: object, key: str) -> object:
@@ -18,6 +44,45 @@ def _count_of(row: object) -> object:
     if isinstance(counted, Mapping):
         return counted.get("credential_name") or counted.get("_all")
     return counted
+
+
+def _decimal(value: object) -> Decimal | None:
+    if isinstance(value, Decimal):
+        return value
+    if not isinstance(value, (int, float, str)):
+        return None
+    try:
+        return Decimal(str(value))
+    except InvalidOperation:
+        return None
+
+
+def _summary_row_or_none(row: object) -> SummaryRow | None:
+    """A row we cannot read is dropped rather than guessed at.
+
+    Defaulting an unreadable cost to zero would understate the customer's bill, which is
+    worse than leaving the line out.
+    """
+    evidence: Final = _read(row, "evidence")
+    if evidence not in _EVIDENCE_LEVELS:
+        return None
+    credential_name: Final = _read(row, "credential_name")
+    if not isinstance(credential_name, str):
+        return None
+    billed_cost: Final = _decimal(_read(row, "billed_cost"))
+    if billed_cost is None:
+        return None
+    facts: Final = _read(row, "facts")
+    if not isinstance(facts, int):
+        return None
+    model: Final = _read(row, "model")
+    return SummaryRow(
+        model=model if isinstance(model, str) else None,
+        credential_name=credential_name,
+        evidence=cast(EvidenceLevel, evidence),
+        billed_cost=billed_cost,
+        facts=facts,
+    )
 
 
 def _row(fact: ProviderUsageFact) -> dict[str, object]:
@@ -47,9 +112,12 @@ class ProviderUsageFactRepository:
         self._prisma_client = prisma_client
 
     @property
+    def _db(self) -> Any:  # any-ok: PrismaClient is an untyped runtime wrapper
+        return self._prisma_client.db  # pyright: ignore[reportAttributeAccessIssue]  # object has no .db attr
+
+    @property
     def _table(self) -> Any:  # any-ok: PrismaClient is an untyped runtime wrapper
-        db: Final = self._prisma_client.db  # pyright: ignore[reportAttributeAccessIssue]  # object has no .db attr
-        return db.litellm_providerusagefact
+        return self._db.litellm_providerusagefact
 
     async def upsert_many(self, facts: Sequence[ProviderUsageFact]) -> int:
         """Write facts, overwriting any already stored under the same fact_key."""
@@ -82,4 +150,29 @@ class ProviderUsageFactRepository:
                 if isinstance(name := _read(row, "credential_name"), str)
                 and isinstance(count := _count_of(row), int)
             }
+        )
+
+    async def summary_rows(self, *, provider: str, days: int) -> tuple[SummaryRow, ...]:
+        """Totals by model, account and evidence level over the window, summed in SQL.
+
+        Bounded by the window and grouped in the database: this table grows on every
+        scheduler tick, so pulling its rows into Python to sum them would make the cost of
+        drawing this screen grow with the customer's entire billing history.
+        """
+        rows: Final[Sequence[Mapping[str, object]]] = await self._db.query_raw(_SUMMARY_SQL, provider, str(days))
+        return tuple(row for r in rows if (row := _summary_row_or_none(r)) is not None)
+
+    async def token_totals(self, *, provider: str, days: int) -> TokenTotals:
+        """Token counts by type over the window, summed in SQL."""
+        rows: Final[Sequence[Mapping[str, object]]] = await self._db.query_raw(_TOKENS_SQL, provider, str(days))
+        row: Final[Mapping[str, object]] = rows[0] if rows else {}
+        raw_input: Final = _read(row, "input")
+        raw_output: Final = _read(row, "output")
+        raw_cached_input: Final = _read(row, "cached_input")
+        raw_cache_write: Final = _read(row, "cache_write")
+        return TokenTotals(
+            input_tokens=raw_input if isinstance(raw_input, int) else 0,
+            output_tokens=raw_output if isinstance(raw_output, int) else 0,
+            cached_input_tokens=raw_cached_input if isinstance(raw_cached_input, int) else 0,
+            cache_write_tokens=raw_cache_write if isinstance(raw_cache_write, int) else 0,
         )

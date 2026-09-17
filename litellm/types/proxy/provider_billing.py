@@ -78,6 +78,23 @@ class ProviderSyncRun:
 
 
 @dataclass(frozen=True, slots=True)
+class SummaryRow:
+    model: str | None
+    credential_name: str
+    evidence: EvidenceLevel
+    billed_cost: Decimal
+    facts: int
+
+
+@dataclass(frozen=True, slots=True)
+class TokenTotals:
+    input_tokens: int
+    output_tokens: int
+    cached_input_tokens: int
+    cache_write_tokens: int
+
+
+@dataclass(frozen=True, slots=True)
 class Fetched:
     facts: tuple[ProviderUsageFact, ...]
     watermark: datetime
