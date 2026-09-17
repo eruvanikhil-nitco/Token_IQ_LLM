@@ -1,3 +1,4 @@
+from collections.abc import Mapping
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -9,7 +10,7 @@ from litellm.proxy._types import (
     LiteLLM_TeamTable,
     Member,
 )
-from litellm.types.proxy.provider_billing import ConnectionState, SyncOutcome
+from litellm.types.proxy.provider_billing import ConnectionState, EvidenceLevel, SyncOutcome, UsageGrain
 from litellm.types.proxy.team_api_access import TeamApiAccessMode
 
 TeamIdSearchMatch = Literal["exact", "prefix"]
@@ -264,6 +265,38 @@ class ProviderSyncHistoryRow(BaseModel):
 
 class ProviderSyncHistoryResponse(BaseModel):
     rows: tuple[ProviderSyncHistoryRow, ...]
+
+
+class ProviderModelSpend(BaseModel):
+    model: str | None
+    billed_cost: str
+
+
+class ProviderAccountSpend(BaseModel):
+    credential_name: str
+    billed_cost: str
+
+
+class ProviderTokenTotals(BaseModel):
+    input_tokens: int
+    output_tokens: int
+    cached_input_tokens: int
+    cache_write_tokens: int
+
+
+class ProviderUsageSummaryResponse(BaseModel):
+    provider: str
+    display_name: str
+    days: int
+    total_cost: str
+    facts: int
+    by_model: tuple[ProviderModelSpend, ...]
+    by_account: tuple[ProviderAccountSpend, ...]
+    by_evidence: Mapping[EvidenceLevel, str]
+    tokens: ProviderTokenTotals
+    grain: UsageGrain
+    delay_note: str
+    settling_note: str
 
 
 class DailyReconciliationRow(BaseModel):

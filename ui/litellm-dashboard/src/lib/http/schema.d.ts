@@ -12136,6 +12136,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/provider/usage/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Provider Usage Summary
+         * @description Cost and token totals for one provider over a window, by model, account and evidence level.
+         */
+        get: operations["provider_usage_summary_provider_usage_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/public/agent_hub": {
         parameters: {
             query?: never;
@@ -34083,6 +34103,13 @@ export interface components {
             /** Tokencount */
             tokenCount: number;
         };
+        /** ProviderAccountSpend */
+        ProviderAccountSpend: {
+            /** Billed Cost */
+            billed_cost: string;
+            /** Credential Name */
+            credential_name: string;
+        };
         /**
          * ProviderBudgetResponse
          * @description Complete provider budget configuration and status.
@@ -34230,6 +34257,13 @@ export interface components {
             /** Window Hours */
             window_hours: number;
         };
+        /** ProviderModelSpend */
+        ProviderModelSpend: {
+            /** Billed Cost */
+            billed_cost: string;
+            /** Model */
+            model: string | null;
+        };
         /** ProviderModelsResponse */
         ProviderModelsResponse: {
             /** Configured */
@@ -34337,6 +34371,48 @@ export interface components {
             window_end: string;
             /** Window Start */
             window_start: string;
+        };
+        /** ProviderTokenTotals */
+        ProviderTokenTotals: {
+            /** Cache Write Tokens */
+            cache_write_tokens: number;
+            /** Cached Input Tokens */
+            cached_input_tokens: number;
+            /** Input Tokens */
+            input_tokens: number;
+            /** Output Tokens */
+            output_tokens: number;
+        };
+        /** ProviderUsageSummaryResponse */
+        ProviderUsageSummaryResponse: {
+            /** By Account */
+            by_account: components["schemas"]["ProviderAccountSpend"][];
+            /** By Evidence */
+            by_evidence: {
+                [key: string]: string;
+            };
+            /** By Model */
+            by_model: components["schemas"]["ProviderModelSpend"][];
+            /** Days */
+            days: number;
+            /** Delay Note */
+            delay_note: string;
+            /** Display Name */
+            display_name: string;
+            /** Facts */
+            facts: number;
+            /**
+             * Grain
+             * @enum {string}
+             */
+            grain: "request" | "day";
+            /** Provider */
+            provider: string;
+            /** Settling Note */
+            settling_note: string;
+            tokens: components["schemas"]["ProviderTokenTotals"];
+            /** Total Cost */
+            total_cost: string;
         };
         /**
          * ProxyChatCompletionRequest
@@ -55424,6 +55500,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProviderSyncHistoryResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    provider_usage_summary_provider_usage_summary_get: {
+        parameters: {
+            query: {
+                /** @description Which provider's usage to summarise, for example openrouter */
+                provider: string;
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProviderUsageSummaryResponse"];
                 };
             };
             /** @description Validation Error */
