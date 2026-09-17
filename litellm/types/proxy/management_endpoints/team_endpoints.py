@@ -2,7 +2,6 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from litellm.provider_billing.connection_state import ConnectionState
 from litellm.proxy._types import (
     KeyManagementRoutes,
     LiteLLM_DeletedTeamTable,
@@ -10,7 +9,7 @@ from litellm.proxy._types import (
     LiteLLM_TeamTable,
     Member,
 )
-from litellm.types.proxy.provider_billing import SyncOutcome
+from litellm.types.proxy.provider_billing import ConnectionState, SyncOutcome
 from litellm.types.proxy.team_api_access import TeamApiAccessMode
 
 TeamIdSearchMatch = Literal["exact", "prefix"]

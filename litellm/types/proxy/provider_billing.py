@@ -57,6 +57,12 @@ SyncOutcome = Literal["fetched", "not_configured", "failed"]
 not_configured: the credential cannot be used, for example it carries no api_key.
 failed: the provider refused, rate limited, or the connector raised."""
 
+ConnectionState = Literal["not_connected", "waiting_for_first_data", "healthy", "needs_attention"]
+"""What state a provider connection is in, decided only from evidence we hold.
+
+Kept pure and separate from the endpoint so the rules can be read and tested on their own:
+every branch here is something a customer will act on."""
+
 
 @dataclass(frozen=True, slots=True)
 class ProviderSyncRun:
