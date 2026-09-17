@@ -13,7 +13,7 @@ The **gateway** is the proxy that application traffic passes through. **Provider
 | Area | State |
 |---|---|
 | Gateway data | Works and is mature, inherited from LiteLLM along with its usage screens |
-| Provider API ingestion | The engine is built: provider facts are stored idempotently, compared against gateway spend per request and per day, and fetched on a schedule from one replica. OpenRouter is proven against real traffic. OpenAI, Anthropic and Bedrock connectors are built but have never run against a real account. Azure and Vertex are planned in `docs/superpowers/plans/2026-09-13-cloud-billing-connectors.md`. Raw provider payloads are not stored yet, and there is no UI |
+| Provider API ingestion | The engine is built: provider facts are stored idempotently, compared against gateway spend per request and per day, and fetched on a schedule from one replica. OpenRouter is proven against real traffic. OpenAI, Anthropic and Bedrock connectors are built but have never run against a real account. Azure and Vertex are planned in `docs/superpowers/plans/2026-09-13-cloud-billing-connectors.md`. Since `2026-09-16-provider-connections.md` the raw provider payload is stored on every fact, several accounts per provider are read separately, every fetch attempt is recorded, and the Provider APIs page shows each connection's state with What We Fetch and Sync History. Nothing reads the stored payloads back yet: that is Usage / APIs |
 | Teams | Complete |
 | Projects | Backend complete. Project spend is written and project budgets enforce since commits `c4e48c0543` and `93fb14c698`. The UI exists but is hidden behind a Beta switch and limited to admins |
 | Users | Exist as internal users, with no per-user tool data |
