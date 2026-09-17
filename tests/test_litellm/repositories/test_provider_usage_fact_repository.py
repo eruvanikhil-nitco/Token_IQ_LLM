@@ -305,3 +305,22 @@ async def test_token_totals_sum_each_token_type_separately():
 
     assert (totals.input_tokens, totals.output_tokens) == (100, 20)
     assert (totals.cached_input_tokens, totals.cache_write_tokens) == (5, 2)
+
+
+@pytest.mark.asyncio
+async def test_token_totals_survive_the_driver_decoding_bigint_sums_as_float():
+    """prisma-client-py decodes SUM(bigint) as a Python float, not an int, the same class
+    of type-changing decode that made billed_cost cross as a float before it was cast to
+    text. A totals field that only accepts a strict int silently reports zero tokens next
+    to real spend, which reads as a confident false statement rather than a missing one."""
+    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+
+    client = MagicMock()
+    client.db.query_raw = AsyncMock(
+        return_value=[{"input": 3372.0, "output": 20.0, "cached_input": 5.0, "cache_write": 2.0}]
+    )
+
+    totals = await ProviderUsageFactRepository(client).token_totals(provider="openai", days=30)
+
+    assert (totals.input_tokens, totals.output_tokens) == (3372, 20)
+    assert (totals.cached_input_tokens, totals.cache_write_tokens) == (5, 2)

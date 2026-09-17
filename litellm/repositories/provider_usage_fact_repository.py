@@ -25,10 +25,10 @@ SELECT f.model,
 """
 
 _TOKENS_SQL: Final = """
-SELECT COALESCE(SUM(f.input_tokens), 0)        AS input,
-       COALESCE(SUM(f.output_tokens), 0)       AS output,
-       COALESCE(SUM(f.cached_input_tokens), 0) AS cached_input,
-       COALESCE(SUM(f.cache_write_tokens), 0)  AS cache_write
+SELECT COALESCE(SUM(f.input_tokens), 0)::bigint        AS input,
+       COALESCE(SUM(f.output_tokens), 0)::bigint       AS output,
+       COALESCE(SUM(f.cached_input_tokens), 0)::bigint AS cached_input,
+       COALESCE(SUM(f.cache_write_tokens), 0)::bigint  AS cache_write
   FROM "LiteLLM_ProviderUsageFact" f
  WHERE f.provider = $1
    AND f.bucket_start >= NOW() - ($2 || ' days')::interval
@@ -44,6 +44,23 @@ def _count_of(row: object) -> object:
     if isinstance(counted, Mapping):
         return counted.get("credential_name") or counted.get("_all")
     return counted
+
+
+def _bigint(value: object) -> int | None:
+    """A whole number, whatever numeric shape the driver decoded it as.
+
+    prisma-client-py decodes SUM(bigint) as a float, the same class of type-changing
+    decode that made billed_cost cross as a float before it was cast to text. Relying on
+    the SQL cast alone and rejecting anything but a strict int is what turned a real token
+    count into a silent zero.
+    """
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float) and value.is_integer():
+        return int(value)
+    return None
 
 
 def _decimal(value: object) -> Decimal | None:
@@ -163,16 +180,18 @@ class ProviderUsageFactRepository:
         return tuple(row for r in rows if (row := _summary_row_or_none(r)) is not None)
 
     async def token_totals(self, *, provider: str, days: int) -> TokenTotals:
-        """Token counts by type over the window, summed in SQL."""
+        """Token counts by type over the window, summed in SQL.
+
+        A column this cannot read defaults to zero rather than dropping the whole result,
+        unlike summary_rows: a token count is not money, and failing the entire totals
+        block over one mistyped column would also take away the three columns that did
+        decode, on the same screen that still shows the correct cost from summary_rows.
+        """
         rows: Final[Sequence[Mapping[str, object]]] = await self._db.query_raw(_TOKENS_SQL, provider, str(days))
         row: Final[Mapping[str, object]] = rows[0] if rows else {}
-        raw_input: Final = _read(row, "input")
-        raw_output: Final = _read(row, "output")
-        raw_cached_input: Final = _read(row, "cached_input")
-        raw_cache_write: Final = _read(row, "cache_write")
         return TokenTotals(
-            input_tokens=raw_input if isinstance(raw_input, int) else 0,
-            output_tokens=raw_output if isinstance(raw_output, int) else 0,
-            cached_input_tokens=raw_cached_input if isinstance(raw_cached_input, int) else 0,
-            cache_write_tokens=raw_cache_write if isinstance(raw_cache_write, int) else 0,
+            input_tokens=_bigint(_read(row, "input")) or 0,
+            output_tokens=_bigint(_read(row, "output")) or 0,
+            cached_input_tokens=_bigint(_read(row, "cached_input")) or 0,
+            cache_write_tokens=_bigint(_read(row, "cache_write")) or 0,
         )
