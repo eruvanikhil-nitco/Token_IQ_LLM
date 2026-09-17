@@ -2,13 +2,14 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from decimal import Decimal
-from unittest.mock import MagicMock, patch
+from typing import Final
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from litellm.provider_billing.fetch_profile import FETCH_PROFILES
 from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-from litellm.types.proxy.provider_billing import ProviderUsageFact, SummaryRow, TokenTotals
+from litellm.types.proxy.provider_billing import ProviderUsageFact, RecentFactsPage, SummaryRow, TokenTotals
 
 ADMIN = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin")
 NON_ADMIN = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-u", user_id="u")
@@ -134,7 +135,7 @@ class _FakeRawRepository:
 
     async def recent_facts(
         self, *, provider: str, limit: int, before: datetime | None, before_fact_key: str | None = None
-    ) -> tuple[ProviderUsageFact, ...]:
+    ) -> RecentFactsPage:
         def _after_cursor(fact: ProviderUsageFact) -> bool:
             if before is None:
                 return True
@@ -142,7 +143,11 @@ class _FakeRawRepository:
                 return fact.bucket_start < before
             return (fact.bucket_start, fact.fact_key) < (before, before_fact_key)
 
-        return tuple(fact for fact in self._facts if _after_cursor(fact))[:limit]
+        page_facts: Final = tuple(fact for fact in self._facts if _after_cursor(fact))[:limit]
+        next_cursor: Final = (
+            (page_facts[-1].bucket_start, page_facts[-1].fact_key) if len(page_facts) == limit else None
+        )
+        return RecentFactsPage(facts=page_facts, next_cursor=next_cursor)
 
 
 @pytest.mark.asyncio
@@ -277,6 +282,70 @@ async def test_the_composite_cursor_resumes_across_a_tie_on_bucket_start_without
     seen = [row.provider_request_id for row in (*page1.rows, *page2.rows)]
     assert len(seen) == len(set(seen))
     assert set(seen) == {newer_fact.provider_request_id, *(fact.provider_request_id for fact in tied_facts)}
+
+
+def _raw_prisma_row(*, fact_key: str, bucket_start: datetime, evidence: str, fetched_at: datetime) -> MagicMock:
+    return MagicMock(
+        fact_key=fact_key,
+        provider="openrouter",
+        credential_name="acme-openrouter",
+        grain="request",
+        bucket_start=bucket_start,
+        evidence=evidence,
+        billed_cost="0.01",
+        billing_currency="USD",
+        provider_request_id=fact_key,
+        provider_api_key_id=None,
+        model="gpt-4o",
+        input_tokens=1,
+        output_tokens=1,
+        cached_input_tokens=None,
+        cache_write_tokens=None,
+        raw=None,
+        fetched_at=fetched_at,
+    )
+
+
+@pytest.mark.asyncio
+async def test_next_before_is_set_even_when_one_row_in_a_full_page_is_dropped():
+    """The database can return exactly `limit` rows and still have one of them fail
+    `_fact_or_none` (a bad evidence value here, but the same applies to any unreadable
+    field). Whether a row survives parsing has nothing to do with whether the database had
+    more rows behind the cursor, so "was the page full" must come from what the database
+    returned, not from how many facts survived. Deciding it from the survivor count is
+    exactly the silent-truncation bug the composite cursor was built to rule out, one layer
+    further up: a customer would stop paging early and believe they had seen everything,
+    while rows sit unreachable behind a cursor that was never set.
+
+    This test drives the real repository through the real route, with a mocked prisma table,
+    rather than the `_FakeRawRepository` used elsewhere: a fake that only ever returns
+    already-filtered facts cannot represent "the database returned more rows than survived",
+    which is the entire bug.
+    """
+    from litellm.proxy.management_endpoints.provider_usage import provider_usage_raw
+
+    good_row = _raw_prisma_row(
+        fact_key="openrouter:gen-1",
+        bucket_start=datetime(2026, 9, 15, tzinfo=timezone.utc),
+        evidence="reconciled",
+        fetched_at=datetime(2026, 9, 15, 1, tzinfo=timezone.utc),
+    )
+    bad_row = _raw_prisma_row(
+        fact_key="openrouter:gen-2",
+        bucket_start=datetime(2026, 9, 14, tzinfo=timezone.utc),
+        evidence="not-a-real-evidence-level",
+        fetched_at=datetime(2026, 9, 14, 1, tzinfo=timezone.utc),
+    )
+    table = MagicMock()
+    table.find_many = AsyncMock(return_value=[good_row, bad_row])
+    prisma_client = MagicMock()
+    prisma_client.db.litellm_providerusagefact = table
+
+    with patch("litellm.proxy.proxy_server.prisma_client", prisma_client):
+        result = await provider_usage_raw(provider="openrouter", limit=2, before=None, user_api_key_dict=ADMIN)
+
+    assert len(result.rows) == 1
+    assert result.next_before is not None
 
 
 @pytest.mark.asyncio

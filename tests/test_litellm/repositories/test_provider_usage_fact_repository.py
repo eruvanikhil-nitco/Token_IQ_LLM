@@ -347,7 +347,7 @@ async def test_recent_facts_are_bounded_ordered_newest_first_in_the_database():
 
     call = table.find_many.await_args.kwargs
     assert call["where"] == {"provider": "openai"}
-    assert call["order"] == [{"bucket_start": "desc"}, {"fact_key": "desc"}]
+    assert call["order"] == ({"bucket_start": "desc"}, {"fact_key": "desc"})
     assert call["take"] == 50
 
 
@@ -396,10 +396,10 @@ async def test_the_fact_key_tiebreaker_keeps_rows_tied_on_bucket_start_reachable
 
     assert table.find_many.await_args.kwargs["where"] == {
         "provider": "openai",
-        "OR": [
+        "OR": (
             {"bucket_start": {"lt": cursor}},
             {"bucket_start": cursor, "fact_key": {"lt": "openai:acct:2026-09-15:gpt-4o"}},
-        ],
+        ),
     }
 
 
@@ -438,12 +438,12 @@ async def test_recent_facts_carry_the_raw_payload_and_exact_cost_unchanged():
     client = MagicMock()
     client.db.litellm_providerusagefact = table
 
-    facts = await ProviderUsageFactRepository(client).recent_facts(provider="openrouter", limit=50, before=None)
+    page = await ProviderUsageFactRepository(client).recent_facts(provider="openrouter", limit=50, before=None)
 
-    assert len(facts) == 1
-    assert dict(facts[0].raw) == {"id": "gen-1", "total_cost": 0.0000025}
-    assert facts[0].billed_cost == Decimal("0.0000025")
-    assert isinstance(facts[0].billed_cost, Decimal)
+    assert len(page.facts) == 1
+    assert dict(page.facts[0].raw) == {"id": "gen-1", "total_cost": 0.0000025}
+    assert page.facts[0].billed_cost == Decimal("0.0000025")
+    assert isinstance(page.facts[0].billed_cost, Decimal)
 
 
 @pytest.mark.asyncio
@@ -459,6 +459,43 @@ async def test_recent_facts_drops_a_row_it_cannot_read_rather_than_fabricating_i
     client = MagicMock()
     client.db.litellm_providerusagefact = table
 
-    facts = await ProviderUsageFactRepository(client).recent_facts(provider="openrouter", limit=50, before=None)
+    page = await ProviderUsageFactRepository(client).recent_facts(provider="openrouter", limit=50, before=None)
 
-    assert [fact.fact_key for fact in facts] == ["openrouter:gen-1"]
+    assert [fact.fact_key for fact in page.facts] == ["openrouter:gen-1"]
+
+
+@pytest.mark.asyncio
+async def test_a_full_database_page_stays_full_even_when_one_row_is_dropped():
+    """The database can return exactly `limit` rows while one of them fails
+    `_fact_or_none`. Deciding "full page" from how many facts survived, rather than from how
+    many rows the database actually returned, is exactly the silent-truncation bug this
+    cursor exists to rule out, one layer above the bucket_start tie that caused it the first
+    time: a customer would stop paging early and believe they had seen everything, while
+    rows sit unreachable behind a cursor that was never set."""
+    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+
+    table = MagicMock()
+    table.find_many = AsyncMock(
+        return_value=[_fact_row(), _fact_row(fact_key="openrouter:gen-2", evidence="guessed")]
+    )
+    client = MagicMock()
+    client.db.litellm_providerusagefact = table
+
+    page = await ProviderUsageFactRepository(client).recent_facts(provider="openrouter", limit=2, before=None)
+
+    assert len(page.facts) == 1
+    assert page.next_cursor is not None
+
+
+@pytest.mark.asyncio
+async def test_next_cursor_is_none_when_the_database_page_is_short():
+    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+
+    table = MagicMock()
+    table.find_many = AsyncMock(return_value=[_fact_row()])
+    client = MagicMock()
+    client.db.litellm_providerusagefact = table
+
+    page = await ProviderUsageFactRepository(client).recent_facts(provider="openrouter", limit=50, before=None)
+
+    assert page.next_cursor is None

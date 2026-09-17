@@ -122,7 +122,7 @@ async def provider_usage_summary(
     return usage_summary_response(provider=provider, days=days, summary=build_usage_summary(rows, tokens))
 
 
-def _encode_cursor(fact: ProviderUsageFact) -> str:
+def _encode_cursor(bucket_start: datetime, fact_key: str) -> str:
     """`next_before` is bucket_start plus the fact_key that broke its tie.
 
     bucket_start on its own is not unique enough to resume on: a live check against real
@@ -131,8 +131,12 @@ def _encode_cursor(fact: ProviderUsageFact) -> str:
     alone at that boundary would drop every row at that exact value, including ones this
     page never returned. fact_key is unique, so carrying it alongside is what lets the
     repository's cursor exclude precisely the rows already served and nothing else.
+
+    Takes the raw pair rather than a `ProviderUsageFact` because the repository's own cursor
+    is read off the database's last row independently of whether that row parsed into a
+    fact, so a page can need a cursor even when the fact it would have named was dropped.
     """
-    return f"{fact.bucket_start.isoformat()}|{fact.fact_key}"
+    return f"{bucket_start.isoformat()}|{fact_key}"
 
 
 def _decode_cursor(raw: str) -> tuple[datetime, str | None]:
@@ -196,10 +200,10 @@ async def provider_usage_raw(
         except ValueError as error:
             raise _proxy_error(status.HTTP_400_BAD_REQUEST, f"Invalid before cursor: {error}") from error
 
-    facts: Final = await ProviderUsageFactRepository(prisma_client).recent_facts(
+    page: Final = await ProviderUsageFactRepository(prisma_client).recent_facts(
         provider=provider, limit=limit, before=before_bucket_start, before_fact_key=before_fact_key
     )
-    rows: Final = tuple(row for fact in facts if (row := _raw_fact_or_none(fact)) is not None)
-    next_before: Final = _encode_cursor(facts[-1]) if len(facts) == limit else None
+    rows: Final = tuple(row for fact in page.facts if (row := _raw_fact_or_none(fact)) is not None)
+    next_before: Final = _encode_cursor(*page.next_cursor) if page.next_cursor is not None else None
 
     return ProviderUsageRawResponse(provider=provider, rows=rows, next_before=next_before)

@@ -96,6 +96,22 @@ class TokenTotals:
 
 
 @dataclass(frozen=True, slots=True)
+class RecentFactsPage:
+    """One page of `recent_facts`.
+
+    `next_cursor` is read straight off the database's own last row, not off `facts`: a row
+    that fails `_fact_or_none` is dropped from `facts` but the database still returned it,
+    so a page can be full (and have more rows behind it) even when fewer facts survive than
+    were requested. Deciding "was this page full" from `len(facts)` instead would make a
+    single unreadable row look identical to the end of the table, truncating everything
+    behind it.
+    """
+
+    facts: tuple[ProviderUsageFact, ...]
+    next_cursor: tuple[datetime, str] | None
+
+
+@dataclass(frozen=True, slots=True)
 class Fetched:
     facts: tuple[ProviderUsageFact, ...]
     watermark: datetime

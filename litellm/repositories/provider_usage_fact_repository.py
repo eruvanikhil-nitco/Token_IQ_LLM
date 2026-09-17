@@ -11,6 +11,7 @@ from typing import Any, Final, get_args
 from litellm.types.proxy.provider_billing import (
     EvidenceLevel,
     ProviderUsageFact,
+    RecentFactsPage,
     SummaryRow,
     TokenTotals,
     UsageGrain,
@@ -117,10 +118,12 @@ def _recent_facts_where(
 
     bucket_start alone is not unique (see `recent_facts`), so once a caller carries a
     fact_key forward the filter has to become an OR across two conditions rather than a
-    single comparison. Every dict and list literal below is `mutable-ok`: prisma-client-py
-    serialises this filter with `json.dumps` and has no encoder for `mappingproxy` (verified
-    live: `TypeError: Type <class 'mappingproxy'> not serializable`), and Prisma's own filter
-    syntax is nested dicts and lists, so no immutable container can stand in for them here.
+    single comparison. Every dict literal below is `mutable-ok`: prisma-client-py serialises
+    this filter with `json.dumps` and has no encoder for `mappingproxy` (verified live:
+    `TypeError: Type <class 'mappingproxy'> not serializable`), and Prisma's own filter
+    syntax for a condition is a plain dict, so no immutable container can stand in for one.
+    The `OR` value itself is a tuple, not a list: prisma accepts it (`json.dumps` serialises
+    a tuple as a JSON array, verified live) and it needs no suppression.
     """
     if before is None:
         return {"provider": provider}  # mutable-ok: prisma json.dumps() has no mappingproxy encoder
@@ -132,13 +135,13 @@ def _recent_facts_where(
         }
     return {  # mutable-ok: prisma json.dumps() has no mappingproxy encoder
         "provider": provider,
-        "OR": [  # mutable-ok: prisma json.dumps() has no mappingproxy encoder
+        "OR": (
             {"bucket_start": lt_before},  # mutable-ok: prisma json.dumps() has no mappingproxy encoder
             {  # mutable-ok: prisma json.dumps() has no mappingproxy encoder
                 "bucket_start": before,
                 "fact_key": {"lt": before_fact_key},  # mutable-ok: prisma json.dumps() has no mappingproxy encoder
             },
-        ],
+        ),
     }
 
 
@@ -196,6 +199,22 @@ def _fact_or_none(row: object) -> ProviderUsageFact | None:
         raw=MappingProxyType(dict(raw)) if raw is not None else None,
         fetched_at=fetched_at,
     )
+
+
+def _cursor_from_row(row: object) -> tuple[datetime, str] | None:
+    """The (bucket_start, fact_key) pair a page's cursor resumes from, read straight off
+    the raw row rather than off a parsed `ProviderUsageFact`.
+
+    bucket_start and fact_key are this table's two NOT NULL columns, so a row some other
+    field disqualifies from `_fact_or_none` almost always still yields a safe place to
+    resume. Reading them independently means one corrupt evidence value or a bad cost
+    string can never take the cursor down with it.
+    """
+    bucket_start: Final = _read(row, "bucket_start")
+    fact_key: Final = _read(row, "fact_key")
+    if isinstance(bucket_start, datetime) and isinstance(fact_key, str):
+        return bucket_start, fact_key
+    return None
 
 
 def _row(fact: ProviderUsageFact) -> dict[str, object]:
@@ -294,7 +313,7 @@ class ProviderUsageFactRepository:
 
     async def recent_facts(
         self, *, provider: str, limit: int, before: datetime | None, before_fact_key: str | None = None
-    ) -> tuple[ProviderUsageFact, ...]:
+    ) -> RecentFactsPage:
         """The newest facts for one provider, keyset-paged on bucket_start with fact_key as a tiebreaker.
 
         bucket_start alone is not unique: every fact one connector run fetches shares that
@@ -304,11 +323,18 @@ class ProviderUsageFactRepository:
         never returned. Ordering and filtering on ``(bucket_start, fact_key)`` together, with
         fact_key unique, gives every row a place in one total order, so a caller that carries
         the fact_key half of a cursor forward never loses or repeats a row across pages.
+
+        Whether the page was full is decided from how many rows the database returned, not
+        from how many survived `_fact_or_none`: a row can fail that check and still count
+        toward a full page, and the cursor has to reflect the database's position, not the
+        parser's.
         """
         where: Final = _recent_facts_where(provider, before, before_fact_key)
-        order: Final = [  # mutable-ok: prisma json.dumps() has no mappingproxy encoder
+        order: Final = (
             {"bucket_start": "desc"},  # mutable-ok: prisma json.dumps() has no mappingproxy encoder
             {"fact_key": "desc"},  # mutable-ok: prisma json.dumps() has no mappingproxy encoder
-        ]
+        )
         rows: Final = await self._table.find_many(where=where, order=order, take=limit)
-        return tuple(fact for row in rows if (fact := _fact_or_none(row)) is not None)
+        facts: Final = tuple(fact for row in rows if (fact := _fact_or_none(row)) is not None)
+        next_cursor: Final = _cursor_from_row(rows[-1]) if len(rows) == limit and rows else None
+        return RecentFactsPage(facts=facts, next_cursor=next_cursor)
