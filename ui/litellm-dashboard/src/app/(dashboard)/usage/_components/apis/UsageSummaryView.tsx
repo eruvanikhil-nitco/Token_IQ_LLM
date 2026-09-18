@@ -21,8 +21,7 @@ export default function UsageSummaryView({ provider, days }: { provider: string;
     return (
       <div className="flex flex-col gap-4">
         <p className="text-sm">
-          No usage has synced yet for {summary.display_name} in the last {summary.days} days. This is expected until
-          its connector completes a first sync
+          There is no usage for {summary.display_name} in the last {summary.days} days
         </p>
         <div className="flex flex-col gap-2 text-sm text-muted-foreground">
           <p>{summary.delay_note}</p>
@@ -97,17 +96,19 @@ export default function UsageSummaryView({ provider, days }: { provider: string;
         <p className="text-sm font-medium">Cost by evidence</p>
         <Table>
           <TableBody>
-            {evidenceRows(summary.by_evidence).map((row) => (
-              <TableRow key={row.level}>
-                <TableCell className="w-64">
-                  <div className="flex flex-col">
-                    <span className="font-medium">{row.label}</span>
-                    <span className="text-xs text-muted-foreground">{row.description}</span>
-                  </div>
-                </TableCell>
-                <TableCell>${row.cost}</TableCell>
-              </TableRow>
-            ))}
+            {evidenceRows(summary.by_evidence)
+              .filter((row) => row.cost !== "0")
+              .map((row) => (
+                <TableRow key={row.level}>
+                  <TableCell className="w-64">
+                    <div className="flex flex-col">
+                      <span className="font-medium">{row.label}</span>
+                      <span className="text-xs text-muted-foreground">{row.description}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>${row.cost}</TableCell>
+                </TableRow>
+              ))}
           </TableBody>
         </Table>
       </div>

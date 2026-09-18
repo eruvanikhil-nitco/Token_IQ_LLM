@@ -27,7 +27,7 @@ describe("CoverageNote", () => {
     render(<CoverageNote rows={[row({ provider_api_key_id: null })]} />);
 
     expect(
-      screen.getByText("This provider did not report Provider's own key ID for any row in this window."),
+      screen.getByText("This provider did not report Provider's own key ID on the rows shown here."),
     ).toBeInTheDocument();
     expect(screen.queryByText(/\bAPI key\b/)).not.toBeInTheDocument();
   });
@@ -36,7 +36,7 @@ describe("CoverageNote", () => {
     render(<CoverageNote rows={[row({ provider_api_key_id: null }), row({ provider_api_key_id: "key-1" })]} />);
 
     expect(
-      screen.queryByText("This provider did not report Provider's own key ID for any row in this window."),
+      screen.queryByText("This provider did not report Provider's own key ID on the rows shown here."),
     ).not.toBeInTheDocument();
   });
 
@@ -45,7 +45,7 @@ describe("CoverageNote", () => {
 
     expect(
       screen.getByText(
-        "This provider did not report Model, Provider's own key ID, and Cached input tokens for any row in this window.",
+        "This provider did not report Model, Provider's own key ID, and Cached input tokens on the rows shown here.",
       ),
     ).toBeInTheDocument();
   });
@@ -54,7 +54,7 @@ describe("CoverageNote", () => {
     render(<CoverageNote rows={[row({ model: null, provider_api_key_id: null })]} />);
 
     expect(
-      screen.getByText("This provider did not report Model and Provider's own key ID for any row in this window."),
+      screen.getByText("This provider did not report Model and Provider's own key ID on the rows shown here."),
     ).toBeInTheDocument();
   });
 
@@ -75,7 +75,7 @@ describe("CoverageNote", () => {
   it("still states the not-collected note alongside a populated window's missing-field sentence", () => {
     render(<CoverageNote rows={[row({ model: null })]} />);
 
-    expect(screen.getByText("This provider did not report Model for any row in this window.")).toBeInTheDocument();
+    expect(screen.getByText("This provider did not report Model on the rows shown here.")).toBeInTheDocument();
     expect(
       screen.getByText("Service tier, region, and per-user attribution are not collected by this build, for any provider."),
     ).toBeInTheDocument();

@@ -61,24 +61,43 @@ describe("UsageSummaryView", () => {
     expect(screen.getByText("Cache write tokens")).toBeInTheDocument();
   });
 
-  it("shows the evidence split as three separate levels, each with its own cost including zeros", () => {
+  it("shows only the evidence levels this build actually produces, never a mechanism that reads a permanent zero", () => {
     useProviderUsageSummary.mockReturnValue({ data: summary(), isLoading: false, error: null });
 
     render(<UsageSummaryView provider="openrouter" days={30} />);
 
     expect(screen.getByText("Reconciled")).toBeInTheDocument();
-    expect(screen.getByText("Priced")).toBeInTheDocument();
-    expect(screen.getByText("Allocated")).toBeInTheDocument();
-    expect(screen.getAllByText("$0")).toHaveLength(2);
     expect(screen.getByText("The provider billed this amount. These are their figures, not ours.")).toBeInTheDocument();
+    expect(screen.queryByText("Priced")).not.toBeInTheDocument();
+    expect(screen.queryByText("Allocated")).not.toBeInTheDocument();
     expect(
-      screen.getByText("The provider reported the usage but not the cost, so we applied their published rates."),
-    ).toBeInTheDocument();
+      screen.queryByText("The provider reported the usage but not the cost, so we applied their published rates."),
+    ).not.toBeInTheDocument();
     expect(
-      screen.getByText(
+      screen.queryByText(
         "The provider has not reported this at all. It is our own estimate from traffic that passed through the gateway, and it may change.",
       ),
-    ).toBeInTheDocument();
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText("$0")).not.toBeInTheDocument();
+  });
+
+  it("shows a priced or allocated row once it actually carries a non-zero amount", () => {
+    useProviderUsageSummary.mockReturnValue({
+      data: summary({
+        total_cost: "5.5",
+        by_evidence: { reconciled: "0", priced: "3", allocated: "2.5" },
+      }),
+      isLoading: false,
+      error: null,
+    });
+
+    render(<UsageSummaryView provider="openrouter" days={30} />);
+
+    expect(screen.queryByText("Reconciled")).not.toBeInTheDocument();
+    expect(screen.getByText("Priced")).toBeInTheDocument();
+    expect(screen.getByText("$3")).toBeInTheDocument();
+    expect(screen.getByText("Allocated")).toBeInTheDocument();
+    expect(screen.getByText("$2.5")).toBeInTheDocument();
   });
 
   it("renders both the delay note and the settling note as distinct, unmerged text", () => {
@@ -107,9 +126,8 @@ describe("UsageSummaryView", () => {
 
     render(<UsageSummaryView provider="openrouter" days={30} />);
 
-    expect(
-      screen.getByText("No usage has synced yet for OpenRouter in the last 30 days.", { exact: false }),
-    ).toBeInTheDocument();
+    expect(screen.getByText("There is no usage for OpenRouter in the last 30 days")).toBeInTheDocument();
+    expect(screen.queryByText(/synced/i)).not.toBeInTheDocument();
     expect(screen.queryByText("Spend by model")).not.toBeInTheDocument();
     expect(screen.queryByText("Reconciled")).not.toBeInTheDocument();
     expect(screen.queryByText("$0")).not.toBeInTheDocument();

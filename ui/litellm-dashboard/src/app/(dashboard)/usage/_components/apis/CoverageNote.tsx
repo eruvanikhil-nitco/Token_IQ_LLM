@@ -9,7 +9,7 @@ export default function CoverageNote({ rows }: { rows: readonly ProviderRawFact[
 
   return (
     <div className="flex flex-col gap-1 text-sm text-muted-foreground">
-      {missing.length > 0 && <p>This provider did not report {joinWithAnd(missing)} for any row in this window.</p>}
+      {missing.length > 0 && <p>This provider did not report {joinWithAnd(missing)} on the rows shown here.</p>}
       <p>{NOT_COLLECTED_NOTE}</p>
     </div>
   );

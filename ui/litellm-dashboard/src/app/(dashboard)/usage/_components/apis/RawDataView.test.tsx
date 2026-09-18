@@ -109,7 +109,11 @@ describe("RawDataView", () => {
     render(<RawDataView provider="openrouter" displayName="OpenRouter" />);
     fireEvent.click(screen.getByRole("button", { name: /show payload/i }));
 
-    expect(screen.getByText("No payload was stored for this row. Payload capture began after this row was fetched, so nothing was lost.")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "No payload was stored for this row. This is usually because payload capture began after this row was fetched.",
+      ),
+    ).toBeInTheDocument();
     expect(screen.queryByText(/error/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/failed/i)).not.toBeInTheDocument();
   });
@@ -164,8 +168,33 @@ describe("RawDataView", () => {
     render(<RawDataView provider="openrouter" displayName="OpenRouter" />);
 
     expect(
-      screen.getByText("This provider did not report Provider's own key ID for any row in this window."),
+      screen.getByText("This provider did not report Provider's own key ID on the rows shown here."),
     ).toBeInTheDocument();
+  });
+
+  it("labels the credential column the same as the coverage note, never bare 'API key'", () => {
+    useProviderUsageRaw.mockReturnValue({ data: page([row()]), isLoading: false, error: null });
+
+    render(<RawDataView provider="openrouter" displayName="OpenRouter" />);
+
+    expect(screen.getByRole("columnheader", { name: "Provider's own key ID" })).toBeInTheDocument();
+    expect(screen.queryByText(/\bAPI key\b/)).not.toBeInTheDocument();
+  });
+
+  it("says the rows have ended, not that nothing has synced, when a later page comes back empty", async () => {
+    const firstPage = page([row({ model: "openai/gpt-4o-mini" })], "cursor-1");
+    const emptySecondPage = page([], null);
+    useProviderUsageRaw.mockImplementation((_provider: string, _limit: number, before: string | null) =>
+      before === null
+        ? { data: firstPage, isLoading: false, error: null }
+        : { data: emptySecondPage, isLoading: false, error: null },
+    );
+
+    render(<RawDataView provider="openrouter" displayName="OpenRouter" />);
+    fireEvent.click(screen.getByRole("button", { name: /load older rows/i }));
+
+    expect(await screen.findByText("You've reached the end of the rows available for OpenRouter")).toBeInTheDocument();
+    expect(screen.queryByText(/No usage has synced yet/i)).not.toBeInTheDocument();
   });
 
   it("gives the payload toggle the same accessible name as the text it visibly shows", () => {

@@ -30,7 +30,7 @@ SELECT f.model,
  WHERE f.provider = $1
    AND f.bucket_start >= NOW() - ($2 || ' days')::interval
  GROUP BY f.model, f.credential_name, f.evidence
- ORDER BY 4 DESC
+ ORDER BY SUM(f.billed_cost::numeric) DESC
 """
 
 _TOKENS_SQL: Final = """

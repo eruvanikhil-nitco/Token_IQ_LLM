@@ -204,6 +204,23 @@ async def test_summary_sql_casts_the_summed_cost_to_text():
 
 
 @pytest.mark.asyncio
+async def test_summary_sql_orders_by_the_numeric_sum_not_the_text_column():
+    """ORDER BY on the ::text alias sorts lexicographically ("10.0" before "9.5"). Harmless
+    today only because there is no LIMIT and the summariser re-sorts; ordering by the numeric
+    expression keeps the SQL correct if a LIMIT is ever added."""
+    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+
+    client = MagicMock()
+    client.db.query_raw = AsyncMock(return_value=[])
+
+    await ProviderUsageFactRepository(client).summary_rows(provider="openai", days=7)
+
+    sql, *_ = client.db.query_raw.await_args.args
+    assert "order by sum(f.billed_cost::numeric) desc" in sql.lower()
+    assert "order by 4" not in sql.lower()
+
+
+@pytest.mark.asyncio
 async def test_a_string_cost_from_the_driver_becomes_an_exact_decimal():
     """A value routed through float first would already be damaged by the time it reaches
     here: Decimal(str(0.00780515)) matches, but Decimal(str(some_float)) for a value with

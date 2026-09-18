@@ -56,11 +56,13 @@ export default function RawDataView({ provider, displayName }: { provider: strin
   const nextBefore = data.next_before;
 
   if (data.rows.length === 0) {
+    const emptyPageMessage =
+      before === null
+        ? `No usage has synced yet for ${displayName}. This is expected until its connector completes a first sync`
+        : `You've reached the end of the rows available for ${displayName}`;
     return (
       <div className="flex flex-col gap-4">
-        <p className="text-sm">
-          No usage has synced yet for {displayName}. This is expected until its connector completes a first sync
-        </p>
+        <p className="text-sm">{emptyPageMessage}</p>
         <CoverageNote rows={data.rows} />
       </div>
     );
@@ -78,7 +80,7 @@ export default function RawDataView({ provider, displayName }: { provider: strin
             <TableHead>Billed cost</TableHead>
             <TableHead>Tokens</TableHead>
             <TableHead>Provider request ID</TableHead>
-            <TableHead>API key</TableHead>
+            <TableHead>Provider&apos;s own key ID</TableHead>
             <TableHead>
               <span className="sr-only">Payload</span>
             </TableHead>
@@ -116,8 +118,8 @@ export default function RawDataView({ provider, displayName }: { provider: strin
                         <pre className="whitespace-pre-wrap text-xs">{JSON.stringify(row.raw, null, 2)}</pre>
                       ) : (
                         <p className="text-xs text-muted-foreground">
-                          No payload was stored for this row. Payload capture began after this row was fetched, so
-                          nothing was lost.
+                          No payload was stored for this row. This is usually because payload capture began after
+                          this row was fetched.
                         </p>
                       )}
                     </TableCell>
