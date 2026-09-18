@@ -11,7 +11,8 @@
 **Spec:** `docs/superpowers/specs/2026-09-13-provider-billing-ingestion-design.md`
 
 **Depends on:** Phase 1 (`2026-09-13-provider-billing-ingestion.md`) and Phase 2 (`2026-09-13-anthropic-openai-billing-connectors.md`), both complete.
-n**Superseded by:** `docs/superpowers/plans/2026-09-18-azure-vertex-connectors.md`. Tasks 1 and 2 of this plan shipped; Tasks 3 to 5 were written before the multi-account, raw-payload and fetch-profile interfaces existed. Do not execute this plan.
+
+**Superseded by:** `docs/superpowers/plans/2026-09-18-azure-vertex-connectors.md`. Tasks 1 and 2 of this plan shipped; Tasks 3 to 5 were written before the multi-account, raw-payload and fetch-profile interfaces existed. Do not execute this plan.
 
 ## Global Constraints
 
