@@ -54,7 +54,7 @@ def billing_credential_problem(
     if required_fields is not None:
         missing: Final = tuple(name for name in required_fields if not _present(credential_values.get(name)))
         if require_keys and missing:
-            return f"A {provider} billing credential needs {' and '.join(missing)}."
+            return f"A billing credential for {provider} needs {' and '.join(missing)}."
         return None
 
     api_key: Final = credential_values.get("api_key")
