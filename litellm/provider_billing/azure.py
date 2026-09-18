@@ -94,18 +94,33 @@ def _facts_from(properties: Mapping[str, object], credential_name: str) -> tuple
 
 
 def _query_body(since: datetime, until: datetime, service_name: str) -> Mapping[str, object]:
-    return {
+    """The Cost Management request payload.
+
+    Every nested mapping below carries its own `# mutable-ok`: httpx hands this straight to
+    `json.dumps`, which has no encoder for `MappingProxyType`, so freezing these would raise
+    at request time rather than at review time. That failure was proven live on this branch
+    against prisma-client-py, which serialises the same way; wrapping only the outer mapping
+    does not help either, since each nested literal is its own construction. The tuples
+    (`grouping`, `values`) are left alone because tuples serialise to JSON arrays natively.
+    """
+    return {  # mutable-ok: httpx serialises this with json.dumps, which has no mappingproxy encoder
         "type": "ActualCost",
         "timeframe": "Custom",
-        "timePeriod": {
+        "timePeriod": {  # mutable-ok: httpx serialises this with json.dumps, no mappingproxy encoder
             "from": since.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
             "to": until.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         },
-        "dataset": {
+        "dataset": {  # mutable-ok: httpx serialises this with json.dumps, no mappingproxy encoder
             "granularity": "Daily",
-            "aggregation": {"totalCost": {"name": "Cost", "function": "Sum"}},
-            "grouping": ({"type": "Dimension", "name": "ServiceName"},),
-            "filter": {"dimensions": {"name": "ServiceName", "operator": "In", "values": (service_name,)}},
+            "aggregation": {"totalCost": {"name": "Cost", "function": "Sum"}},  # mutable-ok: same json.dumps gap
+            "grouping": ({"type": "Dimension", "name": "ServiceName"},),  # mutable-ok: same json.dumps gap
+            "filter": {  # mutable-ok: httpx serialises this with json.dumps, no mappingproxy encoder
+                "dimensions": {  # mutable-ok: same json.dumps gap
+                    "name": "ServiceName",
+                    "operator": "In",
+                    "values": (service_name,),
+                },
+            },
         },
     }
 
