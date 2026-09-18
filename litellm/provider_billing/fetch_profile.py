@@ -113,5 +113,27 @@ FETCH_PROFILES: Final[Mapping[str, FetchProfile]] = MappingProxyType(
             "recent day is deliberately not read until it stops moving.",
             _BEDROCK_SETTLING_NOTE,
         ),
+        "azure": _profile(
+            "azure",
+            "Azure",
+            "Cost Management query",
+            "https://management.azure.com/",
+            "day",
+            "Azure reports cloud cost by day for the whole subscription rather than per model, "
+            "so the finest comparison against gateway traffic is by service and day. Recent "
+            "days can still change.",
+            _NO_VERIFIED_SETTLING,
+        ),
+        "vertex_ai": _profile(
+            "vertex_ai",
+            "Google Vertex AI",
+            "BigQuery billing export",
+            "https://bigquery.googleapis.com/",
+            "day",
+            "Google publishes no billing API for this, so figures come from a detailed "
+            "billing export the customer enables into BigQuery, and that export lands hours "
+            "behind.",
+            _NO_VERIFIED_SETTLING,
+        ),
     }
 )

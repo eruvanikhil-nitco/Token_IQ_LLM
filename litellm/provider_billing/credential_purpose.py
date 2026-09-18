@@ -13,13 +13,21 @@ from typing import Final
 
 BILLING_PURPOSE: Final = "billing_ingestion"
 
-BILLING_PROVIDERS: Final[frozenset[str]] = frozenset({"openai", "anthropic", "openrouter", "bedrock"})
+BILLING_PROVIDERS: Final[frozenset[str]] = frozenset(
+    {"openai", "anthropic", "openrouter", "bedrock", "azure", "vertex_ai"}
+)
 
 _ADMIN_KEY_PREFIXES: Final = MappingProxyType({"openai": "sk-admin-", "anthropic": "sk-ant-admin"})
 """Cost reports answer only to an organisation admin key. An ordinary key saves fine and then
 fails every sync with a 401, so the kind of key is checked before it is stored."""
 
 _BEDROCK_REQUIRED: Final = ("aws_access_key_id", "aws_secret_access_key")
+_AZURE_REQUIRED: Final = ("subscription_id",)
+_VERTEX_REQUIRED: Final = ("billing_project_id", "billing_export_table")
+
+_REQUIRED_FIELDS: Final = MappingProxyType(
+    {"bedrock": _BEDROCK_REQUIRED, "azure": _AZURE_REQUIRED, "vertex_ai": _VERTEX_REQUIRED}
+)
 
 
 def is_billing_credential(credential_info: Mapping[str, object] | None) -> bool:
@@ -42,10 +50,11 @@ def billing_credential_problem(
     if not isinstance(provider, str) or provider not in BILLING_PROVIDERS:
         return f"A billing credential needs a provider, one of: {', '.join(sorted(BILLING_PROVIDERS))}."
 
-    if provider == "bedrock":
-        missing: Final = tuple(name for name in _BEDROCK_REQUIRED if not _present(credential_values.get(name)))
+    required_fields: Final = _REQUIRED_FIELDS.get(provider)
+    if required_fields is not None:
+        missing: Final = tuple(name for name in required_fields if not _present(credential_values.get(name)))
         if require_keys and missing:
-            return f"A Bedrock billing credential needs {' and '.join(missing)}."
+            return f"A {provider} billing credential needs {' and '.join(missing)}."
         return None
 
     api_key: Final = credential_values.get("api_key")
