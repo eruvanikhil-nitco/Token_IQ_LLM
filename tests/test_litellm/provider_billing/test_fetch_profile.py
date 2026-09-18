@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Final
+
 from litellm.provider_billing.bedrock import SETTLING_HOURS
 from litellm.provider_billing.credential_purpose import BILLING_PROVIDERS
 from litellm.provider_billing.fetch_profile import FETCH_PROFILES
@@ -28,12 +30,19 @@ def test_bedrocks_settling_note_matches_the_constant_that_drives_it():
     assert str(SETTLING_HOURS) in FETCH_PROFILES["bedrock"].settling_note
 
 
+_PROVIDERS_WITH_A_VERIFIED_WINDOW: Final = frozenset({"bedrock"})
+"""Bedrock alone has a settling window verified against real code: its note derives its
+number from SETTLING_HOURS, checked above. Every other provider, present and future, has
+no verified window until it earns its own place in this set."""
+
+
 def test_providers_without_a_verified_window_say_so_rather_than_inventing_one():
     """We have not verified a settling window for these providers, so any number in the
     text would be invented. A note that hedges with "not verified" while still naming a
     duration is worse than no note at all, because a customer reads that number as a fact
-    about their own money. No digit may appear in these three notes."""
-    for provider in ("openai", "anthropic", "openrouter"):
+    about their own money. No digit may appear in any of these notes, and the set is
+    derived from BILLING_PROVIDERS so a newly added provider is covered automatically."""
+    for provider in BILLING_PROVIDERS - _PROVIDERS_WITH_A_VERIFIED_WINDOW:
         note = FETCH_PROFILES[provider].settling_note.lower()
         assert "not" in note or "unknown" in note
         assert not any(char.isdigit() for char in note), f"{provider} settling_note contains a number: {note}"
