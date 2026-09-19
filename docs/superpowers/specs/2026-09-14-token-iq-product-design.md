@@ -13,7 +13,7 @@ The **gateway** is the proxy that application traffic passes through. **Provider
 | Area | State |
 |---|---|
 | Gateway data | Works and is mature, inherited from LiteLLM along with its usage screens |
-| Provider API ingestion | The engine is built: provider facts are stored idempotently, compared against gateway spend per request and per day, and fetched on a schedule from one replica. OpenRouter is proven against real traffic. OpenAI, Anthropic and Bedrock connectors are built but have never run against a real account. Azure and Vertex are planned in `docs/superpowers/plans/2026-09-13-cloud-billing-connectors.md`. Since `2026-09-16-provider-connections.md` the raw provider payload is stored on every fact, several accounts per provider are read separately, every fetch attempt is recorded, and the Provider APIs page shows each connection's state with What We Fetch and Sync History. Nothing reads the stored payloads back yet: that is Usage / APIs |
+| Provider API ingestion | The engine is built: provider facts are stored idempotently, compared against gateway spend per request and per day, and fetched on a schedule from one replica. Six connectors exist. OpenRouter is the only one proven against real traffic; OpenAI, Anthropic, Bedrock, Azure and Vertex are built but have never run against a real account, so none of the five is established as working. Since `2026-09-16-provider-connections.md` the raw provider payload is stored on every fact, several accounts per provider are read separately, every fetch attempt is recorded, and the Provider APIs page shows each connection's state with What We Fetch and Sync History. Nothing reads the stored payloads back yet: that is Usage / APIs |
 | Teams | Complete |
 | Projects | Backend complete. Project spend is written and project budgets enforce since commits `c4e48c0543` and `93fb14c698`. The UI exists but is hidden behind a Beta switch and limited to admins |
 | Users | Exist as internal users, with no per-user tool data |
@@ -88,8 +88,8 @@ Today's spend logs and daily rollups, including the per-project rollup added on 
 | OpenAI | Organization Costs API | Per day | Built, never run on a real account |
 | Anthropic | Admin Cost Report | Per day | Built, never run on a real account |
 | AWS Bedrock | Cost Explorer | Per day | Built, never run on a real account |
-| Azure OpenAI | Cost Management query | Per day | Planned. One connector covers Azure and Azure OpenAI |
-| Google Vertex | BigQuery billing export | Per day | Planned |
+| Azure OpenAI | Cost Management query | Per day | Built, never run on a real account. One connector covers Azure and Azure OpenAI |
+| Google Vertex | BigQuery billing export | Per day | Built, never run on a real account |
 
 Request-level forensics is only possible for OpenRouter. For every other provider the finest comparison is per model per day, and the UI says so
 
