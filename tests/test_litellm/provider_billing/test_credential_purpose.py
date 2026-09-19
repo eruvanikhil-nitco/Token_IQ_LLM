@@ -138,6 +138,48 @@ def test_a_vertex_billing_credential_needs_its_project_and_export_table():
     assert "billing_export_table" in problem
 
 
+def test_a_malformed_billing_export_table_is_refused_when_it_is_saved():
+    """The connector refuses a table that fails the same pattern at fetch time, so a typo
+    accepted here saves a credential that never fetches and never tells the admin which
+    field to fix."""
+    info = {"purpose": "billing_ingestion", "provider": "vertex_ai"}
+
+    problem = billing_credential_problem(
+        info,
+        {"billing_project_id": "proj-1", "billing_export_table": "export_ds.gcp_billing; DROP TABLE x"},
+        require_keys=True,
+    )
+
+    assert problem is not None
+    assert "project.dataset.table" in problem
+
+
+def test_a_malformed_billing_export_table_is_refused_on_an_update_too():
+    """require_keys=False excuses a field the edit never sent, not a field it sent wrong."""
+    problem = billing_credential_problem(
+        {"purpose": "billing_ingestion", "provider": "vertex_ai"},
+        {"billing_export_table": "not a table"},
+        require_keys=False,
+    )
+
+    assert problem is not None
+
+
+def test_a_hyphenated_gcp_project_id_is_accepted_in_the_export_table():
+    """Hyphens are the ordinary shape of a real GCP project id. Refusing them would reject
+    the common case at the one point where the admin can still correct it."""
+    problem = billing_credential_problem(
+        {"purpose": "billing_ingestion", "provider": "vertex_ai"},
+        {
+            "billing_project_id": "my-billing-project",
+            "billing_export_table": "my-billing-project.export_ds.gcp_billing_export_v1",
+        },
+        require_keys=True,
+    )
+
+    assert problem is None
+
+
 def test_neither_cloud_provider_is_asked_for_an_api_key_it_does_not_use():
     """The default branch demands an api_key for anything that is not bedrock. Adding a
     provider without teaching this function about it rejects every credential for it."""
@@ -145,7 +187,7 @@ def test_neither_cloud_provider_is_asked_for_an_api_key_it_does_not_use():
 
     for provider, values in (
         ("azure", {"subscription_id": "sub-123"}),
-        ("vertex_ai", {"billing_project_id": "p", "billing_export_table": "t"}),
+        ("vertex_ai", {"billing_project_id": "p", "billing_export_table": "export_ds.gcp_billing"}),
     ):
         info = {"purpose": "billing_ingestion", "provider": provider}
         assert billing_credential_problem(info, values, require_keys=True) is None

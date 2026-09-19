@@ -287,6 +287,33 @@ describe("billing providers", () => {
     expect(payload.credential_values).toEqual({ subscription_id: "sub-123" });
   });
 
+  it("sends the azure service name override when the admin filled it in", () => {
+    const values = {
+      credential_name: "azure-prod",
+      purpose: "billing_access",
+      billing_provider: "azure",
+      subscription_id: "sub-123",
+      service_name: "Azure OpenAI",
+    };
+
+    const payload = buildCredentialPayload(values);
+
+    expect(payload.credential_values).toEqual({ subscription_id: "sub-123", service_name: "Azure OpenAI" });
+  });
+
+  it("does not throw on a stored provider this build does not know", () => {
+    const values = {
+      credential_name: "seventh-provider",
+      purpose: "billing_access",
+      billing_provider: "a-seventh-provider",
+      api_key: "sk-admin-test-not-real",
+    };
+
+    const payload = buildCredentialPayload(values);
+
+    expect(payload.credential_values).toEqual({ api_key: "sk-admin-test-not-real" });
+  });
+
   it("asks vertex for its project and export table", () => {
     const payload = buildCredentialPayload({
       credential_name: "vertex-prod",

@@ -49,7 +49,7 @@ def _body(*rows: list, columns: list | None = None, next_link: str | None = None
 async def _fetch(client: MagicMock, values=None, token: str | None = "aad-token"):
     from litellm.provider_billing.azure import AzureBillingConnector
 
-    async def token_factory(_values):
+    async def token_factory(_name, _values):
         return token
 
     return await AzureBillingConnector(
@@ -79,7 +79,7 @@ async def test_the_fact_key_carries_the_account_so_two_subscriptions_cannot_coll
     row for a day overwrites the first's and the reported bill silently halves."""
     from litellm.provider_billing.azure import AzureBillingConnector
 
-    async def token_factory(_values):
+    async def token_factory(_name, _values):
         return "aad-token"
 
     async def fetch_as(name: str):

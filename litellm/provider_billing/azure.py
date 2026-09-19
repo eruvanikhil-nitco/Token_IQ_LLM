@@ -16,12 +16,13 @@ carries one.
 
 from __future__ import annotations
 
-from collections.abc import Awaitable, Callable, Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from datetime import datetime, timezone
 from typing import Any, Final
 
 from litellm.provider_billing.cloud_rows import by_column_name, day_from_iso, decimal_or_none
 from litellm.types.proxy.provider_billing import (
+    BillingTokenFactory,
     Fetched,
     FetchFailed,
     FetchResult,
@@ -129,7 +130,7 @@ class AzureBillingConnector:
     def __init__(
         self,
         http_client_factory: Callable[[], Any],  # any-ok: untyped httpx wrapper
-        token_factory: Callable[[Mapping[str, str]], Awaitable[str | None]],
+        token_factory: BillingTokenFactory,
     ) -> None:
         self._http_client_factory = http_client_factory
         self._token_factory = token_factory
@@ -150,7 +151,7 @@ class AzureBillingConnector:
         if not subscription_id:
             return NotConfigured(reason=f"credential {credential_name} carries no subscription_id")
 
-        token: Final = await self._token_factory(credential_values)
+        token: Final = await self._token_factory(credential_name, credential_values)
         if not token:
             return NotConfigured(reason=f"credential {credential_name} has no azure ad token")
 

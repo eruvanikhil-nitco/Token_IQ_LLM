@@ -10,11 +10,11 @@ asserted and which we derived ourselves.
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
-from typing import Literal
+from typing import Literal, TypeAlias
 
 UsageGrain = Literal["request", "day"]
 
@@ -43,6 +43,12 @@ class ProviderUsageFact:
     cache_write_tokens: int | None = None
     raw: Mapping[str, object] | None = None
     fetched_at: datetime | None = None
+
+
+BillingTokenFactory: TypeAlias = Callable[[str, Mapping[str, str]], Awaitable[str | None]]
+"""Given a credential's name and its stored values, the bearer token that reads that provider's
+bill, or None when no identity is available. The name is there so a failure can be logged
+against the credential an admin would recognise."""
 
 
 @dataclass(frozen=True, slots=True)

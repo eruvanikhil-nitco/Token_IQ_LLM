@@ -11,6 +11,8 @@ from collections.abc import Mapping
 from types import MappingProxyType
 from typing import Final
 
+from litellm.provider_billing.vertex import TABLE_PATTERN
+
 BILLING_PURPOSE: Final = "billing_ingestion"
 
 BILLING_PROVIDERS: Final[frozenset[str]] = frozenset(
@@ -39,6 +41,14 @@ def _present(value: object) -> bool:
     return isinstance(value, str) and value != ""
 
 
+def _billing_export_table_problem(value: object) -> str | None:
+    """`vertex.py` refuses a table reference that fails this pattern at fetch time, so a
+    credential that skipped the check here would save cleanly and then never fetch."""
+    if not isinstance(value, str) or value == "" or TABLE_PATTERN.fullmatch(value):
+        return None
+    return "This is not a BigQuery table reference. A billing export table is written project.dataset.table."
+
+
 def billing_credential_problem(
     credential_info: Mapping[str, object],
     credential_values: Mapping[str, object],
@@ -55,7 +65,7 @@ def billing_credential_problem(
         missing: Final = tuple(name for name in required_fields if not _present(credential_values.get(name)))
         if require_keys and missing:
             return f"A billing credential for {provider} needs {' and '.join(missing)}."
-        return None
+        return _billing_export_table_problem(credential_values.get("billing_export_table"))
 
     api_key: Final = credential_values.get("api_key")
     if not _present(api_key):

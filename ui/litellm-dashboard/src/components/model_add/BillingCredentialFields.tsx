@@ -45,13 +45,24 @@ export default function BillingCredentialFields({ provider, onProviderChange, is
         )}
       </MountedFormField>
 
-      {FIELDS_BY_PROVIDER[provider](isEdit)}
+      {(FIELDS_BY_PROVIDER[provider] ?? FIELDS_BY_PROVIDER.openai)(isEdit)}
     </div>
   );
 }
 
-const textField = (name: string, label: string, isEdit: boolean, opts?: { password?: boolean; placeholder?: string }) => (
-  <MountedFormField key={name} label={label} name={name} required={!isEdit} rules={secretRules(isEdit, `${label} is required`)}>
+const textField = (
+  name: string,
+  label: string,
+  isEdit: boolean,
+  opts?: { password?: boolean; placeholder?: string },
+) => (
+  <MountedFormField
+    key={name}
+    label={label}
+    name={name}
+    required={!isEdit}
+    rules={secretRules(isEdit, `${label} is required`)}
+  >
     {(control) => (
       <Input
         id={control.id}
@@ -82,8 +93,9 @@ const optionalTextField = (name: string, label: string, opts?: { password?: bool
   </MountedFormField>
 );
 
-const FIELDS_BY_PROVIDER: Record<BillingProvider, (isEdit: boolean) => ReactElement> = {
-  openai: (isEdit) => textField("api_key", "Admin API key", isEdit, { password: true, placeholder: ADMIN_KEY_PLACEHOLDER.openai }),
+const FIELDS_BY_PROVIDER: Readonly<Record<BillingProvider, (isEdit: boolean) => ReactElement>> = {
+  openai: (isEdit) =>
+    textField("api_key", "Admin API key", isEdit, { password: true, placeholder: ADMIN_KEY_PLACEHOLDER.openai }),
   anthropic: (isEdit) =>
     textField("api_key", "Admin API key", isEdit, { password: true, placeholder: ADMIN_KEY_PLACEHOLDER.anthropic }),
   openrouter: (isEdit) => textField("api_key", "Admin API key", isEdit, { password: true }),
@@ -95,7 +107,14 @@ const FIELDS_BY_PROVIDER: Record<BillingProvider, (isEdit: boolean) => ReactElem
       {optionalTextField("service_name", "Cost Explorer service name (optional)", { placeholder: "Amazon Bedrock" })}
     </>
   ),
-  azure: (isEdit) => textField("subscription_id", "Subscription ID", isEdit),
+  azure: (isEdit) => (
+    <>
+      {textField("subscription_id", "Subscription ID", isEdit)}
+      {optionalTextField("service_name", "Cost Management service name (optional)", {
+        placeholder: "Cognitive Services",
+      })}
+    </>
+  ),
   vertex_ai: (isEdit) => (
     <>
       {textField("billing_project_id", "Billing project ID", isEdit)}

@@ -115,7 +115,7 @@ FETCH_PROFILES: Final[Mapping[str, FetchProfile]] = MappingProxyType(
         ),
         "azure": _profile(
             "azure",
-            "Azure",
+            "Azure OpenAI",
             "Cost Management query",
             "https://management.azure.com/",
             "day",

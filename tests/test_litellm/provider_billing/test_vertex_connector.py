@@ -70,7 +70,7 @@ def _http_single_page(payload: dict, status: int = 200) -> MagicMock:
 async def _fetch(client: MagicMock, values=None, token: str | None = "google-token"):
     from litellm.provider_billing.vertex import VertexBillingConnector
 
-    async def token_factory(_values):
+    async def token_factory(_name, _values):
         return token
 
     return await VertexBillingConnector(
@@ -102,7 +102,7 @@ async def test_the_fact_key_carries_the_credential_name_so_two_projects_cannot_c
     row for a day overwrites the first's and the reported bill silently halves."""
     from litellm.provider_billing.vertex import VertexBillingConnector
 
-    async def token_factory(_values):
+    async def token_factory(_name, _values):
         return "google-token"
 
     async def fetch_as(name: str):
@@ -273,7 +273,7 @@ async def test_a_malformed_export_table_is_refused_before_any_request_is_made(ta
 
     http_client_factory = MagicMock()
 
-    async def token_factory(_values):
+    async def token_factory(_name, _values):
         return "google-token"
 
     result = await VertexBillingConnector(
