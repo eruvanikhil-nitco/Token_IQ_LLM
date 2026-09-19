@@ -45,13 +45,26 @@ export const BILLING_PROVIDERS = [
   { value: "anthropic", label: "Anthropic" },
   { value: "openrouter", label: "OpenRouter" },
   { value: "bedrock", label: "Amazon Bedrock" },
+  { value: "azure", label: "Azure OpenAI" },
+  { value: "vertex_ai", label: "Google Vertex AI" },
 ] as const satisfies ReadonlyArray<{ value: string; label: string }>;
 
 export type BillingProvider = (typeof BILLING_PROVIDERS)[number]["value"];
 
 const BEDROCK_BILLING_FIELDS = ["aws_access_key_id", "aws_secret_access_key", "aws_session_token", "service_name"];
+const AZURE_BILLING_FIELDS = ["subscription_id"];
+const VERTEX_BILLING_FIELDS = ["billing_project_id", "billing_export_table"];
 
-export const BILLING_KEY_FIELDS = ["api_key", ...BEDROCK_BILLING_FIELDS];
+const BILLING_FIELDS_BY_PROVIDER: Record<BillingProvider, string[]> = {
+  openai: ["api_key"],
+  anthropic: ["api_key"],
+  openrouter: ["api_key"],
+  bedrock: BEDROCK_BILLING_FIELDS,
+  azure: AZURE_BILLING_FIELDS,
+  vertex_ai: VERTEX_BILLING_FIELDS,
+};
+
+export const BILLING_KEY_FIELDS = ["api_key", ...BEDROCK_BILLING_FIELDS, ...AZURE_BILLING_FIELDS, ...VERTEX_BILLING_FIELDS];
 
 const FORM_ONLY_FIELDS = ["credential_name", "custom_llm_provider", "purpose", "billing_provider"];
 
@@ -119,7 +132,7 @@ export const buildCredentialPayload = (
   const credentialName = values.credential_name as string;
   if (values.purpose === "billing_access") {
     const provider = values.billing_provider as BillingProvider;
-    const keys = provider === "bedrock" ? BEDROCK_BILLING_FIELDS : ["api_key"];
+    const keys = BILLING_FIELDS_BY_PROVIDER[provider];
     return {
       credential_name: credentialName,
       credential_values: Object.fromEntries(keys.filter((key) => filled(values[key])).map((key) => [key, values[key]])),

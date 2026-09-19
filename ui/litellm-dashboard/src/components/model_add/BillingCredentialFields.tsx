@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactElement } from "react";
 import { Input } from "@/components/ui/input";
 import { SearchSelect } from "@/components/shared/SearchSelect";
 import { MountedFormField } from "../common_components/MountedFormField";
@@ -44,85 +45,63 @@ export default function BillingCredentialFields({ provider, onProviderChange, is
         )}
       </MountedFormField>
 
-      {provider === "bedrock" ? (
-        <>
-          <MountedFormField
-            label="AWS access key ID"
-            name="aws_access_key_id"
-            required={!isEdit}
-            rules={secretRules(isEdit, "AWS access key ID is required")}
-          >
-            {(control) => (
-              <Input
-                id={control.id}
-                value={(control.value as string | undefined) ?? ""}
-                onChange={control.onChange}
-                onBlur={control.onBlur}
-                autoComplete="off"
-              />
-            )}
-          </MountedFormField>
-          <MountedFormField
-            label="AWS secret access key"
-            name="aws_secret_access_key"
-            required={!isEdit}
-            rules={secretRules(isEdit, "AWS secret access key is required")}
-          >
-            {(control) => (
-              <Input
-                id={control.id}
-                type="password"
-                value={(control.value as string | undefined) ?? ""}
-                onChange={control.onChange}
-                onBlur={control.onBlur}
-                autoComplete="off"
-              />
-            )}
-          </MountedFormField>
-          <MountedFormField label="AWS session token (optional)" name="aws_session_token">
-            {(control) => (
-              <Input
-                id={control.id}
-                type="password"
-                value={(control.value as string | undefined) ?? ""}
-                onChange={control.onChange}
-                onBlur={control.onBlur}
-                autoComplete="off"
-              />
-            )}
-          </MountedFormField>
-          <MountedFormField label="Cost Explorer service name (optional)" name="service_name">
-            {(control) => (
-              <Input
-                id={control.id}
-                placeholder="Amazon Bedrock"
-                value={(control.value as string | undefined) ?? ""}
-                onChange={control.onChange}
-                onBlur={control.onBlur}
-              />
-            )}
-          </MountedFormField>
-        </>
-      ) : (
-        <MountedFormField
-          label="Admin API key"
-          name="api_key"
-          required={!isEdit}
-          rules={secretRules(isEdit, "Admin API key is required")}
-        >
-          {(control) => (
-            <Input
-              id={control.id}
-              type="password"
-              value={(control.value as string | undefined) ?? ""}
-              onChange={control.onChange}
-              onBlur={control.onBlur}
-              autoComplete="off"
-              placeholder={ADMIN_KEY_PLACEHOLDER[provider] ?? ""}
-            />
-          )}
-        </MountedFormField>
-      )}
+      {FIELDS_BY_PROVIDER[provider](isEdit)}
     </div>
   );
 }
+
+const textField = (name: string, label: string, isEdit: boolean, opts?: { password?: boolean; placeholder?: string }) => (
+  <MountedFormField key={name} label={label} name={name} required={!isEdit} rules={secretRules(isEdit, `${label} is required`)}>
+    {(control) => (
+      <Input
+        id={control.id}
+        type={opts?.password ? "password" : "text"}
+        placeholder={opts?.placeholder}
+        value={(control.value as string | undefined) ?? ""}
+        onChange={control.onChange}
+        onBlur={control.onBlur}
+        autoComplete="off"
+      />
+    )}
+  </MountedFormField>
+);
+
+const optionalTextField = (name: string, label: string, opts?: { password?: boolean; placeholder?: string }) => (
+  <MountedFormField key={name} label={label} name={name}>
+    {(control) => (
+      <Input
+        id={control.id}
+        type={opts?.password ? "password" : "text"}
+        placeholder={opts?.placeholder}
+        value={(control.value as string | undefined) ?? ""}
+        onChange={control.onChange}
+        onBlur={control.onBlur}
+        autoComplete="off"
+      />
+    )}
+  </MountedFormField>
+);
+
+const FIELDS_BY_PROVIDER: Record<BillingProvider, (isEdit: boolean) => ReactElement> = {
+  openai: (isEdit) => textField("api_key", "Admin API key", isEdit, { password: true, placeholder: ADMIN_KEY_PLACEHOLDER.openai }),
+  anthropic: (isEdit) =>
+    textField("api_key", "Admin API key", isEdit, { password: true, placeholder: ADMIN_KEY_PLACEHOLDER.anthropic }),
+  openrouter: (isEdit) => textField("api_key", "Admin API key", isEdit, { password: true }),
+  bedrock: (isEdit) => (
+    <>
+      {textField("aws_access_key_id", "AWS access key ID", isEdit)}
+      {textField("aws_secret_access_key", "AWS secret access key", isEdit, { password: true })}
+      {optionalTextField("aws_session_token", "AWS session token (optional)", { password: true })}
+      {optionalTextField("service_name", "Cost Explorer service name (optional)", { placeholder: "Amazon Bedrock" })}
+    </>
+  ),
+  azure: (isEdit) => textField("subscription_id", "Subscription ID", isEdit),
+  vertex_ai: (isEdit) => (
+    <>
+      {textField("billing_project_id", "Billing project ID", isEdit)}
+      {textField("billing_export_table", "Billing export table", isEdit, {
+        placeholder: "project.dataset.table",
+      })}
+    </>
+  ),
+};

@@ -236,6 +236,29 @@ describe("CredentialModal purpose", () => {
     expect(screen.queryByLabelText(/Admin API key/)).not.toBeInTheDocument();
   });
 
+  it("asks azure for its subscription rather than an admin key", async () => {
+    const user = userEvent.setup();
+    renderModal();
+
+    await user.click(screen.getByRole("radio", { name: /Billing access/ }));
+    await chooseSelectOption(user, screen.getByLabelText(/Billing provider/), /Azure OpenAI/);
+
+    expect(screen.getByLabelText(/Subscription ID/)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/Admin API key/)).not.toBeInTheDocument();
+  });
+
+  it("asks vertex for its project and export table rather than an admin key", async () => {
+    const user = userEvent.setup();
+    renderModal();
+
+    await user.click(screen.getByRole("radio", { name: /Billing access/ }));
+    await chooseSelectOption(user, screen.getByLabelText(/Billing provider/), /Google Vertex AI/);
+
+    expect(screen.getByLabelText(/Billing project ID/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Billing export table/)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/Admin API key/)).not.toBeInTheDocument();
+  });
+
   it("clears a typed admin key when switching from one billing provider to another", async () => {
     const user = userEvent.setup();
     renderModal();

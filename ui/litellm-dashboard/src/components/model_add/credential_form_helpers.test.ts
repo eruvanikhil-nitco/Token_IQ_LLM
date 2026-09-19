@@ -156,10 +156,6 @@ describe("credential purpose", () => {
     expect(credentialPurposeLabel(modelAccess)).toBe("Model access");
   });
 
-  it("offers exactly the providers this build can read bills from", () => {
-    expect(BILLING_PROVIDERS.map((p) => p.value)).toEqual(["openai", "anthropic", "openrouter", "bedrock"]);
-  });
-
   it("builds a billing credential with the marker the ingestion job looks for", () => {
     expect(
       buildCredentialPayload({
@@ -264,5 +260,45 @@ describe("resetCredentialFormOnPurposeChange", () => {
     resetCredentialFormOnPurposeChange(stub, "model_access");
 
     expect(fields.billing_provider).toBeUndefined();
+  });
+});
+
+describe("billing providers", () => {
+  it("offers every provider this build can read a bill from", () => {
+    expect(BILLING_PROVIDERS.map((provider) => provider.value)).toEqual([
+      "openai",
+      "anthropic",
+      "openrouter",
+      "bedrock",
+      "azure",
+      "vertex_ai",
+    ]);
+  });
+
+  it("asks azure for its subscription rather than an api key", () => {
+    const payload = buildCredentialPayload({
+      credential_name: "azure-prod",
+      purpose: "billing_access",
+      billing_provider: "azure",
+      subscription_id: "sub-123",
+      api_key: "sk-should-not-be-sent",
+    });
+
+    expect(payload.credential_values).toEqual({ subscription_id: "sub-123" });
+  });
+
+  it("asks vertex for its project and export table", () => {
+    const payload = buildCredentialPayload({
+      credential_name: "vertex-prod",
+      purpose: "billing_access",
+      billing_provider: "vertex_ai",
+      billing_project_id: "proj-1",
+      billing_export_table: "billing.gcp_export",
+    });
+
+    expect(payload.credential_values).toEqual({
+      billing_project_id: "proj-1",
+      billing_export_table: "billing.gcp_export",
+    });
   });
 });

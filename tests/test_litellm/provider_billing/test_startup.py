@@ -17,6 +17,8 @@ def test_every_shipped_connector_is_registered():
         "anthropic",
         "openai",
         "bedrock",
+        "azure",
+        "vertex_ai",
     }
     clear_registry_for_tests()
 
@@ -31,5 +33,20 @@ def test_registering_twice_is_harmless():
     register_billing_connectors(prisma_client=MagicMock())
     register_billing_connectors(prisma_client=MagicMock())
 
-    assert len(registered_connectors()) == 4
+    assert len(registered_connectors()) == 6
+    clear_registry_for_tests()
+
+
+def test_every_billing_provider_has_a_registered_connector():
+    """BILLING_PROVIDERS is what the endpoints and the dashboard enumerate. A provider in
+    that set with no connector answers every probe with 'this build ships no connector',
+    which reads as a broken deployment rather than a missing feature."""
+    from litellm.provider_billing.connector import clear_registry_for_tests, registered_connectors
+    from litellm.provider_billing.credential_purpose import BILLING_PROVIDERS
+    from litellm.provider_billing.startup import register_billing_connectors
+
+    clear_registry_for_tests()
+    register_billing_connectors(prisma_client=MagicMock())
+
+    assert {connector.provider for connector in registered_connectors()} == BILLING_PROVIDERS
     clear_registry_for_tests()
