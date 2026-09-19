@@ -116,6 +116,37 @@ def _bigquery_that_honours_the_window(*charges: tuple[datetime, str]) -> MagicMo
     return client
 
 
+def _bigquery_that_groups_the_way_the_query_asks(*charges: tuple[str, str, str]) -> MagicMock:
+    """A BigQuery holding (day, currency, amount) rows that aggregates on exactly the keys
+    the connector's own SQL groups by.
+
+    A query that leaves currency out of its GROUP BY gets one row per day back: an amount
+    summed across every currency in the table and a label that is whichever currency the
+    engine happened to reach first. That is what the real engine answers, and it is the
+    whole reason the grouping matters.
+    """
+    dumps = json.dumps
+
+    async def post(_url, *, json, headers):
+        grouped_by_currency = "currency" in json["query"].split("GROUP BY ")[1]
+        totals: dict[tuple[str, str], Decimal] = {}
+        labels: dict[tuple[str, str], str] = {}
+        for day, currency, amount in charges:
+            bucket = (day, currency) if grouped_by_currency else (day, "")
+            totals[bucket] = totals.get(bucket, Decimal("0")) + Decimal(amount)
+            labels.setdefault(bucket, currency)
+        rows = [_cost_row(bucket[0], net=str(total), currency=labels[bucket]) for bucket, total in totals.items()]
+        response = MagicMock()
+        response.status_code = 200
+        response.text = dumps(_body(*rows))
+        return response
+
+    client = MagicMock()
+    client.post = AsyncMock(side_effect=post)
+    client.get = AsyncMock()
+    return client
+
+
 def _connector(client: MagicMock, token: str | None = "google-token"):
     from litellm.provider_billing.vertex import VertexBillingConnector
 
@@ -236,6 +267,27 @@ async def test_the_currency_google_billed_in_is_kept():
     result = await _fetch(client)
 
     assert result.facts[0].billing_currency == "EUR"
+
+
+@pytest.mark.asyncio
+async def test_two_currencies_on_one_day_stay_two_facts_rather_than_one_mislabelled_sum():
+    """An export table holding more than one billing account's rows carries more than one
+    currency. Summing across them produces a number that is not money in any currency, and
+    labelling it with whichever one the engine picked presents that number with full
+    confidence. Each currency has to be its own fact, and the fact key has to carry the
+    currency or the second one silently overwrites the first on upsert."""
+    client = _bigquery_that_groups_the_way_the_query_asks(
+        ("2026-09-17", "USD", "10"),
+        ("2026-09-17", "EUR", "7"),
+    )
+
+    result = await _fetch(client)
+
+    assert {(fact.billing_currency, fact.billed_cost) for fact in result.facts} == {
+        ("USD", Decimal("10")),
+        ("EUR", Decimal("7")),
+    }
+    assert len({fact.fact_key for fact in result.facts}) == 2
 
 
 @pytest.mark.asyncio

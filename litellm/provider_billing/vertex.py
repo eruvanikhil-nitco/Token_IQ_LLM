@@ -33,6 +33,12 @@ it up in binary floating point before this ever sees a digit of it.
 The window starts at UTC midnight rather than wherever the ingestion run happens to fall,
 because a day is only ever summed whole here.
 
+A day is grouped by currency as well as by service, and the currency is part of the fact
+key. One Cloud Billing account bills in one currency, but an export table can hold several
+accounts, and a sum across two currencies is not money in either of them. Grouping keeps
+each currency as its own correct total instead of one meaningless number wearing whichever
+label the engine happened to pick.
+
 A query that does not finish inside its own request comes back with `jobComplete: false`
 rather than a page of rows; this connector treats that as a retryable failure rather than
 paging against a job that may still be running, since neither a partial page nor the
@@ -83,12 +89,12 @@ _CREDITS: Final = "IFNULL((SELECT SUM(CAST(credit.amount AS NUMERIC)) FROM UNNES
 
 _SELECT_SQL: Final = (
     "SELECT DATE(usage_start_time) AS usage_day, service.description AS service_description, "
-    "ANY_VALUE(currency) AS currency, SUM(CAST(cost AS NUMERIC)) AS gross_cost, "
+    "currency, SUM(CAST(cost AS NUMERIC)) AS gross_cost, "
     "SUM(" + _CREDITS + ") AS credit_cost, "
     "SUM(CAST(cost AS NUMERIC) + " + _CREDITS + ") AS net_cost "
     "FROM `{table}` "
     "WHERE service.description = @service_name AND usage_start_time >= @since AND usage_start_time < @until "
-    "GROUP BY usage_day, service_description"
+    "GROUP BY usage_day, service_description, currency"
 )
 
 
@@ -141,15 +147,16 @@ def _fact_from_row(fields: Mapping[str, object], credential_name: str) -> Provid
 
     raw_service: Final = fields.get("service_description")
     service: Final = raw_service if isinstance(raw_service, str) and raw_service else UNGROUPED
+    currency: Final = currency_or_default(fields.get("currency"))
     return ProviderUsageFact(
-        fact_key=f"vertex_ai:{credential_name}:{day.date().isoformat()}:{service}",
+        fact_key=f"vertex_ai:{credential_name}:{day.date().isoformat()}:{service}:{currency}",
         provider="vertex_ai",
         credential_name=credential_name,
         grain="day",
         bucket_start=day,
         evidence="reconciled",
         billed_cost=amount,
-        billing_currency=currency_or_default(fields.get("currency")),
+        billing_currency=currency,
         model=None if service == UNGROUPED else service,
         raw=json_safe_row(fields),
     )
