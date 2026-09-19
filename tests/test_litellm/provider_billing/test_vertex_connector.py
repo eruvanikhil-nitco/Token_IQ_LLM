@@ -3,19 +3,23 @@
 Every response fixture here is transcribed from the published BigQuery REST API reference
 (the `jobs.query` and `jobs.getQueryResults` resources, whose rows arrive as `rows[].f[].v`
 matched against `schema.fields`) and from the documented Cloud Billing detailed export
-schema (`service.description`, `usage_start_time`, `cost`). Nothing in this file has been
-checked against a live Google Cloud project, because this deployment has no Google Cloud
-account. A fixture invented to make a test pass would encode a wire format nobody has seen,
-so each shape below traces to a published reference rather than to a guess.
+schema (`service.description`, `usage_start_time`, `cost`, `currency`, and the repeated
+`credits` field). Nothing in this file has been checked against a live Google Cloud project,
+because this deployment has no Google Cloud account. A fixture invented to make a test pass
+would encode a wire format nobody has seen, so each shape below traces to a published
+reference rather than to a guess.
 """
 
 from __future__ import annotations
 
+import json
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+
+from litellm.types.proxy.provider_billing import BillingCredential
 
 NOW = datetime(2026, 9, 18, 12, 0, tzinfo=timezone.utc)
 CREDENTIAL = {
@@ -29,7 +33,10 @@ regression against rejecting it."""
 _FIELDS = [
     {"name": "usage_day", "type": "DATE"},
     {"name": "service_description", "type": "STRING"},
-    {"name": "cost", "type": "FLOAT"},
+    {"name": "currency", "type": "STRING"},
+    {"name": "gross_cost", "type": "NUMERIC"},
+    {"name": "credit_cost", "type": "NUMERIC"},
+    {"name": "net_cost", "type": "NUMERIC"},
 ]
 
 
@@ -37,10 +44,22 @@ def _row(*values: str) -> dict:
     return {"f": [{"v": value} for value in values]}
 
 
+def _cost_row(
+    day: str = "2026-09-17",
+    service: str = "Vertex AI",
+    net: str = "1",
+    *,
+    currency: str = "USD",
+    gross: str | None = None,
+    credits: str = "0",
+) -> dict:
+    return _row(day, service, currency, net if gross is None else gross, credits, net)
+
+
 def _response(payload: dict, status: int = 200) -> MagicMock:
     response = MagicMock()
     response.status_code = status
-    response.json = MagicMock(return_value=payload)
+    response.text = json.dumps(payload)
     return response
 
 
@@ -67,16 +86,48 @@ def _http_single_page(payload: dict, status: int = 200) -> MagicMock:
     return client
 
 
-async def _fetch(client: MagicMock, values=None, token: str | None = "google-token"):
+def _bigquery_that_honours_the_window(*charges: tuple[datetime, str]) -> MagicMock:
+    """A BigQuery that applies the connector's own `usage_start_time >= @since` filter.
+
+    The export holds one row per usage interval, and the query groups those into days. Ask
+    it from the middle of a day and it answers with the tail of that day, filed under the
+    whole day, which is exactly what the real query would do.
+    """
+    dumps = json.dumps
+
+    async def post(_url, *, json, headers):
+        params = {param["name"]: param["parameterValue"]["value"] for param in json["queryParameters"]}
+        since = datetime.strptime(params["since"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+        until = datetime.strptime(params["until"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+        totals: dict[str, Decimal] = {}
+        for at, amount in charges:
+            if since <= at < until:
+                day = at.date().isoformat()
+                totals[day] = totals.get(day, Decimal("0")) + Decimal(amount)
+        rows = [_cost_row(day, net=str(total)) for day, total in sorted(totals.items())]
+        response = MagicMock()
+        response.status_code = 200
+        response.text = dumps(_body(*rows))
+        return response
+
+    client = MagicMock()
+    client.post = AsyncMock(side_effect=post)
+    client.get = AsyncMock()
+    return client
+
+
+def _connector(client: MagicMock, token: str | None = "google-token"):
     from litellm.provider_billing.vertex import VertexBillingConnector
 
     async def token_factory(_name, _values):
         return token
 
-    return await VertexBillingConnector(
-        http_client_factory=lambda: client, token_factory=token_factory
-    ).fetch(
-        since=NOW - timedelta(days=7),
+    return VertexBillingConnector(http_client_factory=lambda: client, token_factory=token_factory)
+
+
+async def _fetch(client: MagicMock, values=None, token: str | None = "google-token", since=None):
+    return await _connector(client, token).fetch(
+        since=NOW - timedelta(days=7) if since is None else since,
         until=NOW,
         credential_name="vertex-prod",
         credential_values=CREDENTIAL if values is None else values,
@@ -85,7 +136,7 @@ async def _fetch(client: MagicMock, values=None, token: str | None = "google-tok
 
 @pytest.mark.asyncio
 async def test_a_row_becomes_a_fact_with_the_exact_cost_google_reported():
-    client = _http_single_page(_body(_row("2026-09-17", "Vertex AI", "0.00780515")))
+    client = _http_single_page(_body(_cost_row(net="0.00780515")))
 
     result = await _fetch(client)
 
@@ -97,19 +148,117 @@ async def test_a_row_becomes_a_fact_with_the_exact_cost_google_reported():
 
 
 @pytest.mark.asyncio
+async def test_a_mid_day_window_still_sums_the_whole_day():
+    """The fact is keyed to a whole day and written by upsert, so a run that asks from the
+    middle of a day replaces that day's complete total with the slice it happened to see.
+    A settled day would converge on a few minutes of spend while every sync reported
+    healthy."""
+    client = _bigquery_that_honours_the_window(
+        (datetime(2026, 9, 17, 3, 0, tzinfo=timezone.utc), "4"),
+        (datetime(2026, 9, 17, 21, 0, tzinfo=timezone.utc), "1"),
+    )
+
+    result = await _fetch(client, since=datetime(2026, 9, 17, 14, 37, 11, tzinfo=timezone.utc))
+
+    assert [fact.billed_cost for fact in result.facts] == [Decimal("5")]
+
+
+@pytest.mark.asyncio
+async def test_the_runners_own_window_still_reports_a_whole_day():
+    """Every other test here chooses its own window. The runner does not: it asks for the
+    last 24 hours from a live clock, so `since` lands mid-day. Driving the connector the way
+    the product actually drives it is the only thing that catches a partial day being
+    written over a complete one."""
+    from litellm.provider_billing.runner import run_ingestion
+
+    now = datetime(2026, 9, 18, 14, 37, 11, tzinfo=timezone.utc)
+    client = _bigquery_that_honours_the_window(
+        (datetime(2026, 9, 17, 3, 0, tzinfo=timezone.utc), "4"),
+        (datetime(2026, 9, 17, 21, 0, tzinfo=timezone.utc), "1"),
+    )
+    written: list = []
+    repository = MagicMock()
+    repository.upsert_many = AsyncMock(side_effect=lambda facts: written.extend(facts) or len(facts))
+    sync_runs = MagicMock()
+    sync_runs.record = AsyncMock()
+
+    async def credentials_for(_provider: str):
+        return (BillingCredential(name="vertex-prod", values=CREDENTIAL),)
+
+    await run_ingestion(
+        repository=repository,
+        sync_runs=sync_runs,
+        connectors=(_connector(client),),
+        credentials_for=credentials_for,
+        now=now,
+    )
+
+    day = [fact for fact in written if fact.bucket_start.date().isoformat() == "2026-09-17"]
+    assert [fact.billed_cost for fact in day] == [Decimal("5")]
+
+
+@pytest.mark.asyncio
+async def test_a_discounted_account_is_reported_at_what_google_invoiced():
+    """Committed-use discounts, sustained-use discounts and promotions arrive as negative
+    credit amounts. Reporting gross cost overstates a discounted account against the
+    gateway's own figure, which manufactures the very gap this product exists to explain.
+    The gross survives into the fact's raw payload, so nothing Google said is discarded."""
+    client = _http_single_page(_body(_cost_row(gross="10", credits="-3", net="7")))
+
+    result = await _fetch(client)
+
+    assert result.facts[0].billed_cost == Decimal("7")
+    assert result.facts[0].raw["gross_cost"] == "10"
+    assert result.facts[0].raw["credit_cost"] == "-3"
+
+
+@pytest.mark.asyncio
+async def test_the_query_nets_off_credits_and_sums_in_numeric():
+    """The export's `cost` column is FLOAT64, so BigQuery itself adds it up in binary
+    floating point unless the sum is cast first, and the credits are a repeated field the
+    query has to unnest or the discount never reaches the total at all."""
+    client = _http_single_page(_body())
+
+    await _fetch(client)
+
+    query = client.post.await_args.kwargs["json"]["query"]
+    assert "UNNEST(credits)" in query
+    assert "SUM(CAST(cost AS NUMERIC)" in query
+    assert "SUM(cost)" not in query
+
+
+@pytest.mark.asyncio
+async def test_the_currency_google_billed_in_is_kept():
+    """A euro-billed account stored as dollars is compared against dollar gateway spend,
+    and the difference reads as a leak that does not exist."""
+    client = _http_single_page(_body(_cost_row(currency="EUR")))
+
+    result = await _fetch(client)
+
+    assert result.facts[0].billing_currency == "EUR"
+
+
+@pytest.mark.asyncio
+async def test_a_response_with_no_currency_column_keeps_the_default():
+    """Guessing is worse than the default. A response that names no currency leaves the
+    stored default alone rather than inventing one."""
+    fields = [field for field in _FIELDS if field["name"] != "currency"]
+    client = _http_single_page(_body(_row("2026-09-17", "Vertex AI", "1", "0", "1"), fields=fields))
+
+    result = await _fetch(client)
+
+    assert result.facts[0].billing_currency == "USD"
+
+
+@pytest.mark.asyncio
 async def test_the_fact_key_carries_the_credential_name_so_two_projects_cannot_collide():
     """fact_key is the upsert key. Without the credential in it, a second Google project's
     row for a day overwrites the first's and the reported bill silently halves."""
-    from litellm.provider_billing.vertex import VertexBillingConnector
-
-    async def token_factory(_name, _values):
-        return "google-token"
 
     async def fetch_as(name: str):
-        return await VertexBillingConnector(
-            http_client_factory=lambda: _http_single_page(_body(_row("2026-09-17", "Vertex AI", "1"))),
-            token_factory=token_factory,
-        ).fetch(since=NOW - timedelta(days=7), until=NOW, credential_name=name, credential_values=CREDENTIAL)
+        return await _connector(_http_single_page(_body(_cost_row()))).fetch(
+            since=NOW - timedelta(days=7), until=NOW, credential_name=name, credential_values=CREDENTIAL
+        )
 
     prod = await fetch_as("vertex-prod")
     staging = await fetch_as("vertex-staging")
@@ -122,14 +271,17 @@ async def test_the_fact_key_carries_the_credential_name_so_two_projects_cannot_c
 async def test_each_fact_keeps_the_row_google_sent():
     """Raw Data renders the provider's own line. A payload dropped at parse time can never
     be shown, and BigQuery will not serve that day again."""
-    client = _http_single_page(_body(_row("2026-09-17", "Vertex AI", "1.5")))
+    client = _http_single_page(_body(_cost_row(net="1.5")))
 
     result = await _fetch(client)
 
     assert result.facts[0].raw == {
         "usage_day": "2026-09-17",
         "service_description": "Vertex AI",
-        "cost": "1.5",
+        "currency": "USD",
+        "gross_cost": "1.5",
+        "credit_cost": "0",
+        "net_cost": "1.5",
     }
 
 
@@ -138,8 +290,7 @@ async def test_a_row_shorter_than_its_schema_fields_is_dropped_rather_than_guess
     """BigQuery rows are positional cells with no field names of their own; the meaning comes
     from a separate `schema.fields` array. A truncated `f` array means the response is not
     the shape we believe, and filling the gap would put a wrong number into a billing table."""
-    short_row = {"f": [{"v": "2026-09-17"}, {"v": "Vertex AI"}]}
-    client = _http_single_page(_body(short_row))
+    client = _http_single_page(_body(_row("2026-09-17", "Vertex AI")))
 
     result = await _fetch(client)
 
@@ -152,7 +303,7 @@ async def test_fields_in_a_different_order_still_read_correctly():
     wrong number is reported rather than an error raised."""
     reordered_fields = [
         {"name": "service_description", "type": "STRING"},
-        {"name": "cost", "type": "FLOAT"},
+        {"name": "net_cost", "type": "NUMERIC"},
         {"name": "usage_day", "type": "DATE"},
     ]
     client = _http_single_page(_body(_row("Vertex AI", "9.99", "2026-09-17"), fields=reordered_fields))
@@ -166,12 +317,10 @@ async def test_fields_in_a_different_order_still_read_correctly():
 async def test_paging_follows_page_token_until_it_is_absent():
     client = MagicMock()
     client.post = AsyncMock(
-        return_value=_response(
-            _body(_row("2026-09-17", "Vertex AI", "1"), job_id="job-1", page_token="page-2")
-        )
+        return_value=_response(_body(_cost_row(), job_id="job-1", page_token="page-2"))
     )
     client.get = AsyncMock(
-        return_value=_response(_body(_row("2026-09-16", "Vertex AI", "2"), job_id="job-1"))
+        return_value=_response(_body(_cost_row(day="2026-09-16", net="2"), job_id="job-1"))
     )
 
     result = await _fetch(client)
@@ -192,14 +341,10 @@ async def test_a_pager_that_never_stops_is_cut_off_at_the_page_cap():
 
     client = MagicMock()
     client.post = AsyncMock(
-        return_value=_response(
-            _body(_row("2026-09-17", "Vertex AI", "1"), job_id="job-1", page_token="always-more")
-        )
+        return_value=_response(_body(_cost_row(), job_id="job-1", page_token="always-more"))
     )
     client.get = AsyncMock(
-        return_value=_response(
-            _body(_row("2026-09-16", "Vertex AI", "1"), job_id="job-1", page_token="always-more")
-        )
+        return_value=_response(_body(_cost_row(day="2026-09-16"), job_id="job-1", page_token="always-more"))
     )
 
     result = await _fetch(client)
@@ -216,7 +361,7 @@ async def test_a_job_that_has_not_finished_is_a_retryable_failure_not_a_silent_z
     treating it as a retryable failure means the next run gets a real number instead."""
     from litellm.types.proxy.provider_billing import FetchFailed
 
-    client = _http_single_page(_body(_row("2026-09-17", "Vertex AI", "1"), job_complete=False))
+    client = _http_single_page(_body(_cost_row(), job_complete=False))
 
     result = await _fetch(client)
 
@@ -258,7 +403,7 @@ _MALFORMED_TABLES = (
 """Six attack shapes -- a statement terminator, a backtick escape, a union select, a path
 traversal, a bare quote, an over-deep dotted name -- plus one non-attack shape that must
 still be refused: a hyphen inside the dataset segment, which BigQuery itself never allows
-there even though the fix for Finding 1 now allows one in the leading project segment."""
+there even though the leading project segment allows one."""
 
 
 @pytest.mark.asyncio
@@ -325,7 +470,7 @@ async def test_a_rate_limit_is_retryable():
 @pytest.mark.asyncio
 async def test_an_unparseable_day_is_dropped_rather_than_filed_under_today():
     """Filing an unparseable charge under today would corrupt the comparison silently."""
-    client = _http_single_page(_body(_row("not-a-date", "Vertex AI", "1.5")))
+    client = _http_single_page(_body(_cost_row(day="not-a-date", net="1.5")))
 
     result = await _fetch(client)
 

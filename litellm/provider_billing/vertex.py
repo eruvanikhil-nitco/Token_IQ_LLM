@@ -23,6 +23,16 @@ value is also wrapped in backticks in the SQL text, since an unquoted identifier
 hyphen parse as subtraction and a `--` parse as a comment; the pattern and the quoting are
 both load-bearing, neither is a substitute for the other.
 
+The export prices a row twice: `cost` is gross, and the `credits` repeated field carries
+committed-use discounts, sustained-use discounts and promotions as negative amounts. What
+the customer is invoiced is the two added together, so that sum is what this reports as the
+billed cost, with the gross and the credit total kept alongside it. Both sums cast to
+NUMERIC first, since the export's `cost` column is FLOAT64 and BigQuery would otherwise add
+it up in binary floating point before this ever sees a digit of it.
+
+The window starts at UTC midnight rather than wherever the ingestion run happens to fall,
+because a day is only ever summed whole here.
+
 A query that does not finish inside its own request comes back with `jobComplete: false`
 rather than a page of rows; this connector treats that as a retryable failure rather than
 paging against a job that may still be running, since neither a partial page nor the
@@ -34,13 +44,21 @@ query, since that is where BigQuery hands back a `pageToken` for a job already r
 
 from __future__ import annotations
 
-import re
 from collections.abc import Callable, Mapping, Sequence
 from datetime import datetime, timezone
 from types import MappingProxyType
 from typing import Any, Final
 
-from litellm.provider_billing.cloud_rows import by_column_name, day_from_iso, decimal_or_none
+from litellm.provider_billing.cloud_rows import (
+    TABLE_PATTERN,
+    by_column_name,
+    currency_or_default,
+    day_from_iso,
+    decimal_or_none,
+    exact_json,
+    json_safe_row,
+    utc_day_start,
+)
 from litellm.types.proxy.provider_billing import (
     BillingTokenFactory,
     Fetched,
@@ -61,16 +79,14 @@ MAX_PAGES_PER_RUN: Final = 12
 
 UNGROUPED: Final = "all"
 
-TABLE_PATTERN: Final = re.compile(r"^(?:[A-Za-z0-9_-]+\.)?[A-Za-z0-9_]+\.[A-Za-z0-9_]+$")
-"""A BigQuery table reference is `dataset.table` or `project.dataset.table`. GCP project ids
-routinely contain hyphens, so the leading (optional) project segment allows them; BigQuery
-dataset and table ids never do, so those two segments stay letters, digits and underscores
-only. Anything else -- a statement separator, a backtick, a quote, a slash, an extra dot --
-is refused before it ever reaches the interpolated SQL below."""
+_CREDITS: Final = "IFNULL((SELECT SUM(CAST(credit.amount AS NUMERIC)) FROM UNNEST(credits) AS credit), 0)"
 
 _SELECT_SQL: Final = (
     "SELECT DATE(usage_start_time) AS usage_day, service.description AS service_description, "
-    "SUM(cost) AS cost FROM `{table}` "
+    "ANY_VALUE(currency) AS currency, SUM(CAST(cost AS NUMERIC)) AS gross_cost, "
+    "SUM(" + _CREDITS + ") AS credit_cost, "
+    "SUM(CAST(cost AS NUMERIC) + " + _CREDITS + ") AS net_cost "
+    "FROM `{table}` "
     "WHERE service.description = @service_name AND usage_start_time >= @since AND usage_start_time < @until "
     "GROUP BY usage_day, service_description"
 )
@@ -96,7 +112,7 @@ def _query_body(since: datetime, until: datetime, table: str, service_name: str)
         "parameterMode": "NAMED",
         "queryParameters": (
             _query_parameter("service_name", "STRING", service_name),
-            _query_parameter("since", "TIMESTAMP", _bq_timestamp(since)),
+            _query_parameter("since", "TIMESTAMP", _bq_timestamp(utc_day_start(since))),
             _query_parameter("until", "TIMESTAMP", _bq_timestamp(until)),
         ),
     }
@@ -118,7 +134,7 @@ def _row_values(row: object) -> tuple[object, ...] | None:
 def _fact_from_row(fields: Mapping[str, object], credential_name: str) -> ProviderUsageFact | None:
     if not fields:
         return None
-    amount: Final = decimal_or_none(fields.get("cost"))
+    amount: Final = decimal_or_none(fields.get("net_cost"))
     day: Final = day_from_iso(fields.get("usage_day"))
     if amount is None or day is None:
         return None
@@ -133,8 +149,9 @@ def _fact_from_row(fields: Mapping[str, object], credential_name: str) -> Provid
         bucket_start=day,
         evidence="reconciled",
         billed_cost=amount,
+        billing_currency=currency_or_default(fields.get("currency")),
         model=None if service == UNGROUPED else service,
-        raw=fields,
+        raw=json_safe_row(fields),
     )
 
 
@@ -221,7 +238,7 @@ class VertexBillingConnector:
             if status != 200:
                 return FetchFailed(reason=f"vertex ai bigquery returned {status}", retryable=True)
 
-            payload = response.json()
+            payload = exact_json(response.text)
             if not isinstance(payload, Mapping):
                 return FetchFailed(reason="vertex ai bigquery returned a body that is not an object", retryable=True)
             if payload.get("jobComplete") is False:

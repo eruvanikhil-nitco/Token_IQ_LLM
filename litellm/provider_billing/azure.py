@@ -9,9 +9,21 @@ through `by_column_name` rather than by index, and a row shorter than its column
 dropped rather than guessed. And the day arrives packed as `20260917` rather than an ISO
 date, so it is unpacked before `day_from_iso` ever sees it.
 
-Pagination hands back a `nextLink` that already carries a skip token in its query string;
-resending the original query body alongside it is redundant, so only the first request
-carries one.
+Cost Management reports by whole days, so the window asked for starts at UTC midnight
+rather than wherever the ingestion run happens to fall. A request from the middle of a day
+risks an answer covering only the tail of it, filed under the whole day's name, which would
+overwrite the complete total an earlier run already stored.
+
+The service filter is settable on the billing credential, because a filter that matches
+nothing returns an empty page rather than an error. A subscription that books its model
+charges under a name other than the default would otherwise report a confident zero, which
+reads as "you spent nothing" rather than "we looked in the wrong place".
+
+Pagination hands back a `nextLink` carrying a skip token in its query string, and only the
+first request carries a query body. Microsoft's reference documents the link and the token
+but says nothing either way about the body, and no real subscription has answered this yet,
+so a later page that fails keeps the facts the earlier pages already returned rather than
+discarding the run with them.
 """
 
 from __future__ import annotations
@@ -20,7 +32,15 @@ from collections.abc import Callable, Mapping, Sequence
 from datetime import datetime, timezone
 from typing import Any, Final
 
-from litellm.provider_billing.cloud_rows import by_column_name, day_from_iso, decimal_or_none
+from litellm.provider_billing.cloud_rows import (
+    by_column_name,
+    currency_or_default,
+    day_from_iso,
+    decimal_or_none,
+    exact_json,
+    json_safe_row,
+    utc_day_start,
+)
 from litellm.types.proxy.provider_billing import (
     BillingTokenFactory,
     Fetched,
@@ -73,8 +93,9 @@ def _fact_from_row(fields: Mapping[str, object], credential_name: str) -> Provid
         bucket_start=day,
         evidence="reconciled",
         billed_cost=amount,
+        billing_currency=currency_or_default(fields.get("Currency")),
         model=None if service == UNGROUPED else service,
-        raw=fields,
+        raw=json_safe_row(fields),
     )
 
 
@@ -108,7 +129,7 @@ def _query_body(since: datetime, until: datetime, service_name: str) -> Mapping[
         "type": "ActualCost",
         "timeframe": "Custom",
         "timePeriod": {  # mutable-ok: httpx serialises this with json.dumps, no mappingproxy encoder
-            "from": since.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "from": utc_day_start(since).strftime("%Y-%m-%dT%H:%M:%SZ"),
             "to": until.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         },
         "dataset": {  # mutable-ok: httpx serialises this with json.dumps, no mappingproxy encoder
@@ -124,6 +145,16 @@ def _query_body(since: datetime, until: datetime, service_name: str) -> Mapping[
             },
         },
     }
+
+
+def _failure_for(status: object, credential_name: str) -> FetchFailed | None:
+    if status == 429:
+        return FetchFailed(reason="azure rate limited this subscription", retryable=True)
+    if status in (401, 403):
+        return FetchFailed(reason=f"azure refused credential {credential_name}", retryable=False)
+    if status != 200:
+        return FetchFailed(reason=f"azure cost management returned {status}", retryable=True)
+    return None
 
 
 class AzureBillingConnector:
@@ -153,7 +184,7 @@ class AzureBillingConnector:
 
         token: Final = await self._token_factory(credential_name, credential_values)
         if not token:
-            return NotConfigured(reason=f"credential {credential_name} has no azure ad token")
+            return NotConfigured(reason=f"credential {credential_name} has no microsoft entra id token")
 
         client: Final = self._http_client_factory()
         headers: Final = {"Authorization": f"Bearer {token}"}
@@ -166,15 +197,11 @@ class AzureBillingConnector:
         for page_index in range(MAX_PAGES_PER_RUN):
             payload_body: Final = body if page_index == 0 else None
             response = await client.post(target["url"], json=payload_body, headers=headers)
-            status: Final = getattr(response, "status_code", 0)
-            if status == 429:
-                return FetchFailed(reason="azure rate limited this subscription", retryable=True)
-            if status in (401, 403):
-                return FetchFailed(reason=f"azure refused credential {credential_name}", retryable=False)
-            if status != 200:
-                return FetchFailed(reason=f"azure cost management returned {status}", retryable=True)
+            failure: Final = _failure_for(getattr(response, "status_code", 0), credential_name)
+            if failure is not None:
+                return Fetched(facts=tuple(facts), watermark=until) if facts else failure
 
-            payload = response.json()
+            payload = exact_json(response.text)
             if not isinstance(payload, Mapping):
                 return FetchFailed(reason="azure returned a body that is not an object", retryable=True)
 

@@ -9,10 +9,26 @@ error raised, which in a billing table is the worst available failure.
 
 from __future__ import annotations
 
+import json
+import re
 from collections.abc import Mapping, Sequence
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
+from types import MappingProxyType
 from typing import Final
+
+from litellm.types.proxy.provider_billing import DEFAULT_CURRENCY
+
+TABLE_PATTERN: Final = re.compile(r"^(?:[A-Za-z0-9_-]+\.)?[A-Za-z0-9_]+\.[A-Za-z0-9_]+$")
+"""A BigQuery table reference is `dataset.table` or `project.dataset.table`. GCP project ids
+routinely contain hyphens, so the leading (optional) project segment allows them; BigQuery
+dataset and table ids never do, so those two segments stay letters, digits and underscores
+only. Anything else -- a statement separator, a backtick, a quote, a slash, an extra dot --
+is refused before it ever reaches the SQL the Vertex connector interpolates it into.
+
+It lives here rather than in that connector because the credential endpoints apply the same
+pattern when a credential is saved, and saving a credential should not drag a connector's
+import chain along with it."""
 
 
 def by_column_name(columns: Sequence[object], row: Sequence[object], name_key: str = "name") -> dict[str, object]:
@@ -30,6 +46,26 @@ def by_column_name(columns: Sequence[object], row: Sequence[object], name_key: s
     return dict(zip(names, row, strict=False))
 
 
+def exact_json(text: str) -> object:
+    """A response body decoded so its numbers are exact.
+
+    `json.loads` turns a JSON number into a binary float, so a cost has already lost digits
+    before anything downstream can make a `Decimal` of it. Money is decoded here or not at
+    all.
+    """
+    return json.loads(text, parse_float=Decimal)
+
+
+def utc_day_start(value: datetime) -> datetime:
+    """The UTC midnight this instant's day begins at.
+
+    A connector that reports by day has to ask its provider for whole days. A window
+    starting mid-day sums only the tail of that day, and the day-keyed fact it produces
+    overwrites the day's complete total that an earlier run already stored.
+    """
+    return value.astimezone(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+
+
 def day_from_iso(value: object) -> datetime | None:
     """The UTC day an ISO date or timestamp belongs to, or None if it is not one.
 
@@ -42,8 +78,7 @@ def day_from_iso(value: object) -> datetime | None:
         parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
     except ValueError:
         return None
-    aware: Final = parsed if parsed.tzinfo is not None else parsed.replace(tzinfo=timezone.utc)
-    return aware.astimezone(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    return utc_day_start(parsed if parsed.tzinfo is not None else parsed.replace(tzinfo=timezone.utc))
 
 
 def decimal_or_none(value: object) -> Decimal | None:
@@ -52,12 +87,32 @@ def decimal_or_none(value: object) -> Decimal | None:
     None rather than zero: zero asserts the provider charged nothing, which is a different
     and far more dangerous claim than not knowing.
     """
+    if isinstance(value, Decimal):
+        return value
     if isinstance(value, bool) or not isinstance(value, (int, float, str)):
         return None
     try:
         return Decimal(str(value))
     except InvalidOperation:
         return None
+
+
+def currency_or_default(value: object) -> str:
+    """The currency the provider said it billed in, or the default when it said none.
+
+    A euro bill stored as dollars is compared against dollar gateway spend, and the
+    difference reads as a leak that does not exist.
+    """
+    return value if isinstance(value, str) and value else DEFAULT_CURRENCY
+
+
+def json_safe_row(fields: Mapping[str, object]) -> Mapping[str, object]:
+    """The same row with its exact amounts carried as their own digits.
+
+    A fact's `raw` is stored as JSON and `Decimal` has no JSON encoder, so one exactly
+    decoded amount would fail the write for the whole fact.
+    """
+    return MappingProxyType({key: str(value) if isinstance(value, Decimal) else value for key, value in fields.items()})
 
 
 def settling_cutoff(now: datetime, hours: int) -> datetime:

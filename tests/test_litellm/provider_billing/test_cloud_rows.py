@@ -84,6 +84,70 @@ def test_a_float_amount_goes_through_str():
     assert decimal_or_none(0.1) == Decimal("0.1")
 
 
+def test_an_exact_amount_is_handed_back_untouched():
+    """Azure's body is decoded with exact numbers, so the amount arrives already exact.
+    Rebuilding it through str() would work today and break the first time a provider sends
+    a precision this round trip cannot carry."""
+    from litellm.provider_billing.cloud_rows import decimal_or_none
+
+    exact = Decimal("1.0000000000000002E-5")
+
+    assert decimal_or_none(exact) is exact
+
+
+def test_a_json_number_is_decoded_without_ever_being_a_float():
+    """Azure returns a cost as a JSON number and json.loads decodes one to a binary float
+    unless told otherwise. The digits are gone by then; no Decimal built afterwards can
+    recover what the float never held."""
+    from litellm.provider_billing.cloud_rows import exact_json
+
+    decoded = exact_json('{"Cost": 1.0000000000000002e-05}')
+
+    assert decoded == {"Cost": Decimal("1.0000000000000002e-05")}
+
+
+def test_an_exact_amount_is_carried_into_raw_as_its_own_digits():
+    """A fact's raw payload is stored as JSON and Decimal has no JSON encoder, so one
+    exactly decoded amount would fail the write for the whole fact."""
+    from litellm.provider_billing.cloud_rows import json_safe_row
+
+    assert json_safe_row({"Cost": Decimal("1.50"), "UsageDate": 20260912}) == {
+        "Cost": "1.50",
+        "UsageDate": 20260912,
+    }
+
+
+def test_a_window_is_floored_to_the_day_it_starts_in():
+    """A connector that reports by day has to ask for whole days. A window starting mid-day
+    sums only the tail of that day, and the day-keyed fact it writes overwrites the complete
+    total an earlier run already stored."""
+    from litellm.provider_billing.cloud_rows import utc_day_start
+
+    floored = utc_day_start(datetime(2026, 9, 18, 14, 37, 11, 500, tzinfo=timezone.utc))
+
+    assert floored == datetime(2026, 9, 18, 0, 0, tzinfo=timezone.utc)
+
+
+def test_a_window_in_another_timezone_is_floored_to_its_utc_day():
+    """The gateway stores spend in UTC, so the cloud side has to agree with it rather than
+    with whatever offset the instant arrived in."""
+    from litellm.provider_billing.cloud_rows import utc_day_start
+
+    early = datetime(2026, 9, 19, 1, 30, tzinfo=timezone(timedelta(hours=9)))
+
+    assert utc_day_start(early) == datetime(2026, 9, 18, 0, 0, tzinfo=timezone.utc)
+
+
+def test_the_currency_the_provider_named_wins_over_the_default():
+    """A euro bill stored as dollars is compared against dollar gateway spend, and the
+    difference reads as a leak that does not exist."""
+    from litellm.provider_billing.cloud_rows import currency_or_default
+
+    assert currency_or_default("EUR") == "EUR"
+    assert currency_or_default("") == "USD"
+    assert currency_or_default(None) == "USD"
+
+
 def test_a_bad_amount_is_none_rather_than_zero():
     """Zero is a claim that the provider charged nothing. None is a claim that we do not
     know, and only one of those is true here."""

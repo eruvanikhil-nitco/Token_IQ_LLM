@@ -14,9 +14,12 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
-from typing import Literal, Protocol
+from typing import Final, Literal, Protocol
 
 UsageGrain = Literal["request", "day"]
+
+DEFAULT_CURRENCY: Final = "USD"
+"""What a fact is billed in when the provider named no currency of its own."""
 
 EvidenceLevel = Literal["reconciled", "priced", "allocated"]
 """reconciled: the provider asserted dollars at this scope.
@@ -33,7 +36,7 @@ class ProviderUsageFact:
     bucket_start: datetime
     evidence: EvidenceLevel
     billed_cost: Decimal
-    billing_currency: str = "USD"
+    billing_currency: str = DEFAULT_CURRENCY
     provider_request_id: str | None = None
     provider_api_key_id: str | None = None
     model: str | None = None

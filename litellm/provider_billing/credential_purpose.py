@@ -11,7 +11,7 @@ from collections.abc import Mapping
 from types import MappingProxyType
 from typing import Final
 
-from litellm.provider_billing.vertex import TABLE_PATTERN
+from litellm.provider_billing.cloud_rows import TABLE_PATTERN
 
 BILLING_PURPOSE: Final = "billing_ingestion"
 
