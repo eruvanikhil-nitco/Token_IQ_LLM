@@ -88,7 +88,7 @@ async def test_a_failed_acquisition_answers_none_instead_of_raising(failure):
 
 @pytest.mark.asyncio
 async def test_a_failed_acquisition_logs_the_cause_without_the_credential_values():
-    """'has no azure ad token' cannot tell a missing install from an expired login from a
+    """'has no microsoft entra id token' cannot tell a missing install from an expired login from a
     role the identity does not hold. The SDK's own exception is the only thing that can, so
     it has to reach the log, and nothing the admin typed may go with it."""
     from litellm.provider_billing.startup import build_token_factory
