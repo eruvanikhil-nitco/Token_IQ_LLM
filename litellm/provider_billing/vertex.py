@@ -16,7 +16,12 @@ has to be interpolated into the SQL text. That is a real SQL injection surface, 
 table name comes from the customer's own stored configuration and a mistake or an attacker
 there would run inside the customer's own billing project. It is validated against a strict
 `project.dataset.table` / `dataset.table` pattern before anything else happens; a name that
-does not match is refused, not escaped, and the request is never built.
+does not match is refused, not escaped, and the request is never built. The leading project
+segment allows hyphens, since GCP project ids routinely carry them, but the dataset and
+table segments do not, since BigQuery itself never allows a hyphen there. The interpolated
+value is also wrapped in backticks in the SQL text, since an unquoted identifier would let a
+hyphen parse as subtraction and a `--` parse as a comment; the pattern and the quoting are
+both load-bearing, neither is a substitute for the other.
 
 A query that does not finish inside its own request comes back with `jobComplete: false`
 rather than a page of rows; this connector treats that as a retryable failure rather than
@@ -55,9 +60,12 @@ MAX_PAGES_PER_RUN: Final = 12
 
 UNGROUPED: Final = "all"
 
-TABLE_PATTERN: Final = re.compile(r"^[A-Za-z0-9_]+(\.[A-Za-z0-9_]+){1,2}$")
-"""A BigQuery table reference is `dataset.table` or `project.dataset.table`. Only letters,
-digits, underscores and dots are permitted through into the interpolated SQL below."""
+TABLE_PATTERN: Final = re.compile(r"^(?:[A-Za-z0-9_-]+\.)?[A-Za-z0-9_]+\.[A-Za-z0-9_]+$")
+"""A BigQuery table reference is `dataset.table` or `project.dataset.table`. GCP project ids
+routinely contain hyphens, so the leading (optional) project segment allows them; BigQuery
+dataset and table ids never do, so those two segments stay letters, digits and underscores
+only. Anything else -- a statement separator, a backtick, a quote, a slash, an extra dot --
+is refused before it ever reaches the interpolated SQL below."""
 
 _SELECT_SQL: Final = (
     "SELECT DATE(usage_start_time) AS usage_day, service.description AS service_description, "

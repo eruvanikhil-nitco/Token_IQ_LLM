@@ -18,7 +18,13 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 NOW = datetime(2026, 9, 18, 12, 0, tzinfo=timezone.utc)
-CREDENTIAL = {"billing_project_id": "billing-proj", "billing_export_table": "billing_proj.export_ds.gcp_billing"}
+CREDENTIAL = {
+    "billing_project_id": "billing-proj",
+    "billing_export_table": "my-billing-project.export_ds.gcp_billing",
+}
+"""The hyphenated project segment here is deliberate: it is the ordinary, common-case shape
+of a real GCP project id, and every test that fetches through this credential doubles as a
+regression against rejecting it."""
 
 _FIELDS = [
     {"name": "usage_day", "type": "DATE"},
@@ -38,13 +44,19 @@ def _response(payload: dict, status: int = 200) -> MagicMock:
     return response
 
 
-def _body(*rows: dict, fields: list | None = None, job_id: str = "job-1", page_token: str | None = None) -> dict:
+def _body(
+    *rows: dict,
+    fields: list | None = None,
+    job_id: str = "job-1",
+    page_token: str | None = None,
+    job_complete: bool = True,
+) -> dict:
     return {
         "schema": {"fields": fields if fields is not None else _FIELDS},
         "rows": list(rows),
         "jobReference": {"projectId": "billing-proj", "jobId": job_id, "location": "US"},
         "pageToken": page_token,
-        "jobComplete": True,
+        "jobComplete": job_complete,
     }
 
 
@@ -197,6 +209,22 @@ async def test_a_pager_that_never_stops_is_cut_off_at_the_page_cap():
 
 
 @pytest.mark.asyncio
+async def test_a_job_that_has_not_finished_is_a_retryable_failure_not_a_silent_zero():
+    """A query that comes back before it finishes running answers `jobComplete: false`
+    instead of a page of rows. Reading that as zero rows would file the customer's bill as
+    zero while BigQuery is still computing it, which is worse than reporting nothing at all;
+    treating it as a retryable failure means the next run gets a real number instead."""
+    from litellm.types.proxy.provider_billing import FetchFailed
+
+    client = _http_single_page(_body(_row("2026-09-17", "Vertex AI", "1"), job_complete=False))
+
+    result = await _fetch(client)
+
+    assert isinstance(result, FetchFailed)
+    assert result.retryable is True
+
+
+@pytest.mark.asyncio
 async def test_a_credential_with_no_billing_project_id_is_not_configured():
     from litellm.types.proxy.provider_billing import NotConfigured
 
@@ -218,8 +246,24 @@ async def test_a_credential_with_no_billing_export_table_is_not_configured():
     assert isinstance(result, NotConfigured)
 
 
+_MALFORMED_TABLES = (
+    "billing.export; DROP TABLE x",
+    "billing.export` SELECT * FROM secrets --",
+    "billing.export UNION SELECT * FROM secrets",
+    "../../etc/passwd",
+    "billing.export'",
+    "a.b.c.d.e",
+    "bad-dataset.tbl",
+)
+"""Six attack shapes -- a statement terminator, a backtick escape, a union select, a path
+traversal, a bare quote, an over-deep dotted name -- plus one non-attack shape that must
+still be refused: a hyphen inside the dataset segment, which BigQuery itself never allows
+there even though the fix for Finding 1 now allows one in the leading project segment."""
+
+
 @pytest.mark.asyncio
-async def test_a_malformed_export_table_is_refused_before_any_request_is_made():
+@pytest.mark.parametrize("table", _MALFORMED_TABLES)
+async def test_a_malformed_export_table_is_refused_before_any_request_is_made(table: str):
     """The table name is customer configuration interpolated straight into SQL, since BigQuery
     has no bound parameter for an identifier. A value that does not match the strict table
     reference pattern must be refused before the http client is even built, let alone called,
@@ -238,14 +282,11 @@ async def test_a_malformed_export_table_is_refused_before_any_request_is_made():
         since=NOW - timedelta(days=7),
         until=NOW,
         credential_name="vertex-prod",
-        credential_values={
-            "billing_project_id": "billing-proj",
-            "billing_export_table": "billing.export; DROP TABLE x",
-        },
+        credential_values={"billing_project_id": "billing-proj", "billing_export_table": table},
     )
 
     assert isinstance(result, NotConfigured)
-    assert "billing.export; DROP TABLE x" not in result.reason
+    assert table not in result.reason
     http_client_factory.assert_not_called()
 
 
