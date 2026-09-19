@@ -27,6 +27,11 @@ _NO_VERIFIED_SETTLING: Final = (
     "a real account, so treat the most recent days as provisional."
 )
 
+_UTC_DAYS: Final = (
+    "Days here are counted in UTC, so a billing console set to a local timezone can disagree "
+    "with these figures at a day boundary."
+)
+
 _BEDROCK_SETTLING_NOTE: Final = (
     f"Cost Explorer settles over about {SETTLING_HOURS} hours, so the most recent day is "
     "deliberately not read until it stops moving."
@@ -121,7 +126,7 @@ FETCH_PROFILES: Final[Mapping[str, FetchProfile]] = MappingProxyType(
             "day",
             "Azure reports cloud cost by day for the whole subscription rather than per model, "
             "so the finest comparison against gateway traffic is by service and day. Recent "
-            "days can still change.",
+            f"days can still change. {_UTC_DAYS}",
             _NO_VERIFIED_SETTLING,
         ),
         "vertex_ai": _profile(
@@ -132,7 +137,7 @@ FETCH_PROFILES: Final[Mapping[str, FetchProfile]] = MappingProxyType(
             "day",
             "Google publishes no billing API for this, so figures come from a detailed "
             "billing export the customer enables into BigQuery, and that export lands hours "
-            "behind.",
+            f"behind. {_UTC_DAYS}",
             _NO_VERIFIED_SETTLING,
         ),
     }
