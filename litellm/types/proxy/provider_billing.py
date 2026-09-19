@@ -45,7 +45,10 @@ class ProviderUsageFact:
     fetched_at: datetime | None = None
 
 
-BillingTokenFactory: TypeAlias = Callable[[str, Mapping[str, str]], Awaitable[str | None]]
+BillingTokenFactory: TypeAlias = Callable[
+    [str, Mapping[str, str]],  # mutable-ok: typing requires a list literal for a Callable's parameters
+    Awaitable[str | None],
+]
 """Given a credential's name and its stored values, the bearer token that reads that provider's
 bill, or None when no identity is available. The name is there so a failure can be logged
 against the credential an admin would recognise."""
