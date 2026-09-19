@@ -106,13 +106,35 @@ def currency_or_default(value: object) -> str:
     return value if isinstance(value, str) and value else DEFAULT_CURRENCY
 
 
+def _json_safe(value: object) -> object:
+    """One value in a shape `json.dumps` accepts, exact amounts kept as their own digits.
+
+    Nested mappings come back as plain dicts rather than views, since `json.dumps` has no
+    encoder for a `MappingProxyType` either; sequences become tuples, which it writes as
+    arrays.
+    """
+    if isinstance(value, Decimal):
+        return str(value)
+    if isinstance(value, Mapping):
+        nested: Final[Mapping[object, object]] = value
+        return {  # mutable-ok: json.dumps stores this row and has no mappingproxy encoder
+            str(key): _json_safe(item) for key, item in nested.items()
+        }
+    if isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
+        items: Final[Sequence[object]] = value
+        return tuple(_json_safe(item) for item in items)
+    return value
+
+
 def json_safe_row(fields: Mapping[str, object]) -> Mapping[str, object]:
-    """The same row with its exact amounts carried as their own digits.
+    """The same row with its exact amounts carried as their own digits, at any depth.
 
     A fact's `raw` is stored as JSON and `Decimal` has no JSON encoder, so one exactly
-    decoded amount would fail the write for the whole fact.
+    decoded amount would fail the write for the whole fact. The row is handed to
+    `json.dumps` whole, so an amount nested inside a cell fails that write exactly as a
+    top-level one would.
     """
-    return MappingProxyType({key: str(value) if isinstance(value, Decimal) else value for key, value in fields.items()})
+    return MappingProxyType({key: _json_safe(value) for key, value in fields.items()})
 
 
 def settling_cutoff(now: datetime, hours: int) -> datetime:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 
@@ -114,6 +115,26 @@ def test_an_exact_amount_is_carried_into_raw_as_its_own_digits():
     assert json_safe_row({"Cost": Decimal("1.50"), "UsageDate": 20260912}) == {
         "Cost": "1.50",
         "UsageDate": 20260912,
+    }
+
+
+def test_an_exact_amount_nested_anywhere_in_the_row_is_carried_as_its_own_digits_too():
+    """The row is handed to json.dumps whole, so an exact amount one level down fails the
+    write for the whole fact exactly as a top-level one would. Nothing either cloud
+    documents nests today, and this connector has already been bitten twice by a json.dumps
+    encoder gap, so the next shape change must not land on a third."""
+    from litellm.provider_billing.cloud_rows import json_safe_row
+
+    row = json_safe_row(
+        {
+            "Cost": Decimal("1.50"),
+            "detail": {"rate": Decimal("0.25"), "tiers": [Decimal("0.1"), {"unit": Decimal("2")}]},
+        }
+    )
+
+    assert json.loads(json.dumps(dict(row))) == {
+        "Cost": "1.50",
+        "detail": {"rate": "0.25", "tiers": ["0.1", {"unit": "2"}]},
     }
 
 
