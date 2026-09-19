@@ -276,21 +276,52 @@ async def test_paging_follows_next_link_until_it_is_absent():
     assert client.post.await_count == 2
 
 
-@pytest.mark.asyncio
-async def test_a_page_that_fails_keeps_what_the_earlier_pages_returned():
-    """Day-keyed facts are upserted and the window is a rolling 24 hours, so a short page is
-    corrected on the next tick. A discarded page is simply lost."""
+def _http_pages(*statuses: int) -> MagicMock:
+    """A first page that answers one charge and links to a second page that fails."""
     client = MagicMock()
     client.post = AsyncMock(
         side_effect=[
             _response(json.dumps(_body(_row(1), next_link="https://management.azure.com/next")), 200),
-            _response("", 500),
+            *(_response("", status) for status in statuses),
         ]
     )
+    return client
 
-    result = await _fetch(client)
+
+@pytest.mark.asyncio
+async def test_a_page_that_fails_transiently_keeps_what_the_earlier_pages_returned():
+    """Day-keyed facts are upserted and the window is a rolling 24 hours, so a short page is
+    corrected on the next tick. A discarded page is simply lost."""
+    result = await _fetch(_http_pages(500))
 
     assert [fact.billed_cost for fact in result.facts] == [Decimal("1")]
+
+
+@pytest.mark.asyncio
+async def test_a_rate_limited_later_page_still_keeps_what_the_earlier_pages_returned():
+    """A 429 is the subscription asking us to come back, not a broken connection. The next
+    tick re-reads the same rolling window, so page one's facts are worth keeping."""
+    from litellm.types.proxy.provider_billing import Fetched
+
+    result = await _fetch(_http_pages(429))
+
+    assert isinstance(result, Fetched)
+    assert [fact.billed_cost for fact in result.facts] == [Decimal("1")]
+
+
+@pytest.mark.asyncio
+async def test_a_credential_refused_part_way_through_paging_is_a_failure_not_a_healthy_sync():
+    """A 401 or 403 on page two means the credential is rejected, and nothing about the run
+    will improve until a human fixes it. Returning the pages already in hand would record a
+    successful sync and show the customer a healthy Azure connection over a dead credential.
+    Losing page one costs nothing: the facts are keyed by day, upserted, and re-read on a
+    rolling window, so the next run that works restores them."""
+    from litellm.types.proxy.provider_billing import FetchFailed
+
+    result = await _fetch(_http_pages(401))
+
+    assert isinstance(result, FetchFailed)
+    assert result.retryable is False
 
 
 @pytest.mark.asyncio

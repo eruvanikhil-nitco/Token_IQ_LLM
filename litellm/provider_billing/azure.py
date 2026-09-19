@@ -22,8 +22,12 @@ reads as "you spent nothing" rather than "we looked in the wrong place".
 Pagination hands back a `nextLink` carrying a skip token in its query string, and only the
 first request carries a query body. Microsoft's reference documents the link and the token
 but says nothing either way about the body, and no real subscription has answered this yet,
-so a later page that fails keeps the facts the earlier pages already returned rather than
-discarding the run with them.
+so a later page that fails transiently keeps the facts the earlier pages already returned
+rather than discarding the run with them. A refused credential is the other case: a 401 or
+403 part-way through paging fails the whole run, because keeping the pages would record a
+successful sync and show a healthy connection over a credential nothing but a human can fix.
+Losing those pages costs nothing, since the facts are keyed by day, upserted, and re-read on
+a rolling window.
 """
 
 from __future__ import annotations
@@ -199,7 +203,7 @@ class AzureBillingConnector:
             response = await client.post(target["url"], json=payload_body, headers=headers)
             failure: Final = _failure_for(getattr(response, "status_code", 0), credential_name)
             if failure is not None:
-                return Fetched(facts=tuple(facts), watermark=until) if facts else failure
+                return Fetched(facts=tuple(facts), watermark=until) if facts and failure.retryable else failure
 
             payload = exact_json(response.text)
             if not isinstance(payload, Mapping):
