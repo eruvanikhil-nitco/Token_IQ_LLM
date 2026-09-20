@@ -40,8 +40,8 @@ _SQL: Final = f"""
 SELECT s.request_id,
        s.model,
        COALESCE(s.provider_credential, '') AS credential_name,
-       s.spend::numeric       AS our_cost,
-       f.billed_cost::numeric AS their_cost,
+       s.spend::numeric::text       AS our_cost,
+       f.billed_cost::numeric::text AS their_cost,
        COALESCE(f.evidence, 'allocated') AS evidence
   FROM "LiteLLM_SpendLogs" s
   LEFT JOIN "LiteLLM_ProviderUsageFact" f
@@ -241,13 +241,13 @@ async def provider_billing_probe(
 
 _DAILY_SQL: Final = """
 WITH ours AS (
-    SELECT date_trunc('day', s."startTime") AS day, SUM(s.spend)::numeric AS our_cost
+    SELECT date_trunc('day', s."startTime") AS day, SUM(s.spend)::numeric::text AS our_cost
       FROM "LiteLLM_SpendLogs" s
      WHERE s.custom_llm_provider = $1
        AND s."startTime" >= NOW() - ($2 || ' days')::interval
      GROUP BY 1
 ), theirs AS (
-    SELECT date_trunc('day', f.bucket_start) AS day, SUM(f.billed_cost::numeric) AS their_cost
+    SELECT date_trunc('day', f.bucket_start) AS day, SUM(f.billed_cost::numeric)::text AS their_cost
       FROM "LiteLLM_ProviderUsageFact" f
      WHERE f.provider = $1
        AND f.grain = 'day'

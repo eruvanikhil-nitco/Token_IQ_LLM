@@ -103,6 +103,56 @@ async def test_only_an_admin_may_read_it():
     assert exc.value.status_code == 403
 
 
+def _driver_decoded(sql: str, value: str) -> object:
+    """What prisma-client-py actually hands back for this column.
+
+    A column left as a bare `::numeric` crosses the wire and gets decoded into a Python
+    float, which cannot hold arbitrarily many significant digits; whatever the driver
+    rounds away there is gone before this module ever sees the row. Only a column cast to
+    `::text` arrives as the exact digit string. This mirrors that decode instead of just
+    grepping the SQL, so the test fails for the real reason: a value that no longer matches
+    what the provider billed, not merely a missing substring.
+    """
+    return value if "::numeric::text" in sql else float(value)
+
+
+def _prisma_matching_driver(our_cost: str, their_cost: str) -> MagicMock:
+    client = MagicMock()
+
+    async def _query_raw(sql: str, *_args: object) -> list[dict[str, object]]:
+        return [
+            {
+                "request_id": "gen-1",
+                "model": "openai/gpt-4o-mini",
+                "credential_name": "acme-openrouter",
+                "our_cost": _driver_decoded(sql, our_cost),
+                "their_cost": _driver_decoded(sql, their_cost),
+                "evidence": "reconciled",
+            }
+        ]
+
+    client.db.query_raw = AsyncMock(side_effect=_query_raw)
+    return client
+
+
+@pytest.mark.asyncio
+async def test_the_total_keeps_every_digit_the_provider_billed():
+    """A bare `::numeric` decodes as a float in prisma-client-py, which cannot represent
+    this many significant digits. No amount of parsing afterward can recover a digit the
+    driver already rounded away, so the SQL itself has to leave postgres as text."""
+    from litellm.proxy.management_endpoints.provider_reconciliation import provider_reconciliation
+
+    client = _prisma_matching_driver(our_cost="0.123456789012345678", their_cost="0.123456789012345678")
+    with patch("litellm.proxy.proxy_server.prisma_client", client):
+        result = await provider_reconciliation(provider="openrouter", days=7, user_api_key_dict=ADMIN)
+
+    assert result.rows[0].their_cost == "0.123456789012345678"
+    assert result.our_total == "0.123456789012345678"
+    sql = client.db.query_raw.await_args.args[0]
+    assert "s.spend::numeric::text" in sql
+    assert "f.billed_cost::numeric::text" in sql
+
+
 @pytest.mark.asyncio
 async def test_a_tiny_delta_is_readable_rather_than_scientific():
     """Subtracting two token costs almost always produces a number Decimal would render
