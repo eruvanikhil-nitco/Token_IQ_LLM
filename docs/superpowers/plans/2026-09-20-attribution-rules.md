@@ -442,6 +442,27 @@ Two more things belong in that module docstring, both measured against the live 
   that state would understate the gateway figure and overstate the gap, which means blaming
   a provider for spend the gateway did record.
 
+- [ ] **Step 4: Write the grain test**
+
+The provider side must sum every fact in the window whatever grain the provider answered at. The
+grain says how finely the provider reported, not what period the money belongs to, and a
+request-grain fact still carries a `bucket_start` that lands in a day. Measured on 2026-09-20,
+every stored fact on this installation is `grain = 'request'`, so a query that filtered to
+`grain = 'day'` would report zero for the only provider with real data. The shipped
+`/provider/reconciliation/daily` had exactly that bug; do not reintroduce it here.
+
+```python
+async def test_facts_of_any_grain_are_summed_into_their_day():
+    db = FakeDb(rows=[{"provider": "openrouter", "credential_name": "acct",
+                       "day": "2026-09-19", "provider_cost": "0.00780515", "gateway_cost": "0.00794405"}])
+    rows = await GapRepository(db).rows(provider="openrouter", days=7)
+    assert rows[0].provider_cost == Decimal("0.00780515")
+    assert "grain" not in db.last_sql
+```
+
+No connector emits more than one grain for the same period today, so nothing is double counted. If
+one ever does, this query is where that has to be thought about again.
+
 - [ ] **Step 4: Write the test for the empty-provider exclusion**
 
 ```python
