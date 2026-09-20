@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from decimal import Decimal
+from typing import Final
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -133,6 +135,70 @@ async def test_daily_totals_keep_every_digit_the_provider_billed():
     sql = client.db.query_raw.await_args.args[0]
     assert "SUM(s.spend)::numeric::text" in sql
     assert "SUM(f.billed_cost::numeric)::text" in sql
+
+
+def _fact(day: str, grain: str, billed_cost: str) -> Mapping[str, str]:
+    return {"day": day, "grain": grain, "billed_cost": billed_cost}
+
+
+def _prisma_summing_facts(facts: Sequence[Mapping[str, str]], our_cost: str = "0") -> MagicMock:
+    """Stands in for postgres summing `LiteLLM_ProviderUsageFact` rows into a day.
+
+    Filters by `f.grain = 'day'` only when that clause is actually present in the SQL sent,
+    the same way a real `WHERE` clause would. A day with no fact left after that filter still
+    reports its `their_cost` as unknown rather than as zero, matching the real query's full
+    outer join: the day exists because some request happened on it, the provider figure is
+    simply missing.
+    """
+    client = MagicMock()
+
+    async def _query_raw(sql: str, *_args: object) -> list[dict[str, object]]:
+        day_grain_only: Final = "f.grain = 'day'" in sql
+        selected: Final = tuple(fact for fact in facts if not day_grain_only or fact["grain"] == "day")
+        all_days: Final = {fact["day"] for fact in facts}
+        return [
+            {
+                "day": day,
+                "our_cost": our_cost,
+                "their_cost": (
+                    str(sum((Decimal(fact["billed_cost"]) for fact in selected if fact["day"] == day), Decimal(0)))
+                    if any(fact["day"] == day for fact in selected)
+                    else None
+                ),
+            }
+            for day in all_days
+        ]
+
+    client.db.query_raw = AsyncMock(side_effect=_query_raw)
+    return client
+
+
+@pytest.mark.asyncio
+async def test_a_request_grain_fact_counts_toward_the_daily_provider_total():
+    """Grain says how finely the provider answered, not what period the money belongs to.
+    A request-grain fact still has a bucket_start and still belongs to a day, so filtering
+    it out of the daily total told a customer their provider charged them nothing."""
+    from litellm.proxy.management_endpoints.provider_reconciliation import daily_reconciliation
+
+    client = _prisma_summing_facts([_fact("2026-09-19", "request", "5.00")])
+    with patch("litellm.proxy.proxy_server.prisma_client", client):
+        result = await daily_reconciliation(provider="openrouter", days=7, user_api_key_dict=ADMIN)
+
+    assert result.rows[0].their_cost == "5.00"
+    assert result.their_total == "5.00"
+
+
+@pytest.mark.asyncio
+async def test_mixed_grain_facts_for_the_same_day_are_summed_not_dropped():
+    """No connector emits two grains for one period today, but nothing in the query says
+    so. If one ever does, both amounts belong in the day's total, not just one of them."""
+    from litellm.proxy.management_endpoints.provider_reconciliation import daily_reconciliation
+
+    client = _prisma_summing_facts([_fact("2026-09-19", "request", "5.00"), _fact("2026-09-19", "day", "2.00")])
+    with patch("litellm.proxy.proxy_server.prisma_client", client):
+        result = await daily_reconciliation(provider="openrouter", days=7, user_api_key_dict=ADMIN)
+
+    assert result.rows[0].their_cost == "7.00"
 
 
 @pytest.mark.asyncio

@@ -250,7 +250,6 @@ WITH ours AS (
     SELECT date_trunc('day', f.bucket_start) AS day, SUM(f.billed_cost::numeric)::text AS their_cost
       FROM "LiteLLM_ProviderUsageFact" f
      WHERE f.provider = $1
-       AND f.grain = 'day'
        AND f.bucket_start >= NOW() - ($2 || ' days')::interval
      GROUP BY 1
 )
