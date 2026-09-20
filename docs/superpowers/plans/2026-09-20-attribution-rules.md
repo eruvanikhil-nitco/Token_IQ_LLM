@@ -4,7 +4,7 @@
 
 **Goal:** Give every dollar a provider billed that the gateway never saw an owner, or say plainly that it has none.
 
-**Architecture:** The provider says how much was spent and the gateway says who spent it. Subtracting the two per provider, account and day leaves a gap: spend that bypassed the gateway. A stored rule maps a provider account or a provider API key to a team, project or user, and the gap inherits that owner. A gap no rule matches is reported as unallocated rather than hidden or spread around. The matching is a pure function over rows so it can be tested without a database, and the SQL does the summing so the cost of the screen does not grow with the customer's billing history.
+**Architecture:** The provider says how much was spent and the gateway says who spent it. Subtracting the two per provider, account and day leaves a gap: spend that bypassed the gateway. A stored rule maps a provider account to a team, project or user, and the gap inherits that owner. A gap no rule matches is reported as unallocated rather than hidden or spread around. The matching is a pure function over rows so it can be tested without a database, and the SQL does the summing so the cost of the screen does not grow with the customer's billing history.
 
 **Tech Stack:** Python 3.12, FastAPI, Prisma with Postgres, `prisma-client-py` raw queries, pytest. Dashboard is Next.js with shadcn/Base UI, TanStack Query and vitest.
 
@@ -116,8 +116,10 @@ git commit -m "fix(billing): keep reconciliation totals exact instead of decodin
 **Interfaces:**
 - Consumes: nothing
 - Produces:
-  - `MatchType = Literal["provider_api_key", "cloud_account"]`
+  - `MatchType = Literal["cloud_account"]`
   - `OwnerType = Literal["team", "project", "user"]`
+
+**Why `MatchType` has one member.** The spec's screen also lists Provider Keys, which would map a provider's own API key id to an owner. `LiteLLM_ProviderUsageFact.provider_api_key_id` exists as a column, but no connector writes it: a grep across `litellm/provider_billing/` finds no assignment in any of the six. So a Provider Keys rule could never match anything, and the tab would be a control that silently does nothing. Build the account rule only. The `match_type` column and its place in the unique constraint stay, so adding the second kind later needs no migration and no data change.
   - `@dataclass(frozen=True, slots=True) class AttributionRule: rule_id: str; provider: str; match_type: MatchType; match_value: str; owner_type: OwnerType; owner_id: str; note: str | None`
   - `AttributionRuleRepository(db)` with `async def all(self) -> tuple[AttributionRule, ...]`, `async def upsert(self, rule: AttributionRule) -> AttributionRule`, `async def delete(self, rule_id: str) -> bool`
 
@@ -150,7 +152,7 @@ Expected: FAIL with "No module named 'litellm.repositories.attribution_rule_repo
 - [ ] **Step 3: Add the model to all three prisma schemas**
 
 ```prisma
-// One rule mapping a provider account or a provider API key to the team, project or user
+// One rule mapping a provider account to the team, project or user
 // that owns the spend it produced. Read by the unallocated gap calculation.
 model LiteLLM_AttributionRule {
     rule_id     String   @id @default(uuid())
@@ -205,9 +207,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal
 
-MatchType = Literal["provider_api_key", "cloud_account"]
-"""provider_api_key: the provider's own key id, which request-grain facts carry.
-cloud_account: the stored credential a day-grain fact was fetched with."""
+MatchType = Literal["cloud_account"]
+"""cloud_account: the stored credential a fact was fetched with.
+
+One member on purpose. A provider_api_key kind would need `provider_api_key_id`, which no
+connector writes today, so a rule of that kind could never match a fact."""
 
 OwnerType = Literal["team", "project", "user"]
 
@@ -251,7 +255,7 @@ git commit -m "feat(attribution): store rules mapping provider accounts and keys
 **Interfaces:**
 - Consumes: `AttributionRule`, `MatchType`, `OwnerType` from `litellm/types/proxy/attribution.py`
 - Produces:
-  - `@dataclass(frozen=True, slots=True) class GapRow: provider: str; credential_name: str; provider_api_key_id: str | None; day: datetime; provider_cost: Decimal; gateway_cost: Decimal`
+  - `@dataclass(frozen=True, slots=True) class GapRow: provider: str; credential_name: str; day: datetime; provider_cost: Decimal; gateway_cost: Decimal`
   - `@dataclass(frozen=True, slots=True) class AttributedGap: row: GapRow; gap: Decimal; owner_type: OwnerType | None; owner_id: str | None; rule_id: str | None; state: GapState`
   - `GapState = Literal["owned", "unallocated", "matched", "not_settled"]`
   - `def attribute(rows: Sequence[GapRow], rules: Sequence[AttributionRule], *, settled_before: datetime) -> tuple[AttributedGap, ...]`
@@ -261,20 +265,24 @@ This is a pure function with no database and no clock of its own, so every rule 
 - [ ] **Step 1: Write the failing tests**
 
 ```python
-def test_a_key_rule_beats_an_account_rule_for_the_same_gap():
-    row = GapRow(provider="openai", credential_name="acct", provider_api_key_id="key-1",
+def test_an_account_rule_owns_the_gap_its_account_produced():
+    row = GapRow(provider="openai", credential_name="acct",
                  day=DAY, provider_cost=Decimal("10"), gateway_cost=Decimal("4"))
-    rules = (
-        AttributionRule("r-acct", "openai", "cloud_account", "acct", "team", "t-1"),
-        AttributionRule("r-key", "openai", "provider_api_key", "key-1", "project", "p-9"),
-    )
+    rules = (AttributionRule("r-acct", "openai", "cloud_account", "acct", "team", "t-1"),)
     result = attribute((row,), rules, settled_before=SETTLED)
-    assert result[0].owner_id == "p-9"
+    assert result[0].owner_id == "t-1"
+    assert result[0].owner_type == "team"
     assert result[0].gap == Decimal("6")
 
 
+def test_a_rule_for_another_account_on_the_same_provider_never_matches():
+    row = GapRow("openai", "acct-a", DAY, Decimal("10"), Decimal("4"))
+    rules = (AttributionRule("r", "openai", "cloud_account", "acct-b", "team", "t-1"),)
+    assert attribute((row,), rules, settled_before=SETTLED)[0].state == "unallocated"
+
+
 def test_a_gap_no_rule_matches_is_unallocated_not_zero():
-    row = GapRow("openai", "acct", None, DAY, Decimal("10"), Decimal("4"))
+    row = GapRow("openai", "acct", DAY, Decimal("10"), Decimal("4"))
     result = attribute((row,), (), settled_before=SETTLED)
     assert result[0].state == "unallocated"
     assert result[0].owner_id is None
@@ -282,26 +290,26 @@ def test_a_gap_no_rule_matches_is_unallocated_not_zero():
 
 
 def test_a_day_the_provider_has_not_settled_is_not_reported_as_a_gap():
-    row = GapRow("openai", "acct", None, UNSETTLED_DAY, Decimal("0"), Decimal("4"))
+    row = GapRow("openai", "acct", UNSETTLED_DAY, Decimal("0"), Decimal("4"))
     result = attribute((row,), (), settled_before=SETTLED)
     assert result[0].state == "not_settled"
 
 
 def test_the_gateway_recording_more_than_the_provider_billed_is_never_a_negative_gap():
-    row = GapRow("openai", "acct", None, DAY, Decimal("3"), Decimal("4"))
+    row = GapRow("openai", "acct", DAY, Decimal("3"), Decimal("4"))
     result = attribute((row,), (), settled_before=SETTLED)
     assert result[0].state == "matched"
     assert result[0].gap == Decimal("0")
 
 
 def test_a_rule_for_another_provider_never_matches():
-    row = GapRow("openai", "acct", None, DAY, Decimal("10"), Decimal("4"))
+    row = GapRow("openai", "acct", DAY, Decimal("10"), Decimal("4"))
     rules = (AttributionRule("r", "anthropic", "cloud_account", "acct", "team", "t-1"),)
     assert attribute((row,), rules, settled_before=SETTLED)[0].state == "unallocated"
 
 
 def test_money_never_passes_through_a_float():
-    row = GapRow("openai", "acct", None, DAY, Decimal("0.30000000000000004"), Decimal("0.1"))
+    row = GapRow("openai", "acct", DAY, Decimal("0.30000000000000004"), Decimal("0.1"))
     assert attribute((row,), (), settled_before=SETTLED)[0].gap == Decimal("0.20000000000000004")
 ```
 
@@ -314,21 +322,8 @@ Expected: FAIL with "No module named 'litellm.attribution'"
 
 ```python
 def _match(row: GapRow, rules: Sequence[AttributionRule]) -> AttributionRule | None:
-    """The provider's own key id wins over the account it sits in, because it is the
-    narrower statement about who spent the money."""
-    by_key: Final = next(
-        (
-            rule
-            for rule in rules
-            if rule.provider == row.provider
-            and rule.match_type == "provider_api_key"
-            and row.provider_api_key_id is not None
-            and rule.match_value == row.provider_api_key_id
-        ),
-        None,
-    )
-    if by_key is not None:
-        return by_key
+    """The account a fact was fetched with is the only thing a fact says about who spent the
+    money, so it is the only thing a rule can key on today."""
     return next(
         (
             rule
@@ -374,7 +369,7 @@ git commit -m "feat(attribution): decide who owns spend that bypassed the gatewa
 ```python
 async def test_gap_rows_come_back_as_exact_decimals():
     db = FakeDb(rows=[{
-        "provider": "openai", "credential_name": "acct", "provider_api_key_id": None,
+        "provider": "openai", "credential_name": "acct",
         "day": "2026-09-19", "provider_cost": "0.30000000000000004", "gateway_cost": "0.1",
     }])
     rows = await GapRepository(db).rows(provider="openai", days=7)
@@ -383,14 +378,14 @@ async def test_gap_rows_come_back_as_exact_decimals():
 
 
 async def test_a_provider_day_the_gateway_never_saw_still_produces_a_row():
-    db = FakeDb(rows=[{"provider": "openai", "credential_name": "acct", "provider_api_key_id": None,
+    db = FakeDb(rows=[{"provider": "openai", "credential_name": "acct",
                        "day": "2026-09-19", "provider_cost": "5", "gateway_cost": None}])
     rows = await GapRepository(db).rows(provider="openai", days=7)
     assert rows[0].gateway_cost == Decimal(0)
 
 
 async def test_a_row_with_an_unreadable_cost_is_dropped_rather_than_zeroed():
-    db = FakeDb(rows=[{"provider": "openai", "credential_name": "acct", "provider_api_key_id": None,
+    db = FakeDb(rows=[{"provider": "openai", "credential_name": "acct",
                        "day": "2026-09-19", "provider_cost": "not a number", "gateway_cost": "1"}])
     assert await GapRepository(db).rows(provider="openai", days=7) == ()
 ```
@@ -406,13 +401,12 @@ Expected: FAIL with "No module named 'litellm.repositories.gap_repository'"
 WITH theirs AS (
     SELECT f.provider,
            f.credential_name,
-           f.provider_api_key_id,
            date_trunc('day', f.bucket_start)   AS day,
            SUM(f.billed_cost::numeric)::text   AS provider_cost
       FROM "LiteLLM_ProviderUsageFact" f
      WHERE f.provider = $1
        AND f.bucket_start >= NOW() - ($2 || ' days')::interval
-     GROUP BY 1, 2, 3, 4
+     GROUP BY 1, 2, 3
 ), ours AS (
     SELECT date_trunc('day', s."startTime") AS day,
            SUM(s.spend)::numeric::text      AS gateway_cost
@@ -423,7 +417,6 @@ WITH theirs AS (
 )
 SELECT theirs.provider,
        theirs.credential_name,
-       theirs.provider_api_key_id,
        to_char(theirs.day, 'YYYY-MM-DD') AS day,
        theirs.provider_cost,
        ours.gateway_cost
@@ -432,6 +425,37 @@ SELECT theirs.provider,
 ```
 
 The gateway side is grouped by day alone, because a gateway spend log records the virtual key that made the call and not the provider account the provider later billed. Attributing the gateway figure to an account would be inventing a link the data does not contain. Say that in the module docstring.
+
+Two more things belong in that module docstring, both measured against the live database on
+2026-09-20 rather than assumed:
+
+- The join holds together only because a connector's `provider` slug and a spend log's
+  `custom_llm_provider` happen to use the same spelling. Measured: spend logs carry
+  `openrouter`, `openai`, `anthropic` and `gemini`, and the six connectors use `openai`,
+  `anthropic`, `openrouter`, `bedrock`, `azure` and `vertex_ai`. The six line up, but note
+  that `gemini` is Google AI Studio and is NOT the same thing as `vertex_ai`, so a customer
+  using Google AI Studio through the gateway has no billing connector at all and must not be
+  reported as an unallocated Vertex gap.
+- A spend log whose `custom_llm_provider` is empty matches no provider and is therefore
+  absent from the gateway side of every gap. On the live database 91 of 155 rows are in that
+  state, all of them carrying zero spend, so nothing is wrong today. But a non-zero row in
+  that state would understate the gateway figure and overstate the gap, which means blaming
+  a provider for spend the gateway did record.
+
+- [ ] **Step 4: Write the test for the empty-provider exclusion**
+
+```python
+async def test_a_spend_log_with_no_provider_recorded_cannot_inflate_a_gap():
+    db = FakeDb(rows=[{"provider": "openai", "credential_name": "acct",
+                       "day": "2026-09-19", "provider_cost": "10", "gateway_cost": "4"}])
+    await GapRepository(db).rows(provider="openai", days=7)
+    assert "custom_llm_provider = $1" in db.last_sql
+    assert "custom_llm_provider IS NULL" not in db.last_sql
+    assert "COALESCE(s.custom_llm_provider" not in db.last_sql
+```
+
+This pins the exclusion as deliberate. A later change that quietly folds unattributed gateway
+spend into one provider's figure has to delete this test to do it.
 
 - [ ] **Step 4: Write the row reader**
 
@@ -549,9 +573,9 @@ git commit -m "feat(attribution): serve attribution rules and unallocated spend"
 
 **Interfaces:**
 - Consumes: the four routes from Task 5
-- Produces: the sidebar entry `Attribution Rules` under ORGANISATION, with tabs `Provider Keys`, `Cloud Accounts` and `Unmatched`
+- Produces: the sidebar entry `Attribution Rules` under ORGANISATION, with tabs `Cloud Accounts` and `Unmatched`
 
-Tool Logins is the fourth tab in the spec and belongs to Phase 4, when user tools exist. Do not add a disabled or empty tab for it: an empty tab that does nothing is a promise the product cannot keep yet.
+The spec's screen lists four tabs. Build two. Provider Keys is absent because no connector writes `provider_api_key_id`, so the rules it would create could never match a fact, and Tool Logins is absent because user tools arrive in Phase 4. Do not add a disabled or empty tab for either: a control that silently does nothing is worse than an absent one.
 
 - [ ] **Step 1: Write the failing integration test**
 
@@ -568,7 +592,7 @@ it("keeps the chosen provider when moving between tabs", async () => {
   render(<AttributionTabs />);
   fireEvent.change(screen.getByLabelText(/provider/i), { target: { value: "anthropic" } });
   await userEvent.click(screen.getByRole("tab", { name: /cloud accounts/i }));
-  await userEvent.click(screen.getByRole("tab", { name: /provider keys/i }));
+  await userEvent.click(screen.getByRole("tab", { name: /unmatched/i }));
   expect(screen.getByLabelText(/provider/i)).toHaveValue("anthropic");
 });
 ```
@@ -611,11 +635,19 @@ git commit -m "feat(attribution): add the attribution rules screen"
 
 - [ ] **Step 1: Update the status table**
 
-In "Where the product stands", add a row or extend the existing Provider API ingestion row to say that attribution rules and unallocated spend exist, that a rule maps a provider account or provider API key to a team, project or user, and that Tool Logins is not built because user tools are not built.
+In "Where the product stands", add a row or extend the existing Provider API ingestion row to say that attribution rules and unallocated spend exist, that a rule maps a provider account to a team, project or user, and that neither Provider Keys nor Tool Logins is built: no connector writes a provider key id, and user tools do not exist yet.
 
 - [ ] **Step 2: Record the honest limit**
 
-Say plainly that the gateway side of the gap is grouped by day only, because a gateway spend log names the virtual key and not the provider account, so a customer with several accounts on one provider sees the gap per account only on the provider's side. Do not imply a precision the data does not support.
+Record all three limits, in plain words, without implying a precision the data does not have:
+
+- The gateway side of the gap is grouped by day only, because a gateway spend log names the
+  virtual key and not the provider account. A customer with several accounts on one provider
+  sees the per-account split on the provider's side only
+- A gateway request that recorded no provider name is in no provider's gap. It is invisible
+  to reconciliation rather than counted against the wrong provider
+- Google AI Studio traffic arrives as `gemini` and has no billing connector, so it can never
+  be reconciled and must not be confused with Vertex
 
 - [ ] **Step 3: Commit**
 
@@ -637,7 +669,8 @@ git commit -m "docs: record attribution rules as built and name the gateway grou
 | Unallocated when no rule matches | Tasks 3, 5 and 6 |
 | A day that has not settled is labelled, not shown as a gap | Task 3, `not_settled` |
 | Every figure carries its source and evidence level | Task 4 keeps `provider_cost` and `gateway_cost` separate on every row, so the source of each is never lost |
-| Attribution Rules screen with Provider Keys, Cloud Accounts, Unmatched | Task 6 |
+| Attribution Rules screen, Cloud Accounts and Unmatched tabs | Task 6 |
+| Provider Keys tab | Deliberately not built. No connector writes `provider_api_key_id`, so a rule of that kind could never match |
 | Tool Logins tab | Deliberately not built. Phase 4, when user tools exist |
 | Teams, projects and users, never "employees" | `OwnerType` in Task 2 |
 
@@ -649,7 +682,7 @@ No "TBD", no "add error handling", no "similar to Task N". Every code step carri
 
 - `MatchType` and `OwnerType` are defined once in Task 2 and imported by Tasks 3 and 5
 - `AttributionRule` has the same seven fields in Tasks 2, 3 and 5
-- `GapRow` is produced by Task 4 and consumed by Task 3, with the same six fields in both
+- `GapRow` is produced by Task 4 and consumed by Task 3, with the same five fields in both
 - `attribute(rows, rules, *, settled_before)` has one signature, used in Tasks 3 and 5
 - The provider slug is the same string everywhere: the connector's `provider` property, the fact's `provider` column, and the rule's `provider` column
 
