@@ -66,7 +66,7 @@ def _plain(value: Decimal) -> str:
 def _decimal(value: object) -> Decimal | None:
     if isinstance(value, Decimal):
         return value
-    if not isinstance(value, (int, float, str)):
+    if not isinstance(value, (int, str)):
         return None
     try:
         return Decimal(str(value))

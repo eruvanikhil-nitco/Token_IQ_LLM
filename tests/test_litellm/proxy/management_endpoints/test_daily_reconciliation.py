@@ -91,15 +91,6 @@ async def test_an_unreported_day_does_not_pollute_their_total():
 
 
 def _driver_decoded(sql: str, marker: str, value: str) -> object:
-    """What prisma-client-py actually hands back for this summed column.
-
-    A bare `::numeric` crosses the wire and gets decoded into a Python float, which cannot
-    hold arbitrarily many significant digits; whatever the driver rounds away there is gone
-    before this module ever sees the row. Only a column cast to `::text` arrives as the
-    exact digit string. This mirrors that decode instead of just grepping the SQL, so the
-    test fails for the real reason: a total that no longer matches what was billed, not
-    merely a missing substring.
-    """
     return value if marker in sql else float(value)
 
 
@@ -121,16 +112,15 @@ def _prisma_matching_driver(our_cost: str, their_cost: str) -> MagicMock:
 
 @pytest.mark.asyncio
 async def test_daily_totals_keep_every_digit_the_provider_billed():
-    """A bare `::numeric` decodes as a float in prisma-client-py, which cannot represent
-    this many significant digits. No amount of parsing afterward can recover a digit the
-    driver already rounded away, so the SQL itself has to leave postgres as text."""
     from litellm.proxy.management_endpoints.provider_reconciliation import daily_reconciliation
 
-    client = _prisma_matching_driver(our_cost="0.1", their_cost="0.123456789012345678")
+    client = _prisma_matching_driver(our_cost="0.123456789012345678", their_cost="0.123456789012345678")
     with patch("litellm.proxy.proxy_server.prisma_client", client):
         result = await daily_reconciliation(provider="openai", days=7, user_api_key_dict=ADMIN)
 
+    assert result.rows[0].our_cost == "0.123456789012345678"
     assert result.rows[0].their_cost == "0.123456789012345678"
+    assert result.our_total == "0.123456789012345678"
     assert result.their_total == "0.123456789012345678"
     sql = client.db.query_raw.await_args.args[0]
     assert "SUM(s.spend)::numeric::text" in sql
