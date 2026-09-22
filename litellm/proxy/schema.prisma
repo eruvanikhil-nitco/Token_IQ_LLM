@@ -46,6 +46,49 @@ model LiteLLM_CredentialsTable {
   updated_by String
 }
 
+model LiteLLM_ProviderUsageFact {
+    id                   String   @id @default(uuid())
+    fact_key             String   @unique // connector-computed, makes re-fetching idempotent
+    provider             String
+    credential_name      String
+    grain                String   // request | day
+    bucket_start         DateTime
+    evidence             String   // reconciled | priced | allocated
+    provider_request_id  String?
+    provider_api_key_id  String?
+    model                String?
+    billed_cost          String   @default("0") // exact digits as text; prisma-client-py gates Decimal behind an experimental flag
+    billing_currency     String   @default("USD")
+    input_tokens         BigInt?
+    output_tokens        BigInt?
+    cached_input_tokens  BigInt?
+    cache_write_tokens   BigInt?
+    raw                  Json?
+    fetched_at           DateTime @default(now())
+
+    @@index([provider, bucket_start])
+    @@index([provider_request_id])
+    @@index([credential_name, bucket_start])
+}
+
+// One record per provider fetch attempt, per account. Sync History reads it, and the
+// newest row per account decides whether that connection is healthy or needs attention.
+model LiteLLM_ProviderSyncRun {
+    id              String   @id @default(uuid())
+    provider        String
+    credential_name String
+    started_at      DateTime
+    finished_at     DateTime
+    outcome         String   // fetched | not_configured | failed
+    facts_written   Int      @default(0)
+    window_start    DateTime
+    window_end      DateTime
+    detail          String?
+
+    @@index([provider, started_at])
+    @@index([credential_name, started_at])
+}
+
 // One rule mapping a provider account to the team, project or user
 // that owns the spend it produced. Read by the unallocated gap calculation.
 model LiteLLM_AttributionRule {
@@ -164,6 +207,7 @@ model LiteLLM_TeamTable {
     budget_limits Json? // per-model budget limits for the team
     model_id Int? @unique // id for LiteLLM_ModelTable -> stores team-level model aliases
     allow_team_guardrail_config Boolean @default(false) // if true, team admin can configure guardrails for this team
+    api_access_mode String @default("both") // courier | translator | both: which addresses this team may send model requests to
     litellm_organization_table LiteLLM_OrganizationTable?   @relation(fields: [organization_id], references: [organization_id])
     litellm_model_table LiteLLM_ModelTable? @relation(fields: [model_id], references: [id])
     object_permission LiteLLM_ObjectPermissionTable?   @relation(fields: [object_permission_id], references: [object_permission_id])
@@ -230,6 +274,7 @@ model LiteLLM_DeletedTeamTable {
     policies                String[] @default([])
     model_id                Int?     // id for LiteLLM_ModelTable -> stores team-level model aliases
     allow_team_guardrail_config Boolean @default(false)
+    api_access_mode         String   @default("both")
 
     // Original timestamps from team creation/updates
     created_at              DateTime? @map("created_at")
@@ -460,6 +505,7 @@ model LiteLLM_VerificationToken {
     key_type         String?
     policies         String[] @default([])
     access_group_ids String[] @default([])
+    provider_credentials String[] @default([]) // which stored provider credentials this key may spend against
     model_spend      Json @default("{}")
     model_max_budget Json @default("{}")
     budget_fallbacks Json @default("{}")
@@ -574,6 +620,7 @@ model LiteLLM_DeletedVerificationToken {
     rotation_interval       String?
     last_rotation_at        DateTime?
     key_rotation_at         DateTime?
+    provider_credentials    String[]  @default([])
     
     // Deletion metadata
     deleted_at              DateTime  @default(now()) @map("deleted_at")
@@ -654,6 +701,7 @@ model LiteLLM_SpendLogs {
   completionStartTime DateTime? // Assuming completionStartTime is a DateTime field
   model               String   @default("")
   model_id            String?   @default("") // the model id stored in proxy model db
+  provider_credential String?   @default("") // which of the customer's provider credentials paid for this request
   model_group         String?   @default("") // public model_name / model_group
   custom_llm_provider String?   @default("") // litellm used custom_llm_provider
   api_base            String?   @default("")
@@ -953,6 +1001,43 @@ model LiteLLM_DailyTeamSpend {
   @@unique([team_id, date, api_key, model, custom_llm_provider, mcp_namespaced_tool_name, endpoint])
   @@index([date])
   @@index([team_id, date])
+  @@index([api_key])
+  @@index([model])
+  @@index([mcp_namespaced_tool_name])
+  @@index([endpoint])
+}
+
+// Track daily project spend metrics per model and key
+model LiteLLM_DailyProjectSpend {
+  id                  String   @id @default(uuid())
+  project_id          String?
+  date                String
+  api_key             String   
+  model               String?
+  model_group         String?  
+  custom_llm_provider String?
+  mcp_namespaced_tool_name String?
+  endpoint               String?
+  prompt_tokens       BigInt      @default(0)
+  completion_tokens   BigInt      @default(0)
+  cache_read_input_tokens     BigInt      @default(0)
+  cache_creation_input_tokens BigInt      @default(0)
+  compression_saved_tokens    BigInt      @default(0)
+  compression_savings_spend    Float       @default(0.0)
+  prompt_caching_savings_spend Float       @default(0.0)
+  gateway_injected_caching_savings_spend Float @default(0.0)
+  autorouter_savings_spend     Float       @default(0.0)
+  spend               Float    @default(0.0)
+  api_requests        BigInt      @default(0)
+  successful_requests BigInt      @default(0)
+  failed_requests     BigInt      @default(0)
+  ptu_flat_cost       Float    @default(0.0)
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+
+  @@unique([project_id, date, api_key, model, custom_llm_provider, mcp_namespaced_tool_name, endpoint])
+  @@index([date])
+  @@index([project_id, date])
   @@index([api_key])
   @@index([model])
   @@index([mcp_namespaced_tool_name])
