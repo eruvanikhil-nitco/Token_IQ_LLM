@@ -46,6 +46,23 @@ model LiteLLM_CredentialsTable {
   updated_by String
 }
 
+// One rule mapping a provider account to the team, project or user
+// that owns the spend it produced. Read by the unallocated gap calculation.
+model LiteLLM_AttributionRule {
+    rule_id     String   @id @default(uuid())
+    provider    String
+    match_type  String   // provider_api_key | cloud_account
+    match_value String
+    owner_type  String   // team | project | user
+    owner_id    String
+    note        String?
+    created_at  DateTime @default(now())
+    updated_at  DateTime @updatedAt
+
+    @@unique([provider, match_type, match_value])
+    @@index([provider])
+}
+
 // Models on proxy
 model LiteLLM_ProxyModelTable {
   model_id String @id @default(uuid())
