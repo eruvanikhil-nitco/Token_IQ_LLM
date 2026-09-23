@@ -47,7 +47,6 @@ def _rule_or_none(row: object) -> AttributionRule | None:
 
 def _row(rule: AttributionRule) -> dict[str, object]:
     return {
-        "rule_id": rule.rule_id,
         "provider": rule.provider,
         "match_type": rule.match_type,
         "match_value": rule.match_value,
@@ -70,16 +69,24 @@ class AttributionRuleRepository:
         rows: Final = await self._table.find_many()
         return tuple(rule for row in rows if (rule := _rule_or_none(row)) is not None)
 
-    async def upsert(self, rule: AttributionRule) -> AttributionRule:
+    async def upsert(self, rule: AttributionRule) -> AttributionRule | None:
+        """Keyed on the account, not `rule_id`: writing a rule for an account that already
+        has one updates its owner in place instead of colliding with the unique index on
+        (provider, match_type, match_value). `rule_id` is set only on the create branch, so
+        a reassigned account keeps the rule_id it already had.
+        """
         row: Final[dict[str, object]] = _row(rule)
         stored: Final = await self._table.upsert(
-            where={"rule_id": rule.rule_id},
-            data={"create": dict(row), "update": dict(row)},
+            where={
+                "provider_match_type_match_value": {
+                    "provider": rule.provider,
+                    "match_type": rule.match_type,
+                    "match_value": rule.match_value,
+                }
+            },
+            data={"create": {"rule_id": rule.rule_id, **row}, "update": row},
         )
-        found: Final = _rule_or_none(stored)
-        if found is None:
-            raise ValueError(f"attribution rule {rule.rule_id} could not be read back after upsert")
-        return found
+        return _rule_or_none(stored)
 
     async def delete(self, rule_id: str) -> bool:
         from prisma.errors import RecordNotFoundError
