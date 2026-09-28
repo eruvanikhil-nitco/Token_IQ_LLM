@@ -25,13 +25,3 @@ export const barWidths = (slices: readonly ExplorerSlice[]): readonly { gateway:
     outside: (Number(s.outside_gateway) / widest) * 100,
   }));
 };
-
-/**
- * The two series stack rather than sit side by side, and that is deliberate.
- *
- * They are disjoint by construction: outside-gateway spend is what the provider charged BEYOND
- * what the gateway recorded, so the two never describe the same money and their sum is a real
- * total. Stacking the provider figure on the gateway figure would be the double count the
- * counting rule forbids; stacking the excess on it is not.
- */
-export const stackIsATotal = true;

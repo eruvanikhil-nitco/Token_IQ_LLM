@@ -73,6 +73,10 @@ export default function CostExplorerView({ days }: CostExplorerViewProps) {
                       {formatAmount(slice.through_gateway)} through, {formatAmount(slice.outside_gateway)} outside
                     </span>
                   </div>
+                  {/* The two segments stack because they are disjoint: outside-gateway spend is what
+                      the provider charged BEYOND what the gateway recorded, so the bar's length is a
+                      real total. Stacking the provider figure on the gateway figure would be the
+                      double count the counting rule forbids; stacking the excess on it is not. */}
                   <div className="flex h-3 w-full items-stretch" role="img" aria-label={`${slice.key} spend`}>
                     <span
                       className="rounded-l-sm"

@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import { Card } from "@/components/ui/card";
+import { migratedHref } from "@/utils/migratedPages";
 import { useComparison } from "@/app/(dashboard)/hooks/combined/useComparison";
 import { formatAmount, needsAttention } from "./comparisonDisplay";
 
@@ -52,7 +53,7 @@ export default function UnallocatedView({ days }: UnallocatedViewProps) {
                   <td className="py-2 text-right">
                     <Link
                       className="underline"
-                      href="/ui/?page=attribution"
+                      href={migratedHref("attribution")}
                       aria-label={`Assign this account, ${row.credential_name}, to an owner`}
                     >
                       Assign this account
