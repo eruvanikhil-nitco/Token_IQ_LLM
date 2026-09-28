@@ -50,9 +50,10 @@ import {
   User,
   Users,
   Wallet,
+  Waypoints,
 } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { cn } from "@/lib/cva.config";
 import { rolesWithCapability } from "../utils/capabilities";
 import {
@@ -156,6 +157,13 @@ const menuGroups: MenuGroup[] = [
         roles: all_admin_roles,
       },
       { key: "budgets", page: "budgets", label: "Budgets", icon: <Wallet {...ICON} />, roles: all_admin_roles },
+      {
+        key: "attribution",
+        page: "attribution",
+        label: "Attribution Rules",
+        icon: <Waypoints {...ICON} />,
+        roles: all_admin_roles,
+      },
     ],
   },
   {

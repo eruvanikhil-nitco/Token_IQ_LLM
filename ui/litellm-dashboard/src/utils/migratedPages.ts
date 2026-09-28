@@ -20,6 +20,7 @@ export const MIGRATED_PAGES: Record<string, string> = {
   chat: "chat",
   "access-groups": "access-groups",
   budgets: "budgets",
+  attribution: "attribution",
   "llm-provider-credentials": "llm-provider-credentials",
   "provider-apis": "provider-apis",
   workflows: "workflows",

@@ -1135,10 +1135,7 @@ export const userInfoCall = async (
   }
 };
 
-export const teamCourierCoverageCall = async (
-  accessToken: string,
-  teamID: string,
-): Promise<TeamCourierCoverage> => {
+export const teamCourierCoverageCall = async (accessToken: string, teamID: string): Promise<TeamCourierCoverage> => {
   try {
     return await apiClient.get(`/team/${encodeURIComponent(teamID)}/courier_coverage`, { accessToken });
   } catch (error) {
@@ -8363,6 +8360,99 @@ export const providerModelUsageCall = async (accessToken: string, usageRange: st
     return await apiClient.get(`/provider/model-usage?usage_range=${encodeURIComponent(usageRange)}`, { accessToken });
   } catch (error) {
     console.error("Failed to fetch model usage:", error);
+    throw error;
+  }
+};
+
+export type AttributionOwnerType = "team" | "project" | "user";
+
+export type AttributionGapState = "owned" | "unallocated" | "matched" | "not_settled" | "no_provider_data";
+
+export interface AttributionRule {
+  rule_id: string;
+  provider: string;
+  match_type: "cloud_account";
+  match_value: string;
+  owner_type: AttributionOwnerType;
+  owner_id: string;
+  note: string | null;
+}
+
+export interface AttributionRuleListResponse {
+  rules: AttributionRule[];
+}
+
+/** Every amount is a string: these figures are differences between two bills, so a JSON number would round them. */
+export interface UnallocatedLine {
+  day: string;
+  provider: string;
+  credential_name: string;
+  provider_cost: string | null;
+  gateway_cost: string;
+  gap: string;
+  state: AttributionGapState;
+  owner_type: AttributionOwnerType | null;
+  owner_id: string | null;
+  rule_id: string | null;
+}
+
+export interface UnallocatedResponse {
+  provider: string;
+  days: number;
+  total_unallocated: string;
+  total_owned: string;
+  lines: UnallocatedLine[];
+}
+
+export const attributionRulesCall = async (accessToken: string): Promise<AttributionRuleListResponse> => {
+  try {
+    return await apiClient.get<AttributionRuleListResponse>("/attribution/rules", { accessToken });
+  } catch (error) {
+    console.error("Failed to read attribution rules:", error);
+    throw error;
+  }
+};
+
+export const upsertAttributionRuleCall = async (
+  accessToken: string,
+  rule: {
+    provider: string;
+    match_type: "cloud_account";
+    match_value: string;
+    owner_type: AttributionOwnerType;
+    owner_id: string;
+    note?: string | null;
+  },
+): Promise<AttributionRule> => {
+  try {
+    return await apiClient.post<AttributionRule>("/attribution/rules", rule, { accessToken });
+  } catch (error) {
+    console.error("Failed to save attribution rule:", error);
+    throw error;
+  }
+};
+
+export const deleteAttributionRuleCall = async (accessToken: string, ruleId: string): Promise<void> => {
+  try {
+    await apiClient.delete(`/attribution/rules/${encodeURIComponent(ruleId)}`, { accessToken });
+  } catch (error) {
+    console.error("Failed to delete attribution rule:", error);
+    throw error;
+  }
+};
+
+export const attributionUnallocatedCall = async (
+  accessToken: string,
+  provider: string,
+  days: number,
+): Promise<UnallocatedResponse> => {
+  try {
+    return await apiClient.get<UnallocatedResponse>(
+      `/attribution/unallocated?provider=${encodeURIComponent(provider)}&days=${days}`,
+      { accessToken },
+    );
+  } catch (error) {
+    console.error("Failed to read unallocated spend:", error);
     throw error;
   }
 };

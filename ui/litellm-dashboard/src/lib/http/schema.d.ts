@@ -1029,6 +1029,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/attribution/rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Attribution Rules
+         * @description Every stored rule mapping a provider account to a team, project or user.
+         */
+        get: operations["list_attribution_rules_attribution_rules_get"];
+        put?: never;
+        /**
+         * Upsert Attribution Rule
+         * @description Assign a provider account to an owner, or reassign one that already has an owner.
+         *
+         *     Keyed on the account, so sending a rule for an account that already has one changes its
+         *     owner rather than failing: an admin changing their mind is the ordinary case, not an
+         *     error.
+         */
+        post: operations["upsert_attribution_rule_attribution_rules_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/attribution/rules/{rule_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Attribution Rule
+         * @description Remove a rule, after which the spend it claimed goes back to being unallocated.
+         */
+        delete: operations["delete_attribution_rule_attribution_rules__rule_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/attribution/unallocated": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Attribution Unallocated
+         * @description Per account per day: what the provider billed, what the gateway saw, and who owns the rest.
+         */
+        get: operations["attribution_unallocated_attribution_unallocated_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/audio/speech": {
         parameters: {
             query?: never;
@@ -23237,6 +23305,68 @@ export interface components {
             unnamed_teams_count: number;
         };
         /**
+         * AttributionRuleBody
+         * @description What an admin sends to create or reassign a rule.
+         *
+         *     `match_type` and `owner_type` are the literal types, so an unknown value is refused by
+         *     validation before anything is written. A rule nobody can interpret would otherwise be
+         *     stored and then silently skipped when the rules are read back, leaving an admin looking
+         *     at spend they believe they have assigned.
+         */
+        AttributionRuleBody: {
+            /**
+             * Match Type
+             * @constant
+             */
+            match_type: "cloud_account";
+            /** Match Value */
+            match_value: string;
+            /** Note */
+            note?: string | null;
+            /** Owner Id */
+            owner_id: string;
+            /**
+             * Owner Type
+             * @enum {string}
+             */
+            owner_type: "team" | "project" | "user";
+            /** Provider */
+            provider: string;
+        };
+        /** AttributionRuleDeletedResponse */
+        AttributionRuleDeletedResponse: {
+            /** Deleted */
+            deleted: boolean;
+        };
+        /** AttributionRuleListResponse */
+        AttributionRuleListResponse: {
+            /** Rules */
+            rules: components["schemas"]["AttributionRuleResponse"][];
+        };
+        /** AttributionRuleResponse */
+        AttributionRuleResponse: {
+            /**
+             * Match Type
+             * @constant
+             */
+            match_type: "cloud_account";
+            /** Match Value */
+            match_value: string;
+            /** Note */
+            note: string | null;
+            /** Owner Id */
+            owner_id: string;
+            /**
+             * Owner Type
+             * @enum {string}
+             */
+            owner_type: "team" | "project" | "user";
+            /** Provider */
+            provider: string;
+            /** Rule Id */
+            rule_id: string;
+        };
+        /**
          * AuditEntry
          * @description One recorded change, as the table renders it.
          */
@@ -37811,6 +37941,48 @@ export interface components {
              */
             workers: components["schemas"]["WorkerRegistryEntry"][];
         };
+        /**
+         * UnallocatedLine
+         * @description One account's spend on one day, and who owns the part that bypassed the gateway.
+         */
+        UnallocatedLine: {
+            /** Credential Name */
+            credential_name: string;
+            /** Day */
+            day: string;
+            /** Gap */
+            gap: string;
+            /** Gateway Cost */
+            gateway_cost: string;
+            /** Owner Id */
+            owner_id: string | null;
+            /** Owner Type */
+            owner_type: ("team" | "project" | "user") | null;
+            /** Provider */
+            provider: string;
+            /** Provider Cost */
+            provider_cost: string | null;
+            /** Rule Id */
+            rule_id: string | null;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "owned" | "unallocated" | "matched" | "not_settled" | "no_provider_data";
+        };
+        /** UnallocatedResponse */
+        UnallocatedResponse: {
+            /** Days */
+            days: number;
+            /** Lines */
+            lines: components["schemas"]["UnallocatedLine"][];
+            /** Provider */
+            provider: string;
+            /** Total Owned */
+            total_owned: string;
+            /** Total Unallocated */
+            total_unallocated: string;
+        };
         /** UnblockUsersResponse */
         UnblockUsersResponse: {
             /**
@@ -41331,6 +41503,123 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_attribution_rules_attribution_rules_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttributionRuleListResponse"];
+                };
+            };
+        };
+    };
+    upsert_attribution_rule_attribution_rules_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttributionRuleBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttributionRuleResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_attribution_rule_attribution_rules__rule_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rule_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttributionRuleDeletedResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    attribution_unallocated_attribution_unallocated_get: {
+        parameters: {
+            query: {
+                /** @description Which provider to attribute, for example openrouter */
+                provider: string;
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnallocatedResponse"];
                 };
             };
             /** @description Validation Error */
