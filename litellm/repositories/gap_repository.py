@@ -61,6 +61,41 @@ SELECT theirs.provider,
 """
 
 
+_ALL_PROVIDERS_GAP_SQL: Final = """
+WITH theirs AS (
+    SELECT f.provider,
+           f.credential_name,
+           date_trunc('day', f.bucket_start)  AS day,
+           SUM(f.billed_cost::numeric)::text  AS provider_cost
+      FROM "LiteLLM_ProviderUsageFact" f
+     WHERE f.bucket_start >= NOW() - ($1 || ' days')::interval
+     GROUP BY 1, 2, 3
+), ours AS (
+    SELECT s.custom_llm_provider            AS provider,
+           date_trunc('day', s."startTime") AS day,
+           SUM(s.spend)::numeric::text      AS gateway_cost
+      FROM "LiteLLM_SpendLogs" s
+     WHERE s.custom_llm_provider <> ''
+       AND s."startTime" >= NOW() - ($1 || ' days')::interval
+     GROUP BY 1, 2
+)
+SELECT theirs.provider,
+       theirs.credential_name,
+       to_char(theirs.day, 'YYYY-MM-DD') AS day,
+       theirs.provider_cost,
+       ours.gateway_cost
+  FROM theirs LEFT JOIN ours
+    ON theirs.day = ours.day AND theirs.provider = ours.provider
+ ORDER BY theirs.day DESC, theirs.provider, theirs.credential_name
+"""
+"""Every provider in one query, for the Combined screen.
+
+A whole second statement rather than the single-provider one with its filter assembled on a
+branch: two statements each readable on their own beat one built from fragments, and the join
+here is genuinely different, matching the gateway side on provider as well as day so one
+provider's spend can never be compared against another's bill."""
+
+
 def _read(row: object, key: str) -> object:
     return row.get(key) if isinstance(row, Mapping) else getattr(row, key, None)
 
@@ -134,12 +169,20 @@ class GapRepository:
     def _db(self) -> Any:  # any-ok: PrismaClient is an untyped runtime wrapper
         return self._prisma_client.db  # pyright: ignore[reportAttributeAccessIssue]  # object has no .db attr
 
-    async def rows(self, *, provider: str, days: int) -> tuple[GapRow, ...]:
-        """One row per account per day the provider billed for, newest first.
+    async def rows(self, *, provider: str | None, days: int) -> tuple[GapRow, ...]:
+        """One row per account per day a provider billed for, newest first.
+
+        `provider` of None reads every provider at once, which is what the Combined screen
+        needs: six round trips would be six chances for one to fail and leave a screen that
+        silently under-reports.
 
         Summed in the database and bounded by the window: this table grows on every scheduler
         tick, so pulling its rows into Python to add them up would make the cost of drawing
         the screen grow with the customer's whole billing history.
         """
-        raw: Final[Sequence[Mapping[str, object]]] = await self._db.query_raw(_GAP_SQL, provider, str(days))
+        raw: Final[Sequence[Mapping[str, object]]] = (
+            await self._db.query_raw(_ALL_PROVIDERS_GAP_SQL, str(days))
+            if provider is None
+            else await self._db.query_raw(_GAP_SQL, provider, str(days))
+        )
         return tuple(row for r in raw if (row := _gap_row_or_none(r)) is not None)

@@ -143,3 +143,33 @@ async def test_every_row_keeps_the_account_that_produced_it() -> None:
     repo, _ = _repo([_row(credential_name="finance-openai"), _row(credential_name="research-openai")])
     rows: Final = await repo.rows(provider="openai", days=7)
     assert tuple(row.credential_name for row in rows) == ("finance-openai", "research-openai")
+
+
+@pytest.mark.asyncio
+async def test_every_provider_comes_back_when_none_is_asked_for() -> None:
+    repo, db = _repo([_row(provider="openai"), _row(provider="anthropic")])
+    rows: Final = await repo.rows(provider=None, days=7)
+    assert tuple(row.provider for row in rows) == ("openai", "anthropic")
+    assert db.last_args == ("7",)
+
+
+@pytest.mark.asyncio
+async def test_asking_for_one_provider_still_binds_it_as_a_parameter() -> None:
+    repo, db = _repo([_row()])
+    await repo.rows(provider="openai", days=7)
+    assert db.last_args == ("openai", "7")
+
+
+@pytest.mark.asyncio
+async def test_the_gateway_side_is_matched_per_provider_not_smeared_across_them() -> None:
+    repo, db = _repo([_row()])
+    await repo.rows(provider=None, days=7)
+    assert "ON theirs.day = ours.day AND theirs.provider = ours.provider" in db.last_sql
+
+
+@pytest.mark.asyncio
+async def test_a_spend_log_with_no_provider_is_excluded_from_the_all_providers_query_too() -> None:
+    repo, db = _repo([_row()])
+    await repo.rows(provider=None, days=7)
+    assert "s.custom_llm_provider <> ''" in db.last_sql
+    assert "COALESCE(s.custom_llm_provider" not in db.last_sql
