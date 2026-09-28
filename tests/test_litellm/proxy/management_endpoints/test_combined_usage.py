@@ -109,3 +109,72 @@ async def test_a_non_admin_cannot_read_another_team_s_comparison() -> None:
     with pytest.raises(HTTPException) as caught:
         await combined_comparison(days=7, user_api_key_dict=MEMBER)
     assert caught.value.status_code == 403
+
+
+from litellm.proxy.management_endpoints.combined_usage import explorer_response  # noqa: E402  # grouped with its tests
+from litellm.repositories.gateway_spend_repository import SpendSlice  # noqa: E402  # grouped with its tests
+
+TEAM_SLICE: Final = SpendSlice(key="t-1", gateway_cost=Decimal("4"))
+
+
+def _explorer(dimension: str, slices: tuple[SpendSlice, ...], rows: tuple[GapRow, ...], rules=(), total=None):
+    return explorer_response(
+        dimension=dimension,
+        days=7,
+        slices=slices,
+        gateway_total=total if total is not None else sum((s.gateway_cost for s in slices), Decimal(0)),
+        attributed=attribute(rows, rules, settled_before=SETTLED),
+    )
+
+
+def test_the_two_sources_are_reported_side_by_side_never_summed() -> None:
+    body: Final = _explorer("team", (TEAM_SLICE,), (GAP_10_MINUS_4,), (ACCT_RULE,))
+    assert body.total_through_gateway == "4"
+    assert body.total_outside_gateway == "6"
+    assert not hasattr(body, "total")
+
+
+def test_outside_gateway_spend_lands_on_the_owner_a_rule_assigned() -> None:
+    body: Final = _explorer("team", (TEAM_SLICE,), (GAP_10_MINUS_4,), (ACCT_RULE,))
+    assert body.slices[0].key == "t-1"
+    assert body.slices[0].outside_gateway == "6"
+    assert body.unattributable_outside_gateway == "0"
+
+
+def test_unowned_outside_gateway_spend_is_reported_apart_rather_than_spread() -> None:
+    body: Final = _explorer("team", (TEAM_SLICE,), (GAP_10_MINUS_4,))
+    assert body.unattributable_outside_gateway == "6"
+    assert body.slices[0].outside_gateway == "0"
+
+
+def test_grouping_by_model_cannot_place_outside_gateway_spend_and_says_why() -> None:
+    body: Final = _explorer("model", (SpendSlice("gpt-4o", Decimal("4")),), (GAP_10_MINUS_4,), (ACCT_RULE,))
+    assert body.slices[0].outside_gateway == "0"
+    assert body.unattributable_outside_gateway == "6"
+    assert "cannot be shown per model" in body.note
+
+
+def test_gateway_spend_the_dimension_cannot_place_is_named_rather_than_lost() -> None:
+    body: Final = _explorer("team", (TEAM_SLICE,), (), total=Decimal("10"))
+    assert body.total_through_gateway == "10"
+    assert body.unallocated_to_a_slice == "6"
+
+
+def test_a_dimension_with_no_rows_says_so_rather_than_reporting_zero_spend() -> None:
+    body: Final = _explorer("project", (), ())
+    assert body.slices == ()
+    assert "no project spend" in body.note.lower()
+
+
+def test_a_rule_naming_another_dimension_does_not_leak_onto_this_one() -> None:
+    project_rule: Final = AttributionRule("r-2", "openrouter", "cloud_account", "acct", "project", "t-1")
+    body: Final = _explorer("team", (TEAM_SLICE,), (GAP_10_MINUS_4,), (project_rule,))
+    assert body.slices[0].outside_gateway == "0"
+    assert body.unattributable_outside_gateway == "6"
+
+
+def test_every_explorer_amount_crosses_as_a_string() -> None:
+    body: Final = _explorer("team", (TEAM_SLICE,), (GAP_10_MINUS_4,), (ACCT_RULE,))
+    assert isinstance(body.total_through_gateway, str)
+    assert isinstance(body.slices[0].outside_gateway, str)
+    assert isinstance(body.unallocated_to_a_slice, str)

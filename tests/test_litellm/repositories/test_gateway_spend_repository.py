@@ -110,3 +110,39 @@ async def test_the_window_compares_text_because_the_date_column_is_text() -> Non
     assert "to_char(NOW()" in db.last_sql
     assert "d.date::date" not in db.last_sql
     assert ")::date" not in db.last_sql
+
+
+@pytest.mark.asyncio
+async def test_the_total_counts_rows_the_slices_drop() -> None:
+    repo, _ = _repo([{"total": "10"}])
+    assert await repo.total(dimension="team", days=7) == Decimal("10")
+
+
+@pytest.mark.asyncio
+async def test_the_total_reads_the_same_table_the_slices_came_from() -> None:
+    repo, db = _repo([{"total": "1"}])
+    await repo.total(dimension="project", days=7)
+    assert "LiteLLM_DailyProjectSpend" in db.last_sql
+    assert "LiteLLM_SpendLogs" not in db.last_sql
+
+
+@pytest.mark.asyncio
+async def test_the_total_has_no_key_filter_so_unowned_rows_still_count() -> None:
+    repo, db = _repo([{"total": "1"}])
+    await repo.total(dimension="team", days=7)
+    assert "IS NOT NULL" not in db.last_sql
+    assert "<> ''" not in db.last_sql
+
+
+@pytest.mark.asyncio
+async def test_a_window_with_no_spend_totals_zero_rather_than_failing() -> None:
+    repo, _ = _repo([{"total": None}])
+    assert await repo.total(dimension="team", days=7) == Decimal(0)
+
+
+@pytest.mark.asyncio
+async def test_an_unknown_dimension_cannot_reach_the_database_through_the_total_either() -> None:
+    repo, db = _repo([])
+    with pytest.raises(KeyError):
+        await repo.total(dimension="salary", days=7)  # pyright: ignore[reportArgumentType]  # the point of the test
+    assert db.last_sql == ""

@@ -63,6 +63,28 @@ installation. Reading them from their own tables would double count a request th
 the team, user and project rollups alike."""
 
 
+def _total_statement(table: str) -> str:
+    """The same table's whole spend for the window, with no key filter.
+
+    Measured against the same table the slices come from, never against `LiteLLM_SpendLogs`:
+    comparing a rollup's slices to a different table's total would report a difference that is
+    two tables disagreeing rather than spend the dimension could not place.
+    """
+    window: Final = "to_char(NOW() - ($1 || ' days')::interval, 'YYYY-MM-DD')"
+    return f'SELECT SUM(d.spend)::numeric::text AS total FROM "{table}" d WHERE d.date >= {window}'
+
+
+_TOTALS: Final[Mapping[str, str]] = MappingProxyType(
+    {
+        "team": _total_statement("LiteLLM_DailyTeamSpend"),
+        "project": _total_statement("LiteLLM_DailyProjectSpend"),
+        "user": _total_statement("LiteLLM_DailyUserSpend"),
+        "provider": _total_statement("LiteLLM_DailyTeamSpend"),
+        "model": _total_statement("LiteLLM_DailyTeamSpend"),
+    }
+)
+
+
 def _read(row: object, key: str) -> object:
     return row.get(key) if isinstance(row, Mapping) else getattr(row, key, None)
 
@@ -105,3 +127,16 @@ class GatewaySpendRepository:
         statement: Final = _STATEMENTS[dimension]
         rows: Final[Sequence[Mapping[str, object]]] = await self._db.query_raw(statement, str(days))
         return tuple(found for row in rows if (found := _slice_or_none(row)) is not None)
+
+    async def total(self, *, dimension: ExplorerDimension, days: int) -> Decimal:
+        """Everything that table holds for the window, including rows with no key.
+
+        The slices drop a row whose key is blank, because grouping spend under an empty name
+        tells a reader nothing. This total still counts it, so the caller can report the
+        difference as spend the dimension cannot place rather than let a chart quietly fail to
+        add up.
+        """
+        statement: Final = _TOTALS[dimension]
+        rows: Final[Sequence[Mapping[str, object]]] = await self._db.query_raw(statement, str(days))
+        found: Final = _decimal_or_none(_read(rows[0], "total")) if rows else None
+        return found if found is not None else Decimal(0)

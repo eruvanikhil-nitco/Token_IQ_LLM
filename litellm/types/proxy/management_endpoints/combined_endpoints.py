@@ -41,3 +41,20 @@ class ComparisonResponse(BaseModel):
     total_gateway: str
     total_provider: str
     total_gap: str
+
+
+class ExplorerSlice(BaseModel):
+    key: str
+    through_gateway: str
+    outside_gateway: str
+
+
+class ExplorerResponse(BaseModel):
+    dimension: str
+    days: int
+    slices: tuple[ExplorerSlice, ...]
+    total_through_gateway: str
+    total_outside_gateway: str
+    unallocated_to_a_slice: str
+    unattributable_outside_gateway: str
+    note: str
