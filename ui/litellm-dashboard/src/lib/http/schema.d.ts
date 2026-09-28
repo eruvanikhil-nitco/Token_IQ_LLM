@@ -16480,6 +16480,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/usage/combined/comparison": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Combined Comparison
+         * @description Per provider per day: what the provider billed, what the gateway recorded, and the difference.
+         */
+        get: operations["combined_comparison_usage_combined_comparison_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/usage/combined/explorer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Combined Explorer
+         * @description Gateway spend and spend that bypassed the gateway, grouped by one dimension.
+         */
+        get: operations["combined_explorer_usage_combined_explorer_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/user/available_roles": {
         parameters: {
             query?: never;
@@ -25631,6 +25671,45 @@ export interface components {
              */
             timezone?: string | null;
         };
+        /** ComparisonDay */
+        ComparisonDay: {
+            /** Credential Name */
+            credential_name: string;
+            /** Day */
+            day: string;
+            /** Display Name */
+            display_name: string;
+            /** Gap */
+            gap: string;
+            /** Gateway Cost */
+            gateway_cost: string;
+            /** Owner Id */
+            owner_id: string | null;
+            /** Owner Type */
+            owner_type: ("team" | "project" | "user") | null;
+            /** Provider */
+            provider: string;
+            /** Provider Cost */
+            provider_cost: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "matched" | "gap" | "not_settled" | "no_provider_data";
+        };
+        /** ComparisonResponse */
+        ComparisonResponse: {
+            /** Days */
+            days: number;
+            /** Rows */
+            rows: components["schemas"]["ComparisonDay"][];
+            /** Total Gap */
+            total_gap: string;
+            /** Total Gateway */
+            total_gateway: string;
+            /** Total Provider */
+            total_provider: string;
+        };
         /**
          * ComplexityRouterConfigValidationRequest
          * @description A complexity-router config to validate without saving, so a form can surface the
@@ -27335,6 +27414,34 @@ export interface components {
             }[];
             /** Updated At */
             updated_at?: number | null;
+        };
+        /** ExplorerResponse */
+        ExplorerResponse: {
+            /** Days */
+            days: number;
+            /** Dimension */
+            dimension: string;
+            /** Note */
+            note: string;
+            /** Slices */
+            slices: components["schemas"]["ExplorerSlice"][];
+            /** Total Outside Gateway */
+            total_outside_gateway: string;
+            /** Total Through Gateway */
+            total_through_gateway: string;
+            /** Unallocated To A Slice */
+            unallocated_to_a_slice: string;
+            /** Unattributable Outside Gateway */
+            unattributable_outside_gateway: string;
+        };
+        /** ExplorerSlice */
+        ExplorerSlice: {
+            /** Key */
+            key: string;
+            /** Outside Gateway */
+            outside_gateway: string;
+            /** Through Gateway */
+            through_gateway: string;
         };
         /**
          * FacetListResponse
@@ -60759,6 +60866,70 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    combined_comparison_usage_combined_comparison_get: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComparisonResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    combined_explorer_usage_combined_explorer_get: {
+        parameters: {
+            query?: {
+                /** @description Group spend by this */
+                dimension?: "team" | "project" | "user" | "provider" | "model";
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExplorerResponse"];
                 };
             };
             /** @description Validation Error */

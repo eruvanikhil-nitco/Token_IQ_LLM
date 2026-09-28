@@ -8456,3 +8456,69 @@ export const attributionUnallocatedCall = async (
     throw error;
   }
 };
+
+export type ComparisonStatus = "matched" | "gap" | "not_settled" | "no_provider_data";
+
+/** Every amount is a string: these are differences between two bills, so a JSON number would round them. */
+export interface ComparisonDay {
+  day: string;
+  provider: string;
+  display_name: string;
+  credential_name: string;
+  gateway_cost: string;
+  provider_cost: string | null;
+  gap: string;
+  status: ComparisonStatus;
+  owner_type: AttributionOwnerType | null;
+  owner_id: string | null;
+}
+
+export interface ComparisonResponse {
+  days: number;
+  rows: ComparisonDay[];
+  total_gateway: string;
+  total_provider: string;
+  total_gap: string;
+}
+
+export interface ExplorerSlice {
+  key: string;
+  through_gateway: string;
+  outside_gateway: string;
+}
+
+export interface ExplorerResponse {
+  dimension: string;
+  days: number;
+  slices: ExplorerSlice[];
+  total_through_gateway: string;
+  total_outside_gateway: string;
+  unallocated_to_a_slice: string;
+  unattributable_outside_gateway: string;
+  note: string;
+}
+
+export const combinedComparisonCall = async (accessToken: string, days: number): Promise<ComparisonResponse> => {
+  try {
+    return await apiClient.get<ComparisonResponse>(`/usage/combined/comparison?days=${days}`, { accessToken });
+  } catch (error) {
+    console.error("Failed to read the source comparison:", error);
+    throw error;
+  }
+};
+
+export const combinedExplorerCall = async (
+  accessToken: string,
+  dimension: string,
+  days: number,
+): Promise<ExplorerResponse> => {
+  try {
+    return await apiClient.get<ExplorerResponse>(
+      `/usage/combined/explorer?dimension=${encodeURIComponent(dimension)}&days=${days}`,
+      { accessToken },
+    );
+  } catch (error) {
+    console.error("Failed to read the cost explorer:", error);
+    throw error;
+  }
+};

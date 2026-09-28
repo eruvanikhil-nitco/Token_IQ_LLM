@@ -2,6 +2,7 @@
 
 import ProviderUsagePanel from "./_components/apis/ProviderUsagePanel";
 import NewUsagePage from "./_components/components/UsagePageView";
+import CombinedTabs from "./_components/combined/CombinedTabs";
 import UsageTabs from "./_components/UsageTabs";
 import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
 import { useTeams } from "@/app/(dashboard)/hooks/teams/useTeams";
@@ -15,6 +16,7 @@ export default function UsagePage() {
     <UsageTabs
       gateway={<NewUsagePage teams={teams ?? []} organizations={organizations ?? []} />}
       apis={<ProviderUsagePanel />}
+      combined={<CombinedTabs />}
     />
   );
 }

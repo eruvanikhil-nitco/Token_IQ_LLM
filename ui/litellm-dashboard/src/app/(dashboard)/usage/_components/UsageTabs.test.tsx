@@ -11,23 +11,39 @@ function StatefulGatewayFilter() {
 }
 
 describe("UsageTabs", () => {
-  it("opens on Gateway so today's view is what a returning user still sees first", () => {
-    render(<UsageTabs gateway={<p>gateway content</p>} apis={<p>apis content</p>} />);
-    expect(screen.getByText("gateway content")).toBeInTheDocument();
+  it("opens on Combined, the only view that reconciles the sources against each other", () => {
+    render(
+      <UsageTabs gateway={<p>gateway content</p>} apis={<p>apis content</p>} combined={<p>combined content</p>} />,
+    );
+    expect(screen.getByText("combined content")).toBeInTheDocument();
+  });
+
+  it("still reaches the Gateway view, which is unchanged", async () => {
+    const user = userEvent.setup();
+    render(
+      <UsageTabs gateway={<p>gateway content</p>} apis={<p>apis content</p>} combined={<p>combined content</p>} />,
+    );
+    await user.click(screen.getByRole("tab", { name: "Gateway" }));
+    expect(await screen.findByText("gateway content")).toBeInTheDocument();
   });
 
   it("shows the APIs view when that tab is chosen", async () => {
     const user = userEvent.setup();
-    render(<UsageTabs gateway={<p>gateway content</p>} apis={<p>apis content</p>} />);
+    render(
+      <UsageTabs gateway={<p>gateway content</p>} apis={<p>apis content</p>} combined={<p>combined content</p>} />,
+    );
     await user.click(screen.getByRole("tab", { name: "APIs" }));
     expect(await screen.findByText("apis content")).toBeInTheDocument();
   });
 
   it("keeps Gateway filters set after visiting APIs and coming back", async () => {
     const user = userEvent.setup();
-    render(<UsageTabs gateway={<StatefulGatewayFilter />} apis={<p>apis content</p>} />);
+    render(
+      <UsageTabs gateway={<StatefulGatewayFilter />} apis={<p>apis content</p>} combined={<p>combined content</p>} />,
+    );
 
-    fireEvent.change(screen.getByLabelText("date range filter"), { target: { value: "last 7 days" } });
+    await user.click(screen.getByRole("tab", { name: "Gateway" }));
+    fireEvent.change(await screen.findByLabelText("date range filter"), { target: { value: "last 7 days" } });
 
     await user.click(screen.getByRole("tab", { name: "APIs" }));
     await screen.findByText("apis content");
