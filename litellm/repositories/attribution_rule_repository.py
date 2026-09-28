@@ -80,7 +80,7 @@ class AttributionRuleRepository:
         created that way would collide with the first.
         """
         row: Final[dict[str, object]] = _row(rule)
-        created: Final[dict[str, object]] = {"rule_id": rule.rule_id, **row} if rule.rule_id else row
+        created: Final = {**row, "rule_id": rule.rule_id} if rule.rule_id else row
         stored: Final = await self._table.upsert(
             where={
                 "provider_match_type_match_value": {
