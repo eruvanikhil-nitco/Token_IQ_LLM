@@ -255,9 +255,10 @@ git commit -m "feat(attribution): store rules mapping provider accounts and keys
 **Interfaces:**
 - Consumes: `AttributionRule`, `MatchType`, `OwnerType` from `litellm/types/proxy/attribution.py`
 - Produces:
-  - `@dataclass(frozen=True, slots=True) class GapRow: provider: str; credential_name: str; day: datetime; provider_cost: Decimal; gateway_cost: Decimal`
+  - `@dataclass(frozen=True, slots=True) class GapRow: provider: str; credential_name: str; day: datetime; provider_cost: Decimal | None; gateway_cost: Decimal`
+  - `provider_cost` is optional because a provider saying nothing and a provider saying zero are different claims. `None` means the provider reported nothing for that day, and `attribute` returns `no_provider_data` rather than `matched`, since `matched` would assert the two sources agree when only one of them has spoken. `provider_reconciliation.py` already carries the provider side this way and reports a null delta.
   - `@dataclass(frozen=True, slots=True) class AttributedGap: row: GapRow; gap: Decimal; owner_type: OwnerType | None; owner_id: str | None; rule_id: str | None; state: GapState`
-  - `GapState = Literal["owned", "unallocated", "matched", "not_settled"]`
+  - `GapState: TypeAlias = Literal["owned", "unallocated", "matched", "not_settled", "no_provider_data"]`
   - `def attribute(rows: Sequence[GapRow], rules: Sequence[AttributionRule], *, settled_before: datetime) -> tuple[AttributedGap, ...]`
 
 This is a pure function with no database and no clock of its own, so every rule below is testable directly.
@@ -480,7 +481,13 @@ spend into one provider's figure has to delete this test to do it.
 
 - [ ] **Step 4: Write the row reader**
 
-Reuse the shape of `_fact_or_none` in `litellm/repositories/provider_usage_fact_repository.py`: a row missing a readable cost is dropped, and `gateway_cost` absent means the gateway saw nothing that day, which is `Decimal(0)` rather than a dropped row.
+Reuse the shape of `_fact_or_none` in `litellm/repositories/provider_usage_fact_repository.py`, with the two sides treated differently on purpose:
+
+- `gateway_cost` absent means the gateway recorded nothing that day, which is `Decimal(0)` rather than a dropped row. The gateway is our own system, so its silence is a real zero
+- `provider_cost` absent must be passed through as `None`, never as `Decimal(0)`. `attribute` turns `None` into `no_provider_data` and a genuine zero into `matched`, and those are different claims to a customer: one says the provider has not told us anything, the other says the provider told us they charged nothing. Collapsing them here would make the screen assert agreement that was never established
+- a row whose cost text is present but unreadable is dropped, because a value we cannot parse is not evidence of anything
+
+The current SQL drives from the provider side, so a `NULL` `provider_cost` should not arise today. Map it to `None` anyway rather than relying on that, and add a test for it: the shape of the query is free to change and this reader is the only thing standing between a missing figure and a false claim.
 
 - [ ] **Step 5: Run the tests**
 
@@ -689,6 +696,7 @@ git commit -m "docs: record attribution rules as built and name the gateway grou
 | The gap gets its own line assigned through attribution rules | Tasks 2, 3 and 5 |
 | Unallocated when no rule matches | Tasks 3, 5 and 6 |
 | A day that has not settled is labelled, not shown as a gap | Task 3, `not_settled` |
+| A day the provider has said nothing about is not claimed as agreement | Task 3, `no_provider_data` |
 | Every figure carries its source and evidence level | Task 4 keeps `provider_cost` and `gateway_cost` separate on every row, so the source of each is never lost |
 | Attribution Rules screen, Cloud Accounts and Unmatched tabs | Task 6 |
 | Provider Keys tab | Deliberately not built. No connector writes `provider_api_key_id`, so a rule of that kind could never match |

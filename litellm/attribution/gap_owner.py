@@ -4,13 +4,18 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
-from typing import Final, Literal
+from typing import Final, Literal, TypeAlias
 
 from litellm.types.proxy.attribution import AttributionRule, OwnerType
 
-GapState = Literal["owned", "unallocated", "matched", "not_settled"]
+GapState: TypeAlias = Literal["owned", "unallocated", "matched", "not_settled", "no_provider_data"]
+"""owned: a rule maps this account to a team, project or user, and the gap is theirs.
+unallocated: the gap is real and positive, but no rule maps this account to an owner.
+matched: the gateway recorded no more than the provider billed, so there is no gap to assign.
+not_settled: the provider has not finished billing this day yet, so no comparison is made.
+no_provider_data: the provider reported nothing for this day, so no comparison is possible."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -18,7 +23,7 @@ class GapRow:
     provider: str
     credential_name: str
     day: datetime
-    provider_cost: Decimal
+    provider_cost: Decimal | None
     gateway_cost: Decimal
 
 
@@ -30,6 +35,12 @@ class AttributedGap:
     owner_id: str | None
     rule_id: str | None
     state: GapState
+
+
+def _to_utc(value: datetime) -> datetime:
+    """A naive datetime is treated as UTC; an aware one is converted to it, so a day read
+    from naive SQL and a cutoff built from an aware clock still compare correctly."""
+    return value.astimezone(timezone.utc) if value.tzinfo is not None else value.replace(tzinfo=timezone.utc)
 
 
 def _match(row: GapRow, rules: Sequence[AttributionRule]) -> AttributionRule | None:
@@ -48,9 +59,12 @@ def _match(row: GapRow, rules: Sequence[AttributionRule]) -> AttributionRule | N
 
 
 def _attribute_one(row: GapRow, rules: Sequence[AttributionRule], settled_before: datetime) -> AttributedGap:
-    if row.day >= settled_before:
+    if _to_utc(row.day) >= _to_utc(settled_before):
+        return AttributedGap(row=row, gap=Decimal(0), owner_type=None, owner_id=None, rule_id=None, state="not_settled")
+
+    if row.provider_cost is None:
         return AttributedGap(
-            row=row, gap=Decimal(0), owner_type=None, owner_id=None, rule_id=None, state="not_settled"
+            row=row, gap=Decimal(0), owner_type=None, owner_id=None, rule_id=None, state="no_provider_data"
         )
 
     gap: Final[Decimal] = row.provider_cost - row.gateway_cost
@@ -69,4 +83,9 @@ def _attribute_one(row: GapRow, rules: Sequence[AttributionRule], settled_before
 def attribute(
     rows: Sequence[GapRow], rules: Sequence[AttributionRule], *, settled_before: datetime
 ) -> tuple[AttributedGap, ...]:
+    """Decide who owns each row's gap, in the same order the rows arrived in.
+
+    One AttributedGap per row: the GapState it landed in, the gap itself (never negative),
+    and the owner a matching rule assigned it, if any.
+    """
     return tuple(_attribute_one(row, rules, settled_before) for row in rows)
