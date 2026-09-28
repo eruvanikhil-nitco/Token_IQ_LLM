@@ -347,9 +347,21 @@ class ExplorerResponse(BaseModel):
     slices: tuple[ExplorerSlice, ...]
     total_through_gateway: str
     total_outside_gateway: str
+    unallocated_to_a_slice: str
     unattributable_outside_gateway: str
     note: str
 ```
+
+**Added after Task 3's live probe, which found this rather than any test.** Grouping by team
+returns `0.00653345` while grouping by provider returns `0.00797225`, on the same window and
+the same gateway data. The difference is spend whose rows carry no team id, dropped by the
+repository's own guard so it cannot be grouped under a blank key. A reader comparing the two
+charts would see a shortfall of a fifth of their spend with nothing on screen explaining it.
+
+`unallocated_to_a_slice` is that difference: gateway spend the chosen dimension cannot place.
+Compute it as the gateway total for the window minus the sum of the slices, never by trusting
+the two queries to agree. It is the same discipline the provider side already follows: name
+the gap rather than let a total quietly fail to add up.
 
 - [ ] **Step 1: Write the failing tests**
 
