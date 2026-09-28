@@ -58,9 +58,7 @@ def _proxy_error(status_code: int, message: str) -> HTTPException:
 
 def _admin_or_403(user_api_key_dict: UserAPIKeyAuth) -> None:
     if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
-        raise _proxy_error(
-            status.HTTP_403_FORBIDDEN, "Only a proxy admin may read or change attribution rules."
-        )
+        raise _proxy_error(status.HTTP_403_FORBIDDEN, "Only a proxy admin may read or change attribution rules.")
 
 
 def _known_provider_or_404(provider: str) -> None:
@@ -103,9 +101,7 @@ def _line(attributed: AttributedGap) -> UnallocatedLine:
     )
 
 
-def unallocated_response(
-    *, provider: str, days: int, attributed: tuple[AttributedGap, ...]
-) -> UnallocatedResponse:
+def unallocated_response(*, provider: str, days: int, attributed: tuple[AttributedGap, ...]) -> UnallocatedResponse:
     """Shape the decided rows into the response the dashboard reads.
 
     Split out of the route so the shaping, in particular that every amount crosses as a
