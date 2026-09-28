@@ -3,15 +3,14 @@
 import { useState } from "react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BILLING_PROVIDERS } from "@/components/model_add/credential_form_helpers";
 import RuleTable from "./RuleTable";
 import UnmatchedPanel from "./UnmatchedPanel";
-
-const PROVIDERS = ["openrouter", "openai", "anthropic", "bedrock", "azure", "vertex_ai"] as const;
 
 const DAYS = 30;
 
 export default function AttributionTabs() {
-  const [provider, setProvider] = useState<string>("openrouter");
+  const [provider, setProvider] = useState<string>(BILLING_PROVIDERS[0].value);
 
   return (
     <div className="flex flex-col gap-6">
@@ -23,9 +22,9 @@ export default function AttributionTabs() {
           value={provider}
           onChange={(event) => setProvider(event.target.value)}
         >
-          {PROVIDERS.map((value) => (
-            <option key={value} value={value}>
-              {value}
+          {BILLING_PROVIDERS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
             </option>
           ))}
         </select>

@@ -89,6 +89,9 @@ export default function RuleTable({ provider }: RuleTableProps) {
       </div>
 
       {save.isError && <p className="text-sm text-destructive">Could not save that rule.</p>}
+      {remove.isError && (
+        <p className="text-sm text-destructive">Could not remove that rule, so its spend is still assigned.</p>
+      )}
 
       {isLoading && <p className="text-sm text-muted-foreground">Reading the rules…</p>}
       {error && <p className="text-sm text-destructive">Could not read the rules.</p>}

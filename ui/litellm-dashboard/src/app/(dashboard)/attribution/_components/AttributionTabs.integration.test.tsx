@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -148,5 +148,41 @@ describe("AttributionTabs", () => {
 
     fireEvent.change(screen.getByLabelText("Provider account"), { target: { value: "acct" } });
     expect(screen.getByRole("button", { name: "Save rule" })).toBeDisabled();
+  });
+});
+
+describe("provider list", () => {
+  it("offers the same providers, by the same names, as the credential form", async () => {
+    const { BILLING_PROVIDERS } = await import("@/components/model_add/credential_form_helpers");
+    renderTabs();
+
+    const options = within(screen.getByLabelText("Provider")).getAllByRole("option");
+    expect(options.map((option) => (option as HTMLOptionElement).value)).toEqual(
+      BILLING_PROVIDERS.map((provider) => provider.value),
+    );
+    expect(options.map((option) => option.textContent)).toEqual(BILLING_PROVIDERS.map((provider) => provider.label));
+  });
+});
+
+describe("when a change fails", () => {
+  it("says the rule was not removed, rather than leaving the reader to assume it was", async () => {
+    const user = userEvent.setup();
+    const networking = await import("@/components/networking");
+    vi.mocked(networking.deleteAttributionRuleCall).mockRejectedValueOnce(new Error("nope"));
+    const existing = {
+      rule_id: "r1",
+      provider: "openai",
+      match_type: "cloud_account",
+      match_value: "finance-openai",
+      owner_type: "team",
+      owner_id: "t-7",
+      note: null,
+    } as const;
+    rulesCall.mockResolvedValue({ rules: [existing] });
+    renderTabs();
+
+    await user.click(await screen.findByRole("button", { name: "Remove the rule for finance-openai" }));
+
+    expect(await screen.findByText(/could not remove that rule/i)).toBeInTheDocument();
   });
 });
