@@ -19,6 +19,7 @@ The **gateway** is the proxy that application traffic passes through. **Provider
 | Users | Exist as internal users, with no per-user tool data |
 | User tools | Nothing built and not yet researched |
 | Attribution and unallocated spend | Built. For each provider account and day the provider's figure is compared against the gateway's, and whatever the provider charged beyond what the gateway recorded is offered to a rule that maps that account to a team, project or user. Spend no rule claims is reported as unallocated by name rather than spread across owners. Three limits are deliberate and visible on the screen rather than hidden: the gateway side is grouped by day alone, because a gateway spend log names the virtual key that served a call and never the provider account the provider later billed, so a customer with several accounts on one provider gets the per-account split from the provider's side only; a gateway request that recorded no provider name belongs to no provider's comparison, so it is invisible to reconciliation rather than charged to the wrong provider; and Google AI Studio traffic arrives as `gemini`, which has no billing connector and so can never be reconciled and must not be confused with Vertex. Rules keyed on a provider's own API key are not built, because no connector records that identifier, so such a rule could never match anything |
+| Usage / Combined | Built, and it opens by default. Source Comparison shows every provider day by day with what the provider billed, what the gateway recorded, the difference and a status of matched, gap, not settled yet or provider reported nothing. Unallocated lists only differences nobody has claimed, each linking to the rule that would assign it. Cost Explorer groups gateway spend by team, project, user, provider or model and shows spend that bypassed the gateway beside it. Five limits are stated on the screen rather than hidden: spend is coloured by two sources and not four, because user tools and seat fees are Phase 4; a grouping with no rows says so instead of drawing an empty chart, which is what project does on an installation with no project spend; gateway spend whose rows carry no team or user is reported as a named figure rather than dropped, because it cannot belong to any bar; spend that bypassed the gateway can never reach a model or provider bar, since an attribution rule names a team, project or user and not a model, so it is reported on its own with that sentence; and the shared date range spans the three Combined views only, because Gateway keeps the filters it already had |
 | Ledger, bill reconciliation, recommendations | Nothing yet, apart from the existing Cost Optimization page |
 | Per-team courier and translator mode | Done |
 
@@ -147,6 +148,10 @@ HOME
 
 ANALYTICS
   Usage ............................... Gateway tab SAME, APIs and Combined tabs NEW
+      Combined opens by default. Its Cost Explorer colours two sources, not four:
+      user tools and seat fees wait for Phase 4 and are not drawn as empty
+      categories. Its date range spans the three Combined views only; Gateway
+      keeps the filters it already had
       Gateway    Cost | Models | Keys | MCP | Endpoints   (view picker gains Project)
       APIs       Provider accounts: All | OpenAI | Anthropic | Azure OpenAI | Bedrock | Vertex | OpenRouter
                  User tools: All | Claude Code | ChatGPT & Codex | Copilot | Cursor
