@@ -1,8 +1,8 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from typing import Final
 
-from litellm.attribution.gap_owner import AttributedGap, GapRow, attribute
+from litellm.attribution.gap_owner import AttributedGap, GapRow, _to_utc, attribute
 from litellm.types.proxy.attribution import AttributionRule
 
 SETTLED: Final = datetime(2026, 1, 18)
@@ -127,3 +127,12 @@ def test_an_aware_day_compares_correctly_against_a_naive_cutoff() -> None:
     row: Final = GapRow("openai", "acct", aware_day, Decimal("10"), Decimal("4"))
     result: Final = attribute((row,), (), settled_before=SETTLED)
     assert result[0].state == "not_settled"
+
+
+def test_a_naive_datetime_is_read_as_utc_and_not_as_the_machine_s_local_time() -> None:
+    assert _to_utc(datetime(2026, 1, 17, 9, 30)) == datetime(2026, 1, 17, 9, 30, tzinfo=timezone.utc)
+
+
+def test_an_aware_datetime_keeps_the_instant_it_already_named() -> None:
+    plus_two: Final = timezone(timedelta(hours=2))
+    assert _to_utc(datetime(2026, 1, 17, 9, 30, tzinfo=plus_two)) == datetime(2026, 1, 17, 7, 30, tzinfo=timezone.utc)

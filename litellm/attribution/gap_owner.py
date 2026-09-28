@@ -87,5 +87,9 @@ def attribute(
 
     One AttributedGap per row: the GapState it landed in, the gap itself (never negative),
     and the owner a matching rule assigned it, if any.
+
+    `settled_before` is the first day the provider has NOT finished billing, so a day equal
+    to it is reported as not settled rather than compared. A naive datetime on either side
+    is read as UTC.
     """
     return tuple(_attribute_one(row, rules, settled_before) for row in rows)
