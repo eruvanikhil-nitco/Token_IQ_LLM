@@ -74,8 +74,13 @@ class AttributionRuleRepository:
         has one updates its owner in place instead of colliding with the unique index on
         (provider, match_type, match_value). `rule_id` is set only on the create branch, so
         a reassigned account keeps the rule_id it already had.
+
+        An empty `rule_id` is left out of the create entirely so the database assigns one.
+        Writing it through would put an empty string in the primary key, and the second rule
+        created that way would collide with the first.
         """
         row: Final[dict[str, object]] = _row(rule)
+        created: Final[dict[str, object]] = {"rule_id": rule.rule_id, **row} if rule.rule_id else row
         stored: Final = await self._table.upsert(
             where={
                 "provider_match_type_match_value": {
@@ -84,7 +89,7 @@ class AttributionRuleRepository:
                     "match_value": rule.match_value,
                 }
             },
-            data={"create": {"rule_id": rule.rule_id, **row}, "update": row},
+            data={"create": created, "update": row},
         )
         return _rule_or_none(stored)
 
