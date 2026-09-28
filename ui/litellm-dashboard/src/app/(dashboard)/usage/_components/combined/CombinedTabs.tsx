@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import CostExplorerView from "./CostExplorerView";
 import SourceComparisonView from "./SourceComparisonView";
 import UnallocatedView from "./UnallocatedView";
 
@@ -33,11 +34,16 @@ export default function CombinedTabs() {
         </select>
       </label>
 
-      <Tabs defaultValue="comparison">
+      <Tabs defaultValue="explorer">
         <TabsList>
+          <TabsTrigger value="explorer">Cost Explorer</TabsTrigger>
           <TabsTrigger value="comparison">Source Comparison</TabsTrigger>
           <TabsTrigger value="unallocated">Unallocated</TabsTrigger>
         </TabsList>
+        {/* keepMounted: switching views must not reset the grouping or the date range */}
+        <TabsContent value="explorer" className="pt-6" keepMounted>
+          <CostExplorerView days={days} />
+        </TabsContent>
         {/* keepMounted: switching views must not reset the date range the reader chose */}
         <TabsContent value="comparison" className="pt-6" keepMounted>
           <SourceComparisonView days={days} />
