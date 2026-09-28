@@ -18,6 +18,7 @@ The **gateway** is the proxy that application traffic passes through. **Provider
 | Projects | Backend complete. Project spend is written and project budgets enforce since commits `c4e48c0543` and `93fb14c698`. The UI exists but is hidden behind a Beta switch and limited to admins |
 | Users | Exist as internal users, with no per-user tool data |
 | User tools | Nothing built and not yet researched |
+| Attribution and unallocated spend | Built. For each provider account and day the provider's figure is compared against the gateway's, and whatever the provider charged beyond what the gateway recorded is offered to a rule that maps that account to a team, project or user. Spend no rule claims is reported as unallocated by name rather than spread across owners. Three limits are deliberate and visible on the screen rather than hidden: the gateway side is grouped by day alone, because a gateway spend log names the virtual key that served a call and never the provider account the provider later billed, so a customer with several accounts on one provider gets the per-account split from the provider's side only; a gateway request that recorded no provider name belongs to no provider's comparison, so it is invisible to reconciliation rather than charged to the wrong provider; and Google AI Studio traffic arrives as `gemini`, which has no billing connector and so can never be reconciled and must not be confused with Vertex. Rules keyed on a provider's own API key are not built, because no connector records that identifier, so such a rule could never match anything |
 | Ledger, bill reconciliation, recommendations | Nothing yet, apart from the existing Cost Optimization page |
 | Per-team courier and translator mode | Done |
 
@@ -182,7 +183,11 @@ ORGANISATION
   Budgets ............................. MOVED from Access Control
       Budgets | Assign Budget | Examples | Model Access Group Budgets (MOVED from Models)
   Attribution Rules ................... NEW
-      Provider Keys | Cloud Accounts | Tool Logins | Unmatched
+      Cloud Accounts | Unmatched
+      Provider Keys is not built: no connector records a provider's own API key id, so a
+      rule of that kind could never match a fact. Tool Logins waits for user tools in
+      Phase 4. Neither is shown as an empty tab, because a control that silently does
+      nothing is worse than an absent one
 
 DATA SOURCES .......................... NEW group
   Provider APIs ....................... NEW
