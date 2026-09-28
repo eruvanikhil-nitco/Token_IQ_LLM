@@ -91,6 +91,24 @@ model LiteLLM_ProviderSyncRun {
 
 // One rule mapping a provider account to the team, project or user
 // that owns the spend it produced. Read by the unallocated gap calculation.
+// One provider bill for one period, entered by an admin because almost no provider publishes
+// invoices through an API. Bill Reconciliation compares this against the cost ledger.
+model LiteLLM_ProviderInvoice {
+    invoice_id   String   @id @default(uuid())
+    provider     String
+    period_start DateTime
+    period_end   DateTime
+    currency     String   @default("USD")
+    total        String   // exact digits as text; prisma-client-py gates Decimal behind an experimental flag
+    adjustments  Json?
+    note         String?
+    created_at   DateTime @default(now())
+    updated_at   DateTime @updatedAt
+
+    @@unique([provider, period_start, period_end])
+    @@index([provider, period_start])
+}
+
 model LiteLLM_AttributionRule {
     rule_id     String   @id @default(uuid())
     provider    String
