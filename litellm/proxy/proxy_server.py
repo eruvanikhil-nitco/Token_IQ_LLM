@@ -506,6 +506,9 @@ from litellm.provider_billing.startup import register_billing_connectors
 from litellm.proxy.management_endpoints.provider_connections import (
     router as provider_connections_router,
 )
+from litellm.proxy.management_endpoints.tool_connections import (
+    router as tool_connections_router,
+)
 from litellm.proxy.management_endpoints.provider_reconciliation import (
     router as provider_reconciliation_router,
 )
@@ -18135,6 +18138,7 @@ app.include_router(team_router)
 app.include_router(project_router)
 app.include_router(provider_reconciliation_router)
 app.include_router(provider_connections_router)
+app.include_router(tool_connections_router)
 app.include_router(provider_usage_router)
 app.include_router(attribution_router)
 app.include_router(combined_usage_router)
