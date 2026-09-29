@@ -90,3 +90,36 @@ class ToolNotConfigured:
 
 
 ToolFetchResult: TypeAlias = ToolFetched | ToolFetchFailed | ToolNotConfigured
+
+
+@dataclass(frozen=True, slots=True)
+class SeatHolder:
+    """One person holding a licence for a tool, as the tool reports it.
+
+    Deliberately not a `Seat`. A seat carries an amount, and GitHub publishes who holds a
+    Copilot licence without publishing what it costs, because the price sits on the customer's
+    contract. Inventing a figure here would put a number on a screen that nobody agreed to, so
+    the connector reports the holder and an admin sets the price once.
+    """
+
+    tool: ToolName
+    person: str
+    plan: str | None = None
+    assigned_at: datetime | None = None
+    last_active_at: datetime | None = None
+    """Null unless that person enabled telemetry in their IDE, so an empty value is not
+    evidence a licence is unused. This is exactly why the unused seats recommendation stays
+    deferred: recommending someone lose a licence on this basis would be wrong."""
+
+    def __post_init__(self) -> None:
+        if not self.person:
+            raise ValueError(f"{self.tool} reported a seat with nobody holding it")
+
+
+@dataclass(frozen=True, slots=True)
+class ToolSeatsFetched:
+    holders: tuple[SeatHolder, ...]
+    watermark: datetime
+
+
+ToolSeatResult: TypeAlias = ToolSeatsFetched | ToolFetchFailed | ToolNotConfigured

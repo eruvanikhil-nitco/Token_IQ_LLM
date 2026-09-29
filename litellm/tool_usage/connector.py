@@ -12,7 +12,7 @@ from collections.abc import Mapping
 from datetime import datetime
 from typing import Final, Protocol, runtime_checkable
 
-from litellm.types.proxy.tool_usage import ToolFetchResult, ToolName
+from litellm.types.proxy.tool_usage import ToolFetchResult, ToolName, ToolSeatResult
 
 
 @runtime_checkable
@@ -45,3 +45,24 @@ def registered_tool_connectors() -> tuple[ToolConnector, ...]:
 
 def clear_tool_registry_for_tests() -> None:
     _REGISTRY.clear()
+
+
+@runtime_checkable
+class ToolSeatConnector(Protocol):
+    """A tool that can say who holds a licence but not what it costs.
+
+    Separate from `ToolConnector` on purpose. A connector that cannot report money should not
+    be able to satisfy a protocol whose whole return type is money, because the type is the
+    only thing that stops a later change quietly reporting a guessed figure as a real one.
+    """
+
+    @property
+    def tool(self) -> ToolName: ...
+
+    async def fetch_seats(
+        self,
+        *,
+        as_of: datetime,
+        credential_name: str,
+        credential_values: Mapping[str, str],
+    ) -> ToolSeatResult: ...
