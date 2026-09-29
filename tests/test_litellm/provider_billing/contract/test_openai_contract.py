@@ -116,11 +116,15 @@ async def test_a_cost_with_more_digits_than_a_float_can_hold_survives(vendor):
     goes through a binary float actually corrupts a customer's figure."""
     from litellm.types.proxy.provider_billing import Fetched
 
-    stand_in: Final = vendor(Reply(text='{"object":"page","data":[{"object":"bucket","start_time":%d,'
-                                        '"end_time":%d,"results":[{"object":"organization.costs.result",'
-                                        '"amount":{"value":0.10000000000000000555,"currency":"usd"},'
-                                        '"line_item":"gpt-4o-mini, input","project_id":"proj_abc"}]}],'
-                                        '"has_more":false,"next_page":null}' % (DAY_START, DAY_START + 86400)))
+    stand_in: Final = vendor(
+        Reply(
+            text='{"object":"page","data":[{"object":"bucket","start_time":%d,'
+            '"end_time":%d,"results":[{"object":"organization.costs.result",'
+            '"amount":{"value":0.10000000000000000555,"currency":"usd"},'
+            '"line_item":"gpt-4o-mini, input","project_id":"proj_abc"}]}],'
+            '"has_more":false,"next_page":null}' % (DAY_START, DAY_START + 86400)
+        )
+    )
 
     result: Final = await _fetch(stand_in)
 
