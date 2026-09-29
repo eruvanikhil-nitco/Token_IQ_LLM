@@ -806,3 +806,59 @@ describe("daily activity api_key filter", () => {
     expect(requestedUrl(mockFetch)).toContain("user_id=");
   });
 });
+
+describe("calls that must actually carry the admin token and body", () => {
+  const originalFetch = global.fetch;
+
+  const capture = () => {
+    const seen: { url: string; init: RequestInit }[] = [];
+    global.fetch = vi.fn(async (url: any, init: any) => {
+      seen.push({ url: String(url), init: init ?? {} });
+      return {
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({}),
+        text: async () => "{}",
+      } as unknown as Response;
+    }) as any;
+    return seen;
+  };
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+  });
+
+  it("sends the decision with the token, because these endpoints are admin only", async () => {
+    /* Regression: the body was once passed where the options belong, so no Authorization
+       header was sent at all and every decision came back 401. A curl check cannot catch
+       this, because curl never goes through this function. */
+    const seen = capture();
+
+    await Networking.decideRecommendationCall("sk-test", "escaped_spend", "dismissed", "owner found");
+
+    expect(seen).toHaveLength(1);
+    const headers = new Headers(seen[0].init.headers as HeadersInit);
+    expect(headers.get("Authorization")).toBe("Bearer sk-test");
+    expect(JSON.parse(String(seen[0].init.body))).toEqual({ state: "dismissed", note: "owner found" });
+  });
+
+  it("sends the undo with the token", async () => {
+    const seen = capture();
+
+    await Networking.undoRecommendationCall("sk-test", "escaped_spend");
+
+    const headers = new Headers(seen[0].init.headers as HeadersInit);
+    expect(headers.get("Authorization")).toBe("Bearer sk-test");
+  });
+
+  it("names the provider being probed in the query, with the token attached", async () => {
+    const seen = capture();
+
+    await Networking.probeProviderBillingCall("sk-test", "anthropic");
+
+    expect(seen[0].url).toContain("provider=anthropic");
+    const headers = new Headers(seen[0].init.headers as HeadersInit);
+    expect(headers.get("Authorization")).toBe("Bearer sk-test");
+  });
+});

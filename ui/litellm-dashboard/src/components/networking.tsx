@@ -2777,6 +2777,33 @@ export const providerConnectionsCall = async (accessToken: string): Promise<Prov
   }
 };
 
+export type BillingProbeOutcome = "fetched" | "not_configured" | "failed" | "no_connector";
+
+export interface BillingProbeResult {
+  provider: string;
+  credential_name: string | null;
+  outcome: BillingProbeOutcome;
+  facts_found: number;
+  sample_cost: string | null;
+  detail: string | null;
+}
+
+/** Try one provider's billing API now. Nothing is stored; this only reports what came back. */
+export const probeProviderBillingCall = async (
+  accessToken: string,
+  provider: string,
+): Promise<BillingProbeResult> => {
+  try {
+    return await apiClient.post<BillingProbeResult>(`/provider/billing/probe`, {
+      accessToken,
+      query: { provider },
+    });
+  } catch (error) {
+    console.error("Failed to probe the provider billing API:", error);
+    throw error;
+  }
+};
+
 export type ProviderSyncOutcome = components["schemas"]["ProviderSyncHistoryRow"]["outcome"];
 
 export interface ProviderSyncHistoryRow {
@@ -8832,7 +8859,10 @@ export const decideRecommendationCall = async (
   note?: string | null,
 ): Promise<void> => {
   try {
-    await apiClient.post(`/recommendations/${encodeURIComponent(ruleId)}/state`, { state, note }, { accessToken });
+    await apiClient.post(`/recommendations/${encodeURIComponent(ruleId)}/state`, {
+      accessToken,
+      body: { state, note },
+    });
   } catch (error) {
     console.error("Failed to record the decision:", error);
     throw error;
