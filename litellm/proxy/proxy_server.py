@@ -512,6 +512,7 @@ from litellm.proxy.management_endpoints.provider_reconciliation import (
 from litellm.proxy.management_endpoints.attribution import router as attribution_router
 from litellm.proxy.management_endpoints.combined_usage import router as combined_usage_router
 from litellm.proxy.management_endpoints.ledger import router as ledger_router
+from litellm.proxy.management_endpoints.seats import router as seats_router
 from litellm.proxy.management_endpoints.provider_usage import router as provider_usage_router
 from litellm.proxy.management_endpoints.project_endpoints import router as project_router
 from litellm.proxy.management_endpoints.team_endpoints import router as team_router
@@ -18137,6 +18138,7 @@ app.include_router(provider_usage_router)
 app.include_router(attribution_router)
 app.include_router(combined_usage_router)
 app.include_router(ledger_router)
+app.include_router(seats_router)
 app.include_router(ui_sso_router)
 app.include_router(organization_router)
 app.include_router(customer_router)

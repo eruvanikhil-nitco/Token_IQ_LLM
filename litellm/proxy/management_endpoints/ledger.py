@@ -95,7 +95,9 @@ def _period_end_or_400(value: str, field: str) -> datetime:
     """
     parsed: Final = _day_or_400(value, field)
     names_a_time: Final = "T" in value or " " in value.strip()
-    return parsed if names_a_time else parsed.replace(hour=23, minute=59, second=59, microsecond=999999)
+    # .999 rather than .999999: these columns are TIMESTAMP(3), and Postgres rounds a microsecond
+    # value up on insert, pushing the instant into the next day and outside its own period.
+    return parsed if names_a_time else parsed.replace(hour=23, minute=59, second=59, microsecond=999000)
 
 
 def _amount_or_400(value: str, field: str) -> Decimal:
