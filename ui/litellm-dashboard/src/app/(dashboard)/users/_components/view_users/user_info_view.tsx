@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import UserSeatsTab from "./UserSeatsTab";
 import {
   userGetInfoV2,
   UserInfoV2Response,
@@ -474,7 +475,16 @@ export default function UserInfoView({
           <TabsTrigger value="details" className="flex-none data-active:text-primary after:bg-primary">
             Details
           </TabsTrigger>
+          <TabsTrigger value="seats" className="flex-none data-active:text-primary after:bg-primary">
+            Seats
+          </TabsTrigger>
         </TabsList>
+
+        {/* No keepMounted: this tab only reads, so mounting it eagerly would fetch a person's
+            cost on every visit to the page whether or not anyone opened the tab. */}
+        <TabsContent value="seats">
+          <UserSeatsTab userId={userId} />
+        </TabsContent>
 
         {/* Overview Panel */}
         <TabsContent value="overview" keepMounted>
