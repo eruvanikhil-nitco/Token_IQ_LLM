@@ -74,9 +74,9 @@ def _page(*events: dict[str, object], has_next: bool = False) -> dict[str, objec
 async def _fetch(vendor: Vendor, *, until: datetime = UNTIL):
     from litellm.tool_usage.cursor import CursorConnector
 
-    return await CursorConnector(
-        http_client_factory=vendor.client_factory(), base_url="https://api.cursor.test"
-    ).fetch(since=SINCE, until=until, credential_name="acme-cursor", credential_values=CREDENTIAL)
+    return await CursorConnector(http_client_factory=vendor.client_factory(), base_url="https://api.cursor.test").fetch(
+        since=SINCE, until=until, credential_name="acme-cursor", credential_values=CREDENTIAL
+    )
 
 
 @pytest.mark.asyncio
