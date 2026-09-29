@@ -46,6 +46,27 @@ model LiteLLM_CredentialsTable {
   updated_by String
 }
 
+model LiteLLM_ToolUsageFact {
+    id              String   @id @default(uuid())
+    fact_key        String   @unique // connector-computed, makes re-fetching idempotent
+    tool            String   // claude_code | cursor | copilot
+    credential_name String
+    person          String   // whatever the tool calls the human, an email address for every tool so far
+    usage_day       DateTime
+    cost            String   @default("0") // exact digits as text, like LiteLLM_ProviderUsageFact
+    currency        String   @default("USD")
+    basis           String   // new_money | already_on_a_provider_bill
+    model           String?
+    input_tokens    BigInt?
+    output_tokens   BigInt?
+    sessions        Int?
+    raw             Json?
+    fetched_at      DateTime @default(now())
+
+    @@index([tool, usage_day])
+    @@index([person, usage_day])
+}
+
 model LiteLLM_ProviderUsageFact {
     id                   String   @id @default(uuid())
     fact_key             String   @unique // connector-computed, makes re-fetching idempotent
