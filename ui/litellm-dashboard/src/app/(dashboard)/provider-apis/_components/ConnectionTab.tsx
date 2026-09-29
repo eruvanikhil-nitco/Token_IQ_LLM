@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { migratedHref } from "@/utils/migratedPages";
-import { stateBadgeVariant, stateLabel } from "./connectionState";
+import { stateBadgeVariant, stateLabel, verificationBadgeVariant, verificationLabel } from "./connectionState";
 import { probeHeadline, probeTone } from "./probeResult";
 
 const whenever = (value: string | null): string => (value === null ? "Never" : new Date(value).toLocaleString());
@@ -26,6 +26,9 @@ export default function ConnectionTab({ connection }: { connection: ProviderConn
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center gap-3">
         <Badge variant={stateBadgeVariant(connection.state)}>{stateLabel(connection.state)}</Badge>
+        <Badge variant={verificationBadgeVariant(connection.verified_against_real_account)}>
+          {verificationLabel(connection.verified_against_real_account)}
+        </Badge>
         <Badge variant="outline">Read-only</Badge>
         <p className="text-sm text-muted-foreground">
           {connection.display_name} keys stored here are only ever used to read cost reports. They cannot send traffic

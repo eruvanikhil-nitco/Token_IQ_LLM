@@ -14,7 +14,12 @@ from typing import Final, TypeAlias
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from litellm.provider_billing.connection_state import ConnectionState, account_state, provider_state
+from litellm.provider_billing.connection_state import (
+    ConnectionState,
+    account_state,
+    provider_state,
+    verified_against_real_account,
+)
 from litellm.provider_billing.credential_purpose import BILLING_PROVIDERS
 from litellm.provider_billing.fetch_profile import FETCH_PROFILES, FetchProfile
 from litellm.provider_billing.scheduled import build_billing_credentials_lookup
@@ -110,6 +115,9 @@ def _connection(
             for credential, last_run, state, detail in results
         ),
         fetches=_fetch_detail(profile),
+        verified_against_real_account=verified_against_real_account(
+            tuple(counts.get(credential.name, 0) for credential in credentials)
+        ),
     )
 
 

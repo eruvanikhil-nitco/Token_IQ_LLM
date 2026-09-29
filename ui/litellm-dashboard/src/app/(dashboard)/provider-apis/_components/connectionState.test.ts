@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { ConnectionState } from "./connectionState";
-import { stateBadgeVariant, stateLabel } from "./connectionState";
+import { stateBadgeVariant, stateLabel, verificationBadgeVariant, verificationLabel } from "./connectionState";
 
 describe("connection state presentation", () => {
   it("names every state in plain language", () => {
@@ -28,5 +28,20 @@ describe("connection state presentation", () => {
 
     expect(stateLabel(unknownState)).toBe("pending_migration");
     expect(stateBadgeVariant(unknownState)).toBe("destructive");
+  });
+});
+
+describe("verification", () => {
+  it("says plainly when a connector has never met a real account", () => {
+    expect(verificationLabel(false)).toContain("Never run against a real account");
+  });
+
+  it("says so when it has, so the two are never confused", () => {
+    expect(verificationLabel(true)).not.toContain("Never");
+    expect(verificationLabel(true)).toContain("Proved");
+  });
+
+  it("does not dress an unverified connector up as a problem, because it may just be unused", () => {
+    expect(verificationBadgeVariant(false)).toBe("outline");
   });
 });

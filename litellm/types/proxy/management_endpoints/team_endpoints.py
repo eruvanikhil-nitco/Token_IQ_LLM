@@ -245,6 +245,7 @@ class ProviderConnection(BaseModel):
     state: ConnectionState
     accounts: tuple[ProviderConnectionAccount, ...]
     fetches: ProviderFetchDetail
+    verified_against_real_account: bool
 
 
 class ProviderConnectionsResponse(BaseModel):

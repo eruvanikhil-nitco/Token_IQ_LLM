@@ -34758,6 +34758,8 @@ export interface components {
              * @enum {string}
              */
             state: "not_connected" | "waiting_for_first_data" | "healthy" | "needs_attention";
+            /** Verified Against Real Account */
+            verified_against_real_account: boolean;
         };
         /**
          * ProviderConnectionAccount

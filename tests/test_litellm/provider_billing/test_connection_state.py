@@ -88,3 +88,27 @@ def test_a_provider_still_waiting_on_one_account_is_waiting():
     from litellm.provider_billing.connection_state import provider_state
 
     assert provider_state(("healthy", "waiting_for_first_data")) == "waiting_for_first_data"
+
+
+def test_a_provider_that_has_never_stored_a_row_is_not_verified() -> None:
+    from litellm.provider_billing.connection_state import verified_against_real_account
+
+    assert verified_against_real_account(()) is False
+    assert verified_against_real_account((0,)) is False
+    assert verified_against_real_account((0, 0, 0)) is False
+
+
+def test_one_account_with_real_rows_verifies_the_provider() -> None:
+    """A customer with three accounts where only one has been connected has still proved that
+    this connector reaches this vendor, which is the question being asked."""
+    from litellm.provider_billing.connection_state import verified_against_real_account
+
+    assert verified_against_real_account((0, 7, 0)) is True
+
+
+def test_verification_does_not_depend_on_the_last_run_succeeding() -> None:
+    """A provider that worked last month and is failing today has still met a real account.
+    Tying this to the latest run would make the claim flip back and forth with an outage."""
+    from litellm.provider_billing.connection_state import verified_against_real_account
+
+    assert verified_against_real_account((42,)) is True

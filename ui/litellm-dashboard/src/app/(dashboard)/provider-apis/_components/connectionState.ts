@@ -23,3 +23,18 @@ export const stateLabel = (state: ConnectionState): string => (state in STATE_LA
 
 export const stateBadgeVariant = (state: ConnectionState): "default" | "secondary" | "destructive" | "outline" =>
   state in STATE_VARIANTS ? STATE_VARIANTS[state] : "destructive";
+
+/**
+ * Whether this connector has ever been proved against a live account.
+ *
+ * Deliberately separate from the health state. A connector can be "Waiting for first data"
+ * because nobody has connected a key yet, or because it has never worked anywhere, and those
+ * are different problems for whoever has to act. A connector written from a vendor's
+ * documentation can be wrong about what that vendor really sends, and only stored rows from a
+ * real account settle it.
+ */
+export const verificationLabel = (verified: boolean): string =>
+  verified ? "Proved against a real account" : "Never run against a real account";
+
+export const verificationBadgeVariant = (verified: boolean): "secondary" | "outline" =>
+  verified ? "secondary" : "outline";

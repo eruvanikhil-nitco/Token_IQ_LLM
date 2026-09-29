@@ -40,6 +40,7 @@ const connection = (overrides: Partial<ProviderConnection> = {}): ProviderConnec
       facts_stored: 42,
     },
   ],
+  verified_against_real_account: false,
   fetches: {
     endpoint: "Organization Costs",
     endpoint_url: "https://api.openai.com/v1/organization/costs",
@@ -93,8 +94,22 @@ describe("ConnectionTab", () => {
     renderTab(
       connection({
         accounts: [
-          { credential_name: "prod", state: "healthy", detail: null, last_sync_at: null, last_outcome: null, facts_stored: 42 },
-          { credential_name: "staging", state: "healthy", detail: null, last_sync_at: null, last_outcome: null, facts_stored: 7 },
+          {
+            credential_name: "prod",
+            state: "healthy",
+            detail: null,
+            last_sync_at: null,
+            last_outcome: null,
+            facts_stored: 42,
+          },
+          {
+            credential_name: "staging",
+            state: "healthy",
+            detail: null,
+            last_sync_at: null,
+            last_outcome: null,
+            facts_stored: 7,
+          },
         ],
       }),
     );
@@ -188,5 +203,29 @@ describe("ConnectionTab, testing a connection", () => {
     await user.click(screen.getByRole("button", { name: /test the openai connection/i }));
 
     expect(await screen.findByText(/could not be run/i)).toBeInTheDocument();
+  });
+});
+
+describe("ConnectionTab, whether a connector has ever met a real account", () => {
+  it("says plainly that a connector has never run against a real account", () => {
+    renderTab(connection({ verified_against_real_account: false }));
+
+    expect(screen.getByText(/never run against a real account/i)).toBeInTheDocument();
+  });
+
+  it("says so once a real account has returned rows", () => {
+    renderTab(connection({ verified_against_real_account: true }));
+
+    expect(screen.getByText(/proved against a real account/i)).toBeInTheDocument();
+    expect(screen.queryByText(/never run against a real account/i)).not.toBeInTheDocument();
+  });
+
+  it("keeps that separate from health, because a healthy unused key is not a proved one", () => {
+    /* A connector can read Healthy on a key nobody has connected and be completely untested
+       against the vendor. Collapsing the two would let an unproved connector look finished. */
+    renderTab(connection({ state: "healthy", verified_against_real_account: false }));
+
+    expect(screen.getAllByText("Healthy").length).toBeGreaterThan(0);
+    expect(screen.getByText(/never run against a real account/i)).toBeInTheDocument();
   });
 });

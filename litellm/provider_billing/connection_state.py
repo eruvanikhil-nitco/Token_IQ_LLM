@@ -41,3 +41,15 @@ def provider_state(account_states: Sequence[ConnectionState]) -> ConnectionState
     if not account_states:
         return "not_connected"
     return next(state for state in _SEVERITY if state in account_states)
+
+
+def verified_against_real_account(facts_per_account: Sequence[int]) -> bool:
+    """True once at least one of this provider's accounts has stored a real cost row.
+
+    Stored facts are the only evidence here that a test cannot manufacture. A connector written
+    from a vendor's documentation can pass every test we have and still be wrong about what the
+    vendor actually sends, so the product should say which of the two it is looking at. Deriving
+    it from stored rows rather than from a sentence in a design doc also means the answer stops
+    being wrong the moment the first real account is connected.
+    """
+    return any(count > 0 for count in facts_per_account)

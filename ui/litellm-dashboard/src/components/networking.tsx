@@ -2762,6 +2762,8 @@ export interface ProviderConnection {
   state: ProviderConnectionState;
   accounts: ProviderConnectionAccount[];
   fetches: ProviderFetchDetail;
+  /** True once a real account has actually returned cost rows for this provider. */
+  verified_against_real_account: boolean;
 }
 
 export interface ProviderConnectionsResponse {
