@@ -5,22 +5,22 @@ current at the end of every session rather than rediscovering the answer from gi
 
 ## What we are doing right now
 
-**Phase 2, data sources and provider accounts.** Specifically the part of it that does not need
-a real provider account, because only OpenRouter is available and that will not change soon.
+**Phase 2 readiness is complete.** Next: the four user tool connectors, which are the biggest
+genuine gap in the plan and are not blocked by anything.
 
-Plan: `docs/superpowers/plans/2026-09-29-provider-readiness-without-accounts.md`
+Finished 2026-09-29: `docs/superpowers/plans/2026-09-29-provider-readiness-without-accounts.md`,
+all five tasks.
 
-- Task 1, done. A connector's vendor host is injectable instead of hardcoded, so a test can
-  stand a server in front of it, and an Azure Government or Azure China customer has somewhere
-  to point. Ten tests hold both the default and the override
-- Task 2, in progress. Contract tests that drive the real connector over a real HTTP client
-  against payloads copied from each vendor's published documentation. Anthropic, OpenAI,
-  OpenRouter and Azure are done, 54 tests. Vertex and Bedrock remain, then a mutation round
-- Task 3, not started. The connection probe already exists in the backend but has never been
-  reachable from the product. It needs a Test connection button per credential
-- Task 4, not started. The product should report which providers have actually met a real
-  account, derived from stored runs rather than from a sentence in a doc that goes stale
-- Task 5, not started. Record what is ready and what only a real account can settle
+- A connector's vendor host is injectable, so a test can stand a server in front of it and an
+  Azure Government or Azure China customer has somewhere to point
+- All six connectors are held to the API their vendor documents by 76 contract tests, driven
+  over a real HTTP client against payloads copied from each vendor's published reference.
+  Thirteen mutations applied, thirteen caught, none survived
+- Test connection button on each provider's Connection tab, reporting the provider's own words
+  rather than a generic failure
+- The product says which connectors have met a real account, derived from stored rows. Checked
+  live: OpenRouter proved with 50 rows, the other five honestly marked never run
+- The product doc records the three questions only a real account can settle
 
 ## Two real defects found by this work
 
@@ -42,7 +42,8 @@ client with a mock that cannot fail the way a real one does.
   blocked on anything outside the repo. Queued next after the current plan
 - **Phase 1, organisation and navigation.** Substantially done. Projects backend complete and
   the sidebar reorganisation landed
-- **Phase 2, data sources and provider accounts.** In progress, as above
+- **Phase 2, data sources and provider accounts.** Readiness complete. Only live verification
+  against real accounts remains, and that needs accounts
 - **Phase 3, combined view and ledger.** Complete and proven against the live database on
   2026-09-29, with the completion test actually run rather than assumed
 - **Phase 4, users and user tools.** Seats and per-user cost are done. The Claude Code and
