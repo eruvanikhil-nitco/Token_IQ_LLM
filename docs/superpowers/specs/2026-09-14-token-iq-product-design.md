@@ -13,7 +13,7 @@ The **gateway** is the proxy that application traffic passes through. **Provider
 | Area | State |
 |---|---|
 | Gateway data | Works and is mature, inherited from LiteLLM along with its usage screens |
-| Provider API ingestion | The engine is built: provider facts are stored idempotently, compared against gateway spend per request and per day, and fetched on a schedule from one replica. Six connectors exist. OpenRouter is the only one proven against real traffic; OpenAI, Anthropic, Bedrock, Azure and Vertex are built but have never run against a real account, so none of the five is established as working. Since `2026-09-16-provider-connections.md` the raw provider payload is stored on every fact, several accounts per provider are read separately, every fetch attempt is recorded, and the Provider APIs page shows each connection's state with What We Fetch and Sync History. Nothing reads the stored payloads back yet: that is Usage / APIs |
+| Provider API ingestion | The engine is built: provider facts are stored idempotently, compared against gateway spend per request and per day, and fetched on a schedule from one replica. Six connectors exist, and each is now held to the API its vendor documents by a contract test that drives the real connector over a real HTTP client against payloads copied from the vendor's own reference. Those tests pin the path and method, the authentication scheme, the date window in each vendor's format, the page size each allows, pagination to the end, and every error a vendor can return. Whether a connector has actually met a real account is no longer recorded here at all: the product derives it from stored rows and says so on each provider's Connection tab, so the answer cannot go stale. An admin can also press Test connection there to try a provider now and read back exactly what it said |
 | Teams | Complete |
 | Projects | Backend complete. Project spend is written and project budgets enforce since commits `6eba2ae1e2` and `ae7f344c6b`. The UI exists but is hidden behind a Beta switch and limited to admins |
 | Users | Exist as internal users. A person's cost is now shown on their own page and on the Ledger's Seats & Commitments tab, counting the gateway traffic they drove plus the flat subscriptions assigned to them, with the parts always listed separately rather than blended into one figure. Every answer says on its face that it does not include what the person spent inside Claude Code, Copilot, Cursor or Codex, and stops saying so on its own the day a connector lands. Two rules hold: a seat is a fee for a period and is never spread across days, because a daily share of a monthly subscription is a number nobody was charged; and a subscription priced in one currency is left out of a total in another rather than converted, so the same person shows a different total when asked in dollars and in euros, each correct. Privacy is enforced in the endpoint, not the screen: a person may read their own cost and nobody else's, and only an admin may read everyone's. One limit found by testing and left as it is: a seat counts only when its whole period fits inside the window asked for, so narrowing to a single day inside a month shows that person's gateway spend with no subscription beside it. That is the correct arithmetic, since a month's fee cannot be attributed to one day, but the screen shows a bare zero rather than saying the subscription covers a wider period. The date pickers default to a calendar month, which is the case this was built for |
@@ -76,6 +76,41 @@ A request that goes through the gateway to a provider appears twice: once in the
 For each provider and day, **the provider's figure says how much was spent** and **the gateway's figure says who spent it**. Whatever the provider charged beyond what the gateway recorded is spend that bypassed the gateway. It gets its own line, assigned to a team, project or user through attribution rules, or shown as unallocated when no rule matches
 
 Every figure carries its source and an evidence level (`reconciled`, `priced` or `allocated`, already implemented in `litellm/types/proxy/provider_billing.py`) and a freshness marker. Provider data arrives hours to days late, so a day that has not settled is labelled "not settled yet" rather than being shown as a gap
+
+## What a connector is proved to do, and what only an account can settle
+
+Six provider connectors exist. Only OpenRouter has ever met a real account, and that is
+unlikely to change soon, so the honest question is what can be established without one.
+
+Everything about the request is settled. Each connector is driven over a real HTTP client
+against a server that records what it was sent, answering with payloads copied from the
+vendor's published reference rather than written to match our own parser. That pins the path
+and method, the authentication scheme, which differs per vendor and is exactly the sort of
+thing that is quietly wrong until a real server rejects it, the date window in each vendor's
+own format, the page size each vendor allows, following pagination to the end, and surviving
+401, 403, 429, 500, a body that is not JSON and a body of the wrong shape. Thirteen deliberate
+mutations were applied to confirm those tests bite, and all thirteen were caught.
+
+Three questions stay open until an account exists, and no amount of further building closes
+them. Whether the vendor's real response matches the vendor's own documentation. Whether the
+account carries the entitlement the endpoint needs, since every one of these endpoints is
+gated behind an organisation or enterprise plan. And whether the figures are right.
+
+Doing this found two defects that a fully green suite had never shown, both of which only
+appear when a connector meets something that can fail like a real server. Every connector
+crashed the entire sync run on a body that was not JSON, so one vendor serving a maintenance
+page stopped every other provider in the same pass. And Anthropic, OpenAI and OpenRouter
+decoded money through a binary float, losing digits before anything could make a decimal of
+it. That is the sixth and seventh time on this branch that contact with something real has
+found a defect tests did not.
+
+### The path from a real credential to a verified provider
+
+When an account does arrive, nothing needs writing. Store the key on LLM Provider Credentials
+with Billing access as its purpose, open that provider on Provider APIs, press Test connection,
+and read what comes back: the provider's own words, not a generic failure. Once a scheduled
+sync has stored a row the provider's badge changes from never run against a real account to
+proved against a real account, on its own, from the data.
 
 ## Data sources
 
