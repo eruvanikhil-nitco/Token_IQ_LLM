@@ -53,6 +53,7 @@ import {
   Waypoints,
   BookOpen,
   Lightbulb,
+  Wrench,
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -190,6 +191,13 @@ const menuGroups: MenuGroup[] = [
         page: "provider-apis",
         label: "Provider APIs",
         icon: <Plug {...ICON} />,
+        roles: all_admin_roles,
+      },
+      {
+        key: "user-tools",
+        page: "user-tools",
+        label: "User Tools",
+        icon: <Wrench {...ICON} />,
         roles: all_admin_roles,
       },
       {

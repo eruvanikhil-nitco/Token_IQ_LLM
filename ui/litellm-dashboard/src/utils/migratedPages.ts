@@ -25,6 +25,7 @@ export const MIGRATED_PAGES: Record<string, string> = {
   recommendations: "recommendations",
   "llm-provider-credentials": "llm-provider-credentials",
   "provider-apis": "provider-apis",
+  "user-tools": "user-tools",
   workflows: "workflows",
   "guardrails-monitor": "guardrails-monitor",
   "mcp-servers": "mcp-servers",

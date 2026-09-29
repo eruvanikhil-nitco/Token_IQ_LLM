@@ -16363,6 +16363,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/tool/connections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Tool Connections
+         * @description One row per user tool, with one row per stored account inside it.
+         */
+        get: operations["tool_connections_tool_connections_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/toolset/{toolset_name}/mcp": {
         parameters: {
             query?: never;
@@ -38145,11 +38165,66 @@ export interface components {
             /** Total Tokens */
             total_tokens: number;
         };
+        /** ToolConnection */
+        ToolConnection: {
+            /** Accounts */
+            accounts: components["schemas"]["ToolConnectionAccount"][];
+            /** Display Name */
+            display_name: string;
+            fetches: components["schemas"]["ToolFetchDetail"];
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "not_connected" | "waiting_for_first_data" | "healthy" | "needs_attention";
+            /** Tool */
+            tool: string;
+            /** Verified Against Real Account */
+            verified_against_real_account: boolean;
+        };
+        /** ToolConnectionAccount */
+        ToolConnectionAccount: {
+            /** Credential Name */
+            credential_name: string;
+            /** Detail */
+            detail: string | null;
+            /** Last Outcome */
+            last_outcome: string | null;
+            /** Last Sync At */
+            last_sync_at: string | null;
+            /** Rows Stored */
+            rows_stored: number;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "not_connected" | "waiting_for_first_data" | "healthy" | "needs_attention";
+        };
+        /** ToolConnectionsResponse */
+        ToolConnectionsResponse: {
+            /** Tools */
+            tools: components["schemas"]["ToolConnection"][];
+        };
         /** ToolDetailResponse */
         ToolDetailResponse: {
             /** Overrides */
             overrides?: components["schemas"]["ToolPolicyOverrideRow"][];
             tool: components["schemas"]["LiteLLM_ToolTableRow"];
+        };
+        /** ToolFetchDetail */
+        ToolFetchDetail: {
+            /** Backfill Note */
+            backfill_note: string;
+            /** Endpoint */
+            endpoint: string;
+            /** Endpoint Url */
+            endpoint_url: string;
+            /** Verification Note */
+            verification_note: string;
+            /** What It Cannot Give */
+            what_it_cannot_give: string;
+            /** What It Gives */
+            what_it_gives: string;
         };
         /** ToolListResponse */
         ToolListResponse: {
@@ -61191,6 +61266,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    tool_connections_tool_connections_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ToolConnectionsResponse"];
                 };
             };
         };

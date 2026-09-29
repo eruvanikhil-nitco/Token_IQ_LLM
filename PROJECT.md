@@ -5,8 +5,24 @@ current at the end of every session rather than rediscovering the answer from gi
 
 ## What we are doing right now
 
-**Phase 2 readiness is complete.** Next: the four user tool connectors, which are the biggest
-genuine gap in the plan and are not blocked by anything.
+**Phase 4's tool connectors are built.** Phase 2 readiness finished before them. Next is
+Phase 0, the product-readiness work that decides whether any of this can be sold.
+
+In progress 2026-09-29: `docs/superpowers/plans/2026-09-29-user-tool-connectors.md`, tasks 1
+to 6 done, task 7 (docs) underway.
+
+- Claude Code, Cursor and Copilot connectors, each held to its vendor's documented API by
+  contract tests over a real HTTP client. 23 mutations applied across them, 23 caught
+- Claude Code spend billed to an API organisation is tagged as already on the Anthropic bill
+  and excluded from totals in SQL. Proved against real Postgres: a tagged and an untagged row
+  for the same person, and only the untagged one reached the total
+- Copilot returns seat holders rather than money through a protocol of its own, because GitHub
+  publishes no cost and a guessed figure must not be possible to express
+- A runner drives every tool, with one tool's failure never stopping the others. Proved live
+  in the state we are actually in, with no credentials: cleanly skipped, nothing raised
+- The User Tools page is built, one tab per tool, each stating what that tool cannot tell us
+- Codex and ChatGPT deferred with a reason: no per-user admin endpoint exists, and that money
+  is already collected by the OpenAI connector or carried by the Seats model
 
 Finished 2026-09-29: `docs/superpowers/plans/2026-09-29-provider-readiness-without-accounts.md`,
 all five tasks.

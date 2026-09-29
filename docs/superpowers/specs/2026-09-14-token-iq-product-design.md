@@ -17,7 +17,7 @@ The **gateway** is the proxy that application traffic passes through. **Provider
 | Teams | Complete |
 | Projects | Backend complete. Project spend is written and project budgets enforce since commits `6eba2ae1e2` and `ae7f344c6b`. The UI exists but is hidden behind a Beta switch and limited to admins |
 | Users | Exist as internal users. A person's cost is now shown on their own page and on the Ledger's Seats & Commitments tab, counting the gateway traffic they drove plus the flat subscriptions assigned to them, with the parts always listed separately rather than blended into one figure. Every answer says on its face that it does not include what the person spent inside Claude Code, Copilot, Cursor or Codex, and stops saying so on its own the day a connector lands. Two rules hold: a seat is a fee for a period and is never spread across days, because a daily share of a monthly subscription is a number nobody was charged; and a subscription priced in one currency is left out of a total in another rather than converted, so the same person shows a different total when asked in dollars and in euros, each correct. Privacy is enforced in the endpoint, not the screen: a person may read their own cost and nobody else's, and only an admin may read everyone's. One limit found by testing and left as it is: a seat counts only when its whole period fits inside the window asked for, so narrowing to a single day inside a month shows that person's gateway spend with no subscription beside it. That is the correct arithmetic, since a month's fee cannot be attributed to one day, but the screen shows a bare zero rather than saying the subscription covers a wider period. The date pickers default to a calendar month, which is the case this was built for |
-| User tools | Researched on 2026-09-14 from each vendor's documentation, nothing built. Per-user cost is genuinely available for Claude and Cursor and, with care, GitHub Copilot; ChatGPT and Codex look available on enterprise plans but the API details are unverified. Every tool gates this behind a business or enterprise plan, and personal subscriptions expose nothing. **No real account of any kind is available to this project**, so no user-tool connector can be verified. Five of the six provider connectors are in the same position. Every time something on this branch ran against real infrastructure it found a defect no test had caught, so any connector written from documentation alone must be treated as unproven until an account exists |. No connector is built. Phase 4's test is that a person's total includes their tool usage and their seats: seats are done, tool usage is not and cannot be until an account exists. The User Directory, the User Tools data-source page and the Tools tab on a user are all deferred for the same reason, since each one only has meaning once a tool reports something
+| User tools | Three connectors are built and held to the API each vendor documents by contract tests run over a real HTTP client against the vendors' own published example responses. Claude Code reports per person per day a cost and token count per model, keyed by email. Cursor reports one row per request with the person, the model and what it charged, rolled up here into a daily figure. GitHub Copilot reports who holds a licence and never what it costs, so it returns seat holders through a protocol of its own rather than being forced into a shape that carries money. Codex and ChatGPT are deferred with a reason, below. The User Tools data-source page is built, one tab per tool, each stating what that tool cannot tell us. **No real account of any kind is available to this project**, so no connector has been run against one, and the product says so per tool from its own stored rows rather than from this sentence. Phase 4's test is that a person's total includes their tool usage and their seats: seats are done, the tool connectors are built and unverified, and the total cannot include tool usage until an account exists. The User Directory and the Tools tab on a user stay deferred, since each only has meaning once a tool reports something |
 | Attribution and unallocated spend | Built. For each provider account and day the provider's figure is compared against the gateway's, and whatever the provider charged beyond what the gateway recorded is offered to a rule that maps that account to a team, project or user. Spend no rule claims is reported as unallocated by name rather than spread across owners. Three limits are deliberate and visible on the screen rather than hidden: the gateway side is grouped by day alone, because a gateway spend log names the virtual key that served a call and never the provider account the provider later billed, so a customer with several accounts on one provider gets the per-account split from the provider's side only; a gateway request that recorded no provider name belongs to no provider's comparison, so it is invisible to reconciliation rather than charged to the wrong provider; and Google AI Studio traffic arrives as `gemini`, which has no billing connector and so can never be reconciled and must not be confused with Vertex. Rules keyed on a provider's own API key are not built, because no connector records that identifier, so such a rule could never match anything |
 | Usage / Combined | Built, and it opens by default. Source Comparison shows every provider day by day with what the provider billed, what the gateway recorded, the difference and a status of matched, gap, not settled yet or provider reported nothing. Unallocated lists only differences nobody has claimed, each linking to the rule that would assign it. Cost Explorer groups gateway spend by team, project, user, provider or model and shows spend that bypassed the gateway beside it. Five limits are stated on the screen rather than hidden: spend is coloured by two sources and not four, because user tools and seat fees are Phase 4; a grouping with no rows says so instead of drawing an empty chart, which is what project does on an installation with no project spend; gateway spend whose rows carry no team or user is reported as a named figure rather than dropped, because it cannot belong to any bar; spend that bypassed the gateway can never reach a model or provider bar, since an attribution rule names a team, project or user and not a model, so it is reported on its own with that sentence; and the shared date range spans the three Combined views only, because Gateway keeps the filters it already had |
 | Ledger and bill reconciliation | Three of the five Ledger tabs are built. Cost Ledger lists every cost line a provider reported, with how the figure was arrived at and who owns the account it came from; the gateway's own records are deliberately absent, because the two describe the same money and listing both would count it twice. Invoices accepts a bill an admin enters by hand, since almost no provider publishes invoices through an API, along with the credits, discounts, tax and commitments that explain a difference from usage. Bill Reconciliation sets the two against each other and always shows the unexplained remainder, with its sign, because a bill larger than the ledger and one smaller than it are different problems. Currency is carried and never converted: a bill in another currency is refused for comparison and both currencies are named, because a rate nobody chose would look authoritative and not be. Seats & Commitments is not built, because seats are flat per-person fees for user tools, which are Phase 4 with no data and no connector, so the screen could only show what someone typed into it; commitments are meanwhile captured as an adjustment on the bill, which is where a customer reads them off it anyway. Pricing Adjustments is not built either: it is a move of the existing Cost Tracking settings into a new group rather than new capability, and it belongs with the sidebar reorganisation. Uploading an invoice file is not built; a bill is typed in |
@@ -140,6 +140,53 @@ The inside of these pages borrows from established cloud cost platforms, researc
 What each tool exposes is researched in `docs/superpowers/specs/2026-09-14-user-tools-data-research.md`. Per-user cost is documented for Claude and Cursor, available for GitHub Copilot as seat fees plus billed AI credits with a caveat for enterprise-owned organizations, and unverified for ChatGPT and Codex until a real Enterprise admin account confirms OpenAI's Cost API. Every tool requires a business or enterprise plan, and personal subscriptions paid through expenses are invisible to every API
 
 Claude Code and GitHub Copilot were chosen first. The research recommends building Claude first, then Cursor, then Copilot once its billing caveat is checked, then ChatGPT and Codex
+
+#### What each connector reports, as built on 2026-09-29
+
+Claude Code gives the richest data of the three: per person per day, a cost and a token count
+for each model they used, keyed by email address. Its cost arrives in minor currency units, so
+a reported 186 is one dollar eighty-six. Usage driven by an API key rather than a person is
+kept under the key's name, because dropping it would lose real spend and attributing it to
+somebody would invent a person.
+
+Cursor reports one row per request rather than a daily total, so a person's day is the sum of
+their events, kept split by model. It charges fractional cents, where 21.36232 is twenty-one
+and a third, and it authenticates with HTTP Basic using the key as the username and no
+password, which is unlike every other connector in this product.
+
+GitHub Copilot publishes who holds a licence and never what it costs, because the price is on
+the customer's contract. It therefore returns seat holders rather than money, through a
+protocol of its own: a connector that cannot report a cost must not be able to satisfy a type
+whose whole purpose is cost, since that type is the only thing stopping a later change from
+reporting a guessed figure as a real one. Its last-activity field is also empty unless that
+person turned telemetry on in their editor, so an empty value is not evidence a licence is
+unused, and that is why the reclaim-unused-seats recommendation stays deferred.
+
+#### The rule that stops tool spend being counted twice
+
+**Claude Code usage billed to an API organisation is the same money the Anthropic provider
+connector already reports.** Every record says which it is. When it is an API organisation
+those dollars are already on the Anthropic bill, so adding them again would overstate a
+customer's Anthropic spend by exactly what their developers ran through Claude Code, which for
+a heavy user is the largest number on the screen. When it is a Pro, Team or Enterprise plan the
+money is genuinely separate.
+
+Every row is stored either way, because knowing who spent it is the point, and each is tagged
+with whether it may be added to a total. The rule lives in the SQL that computes a total rather
+than in a caller remembering it, and it was proved against real Postgres: a tagged row and an
+untagged row were written for the same person, and only the untagged one appeared in the total.
+
+Cursor needs no tag, because Cursor buys the models itself and bills the customer, so none of
+it appears on a provider bill this product reads.
+
+#### Why Codex and ChatGPT are deferred, and where that money already is
+
+Neither publishes a per-user admin usage endpoint. Rather than invent one, the product records
+where the money is instead. Codex signed in with an API key bills through the OpenAI platform
+account at standard API rates, which the existing OpenAI billing connector already collects.
+Codex on a ChatGPT Business or Enterprise plan is credit based, and those credits are a
+subscription cost, which the Seats model already carries. So the money is not missing from the
+product; only a per-person split of it is.
 
 ### Credentials
 

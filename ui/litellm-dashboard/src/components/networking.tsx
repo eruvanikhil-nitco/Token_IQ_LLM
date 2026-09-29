@@ -2779,6 +2779,47 @@ export const providerConnectionsCall = async (accessToken: string): Promise<Prov
   }
 };
 
+export interface ToolFetchDetail {
+  endpoint: string;
+  endpoint_url: string;
+  what_it_gives: string;
+  what_it_cannot_give: string;
+  backfill_note: string;
+  verification_note: string;
+}
+
+export interface ToolConnectionAccount {
+  credential_name: string;
+  state: ProviderConnectionState;
+  detail: string | null;
+  last_sync_at: string | null;
+  last_outcome: string | null;
+  rows_stored: number;
+}
+
+export interface ToolConnection {
+  tool: string;
+  display_name: string;
+  state: ProviderConnectionState;
+  accounts: ToolConnectionAccount[];
+  fetches: ToolFetchDetail;
+  /** True once a real account has actually returned rows for this tool. */
+  verified_against_real_account: boolean;
+}
+
+export interface ToolConnectionsResponse {
+  tools: ToolConnection[];
+}
+
+export const toolConnectionsCall = async (accessToken: string): Promise<ToolConnectionsResponse> => {
+  try {
+    return await apiClient.get<ToolConnectionsResponse>(`/tool/connections`, { accessToken });
+  } catch (error) {
+    console.error("Failed to read user tool connections:", error);
+    throw error;
+  }
+};
+
 export type BillingProbeOutcome = "fetched" | "not_configured" | "failed" | "no_connector";
 
 export interface BillingProbeResult {
@@ -2791,10 +2832,7 @@ export interface BillingProbeResult {
 }
 
 /** Try one provider's billing API now. Nothing is stored; this only reports what came back. */
-export const probeProviderBillingCall = async (
-  accessToken: string,
-  provider: string,
-): Promise<BillingProbeResult> => {
+export const probeProviderBillingCall = async (accessToken: string, provider: string): Promise<BillingProbeResult> => {
   try {
     return await apiClient.post<BillingProbeResult>(`/provider/billing/probe`, {
       accessToken,
