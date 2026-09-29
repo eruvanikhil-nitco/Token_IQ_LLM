@@ -61,3 +61,17 @@ def test_it_keeps_every_digit_of_the_limit_and_the_spend() -> None:
     card: Final = stale_budget(_input(_budget("platform", "100.00000001", "2")))
     assert card is not None
     assert any("100.00000001" in e.value for e in card.evidence)
+
+
+def test_it_never_promises_a_saving_in_either_direction() -> None:
+    """Changing a limit changes what is allowed, not what is spent. Neither the exceeded card nor
+    the unused one may read as money the company gets back."""
+    exceeded: Final = stale_budget(_input(_budget("platform", "100", "120")))
+    unused: Final = stale_budget(_input(_budget("platform", "100", "2")))
+    for card in (exceeded, unused):
+        assert card is not None
+        assert "saving" not in card.noticed.lower()
+        assert "save" not in card.noticed.lower()
+        assert "saving" not in card.title.lower()
+        assert card.figure is None
+        assert card.figure_kind == "none"

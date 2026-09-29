@@ -88,3 +88,13 @@ def test_the_same_count_at_a_high_enough_share_does_earn_a_card() -> None:
     card = failed_requests(_input(25, 200))
     assert card is not None
     assert any("12.5%" in e.value for e in card.evidence)
+
+
+def test_it_never_promises_a_saving_when_it_has_no_figure_to_back_one() -> None:
+    """The type stops a figure without a kind. It cannot stop a sentence, and a card that reads
+    like a saving while carrying no number is the exact mistake this feature exists to avoid."""
+    card: Final = failed_requests(_input(94, 156, spend=None))
+    assert card is not None
+    assert "saving" not in card.noticed.lower()
+    assert "save" not in card.noticed.lower()
+    assert "saving" not in card.title.lower()
