@@ -93,6 +93,25 @@ model LiteLLM_ProviderSyncRun {
 // that owns the spend it produced. Read by the unallocated gap calculation.
 // One provider bill for one period, entered by an admin because almost no provider publishes
 // invoices through an API. Bill Reconciliation compares this against the cost ledger.
+// One flat per-person subscription for one period, entered by an admin because seat pricing
+// lives on a contract rather than behind an API. Counted in that person's total cost.
+model LiteLLM_UserSeat {
+    seat_id      String   @id @default(uuid())
+    tool         String
+    user_id      String
+    cadence      String   // monthly | annual
+    currency     String   @default("USD")
+    amount       String   // exact digits as text; prisma-client-py gates Decimal behind an experimental flag
+    period_start DateTime
+    period_end   DateTime
+    note         String?
+    created_at   DateTime @default(now())
+    updated_at   DateTime @updatedAt
+
+    @@unique([tool, user_id, period_start, period_end])
+    @@index([user_id, period_start])
+}
+
 model LiteLLM_ProviderInvoice {
     invoice_id   String   @id @default(uuid())
     provider     String
