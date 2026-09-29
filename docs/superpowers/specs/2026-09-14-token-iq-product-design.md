@@ -21,7 +21,7 @@ The **gateway** is the proxy that application traffic passes through. **Provider
 | Attribution and unallocated spend | Built. For each provider account and day the provider's figure is compared against the gateway's, and whatever the provider charged beyond what the gateway recorded is offered to a rule that maps that account to a team, project or user. Spend no rule claims is reported as unallocated by name rather than spread across owners. Three limits are deliberate and visible on the screen rather than hidden: the gateway side is grouped by day alone, because a gateway spend log names the virtual key that served a call and never the provider account the provider later billed, so a customer with several accounts on one provider gets the per-account split from the provider's side only; a gateway request that recorded no provider name belongs to no provider's comparison, so it is invisible to reconciliation rather than charged to the wrong provider; and Google AI Studio traffic arrives as `gemini`, which has no billing connector and so can never be reconciled and must not be confused with Vertex. Rules keyed on a provider's own API key are not built, because no connector records that identifier, so such a rule could never match anything |
 | Usage / Combined | Built, and it opens by default. Source Comparison shows every provider day by day with what the provider billed, what the gateway recorded, the difference and a status of matched, gap, not settled yet or provider reported nothing. Unallocated lists only differences nobody has claimed, each linking to the rule that would assign it. Cost Explorer groups gateway spend by team, project, user, provider or model and shows spend that bypassed the gateway beside it. Five limits are stated on the screen rather than hidden: spend is coloured by two sources and not four, because user tools and seat fees are Phase 4; a grouping with no rows says so instead of drawing an empty chart, which is what project does on an installation with no project spend; gateway spend whose rows carry no team or user is reported as a named figure rather than dropped, because it cannot belong to any bar; spend that bypassed the gateway can never reach a model or provider bar, since an attribution rule names a team, project or user and not a model, so it is reported on its own with that sentence; and the shared date range spans the three Combined views only, because Gateway keeps the filters it already had |
 | Ledger and bill reconciliation | Three of the five Ledger tabs are built. Cost Ledger lists every cost line a provider reported, with how the figure was arrived at and who owns the account it came from; the gateway's own records are deliberately absent, because the two describe the same money and listing both would count it twice. Invoices accepts a bill an admin enters by hand, since almost no provider publishes invoices through an API, along with the credits, discounts, tax and commitments that explain a difference from usage. Bill Reconciliation sets the two against each other and always shows the unexplained remainder, with its sign, because a bill larger than the ledger and one smaller than it are different problems. Currency is carried and never converted: a bill in another currency is refused for comparison and both currencies are named, because a rate nobody chose would look authoritative and not be. Seats & Commitments is not built, because seats are flat per-person fees for user tools, which are Phase 4 with no data and no connector, so the screen could only show what someone typed into it; commitments are meanwhile captured as an adjustment on the bill, which is where a customer reads them off it anyway. Pricing Adjustments is not built either: it is a move of the existing Cost Tracking settings into a new group rather than new capability, and it belongs with the sidebar reorganisation. Uploading an invoice file is not built; a bill is typed in |
-| Recommendations | Nothing yet, apart from the existing Cost Optimization page |
+| Recommendations | Four rules are built and run over real data, each card carrying what was noticed, the evidence behind it, who should act and an amount only when there is an honest one. Two rules carry a figure and two deliberately carry none, since a risk and a stale limit are not costs. Of the two figures, one is money already being spent rather than money that could stop being spent, and it is labelled that way everywhere it appears. Four further rules are deferred, each for a reason recorded below. The existing Cost Optimization page remains the technical deep dive behind the cards |
 | Per-team courier and translator mode | Done |
 
 ## How Token IQ is sold and delivered
@@ -289,9 +289,30 @@ The change covers the UI first. Models added through the API or the config file 
 
 ## Recommendations
 
-Recommendations start as rules evaluated over the combined data rather than as a model's guesses. Each card states what was noticed, the evidence behind it, the estimated monthly saving and who should act, and it can be marked done or dismissed
+Recommendations are rules evaluated over the combined data rather than a model's guesses. Each card states what was noticed, the evidence behind it, who should act, and an amount only when there is an honest one. A card can be marked done or dismissed, and a dismissed card stays reachable rather than vanishing, so a decision leaves a trace. No card is ever stored: every one is recomputed from current data on each request, so a problem that gets fixed stops appearing on its own and one that returns is seen again instead of staying hidden behind a decision somebody made months ago
 
-Business recommendations cover unused seats to reclaim, spend escaping the gateway, teams that would pay less on committed pricing, budgets that no longer match spend, and concentration on a single provider. Technical recommendations cover a cheaper model that performs well enough, caching that is available but unused, money spent on failed retries and oversized context. The existing Cost Optimization tabs remain the technical deep dives behind those cards
+### The figure rule
+
+An amount is only called a saving when acting on the card would reduce what the company pays. Everything else carries a different label or no number at all. A card therefore carries an amount together with what kind of amount it is, and the type refuses a figure with no kind and a kind with no figure, so a rule cannot reach a screen having got this wrong. Three kinds exist:
+
+- money that could stop being spent, which is the only one a screen may present as a saving
+- money already being spent and unwatched, where acting makes it visible and owned but changes no total
+- no figure, where there is nothing honest to quantify and the card says so rather than showing a zero
+
+The reason is plain. Most of what these rules find is not a saving. Spend that escaped the gateway is money the company is paying either way, and concentration on one provider is a risk rather than a cost. A number labelled saving beside either would not survive a finance lead asking one question, and it would discredit every other card on the screen
+
+### The four rules that are built
+
+| Rule | Kind | What it reports | Figure |
+|---|---|---|---|
+| Spend reached a provider without passing through the gateway | Business | Provider spend nobody has claimed, and the accounts it came from | Money already being spent, never called a saving |
+| Money spent on requests that failed | Technical | Failed requests and the share of the total they represent | Money that could stop being spent, and only when the spend on those requests is actually known |
+| Every provider dollar goes through one provider | Business | The provider and its share | None. A risk, not a cost |
+| A budget no longer matches what is actually spent | Business | The limit and what was spent against it | None. Acting changes a limit, not spend |
+
+### The four rules that are deferred, and why
+
+Unused seats to reclaim needs tool usage to know a seat is unused, and a person with no gateway traffic may still be using the tool daily; recommending someone lose their licence on that basis would be wrong. A cheaper model that performs well enough needs a judgment about output quality that cost data cannot make, and a swap made on price alone can quietly degrade a customer's product. Committed pricing needs contract terms nobody has given us. Caching that is available but unused needs to know caching is available for that model and provider, which the data does not say, and the existing Cost Optimization page already covers caching as a deep dive
 
 ## What the product must handle
 
@@ -326,6 +347,8 @@ Phase 3 is complete as of 2026-09-29, and the completion test was run rather tha
 **Phase 4, users and user tools.** The research report on user tool APIs comes first. Then User Directory, seats, the Claude Code and Copilot connectors, and the Tools and Seats tabs on users. Done when a user's total cost includes their tool usage and seats
 
 **Phase 5, recommendations.** The first business and technical rules with evidence and savings. Done when recommendations show real savings figures from a customer's own data
+
+Phase 5's test is not met, and the gap is worth stating plainly rather than reading the four built rules as completion. Two of the four rules carry a figure at all. One of those two, spend that escaped the gateway, is money already being spent and is not a saving under the rule above, so exactly one rule can ever produce a savings figure, and it does so only when the spend attached to failed requests is known. The only real data any of this runs against is one provider's, since five of the six provider connectors have still never seen a real account. So the rules and the screen are built and verified against the data that exists, and the phase stays open until a customer's own data can produce a savings figure
 
 **Phase 6, reports, alerts and forecasts.** Scheduled reports, team statements, exports, anomaly alerts and forecasts
 
