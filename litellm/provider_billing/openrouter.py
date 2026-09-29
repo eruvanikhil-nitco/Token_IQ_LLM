@@ -11,9 +11,9 @@ from __future__ import annotations
 
 from collections.abc import Awaitable, Callable, Mapping, Sequence
 from datetime import datetime
-from decimal import Decimal, InvalidOperation
 from typing import Any, Final
 
+from litellm.provider_billing.cloud_rows import decimal_or_none, decoded_object
 from litellm.types.proxy.provider_billing import (
     Fetched,
     FetchFailed,
@@ -33,16 +33,6 @@ customer's real traffic. A backlog is worked through over several runs rather th
 _LOOKBACK_DAYS: Final = 29
 """OpenRouter keeps 30 days. Asking for the last 29 leaves a day of margin for a run that
 is late or slow, without reaching for history that has already expired."""
-
-
-def _decimal(value: object) -> Decimal | None:
-    """json gives a float; str() keeps the digits the provider actually sent."""
-    if not isinstance(value, (int, float, str)):
-        return None
-    try:
-        return Decimal(str(value))
-    except InvalidOperation:
-        return None
 
 
 def _int(value: object) -> int | None:
@@ -110,11 +100,11 @@ class OpenRouterBillingConnector:
             if status != 200:
                 return FetchFailed(reason=f"openrouter returned {status}", retryable=True)
 
-            payload = response.json()
-            data = payload.get("data") if isinstance(payload, Mapping) else None
+            payload = decoded_object(response.text)
+            data = payload.get("data") if payload is not None else None
             if not isinstance(data, Mapping):
                 continue
-            cost = _decimal(data.get("total_cost"))
+            cost = decimal_or_none(data.get("total_cost"))
             if cost is None:
                 continue
 

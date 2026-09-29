@@ -56,6 +56,22 @@ def exact_json(text: str) -> object:
     return json.loads(text, parse_float=Decimal)
 
 
+def decoded_object(text: str) -> Mapping[str, object] | None:
+    """A response body as a JSON object with its numbers intact, or None when it is neither.
+
+    Two failures collapse into one return here, because every caller treats them the same way.
+    A body that is not JSON at all is ordinary: a vendor serving a maintenance page, a proxy
+    returning an HTML error, a gateway truncating a response. `json.loads` raises on all three,
+    and a connector that raises stops the whole run, which is the one thing the runner cannot
+    survive. A body that is JSON but not an object is the same story a line later.
+    """
+    try:
+        payload: Final = exact_json(text)
+    except ValueError:
+        return None
+    return payload if isinstance(payload, Mapping) else None
+
+
 def utc_day_start(value: datetime) -> datetime:
     """The UTC midnight this instant's day begins at.
 

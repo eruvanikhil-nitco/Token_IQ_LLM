@@ -61,7 +61,7 @@ from litellm.provider_billing.cloud_rows import (
     currency_or_default,
     day_from_iso,
     decimal_or_none,
-    exact_json,
+    decoded_object,
     json_safe_row,
     utc_day_start,
 )
@@ -251,8 +251,8 @@ class VertexBillingConnector:
             if status != 200:
                 return FetchFailed(reason=f"vertex ai bigquery returned {status}", retryable=True)
 
-            payload = exact_json(response.text)
-            if not isinstance(payload, Mapping):
+            payload = decoded_object(response.text)
+            if payload is None:
                 return FetchFailed(reason="vertex ai bigquery returned a body that is not an object", retryable=True)
             if payload.get("jobComplete") is False:
                 return FetchFailed(reason="vertex ai bigquery job did not complete synchronously", retryable=True)

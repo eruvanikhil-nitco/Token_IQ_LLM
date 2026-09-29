@@ -41,7 +41,7 @@ from litellm.provider_billing.cloud_rows import (
     currency_or_default,
     day_from_iso,
     decimal_or_none,
-    exact_json,
+    decoded_object,
     json_safe_row,
     utc_day_start,
 )
@@ -208,8 +208,8 @@ class AzureBillingConnector:
             if failure is not None:
                 return Fetched(facts=tuple(facts), watermark=until) if facts and failure.retryable else failure
 
-            payload = exact_json(response.text)
-            if not isinstance(payload, Mapping):
+            payload = decoded_object(response.text)
+            if payload is None:
                 return FetchFailed(reason="azure returned a body that is not an object", retryable=True)
 
             properties = payload.get("properties")

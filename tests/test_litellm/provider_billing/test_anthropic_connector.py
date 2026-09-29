@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock
@@ -11,11 +13,13 @@ CREDENTIAL = {"api_key": "sk-ant-admin01-test"}
 
 
 def _http(*payloads: dict, status: int = 200) -> MagicMock:
+    """Serves the body as text, the way a real response does, so the connector's own decoding
+    runs. Handing it a pre-parsed dict would skip the step where money becomes a Decimal."""
     responses = []
     for payload in payloads:
         response = MagicMock()
         response.status_code = status
-        response.json = MagicMock(return_value=payload)
+        response.text = json.dumps(payload)
         responses.append(response)
     client = MagicMock()
     client.get = AsyncMock(side_effect=responses)

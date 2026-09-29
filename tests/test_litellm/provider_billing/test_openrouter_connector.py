@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock
@@ -11,9 +12,11 @@ CREDENTIAL = {"api_key": "sk-or-test"}
 
 
 def _http(payload: dict, status: int = 200) -> MagicMock:
+    """Serves the body as text, the way a real response does, so the connector's own decoding
+    runs. Handing it a pre-parsed dict would skip the step where money becomes a Decimal."""
     response = MagicMock()
     response.status_code = status
-    response.json = MagicMock(return_value=payload)
+    response.text = json.dumps(payload)
     client = MagicMock()
     client.get = AsyncMock(return_value=response)
     return client
@@ -70,8 +73,8 @@ async def test_a_generation_becomes_a_reconciled_fact():
 
 @pytest.mark.asyncio
 async def test_the_cost_survives_as_a_decimal_from_the_json():
-    """json.loads hands back a float. Going through str keeps the digits OpenRouter sent
-    rather than the nearest binary approximation of them."""
+    """The body is decoded with the JSON numbers kept exact, so the cost carries the digits
+    OpenRouter sent rather than the nearest binary approximation of them."""
     from litellm.types.proxy.provider_billing import Fetched
 
     result = await _fetch(["gen-2"], _http({"data": {"id": "gen-2", "total_cost": 0.000001234567}}))
@@ -200,7 +203,7 @@ async def test_each_fact_keeps_the_generation_body_openrouter_sent():
     body = {"id": "gen-1", "total_cost": "0.004", "model": "openai/gpt-4o"}
     response = MagicMock()
     response.status_code = 200
-    response.json = MagicMock(return_value={"data": body})
+    response.text = json.dumps({"data": body})
     client = MagicMock()
     client.get = AsyncMock(return_value=response)
 

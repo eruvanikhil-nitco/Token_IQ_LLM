@@ -13,10 +13,11 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
 from datetime import datetime, timezone
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 from types import MappingProxyType
 from typing import Any, Final, TypeAlias
 
+from litellm.provider_billing.cloud_rows import decimal_or_none, decoded_object
 from litellm.types.proxy.provider_billing import (
     Fetched,
     FetchFailed,
@@ -43,15 +44,6 @@ UNATTRIBUTED: Final = "unattributed"
 """Web search and code execution charges carry no model."""
 
 
-def _decimal(value: object) -> Decimal | None:
-    if not isinstance(value, (int, float, str)):
-        return None
-    try:
-        return Decimal(str(value))
-    except InvalidOperation:
-        return None
-
-
 def _day(bucket: Mapping[str, object]) -> datetime | None:
     raw: Final = bucket.get("starting_at")
     if not isinstance(raw, str):
@@ -69,7 +61,7 @@ def _row(item: object) -> _Row | None:
     """The model, dollar amount, and raw row for one token-type line, or None if unusable."""
     if not isinstance(item, Mapping):
         return None
-    cents: Final = _decimal(item.get("amount"))
+    cents: Final = decimal_or_none(item.get("amount"))
     if cents is None:
         return None
     model: Final = item.get("model")
@@ -164,8 +156,8 @@ class AnthropicBillingConnector:
             if status != 200:
                 return FetchFailed(reason=f"anthropic returned {status}", retryable=True)
 
-            payload = response.json()
-            if not isinstance(payload, Mapping):
+            payload = decoded_object(response.text)
+            if payload is None:
                 return FetchFailed(reason="anthropic returned a body that is not an object", retryable=True)
 
             buckets = payload.get("data")

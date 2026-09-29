@@ -12,9 +12,9 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
 from datetime import datetime, timezone
-from decimal import Decimal, InvalidOperation
 from typing import Any, Final
 
+from litellm.provider_billing.cloud_rows import decimal_or_none, decoded_object
 from litellm.types.proxy.provider_billing import (
     Fetched,
     FetchFailed,
@@ -33,15 +33,6 @@ MAX_PAGES_PER_RUN: Final = 12
 """A stop, so a paging bug cannot spin against the provider forever."""
 
 UNATTRIBUTED: Final = "unattributed"
-
-
-def _decimal(value: object) -> Decimal | None:
-    if not isinstance(value, (int, float, str)):
-        return None
-    try:
-        return Decimal(str(value))
-    except InvalidOperation:
-        return None
 
 
 def _day(bucket: Mapping[str, object]) -> datetime | None:
@@ -65,7 +56,7 @@ def _facts_from(buckets: Sequence[object], credential_name: str) -> tuple[Provid
             if not isinstance(item, Mapping):
                 continue
             amount = item.get("amount")
-            dollars = _decimal(amount.get("value")) if isinstance(amount, Mapping) else None
+            dollars = decimal_or_none(amount.get("value")) if isinstance(amount, Mapping) else None
             if dollars is None:
                 continue
             raw_line_item = item.get("line_item")
@@ -132,8 +123,8 @@ class OpenAIBillingConnector:
             if status != 200:
                 return FetchFailed(reason=f"openai returned {status}", retryable=True)
 
-            payload = response.json()
-            if not isinstance(payload, Mapping):
+            payload = decoded_object(response.text)
+            if payload is None:
                 return FetchFailed(reason="openai returned a body that is not an object", retryable=True)
 
             buckets = payload.get("data")
