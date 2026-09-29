@@ -1,0 +1,79 @@
+"use client";
+
+import { useState } from "react";
+
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BILLING_PROVIDERS } from "@/components/model_add/credential_form_helpers";
+import CostLedgerView from "./CostLedgerView";
+import InvoicesView from "./InvoicesView";
+
+/** The month that has most likely finished billing, which is the one a reader wants first. */
+const defaultPeriod = (): { start: string; end: string } => {
+  const now = new Date();
+  const first = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  const last = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0));
+  return { start: first.toISOString().slice(0, 10), end: last.toISOString().slice(0, 10) };
+};
+
+export default function LedgerTabs() {
+  const period = defaultPeriod();
+  const [provider, setProvider] = useState<string>(BILLING_PROVIDERS[0].value);
+  const [periodStart, setPeriodStart] = useState(period.start);
+  const [periodEnd, setPeriodEnd] = useState(period.end);
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-wrap items-end gap-3">
+        <label className="flex flex-col gap-1 text-sm">
+          <span>Provider</span>
+          <select
+            aria-label="Provider"
+            className="h-9 rounded-md border bg-background px-2"
+            value={provider}
+            onChange={(event) => setProvider(event.target.value)}
+          >
+            {BILLING_PROVIDERS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex flex-col gap-1 text-sm">
+          <span>Period start</span>
+          <input
+            aria-label="Period start"
+            type="date"
+            className="h-9 rounded-md border bg-background px-2"
+            value={periodStart}
+            onChange={(event) => setPeriodStart(event.target.value)}
+          />
+        </label>
+        <label className="flex flex-col gap-1 text-sm">
+          <span>Period end</span>
+          <input
+            aria-label="Period end"
+            type="date"
+            className="h-9 rounded-md border bg-background px-2"
+            value={periodEnd}
+            onChange={(event) => setPeriodEnd(event.target.value)}
+          />
+        </label>
+      </div>
+
+      <Tabs defaultValue="ledger">
+        <TabsList>
+          <TabsTrigger value="ledger">Cost Ledger</TabsTrigger>
+          <TabsTrigger value="invoices">Invoices</TabsTrigger>
+        </TabsList>
+        {/* keepMounted: switching tabs must not discard a half-typed bill or reset the period */}
+        <TabsContent value="ledger" className="pt-6" keepMounted>
+          <CostLedgerView provider={provider} periodStart={periodStart} periodEnd={periodEnd} />
+        </TabsContent>
+        <TabsContent value="invoices" className="pt-6" keepMounted>
+          <InvoicesView provider={provider} periodStart={periodStart} periodEnd={periodEnd} />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}

@@ -8522,3 +8522,135 @@ export const combinedExplorerCall = async (
     throw error;
   }
 };
+
+export type AdjustmentKind = "credit" | "discount" | "tax" | "commitment";
+
+export type ReconciliationOutcome = "balanced" | "unexplained_difference" | "currency_mismatch" | "no_invoice";
+
+export interface Adjustment {
+  kind: AdjustmentKind;
+  amount: string;
+  note: string | null;
+}
+
+/** Every amount is a string: these are compared against a bill a person read, so rounding would invent a gap. */
+export interface Invoice {
+  invoice_id: string;
+  provider: string;
+  period_start: string;
+  period_end: string;
+  currency: string;
+  total: string;
+  adjustments: Adjustment[];
+  note: string | null;
+}
+
+export interface InvoiceListResponse {
+  invoices: Invoice[];
+}
+
+export interface LedgerLine {
+  day: string;
+  provider: string;
+  display_name: string;
+  credential_name: string;
+  model: string | null;
+  evidence: "reconciled" | "priced" | "allocated";
+  currency: string;
+  amount: string;
+  owner_type: string | null;
+  owner_id: string | null;
+}
+
+export interface LedgerLinesResponse {
+  lines: LedgerLine[];
+  next_cursor: string | null;
+  totals_by_currency: Record<string, string>;
+}
+
+export interface ReconciliationResponse {
+  provider: string;
+  period_start: string;
+  period_end: string;
+  outcome: ReconciliationOutcome;
+  currency: string | null;
+  invoice_total: string | null;
+  ledger_total: string | null;
+  explained: Adjustment[];
+  explained_total: string;
+  unexplained: string;
+  note: string;
+}
+
+export const ledgerLinesCall = async (
+  accessToken: string,
+  provider: string | null,
+  periodStart: string,
+  periodEnd: string,
+): Promise<LedgerLinesResponse> => {
+  const providerParam = provider === null ? "" : `provider=${encodeURIComponent(provider)}&`;
+  try {
+    return await apiClient.get<LedgerLinesResponse>(
+      `/ledger/lines?${providerParam}period_start=${periodStart}&period_end=${periodEnd}`,
+      { accessToken },
+    );
+  } catch (error) {
+    console.error("Failed to read the cost ledger:", error);
+    throw error;
+  }
+};
+
+export const invoicesCall = async (accessToken: string): Promise<InvoiceListResponse> => {
+  try {
+    return await apiClient.get<InvoiceListResponse>("/ledger/invoices", { accessToken });
+  } catch (error) {
+    console.error("Failed to read the invoices:", error);
+    throw error;
+  }
+};
+
+export const upsertInvoiceCall = async (
+  accessToken: string,
+  invoice: {
+    provider: string;
+    period_start: string;
+    period_end: string;
+    currency: string;
+    total: string;
+    adjustments: Adjustment[];
+    note?: string | null;
+  },
+): Promise<Invoice> => {
+  try {
+    return await apiClient.post<Invoice>("/ledger/invoices", invoice, { accessToken });
+  } catch (error) {
+    console.error("Failed to save the invoice:", error);
+    throw error;
+  }
+};
+
+export const deleteInvoiceCall = async (accessToken: string, invoiceId: string): Promise<void> => {
+  try {
+    await apiClient.delete(`/ledger/invoices/${encodeURIComponent(invoiceId)}`, { accessToken });
+  } catch (error) {
+    console.error("Failed to delete the invoice:", error);
+    throw error;
+  }
+};
+
+export const reconciliationCall = async (
+  accessToken: string,
+  provider: string,
+  periodStart: string,
+  periodEnd: string,
+): Promise<ReconciliationResponse> => {
+  try {
+    return await apiClient.get<ReconciliationResponse>(
+      `/ledger/reconciliation?provider=${encodeURIComponent(provider)}&period_start=${periodStart}&period_end=${periodEnd}`,
+      { accessToken },
+    );
+  } catch (error) {
+    console.error("Failed to read the reconciliation:", error);
+    throw error;
+  }
+};

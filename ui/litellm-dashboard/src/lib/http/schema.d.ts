@@ -8221,6 +8221,90 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/ledger/invoices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Invoices
+         * @description Every bill an admin has entered, newest period first.
+         */
+        get: operations["list_invoices_ledger_invoices_get"];
+        put?: never;
+        /**
+         * Upsert Invoice
+         * @description Enter a bill, or correct the one already entered for that period.
+         */
+        post: operations["upsert_invoice_ledger_invoices_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ledger/invoices/{invoice_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Invoice
+         * @description Remove a bill, after which its period has nothing to reconcile against.
+         */
+        delete: operations["delete_invoice_ledger_invoices__invoice_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ledger/lines": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Ledger Lines
+         * @description Every cost line in the period, with its source, evidence level and owner.
+         */
+        get: operations["ledger_lines_ledger_lines_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ledger/reconciliation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Ledger Reconciliation
+         * @description What the bill says, what the ledger says, and what is left over.
+         */
+        get: operations["ledger_reconciliation_ledger_reconciliation_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/litellm/.well-known/litellm-ui-config": {
         parameters: {
             query?: never;
@@ -22972,6 +23056,18 @@ export interface components {
                 [key: string]: string;
             };
         };
+        /** AdjustmentBody */
+        AdjustmentBody: {
+            /** Amount */
+            amount: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "credit" | "discount" | "tax" | "commitment";
+            /** Note */
+            note?: string | null;
+        };
         /**
          * AgentCapabilities
          * @description Defines optional capabilities supported by an agent.
@@ -28357,6 +28453,64 @@ export interface components {
             /** Is Accepted */
             is_accepted: boolean;
         };
+        /**
+         * InvoiceBody
+         * @description What an admin sends after reading a bill.
+         *
+         *     `kind` is the literal type, so an adjustment nobody can name is refused by validation rather
+         *     than stored and then silently skipped on read.
+         */
+        InvoiceBody: {
+            /**
+             * Adjustments
+             * @default []
+             */
+            adjustments: components["schemas"]["AdjustmentBody"][];
+            /**
+             * Currency
+             * @default USD
+             */
+            currency: string;
+            /** Note */
+            note?: string | null;
+            /** Period End */
+            period_end: string;
+            /** Period Start */
+            period_start: string;
+            /** Provider */
+            provider: string;
+            /** Total */
+            total: string;
+        };
+        /** InvoiceDeletedResponse */
+        InvoiceDeletedResponse: {
+            /** Deleted */
+            deleted: boolean;
+        };
+        /** InvoiceListResponse */
+        InvoiceListResponse: {
+            /** Invoices */
+            invoices: components["schemas"]["InvoiceResponse"][];
+        };
+        /** InvoiceResponse */
+        InvoiceResponse: {
+            /** Adjustments */
+            adjustments: components["schemas"]["AdjustmentBody"][];
+            /** Currency */
+            currency: string;
+            /** Invoice Id */
+            invoice_id: string;
+            /** Note */
+            note: string | null;
+            /** Period End */
+            period_end: string;
+            /** Period Start */
+            period_start: string;
+            /** Provider */
+            provider: string;
+            /** Total */
+            total: string;
+        };
         /** JWTKeyMappingResponse */
         JWTKeyMappingResponse: {
             /**
@@ -28512,6 +28666,43 @@ export interface components {
             prompt_injection?: number;
         } & {
             [key: string]: unknown;
+        };
+        /** LedgerLineResponse */
+        LedgerLineResponse: {
+            /** Amount */
+            amount: string;
+            /** Credential Name */
+            credential_name: string;
+            /** Currency */
+            currency: string;
+            /** Day */
+            day: string;
+            /** Display Name */
+            display_name: string;
+            /**
+             * Evidence
+             * @enum {string}
+             */
+            evidence: "reconciled" | "priced" | "allocated";
+            /** Model */
+            model: string | null;
+            /** Owner Id */
+            owner_id: string | null;
+            /** Owner Type */
+            owner_type: string | null;
+            /** Provider */
+            provider: string;
+        };
+        /** LedgerLinesResponse */
+        LedgerLinesResponse: {
+            /** Lines */
+            lines: components["schemas"]["LedgerLineResponse"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+            /** Totals By Currency */
+            totals_by_currency: {
+                [key: string]: string;
+            };
         };
         /** ListAccessGroupsResponse */
         ListAccessGroupsResponse: {
@@ -34949,24 +35140,6 @@ export interface components {
             [key: string]: unknown;
         };
         /**
-         * ReconciliationResponse
-         * @description What we recorded against what the provider charged, over a window
-         */
-        ReconciliationResponse: {
-            /** Delta */
-            delta: string;
-            /** Our Total */
-            our_total: string;
-            /** Provider */
-            provider: string;
-            /** Rows */
-            rows: components["schemas"]["ReconciliationRow"][];
-            /** Their Total */
-            their_total: string;
-            /** Unmatched Our Rows */
-            unmatched_our_rows: number;
-        };
-        /**
          * ReconciliationRow
          * @description One request, priced twice
          */
@@ -39825,6 +39998,52 @@ export interface components {
             output_cost_per_token: number | null;
         } & {
             [key: string]: unknown;
+        };
+        /** ReconciliationResponse */
+        litellm__types__proxy__management_endpoints__ledger_endpoints__ReconciliationResponse: {
+            /** Currency */
+            currency: string | null;
+            /** Explained */
+            explained: components["schemas"]["AdjustmentBody"][];
+            /** Explained Total */
+            explained_total: string;
+            /** Invoice Total */
+            invoice_total: string | null;
+            /** Ledger Total */
+            ledger_total: string | null;
+            /** Note */
+            note: string;
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "balanced" | "unexplained_difference" | "currency_mismatch" | "no_invoice";
+            /** Period End */
+            period_end: string;
+            /** Period Start */
+            period_start: string;
+            /** Provider */
+            provider: string;
+            /** Unexplained */
+            unexplained: string;
+        };
+        /**
+         * ReconciliationResponse
+         * @description What we recorded against what the provider charged, over a window
+         */
+        litellm__types__proxy__management_endpoints__team_endpoints__ReconciliationResponse: {
+            /** Delta */
+            delta: string;
+            /** Our Total */
+            our_total: string;
+            /** Provider */
+            provider: string;
+            /** Rows */
+            rows: components["schemas"]["ReconciliationRow"][];
+            /** Their Total */
+            their_total: string;
+            /** Unmatched Our Rows */
+            unmatched_our_rows: number;
         };
         /** ModelInfo */
         litellm__types__router__ModelInfo: {
@@ -50891,6 +51110,165 @@ export interface operations {
             };
         };
     };
+    list_invoices_ledger_invoices_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvoiceListResponse"];
+                };
+            };
+        };
+    };
+    upsert_invoice_ledger_invoices_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InvoiceBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvoiceResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_invoice_ledger_invoices__invoice_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                invoice_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvoiceDeletedResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ledger_lines_ledger_lines_get: {
+        parameters: {
+            query: {
+                /** @description One provider, or every provider */
+                provider?: string | null;
+                /** @description First day of the period, as YYYY-MM-DD */
+                period_start: string;
+                /** @description Last day of the period, as YYYY-MM-DD */
+                period_end: string;
+                limit?: number;
+                /** @description Resume token from a previous page */
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LedgerLinesResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ledger_reconciliation_ledger_reconciliation_get: {
+        parameters: {
+            query: {
+                /** @description Which provider's bill to reconcile */
+                provider: string;
+                /** @description First day of the period, as YYYY-MM-DD */
+                period_start: string;
+                /** @description Last day of the period, as YYYY-MM-DD */
+                period_end: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["litellm__types__proxy__management_endpoints__ledger_endpoints__ReconciliationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_ui_config_litellm__well_known_litellm_ui_config_get: {
         parameters: {
             query?: never;
@@ -55899,7 +56277,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ReconciliationResponse"];
+                    "application/json": components["schemas"]["litellm__types__proxy__management_endpoints__team_endpoints__ReconciliationResponse"];
                 };
             };
             /** @description Validation Error */

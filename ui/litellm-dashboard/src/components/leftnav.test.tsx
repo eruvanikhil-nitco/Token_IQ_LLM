@@ -170,7 +170,7 @@ describe("Sidebar (leftnav)", () => {
     );
 
     expect(placements).toEqual({
-      ANALYTICS: ["new_usage", "usage", "cost-optimization", "logs"],
+      ANALYTICS: ["new_usage", "ledger", "usage", "cost-optimization", "logs"],
       ORGANISATION: ["teams", "projects", "users", "access-groups", "budgets", "attribution"],
       "DATA SOURCES": ["provider-apis", "llm-provider-credentials"],
       GATEWAY: ["api-keys", "providers", "models", "llm-playground", "transform-request"],

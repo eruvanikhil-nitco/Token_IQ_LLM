@@ -51,6 +51,7 @@ import {
   Users,
   Wallet,
   Waypoints,
+  BookOpen,
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -115,6 +116,13 @@ const menuGroups: MenuGroup[] = [
         icon: <BarChart3 {...ICON} />,
         roles: [...all_admin_roles, ...internalUserRoles],
         label: "Usage",
+      },
+      {
+        key: "ledger",
+        page: "ledger",
+        label: "Ledger",
+        icon: <BookOpen {...ICON} />,
+        roles: all_admin_roles,
       },
       {
         key: "usage",
