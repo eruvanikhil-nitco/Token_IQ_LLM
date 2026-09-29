@@ -146,3 +146,43 @@ async def test_an_unknown_dimension_cannot_reach_the_database_through_the_total_
     with pytest.raises(KeyError):
         await repo.total(dimension="salary", days=7)  # pyright: ignore[reportArgumentType]  # the point of the test
     assert db.last_sql == ""
+
+
+START: Final = __import__("datetime").datetime(2026, 9, 1, tzinfo=__import__("datetime").timezone.utc)
+END: Final = __import__("datetime").datetime(2026, 9, 30, tzinfo=__import__("datetime").timezone.utc)
+
+
+@pytest.mark.asyncio
+async def test_spend_comes_back_per_person_and_exact() -> None:
+    repo, db = _repo([{"key": "u-1", "gateway_cost": "0.30000000000000004"}])
+    spend: Final = await repo.by_user_for_period(period_start=START, period_end=END)
+    assert spend["u-1"] == Decimal("0.30000000000000004")
+    assert "::text" in db.last_sql
+
+
+@pytest.mark.asyncio
+async def test_the_period_is_bound_as_text_because_the_date_column_is_text() -> None:
+    repo, db = _repo([{"key": "u-1", "gateway_cost": "1"}])
+    await repo.by_user_for_period(period_start=START, period_end=END)
+    assert db.last_args == ("2026-09-01", "2026-09-30")
+    assert "d.date::date" not in db.last_sql
+
+
+@pytest.mark.asyncio
+async def test_a_row_with_no_person_is_left_out_rather_than_grouped_under_blank() -> None:
+    repo, _ = _repo([{"key": "", "gateway_cost": "5"}, {"key": "u-1", "gateway_cost": "5"}])
+    spend: Final = await repo.by_user_for_period(period_start=START, period_end=END)
+    assert tuple(spend) == ("u-1",)
+
+
+@pytest.mark.asyncio
+async def test_a_person_whose_amount_cannot_be_read_is_left_out_rather_than_zeroed() -> None:
+    repo, _ = _repo([{"key": "u-1", "gateway_cost": "not a number"}])
+    assert await repo.by_user_for_period(period_start=START, period_end=END) == {}
+
+
+@pytest.mark.asyncio
+async def test_the_per_person_read_uses_the_user_rollup_table() -> None:
+    repo, db = _repo([{"key": "u-1", "gateway_cost": "1"}])
+    await repo.by_user_for_period(period_start=START, period_end=END)
+    assert "LiteLLM_DailyUserSpend" in db.last_sql

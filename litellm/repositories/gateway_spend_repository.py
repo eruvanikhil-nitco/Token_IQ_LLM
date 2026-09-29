@@ -21,6 +21,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from datetime import datetime
 from decimal import Decimal, InvalidOperation
 from types import MappingProxyType
 from typing import Any, Final, Literal
@@ -114,6 +115,20 @@ def _slice_or_none(row: object) -> SpendSlice | None:
     return SpendSlice(key=key, gateway_cost=cost)
 
 
+_BY_USER_FOR_PERIOD_SQL: Final = (
+    "SELECT d.user_id AS key, SUM(d.spend)::numeric::text AS gateway_cost "
+    'FROM "LiteLLM_DailyUserSpend" d '
+    "WHERE d.date >= $1 AND d.date <= $2 "
+    "AND d.user_id IS NOT NULL AND d.user_id <> '' "
+    "GROUP BY 1"
+)
+"""Spend per person over a period with a start and an end, because a seat covers a period.
+
+The window is compared as text: `date` in this table is TEXT holding `YYYY-MM-DD`, not a date,
+and ISO dates sort in the same order they fall. Casting the column to `date` makes Postgres
+refuse the comparison outright, which is a defect no fake database can show."""
+
+
 class GatewaySpendRepository:
     def __init__(self, prisma_client: object) -> None:
         self._prisma_client = prisma_client
@@ -140,3 +155,23 @@ class GatewaySpendRepository:
         rows: Final[Sequence[Mapping[str, object]]] = await self._db.query_raw(statement, str(days))
         found: Final = _decimal_or_none(_read(rows[0], "total")) if rows else None
         return found if found is not None else Decimal(0)
+
+    async def by_user_for_period(self, *, period_start: datetime, period_end: datetime) -> Mapping[str, Decimal]:
+        """What each person's gateway traffic cost over the period, keyed by user id.
+
+        A row carrying no person is left out rather than grouped under a blank name: spend
+        nobody can be identified with tells a reader nothing, and giving it a blank owner would
+        put it in someone's column.
+        """
+        rows: Final[Sequence[Mapping[str, object]]] = await self._db.query_raw(
+            _BY_USER_FOR_PERIOD_SQL, period_start.date().isoformat(), period_end.date().isoformat()
+        )
+        return MappingProxyType(
+            {
+                str(key): amount
+                for row in rows
+                if isinstance(key := _read(row, "key"), str)
+                and key != ""
+                and (amount := _decimal_or_none(_read(row, "gateway_cost"))) is not None
+            }
+        )
