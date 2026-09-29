@@ -46,7 +46,7 @@ def user_costs(*, gateway_by_user: Mapping[str, Decimal], seats: Sequence[Seat],
     euros to ten dollars produces forty of nothing, and it would look like an answer.
     """
     in_currency: Final = tuple(s for s in seats if s.currency == currency)
-    people: Final = sorted(frozenset(gateway_by_user) | {s.user_id for s in in_currency})
+    people: Final = sorted(frozenset(gateway_by_user) | frozenset(s.user_id for s in in_currency))
 
     return tuple(
         _cost_for(user_id, gateway_by_user.get(user_id, Decimal(0)), in_currency, currency) for user_id in people
