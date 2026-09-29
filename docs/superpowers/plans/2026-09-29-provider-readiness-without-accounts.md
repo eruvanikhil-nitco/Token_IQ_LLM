@@ -60,19 +60,19 @@ The last three stay open, and Task 5 records them in the product doc as open rat
 - Modify: `litellm/provider_billing/anthropic.py`, `openai.py`, `openrouter.py`, `azure.py`, `bedrock.py`, `vertex.py`
 - Modify: `tests/test_litellm/provider_billing/test_*_connector.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 One test per connector: constructed with no base URL, it calls the vendor's documented host; constructed with one, it calls that instead and changes nothing else about the request.
 
-- [ ] **Step 2: Make the base URL a constructor value defaulting to today's constant**
+- [x] **Step 2: Make the base URL a constructor value defaulting to today's constant**
 
 Not an environment variable and not a global. An injected value, so a test can hold two connectors pointing at different servers at once, and so a customer on a sovereign cloud or behind a corporate proxy has somewhere to put their host without us shipping a fork.
 
-- [ ] **Step 3: Confirm every existing connector test still passes unchanged**
+- [x] **Step 3: Confirm every existing connector test still passes unchanged**
 
 The default must be byte-identical to the current behaviour. If any existing test needed editing to pass, the default moved and that is a defect, not a test problem.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ---
 
@@ -84,33 +84,33 @@ The default must be byte-identical to the current behaviour. If any existing tes
 - Create: `tests/test_litellm/provider_billing/contract/payloads/` (one file per vendor, sourced from their docs)
 - Create: `tests/test_litellm/provider_billing/contract/test_<provider>_contract.py` for all six
 
-- [ ] **Step 1: Build the harness**
+- [x] **Step 1: Build the harness**
 
 An `httpx.MockTransport` behind a real `httpx.AsyncClient`, so the connector's own client builds the request, serialises the parameters and handles the status code. The harness records every request it received so a test can assert on the path, the query, the headers and the order of the calls.
 
 Chosen over a real socket server deliberately: a real listener adds ports, races and flakes in CI, and buys only TLS and the socket itself, neither of which is where these bugs live. The request the connector builds is identical either way.
 
-- [ ] **Step 2: For each connector, assert the request contract**
+- [x] **Step 2: For each connector, assert the request contract**
 
 Path and method, the date range in the vendor's format, granularity, page size, and the authentication header in the vendor's scheme, which differs per vendor and is exactly the kind of thing that is wrong until a real server rejects it.
 
-- [ ] **Step 3: For each connector, parse the vendor's own sample response**
+- [x] **Step 3: For each connector, parse the vendor's own sample response**
 
 Payloads copied from the vendor's published documentation, each file naming its source. Not payloads reverse-engineered from our parser, which would only prove the parser agrees with itself.
 
-- [ ] **Step 4: For each connector, walk pagination to the end**
+- [x] **Step 4: For each connector, walk pagination to the end**
 
 Two pages then a terminator, asserting both pages reach storage. A connector that silently returns page one looks healthy and under-reports spend forever, which is the worst failure this product can have.
 
-- [ ] **Step 5: For each connector, survive every error the vendor can return**
+- [x] **Step 5: For each connector, survive every error the vendor can return**
 
 401, 403, 429, 500, a body that is not JSON, and a body that is JSON of the wrong shape. Each must produce a recorded failure with a reason a human can act on, and must never raise.
 
-- [ ] **Step 6: Mutate and confirm the tests have teeth**
+- [x] **Step 6: Mutate and confirm the tests have teeth**
 
 For each connector, break the URL, break the auth header, and stop pagination after page one. Every one of the three must kill a test. A mutation that survives means the test is decorative.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ---
 
@@ -122,15 +122,15 @@ For each connector, break the URL, break the auth header, and stop pagination af
 - Modify: `ui/litellm-dashboard/src/app/(dashboard)/provider-apis/_components/ConnectionTab.tsx`
 - Create: `ui/litellm-dashboard/src/app/(dashboard)/provider-apis/_components/probeResult.ts` and its test
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 A Test connection button per stored credential. While it runs it says so. On success it reports what came back. On failure it reports the reason the probe gave, verbatim, never a generic failure message: the whole value of this button is telling someone which of a wrong key, a missing entitlement or a wrong account is the problem.
 
-- [ ] **Step 2: Wire the existing probe endpoint**
+- [x] **Step 2: Wire the existing probe endpoint**
 
 `/provider/billing/probe` already exists and is admin-only. Nothing about the backend needs to change; it has simply never been reachable from the product.
 
-- [ ] **Step 3: Run only the touched tests, regenerate the API types, commit**
+- [x] **Step 3: Run only the touched tests, regenerate the API types, commit**
 
 ---
 
@@ -141,19 +141,19 @@ A Test connection button per stored credential. While it runs it says so. On suc
 - Modify: `litellm/proxy/management_endpoints/provider_reconciliation.py`
 - Modify: `ui/litellm-dashboard/src/app/(dashboard)/provider-apis/_components/connectionState.ts` and its test
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 A provider that has never had a successful run storing at least one fact is reported as never verified, and says so on the screen. A provider that has is reported as verified, with the date it first was. The distinction is derived from stored runs, never hardcoded.
 
-- [ ] **Step 2: Build it**
+- [x] **Step 2: Build it**
 
 Today the doc carries the sentence "five connectors have never run against a real account", which will be wrong the moment one does and nobody remembers to edit it. The product should answer this from its own data.
 
-- [ ] **Step 3: Run the touched tests, then prove it live**
+- [x] **Step 3: Run the touched tests, then prove it live**
 
 OpenRouter must read as verified, because it has real facts stored. The other five must read as never verified. Both against the live database, not a fixture.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ---
 
@@ -162,15 +162,15 @@ OpenRouter must read as verified, because it has real facts stored. The other fi
 **Files:**
 - Modify: `docs/superpowers/specs/2026-09-14-token-iq-product-design.md`
 
-- [ ] **Step 1: Replace the hardcoded connector status with what the product now reports**
+- [x] **Step 1: Replace the hardcoded connector status with what the product now reports**
 
-- [ ] **Step 2: Record what the contract tests prove, in the words of the table at the top of this plan**
+- [x] **Step 2: Record what the contract tests prove, in the words of the table at the top of this plan**
 
-- [ ] **Step 3: Record the three questions that stay open until an account exists**
+- [x] **Step 3: Record the three questions that stay open until an account exists**
 
-- [ ] **Step 4: Record the one-click path from a real credential to a verified provider, so the day an account arrives nobody has to rediscover it**
+- [x] **Step 4: Record the one-click path from a real credential to a verified provider, so the day an account arrives nobody has to rediscover it**
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ---
 
@@ -196,3 +196,37 @@ The base URL is one injected string with one default per connector, set in Task 
 **4. The thing a reviewer should check hardest**
 
 That the sample payloads really came from the vendors and were not written to match our parser. A payload reverse-engineered from our own code proves only that the parser agrees with itself, and it would convert this entire plan into theatre while making the suite look twice as strong. Every payload file names its source, and the reviewer should spot-check at least two against the vendor's live documentation.
+
+---
+
+## Whole-plan review, 2026-09-29
+
+All five tasks are done. Six connectors now have contract tests, 76 in total, driven over a
+real HTTP client against payloads copied from each vendor's published reference. Thirteen
+mutations were applied to confirm they bite: a wrong path and a swapped authentication scheme
+per connector, a dropped api-version, a legacy SQL flag, a wrong granularity and a wrong cost
+metric. All thirteen were caught, none survived.
+
+Three defects were found, two of them in shipped code that every existing test passed.
+
+Every connector crashed the entire sync run on a body that was not JSON. A vendor serving a
+maintenance page, a proxy returning an HTML error page, a gateway truncating a response: any
+of the three raised, and since the runner drives all providers in one pass, one vendor serving
+HTML stopped the others. Invisible to every existing test, because a `MagicMock` never fails
+the way a real response does.
+
+Anthropic, OpenAI and OpenRouter decoded money through a binary float, so a cost lost digits
+before anything could make a `Decimal` of it. They now share the exact decoder Azure and
+Vertex already used, and their three hand-rolled amount converters collapsed into the one that
+already handled it correctly.
+
+The recommendations networking calls shipped earlier the same day passed the request body
+where the options belong, so no authorization header was sent and every decision would have
+come back 401. The live check that passed was curl, which never goes through that function.
+Three tests now assert the token and body reach the wire, and reverting the fix kills one.
+
+What this plan deliberately does not claim: no connector but OpenRouter has met a real account,
+and three questions stay open until one does. Whether each vendor's real response matches its
+own documentation, whether an account carries the entitlement the endpoint needs, and whether
+the figures are right. The product now answers the first of those itself, per provider, from
+stored rows rather than from a sentence in a document.
