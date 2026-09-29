@@ -223,3 +223,28 @@ def test_each_fact_keeps_every_anthropic_row_that_fed_it():
             {"model": "claude-sonnet-4", "amount": "200", "token_type": "output"},
         ],
     }
+
+
+@pytest.mark.asyncio
+async def test_it_calls_the_host_anthropic_documents():
+    client = _http({"data": [], "has_more": False, "next_page": None})
+
+    await _fetch(client)
+
+    assert client.get.call_args.args[0] == "https://api.anthropic.com/v1/organizations/cost_report"
+
+
+@pytest.mark.asyncio
+async def test_a_deployment_can_point_the_connector_at_its_own_host():
+    """A customer on a sovereign cloud, behind a corporate proxy, or a test standing in for
+    Anthropic needs somewhere to put their host. Without this the only way to reach a
+    different endpoint is to fork the file."""
+    from litellm.provider_billing.anthropic import AnthropicBillingConnector
+
+    client = _http({"data": [], "has_more": False, "next_page": None})
+
+    await AnthropicBillingConnector(
+        http_client_factory=lambda: client, base_url="https://anthropic.internal.example"
+    ).fetch(since=NOW - timedelta(days=2), until=NOW, credential_name="acme", credential_values=CREDENTIAL)
+
+    assert client.get.call_args.args[0] == "https://anthropic.internal.example/v1/organizations/cost_report"

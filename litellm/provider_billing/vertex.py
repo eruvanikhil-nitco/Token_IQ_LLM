@@ -74,9 +74,11 @@ from litellm.types.proxy.provider_billing import (
     ProviderUsageFact,
 )
 
-QUERY_URL_TEMPLATE: Final = "https://bigquery.googleapis.com/bigquery/v2/projects/{project_id}/queries"
+DEFAULT_BASE_URL: Final = "https://bigquery.googleapis.com"
 
-RESULTS_URL_TEMPLATE: Final = "https://bigquery.googleapis.com/bigquery/v2/projects/{project_id}/queries/{job_id}"
+QUERY_PATH_TEMPLATE: Final = "/bigquery/v2/projects/{project_id}/queries"
+
+RESULTS_PATH_TEMPLATE: Final = "/bigquery/v2/projects/{project_id}/queries/{job_id}"
 
 DEFAULT_SERVICE_NAME: Final = "Vertex AI"
 
@@ -184,9 +186,11 @@ class VertexBillingConnector:
         self,
         http_client_factory: Callable[[], Any],  # any-ok: untyped httpx wrapper
         token_factory: BillingTokenFactory,
+        base_url: str = DEFAULT_BASE_URL,
     ) -> None:
         self._http_client_factory = http_client_factory
         self._token_factory = token_factory
+        self._base_url = base_url.rstrip("/")
 
     @property
     def provider(self) -> str:
@@ -228,11 +232,13 @@ class VertexBillingConnector:
         for page_index in range(MAX_PAGES_PER_RUN):
             if page_index == 0:
                 response = await client.post(
-                    QUERY_URL_TEMPLATE.format(project_id=project_id), json=body, headers=headers
+                    self._base_url + QUERY_PATH_TEMPLATE.format(project_id=project_id),
+                    json=body,
+                    headers=headers,
                 )
             else:
                 response = await client.get(
-                    RESULTS_URL_TEMPLATE.format(project_id=project_id, job_id=state["job_id"]),
+                    self._base_url + RESULTS_PATH_TEMPLATE.format(project_id=project_id, job_id=state["job_id"]),
                     params=MappingProxyType({"pageToken": state["page_token"]}),
                     headers=headers,
                 )

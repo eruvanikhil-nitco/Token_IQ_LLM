@@ -25,7 +25,9 @@ from litellm.types.proxy.provider_billing import (
     ProviderUsageFact,
 )
 
-COST_REPORT_URL: Final = "https://api.anthropic.com/v1/organizations/cost_report"
+DEFAULT_BASE_URL: Final = "https://api.anthropic.com"
+
+COST_REPORT_PATH: Final = "/v1/organizations/cost_report"
 
 ANTHROPIC_VERSION: Final = "2023-06-01"
 
@@ -117,8 +119,13 @@ def _facts_from(buckets: Sequence[object], credential_name: str) -> tuple[Provid
 
 
 class AnthropicBillingConnector:
-    def __init__(self, http_client_factory: Callable[[], Any]) -> None:  # any-ok: untyped httpx wrapper
+    def __init__(
+        self,
+        http_client_factory: Callable[[], Any],  # any-ok: untyped httpx wrapper
+        base_url: str = DEFAULT_BASE_URL,
+    ) -> None:
         self._http_client_factory = http_client_factory
+        self._cost_report_url = f"{base_url.rstrip('/')}{COST_REPORT_PATH}"
 
     @property
     def provider(self) -> str:
@@ -148,7 +155,7 @@ class AnthropicBillingConnector:
 
         facts: list[ProviderUsageFact] = []  # mutable-ok: accumulated across pages
         for _ in range(MAX_PAGES_PER_RUN):
-            response = await client.get(COST_REPORT_URL, params=dict(params), headers=headers)
+            response = await client.get(self._cost_report_url, params=dict(params), headers=headers)
             status: Final = getattr(response, "status_code", 0)
             if status == 429:
                 return FetchFailed(reason="anthropic rate limited this key", retryable=True)

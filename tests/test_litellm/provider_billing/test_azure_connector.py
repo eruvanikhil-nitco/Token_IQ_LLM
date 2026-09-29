@@ -384,3 +384,36 @@ async def test_an_unparseable_day_is_dropped_rather_than_filed_under_today():
     result = await _fetch(_http(_body(_row(1.5, day="not-a-date"))))
 
     assert result.facts == ()
+
+
+@pytest.mark.asyncio
+async def test_it_calls_the_host_azure_documents():
+    client = _http(_body())
+
+    await _fetch(client)
+
+    assert client.post.call_args.args[0].startswith(
+        "https://management.azure.com/subscriptions/sub-123/providers/Microsoft.CostManagement/query"
+    )
+
+
+@pytest.mark.asyncio
+async def test_a_sovereign_cloud_can_point_the_connector_at_its_own_host():
+    """Azure Government and Azure China serve Cost Management from different hosts entirely,
+    so a hardcoded commercial host means those customers cannot connect at all."""
+    from litellm.provider_billing.azure import AzureBillingConnector
+
+    client = _http(_body())
+
+    async def token_factory(_name, _values):
+        return "entra-token"
+
+    await AzureBillingConnector(
+        http_client_factory=lambda: client,
+        token_factory=token_factory,
+        base_url="https://management.usgovcloudapi.net",
+    ).fetch(since=NOW - timedelta(days=7), until=NOW, credential_name="azure-prod", credential_values=CREDENTIAL)
+
+    assert client.post.call_args.args[0].startswith(
+        "https://management.usgovcloudapi.net/subscriptions/sub-123/providers/Microsoft.CostManagement/query"
+    )

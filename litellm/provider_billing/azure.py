@@ -54,9 +54,10 @@ from litellm.types.proxy.provider_billing import (
     ProviderUsageFact,
 )
 
-QUERY_URL_TEMPLATE: Final = (
-    "https://management.azure.com/subscriptions/{subscription_id}/providers/Microsoft.CostManagement/query"
-    "?api-version=2025-03-01"
+DEFAULT_BASE_URL: Final = "https://management.azure.com"
+
+QUERY_PATH_TEMPLATE: Final = (
+    "/subscriptions/{subscription_id}/providers/Microsoft.CostManagement/query?api-version=2025-03-01"
 )
 
 DEFAULT_SERVICE_NAME: Final = "Cognitive Services"
@@ -166,9 +167,11 @@ class AzureBillingConnector:
         self,
         http_client_factory: Callable[[], Any],  # any-ok: untyped httpx wrapper
         token_factory: BillingTokenFactory,
+        base_url: str = DEFAULT_BASE_URL,
     ) -> None:
         self._http_client_factory = http_client_factory
         self._token_factory = token_factory
+        self._base_url = base_url.rstrip("/")
 
     @property
     def provider(self) -> str:
@@ -194,7 +197,7 @@ class AzureBillingConnector:
         headers: Final = {"Authorization": f"Bearer {token}"}
         body: Final = _query_body(since, until, credential_values.get("service_name") or DEFAULT_SERVICE_NAME)
         target: dict[str, str] = {  # mutable-ok: nextLink advances the request target across pages
-            "url": QUERY_URL_TEMPLATE.format(subscription_id=subscription_id)
+            "url": self._base_url + QUERY_PATH_TEMPLATE.format(subscription_id=subscription_id)
         }
 
         facts: list[ProviderUsageFact] = []  # mutable-ok: accumulated across pages

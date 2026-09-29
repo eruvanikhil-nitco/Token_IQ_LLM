@@ -23,7 +23,9 @@ from litellm.types.proxy.provider_billing import (
     ProviderUsageFact,
 )
 
-COSTS_URL: Final = "https://api.openai.com/v1/organization/costs"
+DEFAULT_BASE_URL: Final = "https://api.openai.com"
+
+COSTS_PATH: Final = "/v1/organization/costs"
 
 MAX_BUCKETS_PER_PAGE: Final = 31
 
@@ -85,8 +87,13 @@ def _facts_from(buckets: Sequence[object], credential_name: str) -> tuple[Provid
 
 
 class OpenAIBillingConnector:
-    def __init__(self, http_client_factory: Callable[[], Any]) -> None:  # any-ok: untyped httpx wrapper
+    def __init__(
+        self,
+        http_client_factory: Callable[[], Any],  # any-ok: untyped httpx wrapper
+        base_url: str = DEFAULT_BASE_URL,
+    ) -> None:
         self._http_client_factory = http_client_factory
+        self._costs_url = f"{base_url.rstrip('/')}{COSTS_PATH}"
 
     @property
     def provider(self) -> str:
@@ -116,7 +123,7 @@ class OpenAIBillingConnector:
 
         facts: list[ProviderUsageFact] = []  # mutable-ok: accumulated across pages
         for _ in range(MAX_PAGES_PER_RUN):
-            response = await client.get(COSTS_URL, params=dict(params), headers=headers)
+            response = await client.get(self._costs_url, params=dict(params), headers=headers)
             status: Final = getattr(response, "status_code", 0)
             if status == 429:
                 return FetchFailed(reason="openai rate limited this key", retryable=True)

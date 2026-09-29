@@ -217,3 +217,35 @@ async def test_each_fact_keeps_the_generation_body_openrouter_sent():
     )
 
     assert result.facts[0].raw == body
+
+
+@pytest.mark.asyncio
+async def test_it_calls_the_host_openrouter_documents():
+    client = _http({"data": {"id": "gen-1", "total_cost": 0.001}})
+
+    await _fetch(["gen-1"], client)
+
+    assert client.get.call_args.args[0] == "https://openrouter.ai/api/v1/generation"
+
+
+@pytest.mark.asyncio
+async def test_a_deployment_can_point_the_connector_at_its_own_host():
+    """A customer behind a proxy, or a test standing in for OpenRouter, needs somewhere to
+    put their host rather than forking the file."""
+    from litellm.provider_billing.openrouter import OpenRouterBillingConnector
+
+    client = _http({"data": {"id": "gen-1", "total_cost": 0.001}})
+
+    async def unpriced() -> list[str]:
+        return ["gen-1"]
+
+    connector = OpenRouterBillingConnector(
+        unpriced_request_ids=unpriced,
+        http_client_factory=lambda: client,
+        base_url="https://openrouter.internal.example",
+    )
+    await connector.fetch(
+        since=NOW - timedelta(days=1), until=NOW, credential_name="acme", credential_values=CREDENTIAL
+    )
+
+    assert client.get.call_args.args[0] == "https://openrouter.internal.example/api/v1/generation"

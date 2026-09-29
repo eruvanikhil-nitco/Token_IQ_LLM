@@ -22,7 +22,9 @@ from litellm.types.proxy.provider_billing import (
     ProviderUsageFact,
 )
 
-GENERATION_URL: Final = "https://openrouter.ai/api/v1/generation"
+DEFAULT_BASE_URL: Final = "https://openrouter.ai"
+
+GENERATION_PATH: Final = "/api/v1/generation"
 
 MAX_LOOKUPS_PER_RUN: Final = 100
 """One HTTP call prices one request, against a per-key rate limit shared with the
@@ -68,9 +70,11 @@ class OpenRouterBillingConnector:
         self,
         unpriced_request_ids: Callable[[], Awaitable[Sequence[str]]],
         http_client_factory: Callable[[], Any],  # any-ok: the proxy's httpx wrapper is untyped
+        base_url: str = DEFAULT_BASE_URL,
     ) -> None:
         self._unpriced_request_ids = unpriced_request_ids
         self._http_client_factory = http_client_factory
+        self._generation_url = f"{base_url.rstrip('/')}{GENERATION_PATH}"
 
     @property
     def provider(self) -> str:
@@ -97,7 +101,7 @@ class OpenRouterBillingConnector:
 
         facts: list[ProviderUsageFact] = []  # mutable-ok: accumulated across awaits in a loop
         for generation_id in pending:
-            response = await client.get(GENERATION_URL, params={"id": generation_id}, headers=headers)
+            response = await client.get(self._generation_url, params={"id": generation_id}, headers=headers)
             status: Final = getattr(response, "status_code", 0)
             if status == 429:
                 return FetchFailed(reason="openrouter rate limited this key", retryable=True)
@@ -158,8 +162,6 @@ def build_unpriced_openrouter_lookup(prisma_client: Any) -> Callable[[], Awaitab
             """,
             str(_LOOKBACK_DAYS),
         )
-        return tuple(
-            found for row in rows if isinstance(found := row.get("request_id"), str)
-        )
+        return tuple(found for row in rows if isinstance(found := row.get("request_id"), str))
 
     return unpriced

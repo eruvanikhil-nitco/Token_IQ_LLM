@@ -527,3 +527,37 @@ async def test_an_unparseable_day_is_dropped_rather_than_filed_under_today():
     result = await _fetch(client)
 
     assert result.facts == ()
+
+
+@pytest.mark.asyncio
+async def test_it_calls_the_host_google_documents():
+    client = _http_single_page(_body(_cost_row()))
+
+    await _fetch(client)
+
+    expected = "https://bigquery.googleapis.com/bigquery/v2/projects/billing-proj/queries"
+    assert client.post.call_args.args[0] == expected
+
+
+@pytest.mark.asyncio
+async def test_a_deployment_can_point_the_connector_at_its_own_host():
+    """A customer behind a proxy, or a test standing in for BigQuery, needs somewhere to put
+    their host rather than forking the file."""
+    from litellm.provider_billing.vertex import VertexBillingConnector
+
+    client = _http_single_page(_body(_cost_row()))
+
+    async def token_factory(_name, _values):
+        return "google-token"
+
+    connector = VertexBillingConnector(
+        http_client_factory=lambda: client,
+        token_factory=token_factory,
+        base_url="https://bigquery.internal.example",
+    )
+    await connector.fetch(
+        since=NOW - timedelta(days=7), until=NOW, credential_name="vertex-prod", credential_values=CREDENTIAL
+    )
+
+    expected = "https://bigquery.internal.example/bigquery/v2/projects/billing-proj/queries"
+    assert client.post.call_args.args[0] == expected

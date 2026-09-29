@@ -204,3 +204,27 @@ def test_two_openai_accounts_do_not_share_a_fact_key():
     staging = _facts_from(bucket, "staging")
 
     assert prod[0].fact_key != staging[0].fact_key
+
+
+@pytest.mark.asyncio
+async def test_it_calls_the_host_openai_documents():
+    client = _http(_page())
+
+    await _fetch(client)
+
+    assert client.get.call_args.args[0] == "https://api.openai.com/v1/organization/costs"
+
+
+@pytest.mark.asyncio
+async def test_a_deployment_can_point_the_connector_at_its_own_host():
+    """A customer behind a gateway or proxy, or a test standing in for OpenAI, needs
+    somewhere to put their host rather than forking the file."""
+    from litellm.provider_billing.openai import OpenAIBillingConnector
+
+    client = _http(_page())
+
+    await OpenAIBillingConnector(http_client_factory=lambda: client, base_url="https://openai.internal.example").fetch(
+        since=NOW - timedelta(days=2), until=NOW, credential_name="acme", credential_values=CREDENTIAL
+    )
+
+    assert client.get.call_args.args[0] == "https://openai.internal.example/v1/organization/costs"
