@@ -89,22 +89,22 @@ customer, so it appears on no provider bill we read.
 - Create: `tests/test_litellm/tool_usage/test_tool_usage_types.py`
 - Modify: the three Prisma schema copies, plus a migration
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 A fact carries the tool, the person's email as the tool reported it, the day, the cost, the
 currency and whether that cost is already counted on a provider bill. A fact that claims an
 amount with no currency is refused at construction, as the recommendation card is.
 
-- [ ] **Step 2: Define the type and the connector protocol**
+- [x] **Step 2: Define the type and the connector protocol**
 
 `ToolUsageFact` and a `ToolConnector` protocol matching `BillingConnector`: same never-raise
 contract, same tagged-union result, so the runner that already exists can drive both.
 
-- [ ] **Step 3: Add the table and apply the migration**
+- [x] **Step 3: Add the table and apply the migration**
 
 Schema only. A unique key per tool, person and day so a refetch overwrites rather than doubles.
 
-- [ ] **Step 4: Run the tests, mutate each guard, commit**
+- [x] **Step 4: Run the tests, mutate each guard, commit**
 
 ---
 
@@ -115,25 +115,25 @@ Schema only. A unique key per tool, person and day so a refetch overwrites rathe
 - Create: `tests/test_litellm/tool_usage/test_claude_code_connector.py`
 - Create: `tests/test_litellm/tool_usage/contract/test_claude_code_contract.py`
 
-- [ ] **Step 1: Write the failing contract test**
+- [x] **Step 1: Write the failing contract test**
 
 Driven over a real HTTP client against the example response printed on Anthropic's own
 reference page. It pins the path, the `X-Api-Key` and version headers, the single-day
 `starting_at`, the page size cap of 1000, following `next_page` to the end, and every error.
 
-- [ ] **Step 2: Write the failing unit tests for the two things most likely to be wrong**
+- [x] **Step 2: Write the failing unit tests for the two things most likely to be wrong**
 
 The cost is in minor units, so 186 means one dollar eighty-six and storing it verbatim
 overstates by a hundredfold. And a record's `customer_type` decides whether the amount is
 already on the Anthropic bill, which is the rule above.
 
-- [ ] **Step 3: Build it**
+- [x] **Step 3: Build it**
 
 One request per day, because this endpoint returns a single day per call. An actor may be a
 person or an API key, and a row attributed to an API key has no person to bill, so it is kept
 with its key name rather than being dropped or attributed to nobody.
 
-- [ ] **Step 4: Mutate and commit**
+- [x] **Step 4: Mutate and commit**
 
 Drop the minor-unit scaling, invert the already-counted tag, and stop paging. Each must kill a test.
 
@@ -146,23 +146,23 @@ Drop the minor-unit scaling, invert the already-counted tag, and stop paging. Ea
 - Create: `tests/test_litellm/tool_usage/test_cursor_connector.py`
 - Create: `tests/test_litellm/tool_usage/contract/test_cursor_contract.py`
 
-- [ ] **Step 1: Write the failing contract test**
+- [x] **Step 1: Write the failing contract test**
 
 Cursor authenticates with HTTP Basic, the API key as the username and an empty password, which
 is unlike every other connector here and is wrong until a real server rejects it. The window is
 epoch milliseconds, capped at 30 days per call, and the endpoint is a POST with a JSON body.
 
-- [ ] **Step 2: Write the failing unit tests**
+- [x] **Step 2: Write the failing unit tests**
 
 Charged amounts are cents. Events are per request, so a day's cost for a person is the sum of
 their events that day, and an event with no email belongs to nobody and is reported as such.
 
-- [ ] **Step 3: Build it, respecting the rate limit**
+- [x] **Step 3: Build it, respecting the rate limit**
 
 Sixty requests a minute on usage events, and thirty days maximum per call, so a longer window
 is split rather than asked for in one go.
 
-- [ ] **Step 4: Mutate and commit**
+- [x] **Step 4: Mutate and commit**
 
 ---
 
@@ -173,25 +173,25 @@ is split rather than asked for in one go.
 - Create: `tests/test_litellm/tool_usage/test_copilot_connector.py`
 - Create: `tests/test_litellm/tool_usage/contract/test_copilot_contract.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Copilot publishes who holds a licence, not what they spent, so this connector produces seats
 into the model Phase 4 already built rather than usage facts. A seat's cost is the plan price,
 which only the customer knows, so the connector reports the holder and the plan type and leaves
 the amount to be set once rather than inventing one.
 
-- [ ] **Step 2: Build it**
+- [x] **Step 2: Build it**
 
 Bearer token, `Accept: application/vnd.github+json` and the API version header. Page through
 `per_page` up to its maximum of 100.
 
-- [ ] **Step 3: Record what last activity does and does not mean**
+- [x] **Step 3: Record what last activity does and does not mean**
 
 `last_activity_at` is null unless the person enabled telemetry in their IDE, so an empty value
 is not evidence that a seat is unused. Recommending someone lose a licence on that basis would
 be wrong, which is exactly why the unused seats recommendation stays deferred.
 
-- [ ] **Step 4: Mutate and commit**
+- [x] **Step 4: Mutate and commit**
 
 ---
 
@@ -203,22 +203,22 @@ be wrong, which is exactly why the unused seats recommendation stays deferred.
 - Modify: `litellm/provider_billing/credential_purpose.py` for a tool purpose
 - Create: the matching tests
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Storage is idempotent on tool, person and day. One tool failing does not stop the others. A
 credential marked for tool ingestion is never usable to send traffic.
 
-- [ ] **Step 2: Build it, reusing the provider runner's shape**
+- [x] **Step 2: Build it, reusing the provider runner's shape**
 
 Same scheduling, same single-replica guard, same sync-run history, so the Sync History tab
 works for tools with no new machinery.
 
-- [ ] **Step 3: Prove it live against the running proxy with no credentials configured**
+- [x] **Step 3: Prove it live against the running proxy with no credentials configured**
 
 Every tool must report not configured, cleanly, and no run may raise. That is the state a
 customer without accounts is in, and it has to be correct.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ---
 
@@ -229,20 +229,20 @@ customer without accounts is in, and it has to be correct.
 - Create: `ui/litellm-dashboard/src/app/(dashboard)/user-tools/` with the page and its components
 - Modify: `leftnav.tsx`, `migratedPages.ts`, `leftnav.test.tsx` in one commit
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 One tab per tool with Connection, What We Fetch and Sync History, mirroring Provider APIs. The
 same Test connection button, the same never-run-against-a-real-account badge derived from
 stored rows, and the same rule that a failure shows the tool's own words.
 
-- [ ] **Step 2: Build it, reusing the provider components where they already fit**
+- [x] **Step 2: Build it, reusing the provider components where they already fit**
 
-- [ ] **Step 3: Say on the page what each tool can and cannot tell us**
+- [x] **Step 3: Say on the page what each tool can and cannot tell us**
 
 Copilot reports no cost. Claude Code on an API account is already counted on the Anthropic
 bill. Codex publishes nothing. A customer reading this page should learn that without asking.
 
-- [ ] **Step 4: Run the touched tests only, regenerate the API types, commit**
+- [x] **Step 4: Run the touched tests only, regenerate the API types, commit**
 
 ---
 
@@ -251,15 +251,15 @@ bill. Codex publishes nothing. A customer reading this page should learn that wi
 **Files:**
 - Modify: `docs/superpowers/specs/2026-09-14-token-iq-product-design.md`, `PROJECT.md`
 
-- [ ] **Step 1: Replace the user tools status with what is actually built**
+- [x] **Step 1: Replace the user tools status with what is actually built**
 
-- [ ] **Step 2: Record the double counting rule and how it is enforced**
+- [x] **Step 2: Record the double counting rule and how it is enforced**
 
-- [ ] **Step 3: Record why Codex and ChatGPT are deferred, and where that money is already counted**
+- [x] **Step 3: Record why Codex and ChatGPT are deferred, and where that money is already counted**
 
-- [ ] **Step 4: Say plainly that Phase 4's test is still not met, and what would meet it**
+- [x] **Step 4: Say plainly that Phase 4's test is still not met, and what would meet it**
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ---
 
@@ -293,3 +293,38 @@ That Claude Code spend on an API account cannot reach a total twice. The tag is 
 easy to ignore, and the failure is silent: every screen keeps working and one large number is
 quietly wrong. The reviewer should confirm the tag is set from `customer_type` and not from
 anything else, and that no sum anywhere adds a tagged row.
+
+---
+
+## Whole-plan review, 2026-09-29
+
+All seven tasks are done. Three connectors are built where nothing existed, each held to the
+API its vendor documents by contract tests driven over a real HTTP client against payloads
+copied from the vendors' own published examples. Twenty-three mutations were applied across
+them and all twenty-three were caught.
+
+The rule this plan said it must not break holds, and it was proved rather than reasoned about.
+A Claude Code row tagged as already billed by Anthropic and an untagged row for the same
+person were written into real Postgres, and only the untagged one reached the total. The rule
+lives in the SQL that computes the total rather than in a caller remembering it, which is what
+the Self-Review said a reviewer should check hardest.
+
+Three things were settled differently from how the plan first imagined them.
+
+Copilot does not produce seats, it produces seat holders. GitHub publishes who has a licence
+and never what it costs, so forcing it into a type that carries an amount would have required
+inventing a figure. It got a protocol of its own instead, so a connector that cannot report a
+cost cannot satisfy a type whose purpose is cost.
+
+Cursor rolls up in the connector rather than storing every event. One row per request means
+hundreds of thousands a month for a busy team, and nothing downstream asks a question that
+needs them individually.
+
+Codex and ChatGPT are deferred with the reason recorded, not left as an empty file. Neither
+publishes a per-user admin usage endpoint. Codex on an API key already arrives through the
+OpenAI billing connector, and Codex on a ChatGPT plan is a subscription the Seats model
+carries, so the money is not missing from the product; only a per-person split of it is.
+
+What this plan does not claim: no tool connector has met a real account, and the product says
+so per tool, derived from its own stored rows rather than from a sentence here. Phase 4's test
+is still not met, and what would meet it is one credential for one tool.
