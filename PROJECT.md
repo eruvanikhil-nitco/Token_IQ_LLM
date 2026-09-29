@@ -53,6 +53,65 @@ client with a mock that cannot fail the way a real one does.
 - **Phase 6, reports, alerts and forecasts.** Not started. Runs entirely on data we already
   have, so it is available whenever it is wanted
 
+## Complete backlog: everything on the plan that is not built
+
+Audited 2026-09-29 against the sidebar plan and phase list in the product design doc. The
+question for each row is the one that matters: is a real account genuinely the blocker, or
+have we just not built it yet.
+
+**Only four things in the whole plan are truly blocked by not having an account, and all four
+are the same blocker: a user tool that reports nothing cannot be displayed.** Everything else
+is buildable today, including all four user tool connectors themselves.
+
+### Phase 2, data sources and provider accounts
+
+| Item | Blocked by an account |
+|---|---|
+| Test connection button per credential, backend probe already exists | No |
+| Product reports which providers have really met a real account | No |
+| Provider Keys tab on Attribution Rules. Needs connectors to record the provider's own API key id against a fact, which is a connector change, not an account | No |
+| Actually running the five unproven connectors against a live account | **Yes, and only this** |
+
+### Phase 4, users and user tools
+
+| Item | Blocked by an account |
+|---|---|
+| Claude Code connector | No. Buildable from the Admin API docs |
+| GitHub Copilot connector | No. Buildable from the published metrics and billing APIs |
+| Cursor connector | No. Buildable from the published admin API |
+| ChatGPT and Codex connector | No, though the enterprise API details need confirming first |
+| User Tools data source page, one tab per tool | No |
+| User Directory page: SSO Sync, SCIM moved from Admin Settings, Import | No |
+| Tools tab on a user | **Yes.** Nothing to show until a tool reports |
+| Tool Logins tab on Attribution Rules | **Yes.** Same reason |
+| Verifying any tool connector against a live account | **Yes** |
+
+### Everything else on the plan, none of it account blocked
+
+| Item | Phase |
+|---|---|
+| Overview home page: total spend across sources, change on last period, bill match per provider, share unallocated, top recommendations, data freshness | 1 |
+| Token IQ plan system replacing the LiteLLM licence key | 0 |
+| Remaining customer-visible LiteLLM branding | 0 |
+| Audit Logs tab moved onto the working audit trail, endpoint limited to admins | 0 |
+| Docker image from a clean checkout and a deployment pipeline | 0, waits on the cloud provider choice |
+| Projects out of Beta and open to team admins | 1 |
+| Projects and Budget tabs on a team | 1 |
+| Provider Accounts tab on a team | 1 |
+| Savings tab on a virtual key | 1 |
+| Seats tab on a user, which today lives only on the Ledger | 4 |
+| Pricing Adjustments tab on the Ledger, a move of the existing Cost Tracking settings | 3 |
+| Uploading an invoice file rather than typing a bill | 3 |
+| Reports: scheduled reports, team statements, exports | 6 |
+| Anomaly alerts | 6 |
+| Forecasts | 6 |
+
+### What this means for sequencing
+
+The user tool connectors are the biggest genuine gap, because nothing exists for them at all,
+and they are not blocked. Building them now means that the day an account appears the work is
+one credential and one click, exactly like the provider connectors are becoming.
+
 ## Blockers
 
 - **No real provider or tool account except OpenRouter.** Five of six provider connectors and
