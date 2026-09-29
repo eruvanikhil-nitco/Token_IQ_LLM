@@ -12,12 +12,14 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from types import MappingProxyType
-from typing import Any, Final, Literal, TypeAlias, get_args
+from typing import Any, Final, Literal, TypeAlias
+
+from pydantic import TypeAdapter, ValidationError
 
 DecisionState: TypeAlias = Literal["done", "dismissed"]
 """done: the thing was acted on. dismissed: it was read and judged not worth acting on."""
 
-_STATES: Final[frozenset[str]] = frozenset(get_args(DecisionState))
+_DECISION: Final[TypeAdapter[DecisionState]] = TypeAdapter(DecisionState)
 
 _SELECT_SQL: Final = 'SELECT rule_id, state FROM "LiteLLM_RecommendationState"'
 
@@ -37,6 +39,13 @@ def _read(row: object, key: str) -> object:
     return row.get(key) if isinstance(row, Mapping) else getattr(row, key, None)
 
 
+def _decision_or_none(value: object) -> DecisionState | None:
+    try:
+        return _DECISION.validate_python(value)
+    except ValidationError:
+        return None
+
+
 class RecommendationStateRepository:
     def __init__(self, prisma_client: object) -> None:
         self._prisma_client = prisma_client
@@ -54,9 +63,10 @@ class RecommendationStateRepository:
         rows: Final[Sequence[Mapping[str, object]]] = await self._db.query_raw(_SELECT_SQL)
         return MappingProxyType(
             {
-                str(rule_id): state
+                rule_id: state
                 for row in rows
-                if isinstance(rule_id := _read(row, "rule_id"), str) and (state := _read(row, "state")) in _STATES
+                if isinstance(rule_id := _read(row, "rule_id"), str)
+                and (state := _decision_or_none(_read(row, "state"))) is not None
             }
         )
 
