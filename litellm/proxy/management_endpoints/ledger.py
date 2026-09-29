@@ -85,6 +85,19 @@ def _day_or_400(value: str, field: str) -> datetime:
     return parsed if parsed.tzinfo is not None else parsed.replace(tzinfo=timezone.utc)
 
 
+def _period_end_or_400(value: str, field: str) -> datetime:
+    """The last instant of the period, not its first.
+
+    A reader who types 2026-09-30 means the whole of the thirtieth. Parsing that to midnight and
+    comparing with `<=` excludes almost the entire final day, so a month's reconciliation would
+    report a difference the size of that day's usage and blame the provider for it. A caller who
+    sends an explicit time is taken at their word.
+    """
+    parsed: Final = _day_or_400(value, field)
+    names_a_time: Final = "T" in value or " " in value.strip()
+    return parsed if names_a_time else parsed.replace(hour=23, minute=59, second=59, microsecond=999999)
+
+
 def _amount_or_400(value: str, field: str) -> Decimal:
     try:
         return Decimal(value)
@@ -217,7 +230,7 @@ async def ledger_lines(
     if provider is not None:
         _known_provider_or_404(provider)
     start: Final = _day_or_400(period_start, "period_start")
-    end: Final = _day_or_400(period_end, "period_end")
+    end: Final = _period_end_or_400(period_end, "period_end")
     resume: Final = _decode_cursor(cursor) if cursor is not None else None
     if prisma_client is None:
         raise _proxy_error(status.HTTP_500_INTERNAL_SERVER_ERROR, CommonProxyErrors.db_not_connected_error.value)
@@ -324,7 +337,7 @@ async def ledger_reconciliation(
     # The period is parsed before the database is consulted: a caller who sent a malformed date
     # needs to be told that, not that the database is unavailable.
     start: Final = _day_or_400(period_start, "period_start")
-    end: Final = _day_or_400(period_end, "period_end")
+    end: Final = _period_end_or_400(period_end, "period_end")
     if prisma_client is None:
         raise _proxy_error(status.HTTP_500_INTERNAL_SERVER_ERROR, CommonProxyErrors.db_not_connected_error.value)
 

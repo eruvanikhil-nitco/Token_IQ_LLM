@@ -175,3 +175,31 @@ def test_a_cursor_we_cannot_read_is_none_rather_than_a_guessed_position() -> Non
 
     assert _decode_cursor("nonsense") is None
     assert _decode_cursor("not-a-date|key") is None
+
+
+def test_a_period_end_given_as_a_date_covers_that_whole_day() -> None:
+    """A reader who types the thirtieth means all of it. Parsing to midnight and comparing with
+    <= drops almost the entire final day, which would report a difference the size of that day's
+    usage and blame the provider for it."""
+    from litellm.proxy.management_endpoints.ledger import _period_end_or_400
+
+    end: Final = _period_end_or_400("2026-09-30", "period_end")
+    assert end.hour == 23
+    assert end.minute == 59
+    assert end.second == 59
+
+
+def test_a_period_end_that_names_a_time_is_taken_at_its_word() -> None:
+    from litellm.proxy.management_endpoints.ledger import _period_end_or_400
+
+    end: Final = _period_end_or_400("2026-09-30T12:00:00+00:00", "period_end")
+    assert end.hour == 12
+    assert end.minute == 0
+
+
+def test_a_period_start_is_still_the_first_instant_of_its_day() -> None:
+    from litellm.proxy.management_endpoints.ledger import _day_or_400
+
+    start: Final = _day_or_400("2026-09-01", "period_start")
+    assert start.hour == 0
+    assert start.minute == 0
