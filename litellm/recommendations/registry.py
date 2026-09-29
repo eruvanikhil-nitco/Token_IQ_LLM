@@ -7,44 +7,12 @@ against fixed numbers and keeps the clock and the connection at the edge of the 
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
-from decimal import Decimal
-from types import MappingProxyType
+from collections.abc import Sequence
 from typing import Final, Protocol
 
+from litellm.recommendations.inputs import RuleInput
+from litellm.recommendations.rules.escaped_spend import escaped_spend
 from litellm.types.proxy.recommendation import Recommendation
-
-_NO_SPEND: Final[Mapping[str, Decimal]] = MappingProxyType({})
-"""A frozen default, so the dataclass never builds a mutable one per instance."""
-
-
-@dataclass(frozen=True, slots=True)
-class BudgetSnapshot:
-    """One budget and what was actually spent against it."""
-
-    budget_id: str
-    owner: str
-    limit: Decimal
-    spent: Decimal
-
-
-@dataclass(frozen=True, slots=True)
-class RuleInput:
-    """Everything the rules read, gathered once.
-
-    Each field is added by the task that needs it, so a rule can never quietly start reading
-    something nobody gathered.
-    """
-
-    currency: str = "USD"
-    unallocated: Decimal = Decimal(0)
-    unallocated_accounts: tuple[str, ...] = ()
-    failed_requests: int = 0
-    total_requests: int = 0
-    spend_on_failures: Decimal | None = None
-    spend_by_provider: Mapping[str, Decimal] = _NO_SPEND
-    budgets: tuple[BudgetSnapshot, ...] = ()
 
 
 class Rule(Protocol):
@@ -58,11 +26,10 @@ class Rule(Protocol):
     def __call__(self, rule_input: RuleInput) -> Recommendation | None: ...
 
 
-_RULES: Final[tuple[Rule, ...]] = ()
+_RULES: Final[tuple[Rule, ...]] = (escaped_spend,)
 """Every rule, in the order their cards are offered to a reader.
 
-Empty until Task 2. A rule is registered here and nowhere else, so the set a screen shows is
-readable in one place."""
+A rule is registered here and nowhere else, so the set a screen shows is readable in one place."""
 
 
 def evaluate(rule_input: RuleInput) -> tuple[Recommendation, ...]:

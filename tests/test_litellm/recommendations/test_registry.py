@@ -3,7 +3,8 @@ from typing import Final
 
 import pytest
 
-from litellm.recommendations.registry import RuleInput, evaluate
+from litellm.recommendations.inputs import RuleInput
+from litellm.recommendations.registry import evaluate
 from litellm.types.proxy.recommendation import Evidence, Recommendation
 
 EMPTY_INPUT: Final = RuleInput()
