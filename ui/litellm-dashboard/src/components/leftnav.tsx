@@ -52,6 +52,7 @@ import {
   Wallet,
   Waypoints,
   BookOpen,
+  Lightbulb,
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -122,6 +123,13 @@ const menuGroups: MenuGroup[] = [
         page: "ledger",
         label: "Ledger",
         icon: <BookOpen {...ICON} />,
+        roles: all_admin_roles,
+      },
+      {
+        key: "recommendations",
+        page: "recommendations",
+        label: "Recommendations",
+        icon: <Lightbulb {...ICON} />,
         roles: all_admin_roles,
       },
       {

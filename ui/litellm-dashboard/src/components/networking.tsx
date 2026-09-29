@@ -8773,3 +8773,77 @@ export const userCostCall = async (
     throw error;
   }
 };
+
+export type RecommendationFigureKind = "could_stop_spending" | "already_spent_unwatched" | "none";
+
+export type RecommendationDecision = "done" | "dismissed";
+
+export interface RecommendationEvidence {
+  label: string;
+  value: string;
+}
+
+/**
+ * `figure` and `figure_kind` always travel together.
+ *
+ * A screen that received only the number would have no way to know whether it may write
+ * "saving" beside it, which is the one mistake this whole feature exists to avoid.
+ */
+export interface Recommendation {
+  rule_id: string;
+  kind: "business" | "technical";
+  title: string;
+  noticed: string;
+  evidence: RecommendationEvidence[];
+  figure: string | null;
+  figure_kind: RecommendationFigureKind;
+  currency: string | null;
+  who_should_act: string;
+  state: RecommendationDecision | null;
+}
+
+export interface RecommendationsResponse {
+  period_start: string;
+  period_end: string;
+  open: Recommendation[];
+  decided: Recommendation[];
+}
+
+export const recommendationsCall = async (
+  accessToken: string,
+  periodStart: string,
+  periodEnd: string,
+): Promise<RecommendationsResponse> => {
+  try {
+    return await apiClient.get<RecommendationsResponse>(
+      `/recommendations?period_start=${periodStart}&period_end=${periodEnd}`,
+      { accessToken },
+    );
+  } catch (error) {
+    console.error("Failed to read the recommendations:", error);
+    throw error;
+  }
+};
+
+export const decideRecommendationCall = async (
+  accessToken: string,
+  ruleId: string,
+  state: RecommendationDecision,
+  note?: string | null,
+): Promise<void> => {
+  try {
+    await apiClient.post(`/recommendations/${encodeURIComponent(ruleId)}/state`, { state, note }, { accessToken });
+  } catch (error) {
+    console.error("Failed to record the decision:", error);
+    throw error;
+  }
+};
+
+export const undoRecommendationCall = async (accessToken: string, ruleId: string): Promise<void> => {
+  try {
+    await apiClient.delete(`/recommendations/${encodeURIComponent(ruleId)}/state`, { accessToken });
+  } catch (error) {
+    console.error("Failed to undo the decision:", error);
+    throw error;
+  }
+};

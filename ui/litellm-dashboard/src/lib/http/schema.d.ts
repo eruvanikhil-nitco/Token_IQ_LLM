@@ -12828,6 +12828,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/recommendations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Recommendations
+         * @description Everything worth doing about this period, and what was already decided.
+         */
+        get: operations["recommendations_recommendations_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/recommendations/{rule_id}/state": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Decide Recommendation
+         * @description Mark a card done or dismissed.
+         */
+        post: operations["decide_recommendation_recommendations__rule_id__state_post"];
+        /**
+         * Undo Recommendation Decision
+         * @description Bring a card back to the open list.
+         */
+        delete: operations["undo_recommendation_decision_recommendations__rule_id__state_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/register": {
         parameters: {
             query?: never;
@@ -27133,6 +27177,23 @@ export interface components {
              */
             total_tokens: number;
         };
+        /** DecisionBody */
+        DecisionBody: {
+            /** Note */
+            note?: string | null;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "done" | "dismissed";
+        };
+        /** DecisionResponse */
+        DecisionResponse: {
+            /** Rule Id */
+            rule_id: string;
+            /** State */
+            state: ("done" | "dismissed") | null;
+        };
         /**
          * DefaultInternalUserParams
          * @description Default parameters to apply when a new user signs in via SSO or is created on the /user/new API endpoint
@@ -27597,6 +27658,13 @@ export interface components {
             }[];
             /** Updated At */
             updated_at?: number | null;
+        };
+        /** EvidenceResponse */
+        EvidenceResponse: {
+            /** Label */
+            label: string;
+            /** Value */
+            value: string;
         };
         /** ExplorerResponse */
         ExplorerResponse: {
@@ -35225,6 +35293,46 @@ export interface components {
             } | null;
         } & {
             [key: string]: unknown;
+        };
+        /** RecommendationResponse */
+        RecommendationResponse: {
+            /** Currency */
+            currency: string | null;
+            /** Evidence */
+            evidence: components["schemas"]["EvidenceResponse"][];
+            /** Figure */
+            figure: string | null;
+            /**
+             * Figure Kind
+             * @enum {string}
+             */
+            figure_kind: "could_stop_spending" | "already_spent_unwatched" | "none";
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "business" | "technical";
+            /** Noticed */
+            noticed: string;
+            /** Rule Id */
+            rule_id: string;
+            /** State */
+            state: ("done" | "dismissed") | null;
+            /** Title */
+            title: string;
+            /** Who Should Act */
+            who_should_act: string;
+        };
+        /** RecommendationsResponse */
+        RecommendationsResponse: {
+            /** Decided */
+            decided: components["schemas"]["RecommendationResponse"][];
+            /** Open */
+            open: components["schemas"]["RecommendationResponse"][];
+            /** Period End */
+            period_end: string;
+            /** Period Start */
+            period_start: string;
         };
         /**
          * ReconciliationRow
@@ -57047,6 +57155,106 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RealtimeTranscriptionSessionResponse"];
+                };
+            };
+        };
+    };
+    recommendations_recommendations_get: {
+        parameters: {
+            query: {
+                /** @description First day of the period, as YYYY-MM-DD */
+                period_start: string;
+                /** @description Last day of the period, as YYYY-MM-DD */
+                period_end: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecommendationsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decide_recommendation_recommendations__rule_id__state_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rule_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DecisionBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DecisionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    undo_recommendation_decision_recommendations__rule_id__state_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rule_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DecisionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
