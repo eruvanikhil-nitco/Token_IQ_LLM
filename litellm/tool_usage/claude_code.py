@@ -20,6 +20,7 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping, Sequence
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
+from types import MappingProxyType
 from typing import Any, Final
 
 from litellm.provider_billing.cloud_rows import decimal_or_none, decoded_object, utc_day_start
@@ -163,16 +164,16 @@ class ClaudeCodeConnector:
             return ToolNotConfigured(reason=f"credential {credential_name} carries no api_key")
 
         client: Final = self._http_client_factory()
-        headers: Final = {"x-api-key": api_key, "anthropic-version": ANTHROPIC_VERSION}
+        headers: Final = MappingProxyType({"x-api-key": api_key, "anthropic-version": ANTHROPIC_VERSION})
 
-        facts: list[ToolUsageFact] = []  # mutable-ok: accumulated across days and pages
+        facts: Final[list[ToolUsageFact]] = []  # mutable-ok: accumulated across days and pages
         for day in _days_in(since, until):
             params: dict[str, object] = {  # mutable-ok: the page cursor advances across requests
                 "starting_at": day.strftime("%Y-%m-%d"),
                 "limit": MAX_RECORDS_PER_PAGE,
             }
             for _ in range(MAX_PAGES_PER_DAY):
-                response = await client.get(self._usage_url, params=dict(params), headers=headers)
+                response = await client.get(self._usage_url, params=MappingProxyType(dict(params)), headers=headers)
                 status: Final = getattr(response, "status_code", 0)
                 if status == 429:
                     return ToolFetchFailed(reason="anthropic rate limited this key", retryable=True)
