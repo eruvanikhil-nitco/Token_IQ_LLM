@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BILLING_PROVIDERS } from "@/components/model_add/credential_form_helpers";
+import BillReconciliationView from "./BillReconciliationView";
 import CostLedgerView from "./CostLedgerView";
 import InvoicesView from "./InvoicesView";
 
@@ -64,11 +65,15 @@ export default function LedgerTabs() {
       <Tabs defaultValue="ledger">
         <TabsList>
           <TabsTrigger value="ledger">Cost Ledger</TabsTrigger>
+          <TabsTrigger value="reconciliation">Bill Reconciliation</TabsTrigger>
           <TabsTrigger value="invoices">Invoices</TabsTrigger>
         </TabsList>
         {/* keepMounted: switching tabs must not discard a half-typed bill or reset the period */}
         <TabsContent value="ledger" className="pt-6" keepMounted>
           <CostLedgerView provider={provider} periodStart={periodStart} periodEnd={periodEnd} />
+        </TabsContent>
+        <TabsContent value="reconciliation" className="pt-6" keepMounted>
+          <BillReconciliationView provider={provider} periodStart={periodStart} periodEnd={periodEnd} />
         </TabsContent>
         <TabsContent value="invoices" className="pt-6" keepMounted>
           <InvoicesView provider={provider} periodStart={periodStart} periodEnd={periodEnd} />
