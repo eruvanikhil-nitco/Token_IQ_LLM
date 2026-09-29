@@ -79,7 +79,7 @@ Four rules, chosen because the data already holds real evidence for them. Measur
 card with `figure_kind` of `none` must have `figure` of `None`, and a card with a figure must say
 which kind it is. Task 1 enforces that in one place so no rule can get it wrong.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 def test_a_card_with_no_honest_figure_carries_no_number() -> None:
@@ -127,16 +127,16 @@ Validation in `__post_init__` on a frozen dataclass. Raising here is the one pla
 throws rather than returning a value, and it is deliberate: these are programming errors inside
 our own rules, not failures a caller can act on.
 
-- [ ] **Step 2: Run them and watch them fail**
+- [x] **Step 2: Run them and watch them fail**
 
 Run: `.venv/Scripts/python.exe -c "import pytest,sys; sys.exit(pytest.main(['-q','tests/test_litellm/recommendations/test_registry.py']))"`
 Expected: FAIL with "No module named 'litellm.recommendations'"
 
-- [ ] **Step 3: Write the types and an empty registry**
+- [x] **Step 3: Write the types and an empty registry**
 
-- [ ] **Step 4: Run the tests, then mutate each guard and confirm a test dies**
+- [x] **Step 4: Run the tests, then mutate each guard and confirm a test dies**
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add litellm/types/proxy/recommendation.py litellm/recommendations tests/test_litellm/recommendations
@@ -159,7 +159,7 @@ This is the strongest rule, because the engine behind it is already proven again
 the gateway makes it visible and attributable; it does not reduce it. `figure_kind` is
 `already_spent_unwatched`, and the card's own words say so.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 def test_it_says_nothing_when_every_difference_is_claimed_or_settled() -> None:
@@ -187,13 +187,13 @@ def test_it_says_who_should_act() -> None:
     assert card.who_should_act != ""
 ```
 
-- [ ] **Step 2: Run them and watch them fail, then write the rule**
+- [x] **Step 2: Run them and watch them fail, then write the rule**
 
-- [ ] **Step 3: Register it, run the tests, mutate each branch**
+- [x] **Step 3: Register it, run the tests, mutate each branch**
 
 Include a mutation that changes `figure_kind` to `could_stop_spending` and confirm a test dies.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ---
 
@@ -214,7 +214,7 @@ the failure count and the share of requests that failed as evidence, and gives a
 the data actually carries cost attributable to failures. If it does not, `figure_kind` is `none`
 and the card still earns its place by naming the rate.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 def test_it_says_nothing_when_nothing_failed() -> None:
@@ -250,7 +250,7 @@ The last test pins a threshold. State the threshold and its reason in the rule, 
 normal error rate does not produce a card every month; a screen that always shows the same card
 teaches people to ignore the screen.
 
-- [ ] **Step 2 to 4: as Task 2**
+- [x] **Step 2 to 4: as Task 2**
 
 ---
 
@@ -267,7 +267,7 @@ Both carry `figure_kind` of `none`. Concentration is a risk, not a cost, and cha
 changes a limit rather than spend. Each still earns a card, because both are things a finance
 lead would want to know and neither is visible anywhere else in the product.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 def test_concentration_says_nothing_when_spend_is_spread() -> None:
@@ -305,7 +305,7 @@ def test_a_budget_being_exceeded_is_reported_differently_from_one_set_too_high()
     assert over.noticed != under.noticed
 ```
 
-- [ ] **Step 2 to 4: as Task 2**
+- [x] **Step 2 to 4: as Task 2**
 
 ---
 
@@ -342,7 +342,7 @@ model LiteLLM_RecommendationState {
 - `POST /recommendations/{rule_id}/state` with `done` or `dismissed`
 - `DELETE /recommendations/{rule_id}/state` to bring a card back
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 def test_every_amount_crosses_as_a_string() -> None:
@@ -374,9 +374,9 @@ async def test_a_non_admin_cannot_read_cross_team_recommendations() -> None:
     assert caught.value.status_code == 403
 ```
 
-- [ ] **Step 2: Run them and watch them fail, then build**
+- [x] **Step 2: Run them and watch them fail, then build**
 
-- [ ] **Step 3: Apply the migration, then prove it live**
+- [x] **Step 3: Apply the migration, then prove it live**
 
 ```bash
 docker exec -i tokeniq_db psql -U llmproxy -d litellm -v ON_ERROR_STOP=1 --single-transaction \
@@ -390,7 +390,7 @@ Expected: the escaped-spend card carrying `0.00774700` with `already_spent_unwat
 concentration card with a null figure, and the failed-request card. Dismiss one, confirm it moves
 lists, bring it back, and put every output in your report.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ---
 
@@ -408,7 +408,7 @@ lists, bring it back, and put every output in your report.
 Tabs: `All`, `Business`, `Technical`, `Done & Dismissed`. Add Recommendations to the sidebar
 under ANALYTICS, after Ledger.
 
-- [ ] **Step 1: Write the failing display tests**
+- [x] **Step 1: Write the failing display tests**
 
 ```ts
 it("never labels money already being spent as a saving", () => {
@@ -425,7 +425,7 @@ it("keeps every digit rather than rounding a figure for display", () => {
 });
 ```
 
-- [ ] **Step 2: Write the failing integration tests**
+- [x] **Step 2: Write the failing integration tests**
 
 ```tsx
 it("shows what was noticed and the evidence behind it", async () => {
@@ -455,7 +455,7 @@ it("moves a dismissed card to Done & Dismissed rather than hiding it", async () 
 });
 ```
 
-- [ ] **Step 3: Build it, run the touched tests only, regenerate the API types, commit**
+- [x] **Step 3: Build it, run the touched tests only, regenerate the API types, commit**
 
 Read the `dataviz` skill before drawing anything. These are cards, not charts, and a chart here
 would most likely be decoration.
@@ -467,22 +467,22 @@ would most likely be decoration.
 **Files:**
 - Modify: `docs/superpowers/specs/2026-09-14-token-iq-product-design.md`
 
-- [ ] **Step 1: Record the four rules and what kind of figure each carries**
+- [x] **Step 1: Record the four rules and what kind of figure each carries**
 
-- [ ] **Step 2: Record the four deferred rules and why, verbatim from this plan's Scope section**
+- [x] **Step 2: Record the four deferred rules and why, verbatim from this plan's Scope section**
 
-- [ ] **Step 3: Record the figure rule itself**
+- [x] **Step 3: Record the figure rule itself**
 
 A figure is only called a saving when acting would reduce spend. Say it in the product doc, not
 only in code, because the next person to add a rule will read the doc.
 
-- [ ] **Step 4: Say whether Phase 5's test is met**
+- [x] **Step 4: Say whether Phase 5's test is met**
 
 Phase 5 is done when recommendations show real savings figures from a customer's own data. Say
 plainly that two of four rules carry a figure, that one of those figures is money already being
 spent rather than a saving, and that the only real data available is one provider's.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ---
 
@@ -522,3 +522,32 @@ words on a card are not type-checked: a rule whose `noticed` sentence says "you 
 its `figure_kind` says `already_spent_unwatched` would pass every test in Tasks 1 to 5 and still
 mislead a finance team. Task 2's third test checks the wording as well as the flag, and the same
 check belongs on every rule that carries a figure.
+
+---
+
+## Whole-plan review, 2026-09-29
+
+All seven tasks are built, and the four rules run against the live database rather than against
+fixtures alone. On September's data: escaped spend reports `0.00774700` USD as money already being
+spent, failed requests reports 103 of 165 at 62.4% with no figure, provider concentration reports
+one provider at 100% with no figure, and the stale budget reports a limit of 0.5 against 0.000205
+spent. The dismiss, done and undo round trip was exercised end to end against the running proxy.
+
+Three things the review changed rather than noted:
+
+The wording check the Self-Review called the hardest thing to get right was only on two of the
+four rules. A card that reads like a saving while carrying no number passes every type check, so
+failed requests with no cost attached and both stale budget cards are now held to the same check.
+
+`RecommendationStateRepository.all()` declared it returns known decision states, but the membership
+test did not narrow the type, so the declared return type was a promise nothing enforced. It now
+validates each state through a `TypeAdapter`. Nothing tested that reader at all, so the docstring
+claim that an unrecognised state hides no card was unenforced too; seven tests now cover it, and
+the claim was also proved live by writing a `snoozed` row straight into the table and watching the
+card stay open.
+
+What this plan does not deliver, stated plainly rather than left to be inferred: only one of the
+four rules can ever produce a savings figure, and it does so only when spend attributable to failed
+requests is gathered, which `_gather` does not do today because the spend rollup holds a request
+count and a total rather than cost per failed request. So Phase 5's test is not met, and the
+product doc says so.
