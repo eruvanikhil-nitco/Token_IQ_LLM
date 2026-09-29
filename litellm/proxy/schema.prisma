@@ -95,6 +95,17 @@ model LiteLLM_ProviderSyncRun {
 // invoices through an API. Bill Reconciliation compares this against the cost ledger.
 // One flat per-person subscription for one period, entered by an admin because seat pricing
 // lives on a contract rather than behind an API. Counted in that person's total cost.
+// An admin's decision about one recommendation. The card itself is never stored: it is
+// recomputed from current data every time, so a problem that comes back is seen again rather
+// than staying hidden behind a decision made last quarter.
+model LiteLLM_RecommendationState {
+    rule_id    String   @id
+    state      String   // done | dismissed
+    decided_by String?
+    decided_at DateTime @default(now())
+    note       String?
+}
+
 model LiteLLM_UserSeat {
     seat_id      String   @id @default(uuid())
     tool         String
