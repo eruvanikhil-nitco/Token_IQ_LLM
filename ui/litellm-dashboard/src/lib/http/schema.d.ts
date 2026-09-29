@@ -14116,6 +14116,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/seats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Seats
+         * @description Every subscription an admin has entered.
+         */
+        get: operations["list_seats_seats_get"];
+        put?: never;
+        /**
+         * Upsert Seat
+         * @description Assign a subscription to a person for a period, or correct the one already there.
+         */
+        post: operations["upsert_seat_seats_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/seats/{seat_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Seat
+         * @description Remove a subscription, after which it stops counting toward that person's cost.
+         */
+        delete: operations["delete_seat_seats__seat_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/settings": {
         parameters: {
             query?: never;
@@ -17054,6 +17098,49 @@ export interface paths {
          *         - budget_limits: Optional[list] - List of concurrent budget windows for the user. Each window specifies a budget_limit, time_period, and optional budget_duration. Example - [{"budget_limit": 10.0, "time_period": "1d"}, {"budget_limit": 50.0, "time_period": "7d"}].
          */
         post: operations["user_update_user_update_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/cost": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * All User Costs
+         * @description What every person cost over the period. Admin only, because it is everyone's cost.
+         */
+        get: operations["all_user_costs_users_cost_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{user_id}/cost": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * User Cost
+         * @description What one person cost over the period.
+         *
+         *     A person with no gateway traffic and no subscription still gets an answer, with zeroes,
+         *     rather than a 404: "you cost nothing this month" is a fact, and a missing page is not.
+         */
+        get: operations["user_cost_users__user_id__cost_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -36477,6 +36564,80 @@ export interface components {
             timeout?: number | null;
         };
         /**
+         * SeatBody
+         * @description What an admin sends after reading a subscription off a contract.
+         *
+         *     `cadence` is the literal type, so a value nobody can name is refused by validation rather
+         *     than stored and then silently skipped on read.
+         */
+        SeatBody: {
+            /** Amount */
+            amount: string;
+            /**
+             * Cadence
+             * @enum {string}
+             */
+            cadence: "monthly" | "annual";
+            /**
+             * Currency
+             * @default USD
+             */
+            currency: string;
+            /** Note */
+            note?: string | null;
+            /** Period End */
+            period_end: string;
+            /** Period Start */
+            period_start: string;
+            /** Tool */
+            tool: string;
+            /** User Id */
+            user_id: string;
+        };
+        /** SeatDeletedResponse */
+        SeatDeletedResponse: {
+            /** Deleted */
+            deleted: boolean;
+        };
+        /** SeatLineResponse */
+        SeatLineResponse: {
+            /** Amount */
+            amount: string;
+            /** Currency */
+            currency: string;
+            /** Tool */
+            tool: string;
+        };
+        /** SeatListResponse */
+        SeatListResponse: {
+            /** Seats */
+            seats: components["schemas"]["SeatResponse"][];
+        };
+        /** SeatResponse */
+        SeatResponse: {
+            /** Amount */
+            amount: string;
+            /**
+             * Cadence
+             * @enum {string}
+             */
+            cadence: "monthly" | "annual";
+            /** Currency */
+            currency: string;
+            /** Note */
+            note: string | null;
+            /** Period End */
+            period_end: string;
+            /** Period Start */
+            period_start: string;
+            /** Seat Id */
+            seat_id: string;
+            /** Tool */
+            tool: string;
+            /** User Id */
+            user_id: string;
+        };
+        /**
          * ShadowEvalJobResponse
          * @description A shadow-eval job over one or more targets, each with its own budget and stop state;
          *     status is derived from stopped_by, the targets' stop and budget state, and ends_at,
@@ -39624,6 +39785,40 @@ export interface components {
              * @enum {string}
              */
             severity: "info" | "warning" | "error";
+        };
+        /** UserCostListResponse */
+        UserCostListResponse: {
+            /** Costs */
+            costs: components["schemas"]["UserCostResponse"][];
+            /** Currency */
+            currency: string;
+            /** Period End */
+            period_end: string;
+            /** Period Start */
+            period_start: string;
+        };
+        /** UserCostResponse */
+        UserCostResponse: {
+            /** Currency */
+            currency: string;
+            /** Gateway */
+            gateway: string;
+            /** Note */
+            note: string;
+            /** Period End */
+            period_end: string;
+            /** Period Start */
+            period_start: string;
+            /** Seat Lines */
+            seat_lines: components["schemas"]["SeatLineResponse"][];
+            /** Seats */
+            seats: string;
+            /** Tool Usage Known */
+            tool_usage_known: boolean;
+            /** Total */
+            total: string;
+            /** User Id */
+            user_id: string;
         };
         /**
          * UserHeaderMapping
@@ -58337,6 +58532,90 @@ export interface operations {
             };
         };
     };
+    list_seats_seats_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeatListResponse"];
+                };
+            };
+        };
+    };
+    upsert_seat_seats_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SeatBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeatResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_seat_seats__seat_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                seat_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeatDeletedResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     active_callbacks_settings_get: {
         parameters: {
             query?: never;
@@ -61718,6 +61997,78 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    all_user_costs_users_cost_get: {
+        parameters: {
+            query: {
+                /** @description First day of the period, as YYYY-MM-DD */
+                period_start: string;
+                /** @description Last day of the period, as YYYY-MM-DD */
+                period_end: string;
+                currency?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserCostListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    user_cost_users__user_id__cost_get: {
+        parameters: {
+            query: {
+                /** @description First day of the period, as YYYY-MM-DD */
+                period_start: string;
+                /** @description Last day of the period, as YYYY-MM-DD */
+                period_end: string;
+                currency?: string;
+            };
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserCostResponse"];
                 };
             };
             /** @description Validation Error */

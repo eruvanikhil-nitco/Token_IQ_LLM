@@ -8654,3 +8654,122 @@ export const reconciliationCall = async (
     throw error;
   }
 };
+
+export type SeatCadence = "monthly" | "annual";
+
+export interface Seat {
+  seat_id: string;
+  tool: string;
+  user_id: string;
+  cadence: SeatCadence;
+  currency: string;
+  amount: string;
+  period_start: string;
+  period_end: string;
+  note: string | null;
+}
+
+export interface SeatListResponse {
+  seats: Seat[];
+}
+
+export interface SeatLine {
+  tool: string;
+  currency: string;
+  amount: string;
+}
+
+/** A person's total always travels with its parts, and with the note saying what it excludes. */
+export interface UserCost {
+  user_id: string;
+  period_start: string;
+  period_end: string;
+  currency: string;
+  gateway: string;
+  seats: string;
+  total: string;
+  seat_lines: SeatLine[];
+  tool_usage_known: boolean;
+  note: string;
+}
+
+export interface UserCostListResponse {
+  period_start: string;
+  period_end: string;
+  currency: string;
+  costs: UserCost[];
+}
+
+export const seatsCall = async (accessToken: string): Promise<SeatListResponse> => {
+  try {
+    return await apiClient.get<SeatListResponse>("/seats", { accessToken });
+  } catch (error) {
+    console.error("Failed to read the seats:", error);
+    throw error;
+  }
+};
+
+export const upsertSeatCall = async (
+  accessToken: string,
+  seat: {
+    tool: string;
+    user_id: string;
+    cadence: SeatCadence;
+    currency: string;
+    amount: string;
+    period_start: string;
+    period_end: string;
+    note?: string | null;
+  },
+): Promise<Seat> => {
+  try {
+    return await apiClient.post<Seat>("/seats", seat, { accessToken });
+  } catch (error) {
+    console.error("Failed to save the seat:", error);
+    throw error;
+  }
+};
+
+export const deleteSeatCall = async (accessToken: string, seatId: string): Promise<void> => {
+  try {
+    await apiClient.delete(`/seats/${encodeURIComponent(seatId)}`, { accessToken });
+  } catch (error) {
+    console.error("Failed to delete the seat:", error);
+    throw error;
+  }
+};
+
+export const userCostsCall = async (
+  accessToken: string,
+  periodStart: string,
+  periodEnd: string,
+  currency: string,
+): Promise<UserCostListResponse> => {
+  try {
+    return await apiClient.get<UserCostListResponse>(
+      `/users/cost?period_start=${periodStart}&period_end=${periodEnd}&currency=${encodeURIComponent(currency)}`,
+      { accessToken },
+    );
+  } catch (error) {
+    console.error("Failed to read per-person cost:", error);
+    throw error;
+  }
+};
+
+export const userCostCall = async (
+  accessToken: string,
+  userId: string,
+  periodStart: string,
+  periodEnd: string,
+  currency: string,
+): Promise<UserCost> => {
+  try {
+    return await apiClient.get<UserCost>(
+      `/users/${encodeURIComponent(userId)}/cost?period_start=${periodStart}&period_end=${periodEnd}&currency=${encodeURIComponent(currency)}`,
+      { accessToken },
+    );
+  } catch (error) {
+    console.error("Failed to read this person's cost:", error);
+    throw error;
+  }
+};
