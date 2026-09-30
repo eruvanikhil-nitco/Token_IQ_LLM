@@ -1,0 +1,19 @@
+# Every customer installation, in one file.
+#
+# Provisioning and upgrades both read this, so neither can act on a customer the other does
+# not know about. A version is a commit hash or a semantic version, never a moving tag: an
+# installation whose version cannot be named cannot be rolled back to a known build.
+#
+# The key becomes the customer's Postgres database and role name, which is why it is limited
+# to lower case letters, digits and underscores.
+
+installations:
+  acme:
+    hostname: acme.tokeniq.example
+    version: v1.0.0
+    size: small
+
+  globex:
+    hostname: globex.tokeniq.example
+    version: v1.0.0
+    size: medium
