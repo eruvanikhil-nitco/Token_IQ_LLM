@@ -5,53 +5,26 @@ current at the end of every session rather than rediscovering the answer from gi
 
 ## What we are doing right now
 
-**Phase 0's last item is built as far as it can be without an AWS account.** The provider was
-chosen on 2026-09-30: AWS, plain containers on ECS Fargate, shared VPC and Postgres server and
-load balancer, with only the container, database, secrets and hostname separate per customer.
+**The Overview landing page is built**, which was the last thing standing between six phases
+of backend work and a customer being able to see it. Plan:
+`docs/superpowers/plans/2026-09-30-overview-home-page.md`, all five tasks.
 
-Built and tested: the manifest listing every installation, the per-customer Terraform,
-provisioning, the fleet upgrade that stops at the first failure, and a gate making it
-impossible to deploy another company's images. Isolation between customers sharing one
-Postgres server is proved against a real server, and mutating the grants is what makes that
-claim worth anything: it caught my own test passing for the wrong reason.
+It shows total spend and the change on the period before, how much the gateway can attribute,
+how much nobody owns and what share that is, whether each provider's bill matched, the top
+recommendations, and when each source last reported. It is in a new HOME group at the top of
+the sidebar.
 
-Not done, and needing an account: Terraform has never applied, no load balancer has routed a
-real hostname, and the cost estimate is list prices rather than a bill. Roughly $135 a month
-for the first customer and about $22 for each one after, with data transfer the figure most
-likely to surprise, since a gateway moves every token its customers send. `deploy/README.md`
-has the runbook and what the first account should check, in order.
+The rule it exists to protect: the headline total is what providers billed plus tool spend on
+no provider bill plus seats. The gateway figure is excluded and labelled as attribution, in
+words, on the screen. Adding the two would roughly double the number a customer repeats to
+their finance team. Checked live: the total reads 0.00780515, the provider figure, and not
+that plus the gateway's 0.00797225.
 
-The image is built and proved: 1.69 GB from a clean checkout, running against real Postgres
-with migrations at boot, the dashboard served and the Token IQ plan reported. Publishing it
-to a registry is the only part that waits on the account.
-
-Finished 2026-09-30: `docs/superpowers/plans/2026-09-30-api-docs-branding.md`, all five tasks.
-
-Both earlier Phase 0 plans turned out to be already complete, verified against the code rather
-than their checkboxes, which nobody had ticked. The plan system replaced the LiteLLM licence
-key, nothing contacts LiteLLM or BerriAI, the images build from a clean checkout, the Audit
-Logs tab renders the working trail and only admins can read it.
-
-What was genuinely missing was the API documentation. The existing gate covered error
-messages, which is what it was written for, so the schema a customer reads on the API
-Reference screen still named the other product 274 times, linked to its documentation 125
-times across 37 URLs, and showed ten real addresses at its company as example values. That is
-now zero, held by a second gate that reads the generated schema.
-
-Three near-misses worth remembering, all caught by reading the diff rather than by a test: a
-tidy-up that collapsed spaces destroyed docstring indentation, a link removal ate a newline
-and merged two bullet lines, and re-emitting a docstring from its parsed value joined every
-line of every curl example, because Python consumes a backslash-newline before `ast` sees it.
-
-One structural discovery: a third of the schema does not come from live source. Lazily-loaded
-features serve their documentation from a committed snapshot file, so the source can be clean
-while the customer still reads the old text. Anyone changing an endpoint description in a lazy
-feature must regenerate it with `python -m litellm.proxy._lazy_openapi_snapshot`.
-
-Left open on purpose: identifiers still carry the old name. Schema classes, request fields,
-header names, database tables and dotted setting names all appear in the public interface, and
-renaming any of them changes what a client sends or what a config file says. A customer reads
-none of them as a sentence, which is why the prose went first.
+Phase 0 is otherwise complete apart from what needs an AWS account. The provider was chosen
+on 2026-09-30: AWS, plain containers on ECS Fargate, shared VPC and Postgres server and load
+balancer, with only the container, database, secrets and hostname separate per customer. The
+image is built and proved, 1.69 GB from a clean checkout running against real Postgres.
+Publishing it, applying Terraform and routing a hostname all wait on the account.
 
 ## Two real defects found by this work
 
@@ -122,7 +95,6 @@ is buildable today, including all four user tool connectors themselves.
 
 | Item | Phase |
 |---|---|
-| Overview home page: total spend across sources, change on last period, bill match per provider, share unallocated, top recommendations, data freshness | 1 |
 | Deployment pipeline for customer installations | 0, and the only Phase 0 item left. Waits on the cloud provider choice |
 | Renaming identifiers that still carry the old product name, deliberately open | 0 |
 | Projects out of Beta and open to team admins | 1 |
