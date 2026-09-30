@@ -888,3 +888,12 @@ Expected: `/team/member_add` returns the team with the new member's role `admin`
 git add -A litellm tests
 git commit -m "chore(plan): delete LiteLLM's licence client"
 ```
+
+---
+
+## Status on 2026-09-30
+
+Complete. Verified against the code rather than by the checkboxes below, which nobody ticked:
+`litellm/proxy/auth/token_iq_plan.py` exists and resolves the installation's plan, `/health/license` reports it in the shape the dashboard's plan card reads, the LiteLLM licence client is gone, no metering package remains, and no refusal message names LiteLLM.
+
+Nothing in the product contacts LiteLLM or BerriAI.

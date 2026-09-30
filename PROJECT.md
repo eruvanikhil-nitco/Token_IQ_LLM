@@ -5,38 +5,36 @@ current at the end of every session rather than rediscovering the answer from gi
 
 ## What we are doing right now
 
-**Phase 4's tool connectors are built.** Phase 2 readiness finished before them. Next is
-Phase 0, the product-readiness work that decides whether any of this can be sold.
+**Phase 0 has one item left: the deployment pipeline, which waits on your choice of cloud
+provider.** Everything else in it is built.
 
-In progress 2026-09-29: `docs/superpowers/plans/2026-09-29-user-tool-connectors.md`, tasks 1
-to 6 done, task 7 (docs) underway.
+Finished 2026-09-30: `docs/superpowers/plans/2026-09-30-api-docs-branding.md`, all five tasks.
 
-- Claude Code, Cursor and Copilot connectors, each held to its vendor's documented API by
-  contract tests over a real HTTP client. 23 mutations applied across them, 23 caught
-- Claude Code spend billed to an API organisation is tagged as already on the Anthropic bill
-  and excluded from totals in SQL. Proved against real Postgres: a tagged and an untagged row
-  for the same person, and only the untagged one reached the total
-- Copilot returns seat holders rather than money through a protocol of its own, because GitHub
-  publishes no cost and a guessed figure must not be possible to express
-- A runner drives every tool, with one tool's failure never stopping the others. Proved live
-  in the state we are actually in, with no credentials: cleanly skipped, nothing raised
-- The User Tools page is built, one tab per tool, each stating what that tool cannot tell us
-- Codex and ChatGPT deferred with a reason: no per-user admin endpoint exists, and that money
-  is already collected by the OpenAI connector or carried by the Seats model
+Both earlier Phase 0 plans turned out to be already complete, verified against the code rather
+than their checkboxes, which nobody had ticked. The plan system replaced the LiteLLM licence
+key, nothing contacts LiteLLM or BerriAI, the images build from a clean checkout, the Audit
+Logs tab renders the working trail and only admins can read it.
 
-Finished 2026-09-29: `docs/superpowers/plans/2026-09-29-provider-readiness-without-accounts.md`,
-all five tasks.
+What was genuinely missing was the API documentation. The existing gate covered error
+messages, which is what it was written for, so the schema a customer reads on the API
+Reference screen still named the other product 274 times, linked to its documentation 125
+times across 37 URLs, and showed ten real addresses at its company as example values. That is
+now zero, held by a second gate that reads the generated schema.
 
-- A connector's vendor host is injectable, so a test can stand a server in front of it and an
-  Azure Government or Azure China customer has somewhere to point
-- All six connectors are held to the API their vendor documents by 76 contract tests, driven
-  over a real HTTP client against payloads copied from each vendor's published reference.
-  Thirteen mutations applied, thirteen caught, none survived
-- Test connection button on each provider's Connection tab, reporting the provider's own words
-  rather than a generic failure
-- The product says which connectors have met a real account, derived from stored rows. Checked
-  live: OpenRouter proved with 50 rows, the other five honestly marked never run
-- The product doc records the three questions only a real account can settle
+Three near-misses worth remembering, all caught by reading the diff rather than by a test: a
+tidy-up that collapsed spaces destroyed docstring indentation, a link removal ate a newline
+and merged two bullet lines, and re-emitting a docstring from its parsed value joined every
+line of every curl example, because Python consumes a backslash-newline before `ast` sees it.
+
+One structural discovery: a third of the schema does not come from live source. Lazily-loaded
+features serve their documentation from a committed snapshot file, so the source can be clean
+while the customer still reads the old text. Anyone changing an endpoint description in a lazy
+feature must regenerate it with `python -m litellm.proxy._lazy_openapi_snapshot`.
+
+Left open on purpose: identifiers still carry the old name. Schema classes, request fields,
+header names, database tables and dotted setting names all appear in the public interface, and
+renaming any of them changes what a client sends or what a config file says. A customer reads
+none of them as a sentence, which is why the prose went first.
 
 ## Two real defects found by this work
 
@@ -52,10 +50,9 @@ client with a mock that cannot fail the way a real one does.
 
 ## Where each phase stands
 
-- **Phase 0, product readiness.** Not started, and it is the one that decides whether any of
-  this can be sold. Token IQ still leans on LiteLLM's licence key, customer-visible LiteLLM
-  branding remains, and the Audit Logs tab still points at the old trail. None of it is
-  blocked on anything outside the repo. Queued next after the current plan
+- **Phase 0, product readiness.** Done except the deployment pipeline, which waits on the
+  cloud provider choice. The licence dependency, the metering, the clean-checkout build, the
+  audit trail and the branding are all finished
 - **Phase 1, organisation and navigation.** Substantially done. Projects backend complete and
   the sidebar reorganisation landed
 - **Phase 2, data sources and provider accounts.** Readiness complete. Only live verification

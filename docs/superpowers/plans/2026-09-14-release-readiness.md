@@ -494,3 +494,12 @@ Expected: PASS apart from failures that also fail on the commit before this task
 git add tests/code_coverage_tests/check_customer_messages_do_not_name_litellm.py litellm/proxy tests/test_litellm/proxy/management_endpoints/test_organization_endpoints.py
 git commit -m "fix(brand): customer-facing proxy messages stop naming LiteLLM"
 ```
+
+---
+
+## Status on 2026-09-30
+
+Complete. Verified against the code rather than by the checkboxes below, which nobody ticked:
+No Dockerfile copies the deleted enterprise folder and `tests/code_coverage_tests/check_dockerfile_context_paths_exist.py` keeps it that way, the Logs page Audit Logs tab renders the working audit trail, the audit endpoint refuses anyone who is not a proxy admin, and `tests/code_coverage_tests/check_customer_messages_do_not_name_litellm.py` passes.
+
+That last gate covers error messages, which is what it was written for. The API documentation a customer reads was still naming the other product, and that is finished in `docs/superpowers/plans/2026-09-30-api-docs-branding.md`.
