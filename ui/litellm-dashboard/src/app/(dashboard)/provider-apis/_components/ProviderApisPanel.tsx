@@ -23,16 +23,21 @@ export default function ProviderApisPanel() {
 
   return (
     <Tabs defaultValue={connections[0].provider}>
-      <TabsList>
-        {connections.map((connection) => (
-          <TabsTrigger key={connection.provider} value={connection.provider}>
-            <span className="flex items-center gap-2">
-              {connection.display_name}
-              <Badge variant={stateBadgeVariant(connection.state)}>{stateLabel(connection.state)}</Badge>
-            </span>
-          </TabsTrigger>
-        ))}
-      </TabsList>
+      {/* The provider list grows every time one is supported, and a fixed row silently puts the
+          last of them past the right edge where it cannot be clicked. Scrolling keeps every
+          provider reachable however many there are. */}
+      <div className="-mx-1 overflow-x-auto px-1">
+        <TabsList>
+          {connections.map((connection) => (
+            <TabsTrigger key={connection.provider} value={connection.provider}>
+              <span className="flex items-center gap-2">
+                {connection.display_name}
+                <Badge variant={stateBadgeVariant(connection.state)}>{stateLabel(connection.state)}</Badge>
+              </span>
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </div>
       {connections.map((connection) => (
         <TabsContent key={connection.provider} value={connection.provider} className="pt-6">
           <Tabs defaultValue="connection">

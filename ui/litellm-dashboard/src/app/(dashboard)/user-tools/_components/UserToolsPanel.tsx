@@ -23,16 +23,20 @@ export default function UserToolsPanel() {
 
   return (
     <Tabs defaultValue={connections[0].tool}>
-      <TabsList>
-        {connections.map((connection) => (
-          <TabsTrigger key={connection.tool} value={connection.tool}>
-            <span className="flex items-center gap-2">
-              {connection.display_name}
-              <Badge variant={stateBadgeVariant(connection.state)}>{stateLabel(connection.state)}</Badge>
-            </span>
-          </TabsTrigger>
-        ))}
-      </TabsList>
+      {/* Same reason as the provider list: one more supported tool would push the last one past
+          the right edge, where it cannot be clicked. */}
+      <div className="-mx-1 overflow-x-auto px-1">
+        <TabsList>
+          {connections.map((connection) => (
+            <TabsTrigger key={connection.tool} value={connection.tool}>
+              <span className="flex items-center gap-2">
+                {connection.display_name}
+                <Badge variant={stateBadgeVariant(connection.state)}>{stateLabel(connection.state)}</Badge>
+              </span>
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </div>
       {connections.map((connection) => (
         <TabsContent key={connection.tool} value={connection.tool} className="pt-6">
           <Tabs defaultValue="connection">

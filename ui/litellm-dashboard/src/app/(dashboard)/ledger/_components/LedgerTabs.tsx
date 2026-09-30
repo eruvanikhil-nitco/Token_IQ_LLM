@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BILLING_PROVIDERS } from "@/components/model_add/credential_form_helpers";
 import BillReconciliationView from "./BillReconciliationView";
@@ -26,21 +28,25 @@ export default function LedgerTabs() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-end gap-3">
-        <label className="flex flex-col gap-1 text-sm">
-          <span>Provider</span>
-          <select
-            aria-label="Provider"
-            className="h-9 rounded-md border bg-background px-2"
+        <div className="flex flex-col gap-1 text-sm">
+          <Label htmlFor="ledger-provider">Provider</Label>
+          <Select
+            items={BILLING_PROVIDERS}
             value={provider}
-            onChange={(event) => setProvider(event.target.value)}
+            onValueChange={(next) => next !== null && setProvider(next)}
           >
-            {BILLING_PROVIDERS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
+            <SelectTrigger id="ledger-provider" aria-label="Provider" className="w-[200px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {BILLING_PROVIDERS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <label className="flex flex-col gap-1 text-sm">
           <span>Period start</span>
           <input

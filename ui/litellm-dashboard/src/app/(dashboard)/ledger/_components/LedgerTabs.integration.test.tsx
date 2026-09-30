@@ -165,9 +165,12 @@ describe("LedgerTabs", () => {
   });
 
   it("asks the server for the provider and period the reader chose", async () => {
+    const user = userEvent.setup();
     renderTabs();
     await screen.findByText("$0.00774700");
-    fireEvent.change(screen.getByLabelText("Provider"), { target: { value: "anthropic" } });
+    // The provider picker is a Base UI select: it answers to real clicks, not a change event.
+    await user.click(screen.getByRole("combobox", { name: "Provider" }));
+    await user.click(await screen.findByRole("option", { name: "Anthropic" }));
     await screen.findByText("$0.00774700");
     expect(linesCall).toHaveBeenLastCalledWith("sk-test", "anthropic", expect.any(String), expect.any(String));
   });
