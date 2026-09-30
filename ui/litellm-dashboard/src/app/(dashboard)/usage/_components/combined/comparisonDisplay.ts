@@ -1,4 +1,5 @@
 import type { ComparisonDay, ComparisonStatus } from "@/components/networking";
+import { formatExactMoney, formatMoney } from "@/lib/money";
 
 /**
  * What each status means to the person reading the screen.
@@ -20,12 +21,14 @@ export const STATUS_EXPLANATION: Record<ComparisonStatus, string> = {
   no_provider_data: "The provider has reported nothing for this day, so there is nothing to compare.",
 };
 
-/** Money arrives as exact digit strings. Format for reading without ever parsing to a number. */
-export const formatAmount = (amount: string | null): string => {
-  if (amount === null) return "—";
-  const trimmed = amount.trim();
-  return trimmed === "" ? "—" : `$${trimmed}`;
-};
+/**
+ * A comparison row is shown to the digit: provider billed, gateway recorded and the difference
+ * between them have to agree on screen, and independently rounded figures do not.
+ */
+export const formatAmount = (amount: string | null): string => formatExactMoney(amount, "USD");
+
+/** A headline figure nothing is subtracted from, rounded for reading. */
+export const formatTotal = (amount: string | null): string => formatMoney(amount, "USD");
 
 export const ownerOf = (row: ComparisonDay): string =>
   row.owner_id === null ? "—" : `${row.owner_type}: ${row.owner_id}`;

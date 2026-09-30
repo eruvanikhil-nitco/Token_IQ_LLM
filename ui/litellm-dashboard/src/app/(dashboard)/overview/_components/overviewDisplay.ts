@@ -1,16 +1,8 @@
 import type { MatchStatus } from "@/components/networking";
+import { formatMoney } from "@/lib/money";
 
-/**
- * Money arrives as exact digit strings and is never parsed to a number.
- *
- * An absent figure shows a dash rather than a zero. Zero asserts the company spent nothing,
- * which on a landing page reads as "you are free" when the truth is "nothing is connected yet".
- */
-export const formatAmount = (amount: string | null): string => {
-  if (amount === null) return "—";
-  const trimmed = amount.trim();
-  return trimmed === "" ? "—" : `$${trimmed}`;
-};
+/** The overview endpoint reports every figure in one currency, named alongside them. */
+export const formatAmount = (amount: string | null): string => formatMoney(amount, "USD");
 
 export type ChangeDirection = "up" | "down" | "unknown";
 

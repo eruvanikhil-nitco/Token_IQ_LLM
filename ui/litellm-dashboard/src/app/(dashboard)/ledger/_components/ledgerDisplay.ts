@@ -1,20 +1,11 @@
 import type { AdjustmentKind, ReconciliationOutcome } from "@/components/networking";
-
-const SYMBOLS: Record<string, string> = { USD: "$", EUR: "€", GBP: "£" };
+import { formatExactMoney } from "@/lib/money";
 
 /**
- * Money arrives as exact digit strings and is never parsed to a number here.
- *
- * A currency with no symbol is named rather than dropped: showing "10" for ten Swedish krona
- * beside "$10" would read as the same amount.
+ * A ledger line is shown to the digit, because this screen exists to reconcile against a bill
+ * and independently rounded lines stop adding up. Headline tiles use `formatMoney` instead.
  */
-export const formatAmount = (amount: string | null, currency: string | null): string => {
-  if (amount === null) return "—";
-  const trimmed = amount.trim();
-  if (trimmed === "") return "—";
-  const symbol = currency === null ? "" : SYMBOLS[currency];
-  return symbol === undefined ? `${currency} ${trimmed}` : `${symbol}${trimmed}`;
-};
+export const formatAmount = formatExactMoney;
 
 /** What each evidence level claims about how a figure was arrived at. */
 export const EVIDENCE_LABEL: Record<string, string> = {

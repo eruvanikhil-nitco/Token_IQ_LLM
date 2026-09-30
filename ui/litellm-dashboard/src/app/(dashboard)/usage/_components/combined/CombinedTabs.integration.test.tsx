@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -71,6 +71,12 @@ const renderTabs = () => {
   );
 };
 
+/** The date range is a Base UI select: it answers to real clicks, not to a raw change event. */
+const choose = async (user: ReturnType<typeof userEvent.setup>, control: string, option: string) => {
+  await user.click(screen.getByRole("combobox", { name: control }));
+  await user.click(await screen.findByRole("option", { name: option }));
+};
+
 describe("CombinedTabs", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -105,17 +111,18 @@ describe("CombinedTabs", () => {
     renderTabs();
     await screen.findByText("Providers billed");
 
-    fireEvent.change(screen.getByLabelText("Date range"), { target: { value: "7" } });
+    await choose(user, "Date range", "Last 7 days");
     await user.click(screen.getByRole("tab", { name: "Unallocated" }));
     await user.click(screen.getByRole("tab", { name: "Source Comparison" }));
 
-    expect(screen.getByLabelText("Date range")).toHaveValue("7");
+    expect(screen.getByRole("combobox", { name: "Date range" })).toHaveTextContent("Last 7 days");
   });
 
   it("asks the server for the range the reader chose", async () => {
+    const user = userEvent.setup();
     renderTabs();
     await screen.findByText("Providers billed");
-    fireEvent.change(screen.getByLabelText("Date range"), { target: { value: "7" } });
+    await choose(user, "Date range", "Last 7 days");
     await screen.findByText("Providers billed");
     expect(comparisonCall).toHaveBeenLastCalledWith("sk-test", 7);
   });

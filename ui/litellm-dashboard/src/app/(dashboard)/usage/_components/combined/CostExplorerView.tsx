@@ -3,8 +3,10 @@
 import { useState } from "react";
 
 import { Card } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useExplorer } from "@/app/(dashboard)/hooks/combined/useExplorer";
-import { formatAmount } from "./comparisonDisplay";
+import { formatTotal } from "./comparisonDisplay";
 import { DIMENSIONS, barWidths, type ExplorerDimension } from "./explorerDisplay";
 
 const GATEWAY_COLOR = "var(--chart-gateway, #2a78d6)";
@@ -21,21 +23,23 @@ export default function CostExplorerView({ days }: CostExplorerViewProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <label className="flex w-fit flex-col gap-1 text-sm">
-        <span>Group by</span>
-        <select
-          aria-label="Group by"
-          className="h-9 rounded-md border bg-background px-2"
-          value={dimension}
-          onChange={(event) => setDimension(event.target.value as ExplorerDimension)}
-        >
-          {DIMENSIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </label>
+      <div className="flex flex-wrap items-center gap-2">
+        <Label htmlFor="explorer-group-by" className="text-muted-foreground">
+          Group by
+        </Label>
+        <Select items={DIMENSIONS} value={dimension} onValueChange={(next) => next !== null && setDimension(next as ExplorerDimension)}>
+          <SelectTrigger id="explorer-group-by" aria-label="Group by" className="w-[160px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {DIMENSIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
       {isLoading && <p className="text-sm text-muted-foreground">Reading spend…</p>}
       {error && <p className="text-sm text-destructive">Could not read the cost explorer.</p>}
@@ -64,13 +68,13 @@ export default function CostExplorerView({ days }: CostExplorerViewProps) {
           {data.note !== "" && <p className="text-sm text-muted-foreground">{data.note}</p>}
 
           {data.slices.length === 0 ? null : (
-            <div className="flex flex-col gap-3">
+            <Card className="flex flex-col gap-4 p-4">
               {data.slices.map((slice, index) => (
-                <div key={slice.key} className="flex flex-col gap-1">
-                  <div className="flex justify-between text-sm">
-                    <span className="truncate pr-4">{slice.key}</span>
-                    <span className="text-muted-foreground whitespace-nowrap">
-                      {formatAmount(slice.through_gateway)} through, {formatAmount(slice.outside_gateway)} outside
+                <div key={slice.key} className="flex flex-col gap-1.5">
+                  <div className="flex items-baseline justify-between gap-4 text-sm">
+                    <span className="truncate font-medium">{slice.key}</span>
+                    <span className="whitespace-nowrap text-muted-foreground tabular-nums">
+                      {formatTotal(slice.through_gateway)} through, {formatTotal(slice.outside_gateway)} outside
                     </span>
                   </div>
                   {/* The two segments stack because they are disjoint: outside-gateway spend is what
@@ -95,26 +99,26 @@ export default function CostExplorerView({ days }: CostExplorerViewProps) {
                   </div>
                 </div>
               ))}
-            </div>
+            </Card>
           )}
 
           <div className="grid gap-4 sm:grid-cols-2">
             <Card className="p-4">
               <p className="text-sm text-muted-foreground">Through the gateway</p>
-              <p className="text-xl font-semibold">{formatAmount(data.total_through_gateway)}</p>
+              <p className="text-xl font-semibold">{formatTotal(data.total_through_gateway)}</p>
               {data.unallocated_to_a_slice !== "0" && (
                 <p className="text-sm text-muted-foreground">
-                  {formatAmount(data.unallocated_to_a_slice)} of that has no {dimension} recorded, so it is in no bar
+                  {formatTotal(data.unallocated_to_a_slice)} of that has no {dimension} recorded, so it is in no bar
                   above.
                 </p>
               )}
             </Card>
             <Card className="p-4">
               <p className="text-sm text-muted-foreground">Outside the gateway</p>
-              <p className="text-xl font-semibold">{formatAmount(data.total_outside_gateway)}</p>
+              <p className="text-xl font-semibold">{formatTotal(data.total_outside_gateway)}</p>
               {data.unattributable_outside_gateway !== "0" && (
                 <p className="text-sm text-muted-foreground">
-                  {formatAmount(data.unattributable_outside_gateway)} of that is money nobody owns.
+                  {formatTotal(data.unattributable_outside_gateway)} of that is money nobody owns.
                 </p>
               )}
             </Card>

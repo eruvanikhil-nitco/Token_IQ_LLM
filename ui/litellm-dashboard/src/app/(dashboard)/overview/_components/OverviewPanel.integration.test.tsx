@@ -58,11 +58,11 @@ describe("OverviewPanel", () => {
     overviewCall.mockResolvedValue(response());
   });
 
-  it("shows the headline total the server computed, digits intact", async () => {
+  it("shows the headline total the server computed, rounded for reading", async () => {
     renderPanel();
     const tile = (await screen.findByText(/total spend/i)).closest("div[data-slot='card']");
 
-    expect(tile).toHaveTextContent("$0.00780515");
+    expect(tile).toHaveTextContent("$0.0078");
   });
 
   it("never presents the gateway figure as part of what was spent", async () => {
@@ -92,7 +92,7 @@ describe("OverviewPanel", () => {
     renderPanel();
     const tile = (await screen.findByText(/nobody owns/i)).closest("div[data-slot='card']");
 
-    expect(tile).toHaveTextContent("$0.00774700");
+    expect(tile).toHaveTextContent("$0.0077");
     expect(tile).toHaveTextContent(/99\.3% of what providers billed/i);
   });
 

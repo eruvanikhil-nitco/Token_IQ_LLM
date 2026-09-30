@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import CostExplorerView from "./CostExplorerView";
@@ -50,6 +51,12 @@ const renderView = () => {
   );
 };
 
+/** The grouping is a Base UI select: it answers to real clicks, not to a raw change event. */
+const choose = async (user: ReturnType<typeof userEvent.setup>, control: string, option: string) => {
+  await user.click(screen.getByRole("combobox", { name: control }));
+  await user.click(await screen.findByRole("option", { name: option }));
+};
+
 describe("CostExplorerView", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -64,34 +71,36 @@ describe("CostExplorerView", () => {
     expect(screen.getAllByText("Outside the gateway")).toHaveLength(2);
   });
 
-  it("keeps every digit rather than rounding a total for display", async () => {
+  it("rounds a total for reading while keeping a sub-cent amount visible", async () => {
     renderView();
-    expect(await screen.findByText("$0.00797225")).toBeInTheDocument();
-    expect(screen.getByText("$0.00774700")).toBeInTheDocument();
+    expect(await screen.findByText("$0.008")).toBeInTheDocument();
+    expect(screen.getByText("$0.0077")).toBeInTheDocument();
   });
 
   it("names gateway spend the grouping cannot place rather than letting the bars under-add", async () => {
     renderView();
-    expect(await screen.findByText(/\$0\.00143880 of that has no team recorded/)).toBeInTheDocument();
+    expect(await screen.findByText(/\$0\.0014 of that has no team recorded/)).toBeInTheDocument();
   });
 
   it("names outside-gateway spend nobody owns", async () => {
     renderView();
-    expect(await screen.findByText(/\$0\.00774700 of that is money nobody owns/)).toBeInTheDocument();
+    expect(await screen.findByText(/\$0\.0077 of that is money nobody owns/)).toBeInTheDocument();
   });
 
   it("says a grouping has no spend rather than drawing an empty chart", async () => {
+    const user = userEvent.setup();
     explorerCall.mockResolvedValue(EMPTY_PROJECT);
     renderView();
-    fireEvent.change(screen.getByLabelText("Group by"), { target: { value: "project" } });
+    await choose(user, "Group by", "Project");
     expect(await screen.findByText("No project spend recorded in this window.")).toBeInTheDocument();
   });
 
   it("asks the server for the grouping the reader chose", async () => {
+    const user = userEvent.setup();
     renderView();
-    await screen.findByText("$0.00797225");
-    fireEvent.change(screen.getByLabelText("Group by"), { target: { value: "model" } });
-    await screen.findByText("$0.00797225");
+    await screen.findByText("$0.008");
+    await choose(user, "Group by", "Model");
+    await screen.findByText("$0.008");
     expect(explorerCall).toHaveBeenLastCalledWith("sk-test", "model", 30);
   });
 });

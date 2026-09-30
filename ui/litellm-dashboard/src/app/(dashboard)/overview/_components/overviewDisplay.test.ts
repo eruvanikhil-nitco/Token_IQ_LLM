@@ -19,8 +19,13 @@ describe("formatAmount", () => {
     expect(formatAmount(null)).not.toContain("0");
   });
 
-  it("keeps every digit the server sent rather than rounding for display", () => {
-    expect(formatAmount("0.00780515")).toBe("$0.00780515");
+  it("rounds a headline tile for reading, since nothing on this page is subtracted from it", () => {
+    expect(formatAmount("1234.567")).toBe("$1,234.57");
+  });
+
+  it("still shows a real amount under a cent rather than rounding it away to nothing", () => {
+    expect(formatAmount("0.00780515")).toBe("$0.0078");
+    expect(formatAmount("0.0000072")).not.toBe("$0.00");
   });
 });
 
