@@ -135,26 +135,24 @@ variable "azs" {
 
 # ---------- Component images ----------
 #
-# Defaults pin the four componentized images at the same release tag on
-# GHCR. Override on a per-component basis in tfvars when bumping; bump them
-# together when bumping the LiteLLM release.
+# No defaults on purpose. A default pointing at a registry we do not control means an
+# installation that forgets to pass a value silently runs somebody else's build, with their
+# branding and their supply chain, inside a customer's installation. With no default, a
+# missing value fails at plan time instead. Pass all four together, at one version.
 
 variable "gateway_image" {
-  description = "Container image for the gateway (data plane, port 4000). Tag must match a tag actually published to GHCR — the split images use the `v`-prefixed semver convention."
+  description = "Container image for the gateway (data plane, port 4000). Required: pass an image we publish."
   type        = string
-  default     = "ghcr.io/berriai/litellm-gateway:v1.86.0-dev"
 }
 
 variable "backend_image" {
   description = "Container image for the backend (management API, port 4001)."
   type        = string
-  default     = "ghcr.io/berriai/litellm-backend:v1.86.0-dev"
 }
 
 variable "ui_image" {
   description = "Container image for the UI (nginx static export, port 3000)."
   type        = string
-  default     = "ghcr.io/berriai/litellm-ui:v1.86.0-dev"
 }
 
 variable "migrations_image" {
@@ -166,7 +164,6 @@ variable "migrations_image" {
     the same release tag as gateway/backend/ui.
   EOT
   type        = string
-  default     = "ghcr.io/berriai/litellm-migrations:v1.86.0-dev"
 }
 
 # ---------- Service sizing ----------
