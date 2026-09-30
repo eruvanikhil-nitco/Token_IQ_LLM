@@ -81,7 +81,7 @@ describe("dashboard landing", () => {
     mockLocationReplace.mockClear();
   });
 
-  it.each(["Internal User", "Internal Viewer", "Admin", "Admin Viewer", "Org Admin", ""])(
+  it.each(["Internal User", "Internal Viewer", "Org Admin", ""])(
     "lands a keyless %s on the keys dashboard, never on the MCP connect page",
     (role) => {
       state.userRole = role;
@@ -109,5 +109,32 @@ describe("dashboard landing", () => {
     state.returnUrl = "/ui/models-and-endpoints";
     render(<CreateKeyPage />);
     expect(mockLocationReplace).toHaveBeenCalledWith("http://localhost:3000/ui/models-and-endpoints");
+  });
+
+  it.each(["Admin", "Admin Viewer"])("lands an admin on the overview rather than the keys page", (role) => {
+    /* The overview is the summary of everything the product knows. An admin who has to find
+       it from the keys page is being shown the least interesting screen first. */
+    state.userRole = role;
+    render(<CreateKeyPage />);
+
+    expect(mockReplace).toHaveBeenCalledWith("/mocked-ui/overview");
+  });
+
+  it("does not send a non-admin to the overview, which they are not allowed to read", () => {
+    /* Landing them on a refusal would be worse than landing them anywhere. */
+    state.userRole = "Internal User";
+    render(<CreateKeyPage />);
+
+    expect(mockReplace).not.toHaveBeenCalledWith("/mocked-ui/overview");
+    expect(screen.getByTestId("api-keys-dashboard")).toBeInTheDocument();
+  });
+
+  it("lets a stored return URL win over the overview landing", () => {
+    /* Someone who followed a link to a particular screen asked for that screen. */
+    state.userRole = "Admin";
+    state.returnUrl = "/ui/models-and-endpoints";
+    render(<CreateKeyPage />);
+
+    expect(mockReplace).not.toHaveBeenCalledWith("/mocked-ui/overview");
   });
 });

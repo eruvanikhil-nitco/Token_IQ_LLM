@@ -13,11 +13,12 @@ import {
   storeReturnUrl,
 } from "@/utils/returnUrlUtils";
 import { MIGRATED_PAGES, migratedHref } from "@/utils/migratedPages";
+import { all_admin_roles } from "@/utils/roles";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef } from "react";
 
 function CreateKeyPageContent() {
-  const { authLoading, token } = useAuth();
+  const { authLoading, token, userRole } = useAuth();
 
   const router = useRouter();
   const searchParams = useSearchParams()!;
@@ -76,9 +77,19 @@ function CreateKeyPageContent() {
       // This prevents infinite redirect loops
       if (normalizedReturnUrl !== normalizedCurrentUrl) {
         window.location.replace(safeUrl.href);
+        return;
       }
     }
-  }, [authLoading, token]);
+
+    // Nothing asked for a particular screen, so an admin lands on the overview: it summarises
+    // everything the product knows, where the keys page is the least interesting thing to see
+    // first. Decided here rather than in an effect of its own so it cannot race the return URL
+    // above. Not for anyone else, because the overview is admin-only and landing someone on a
+    // refusal is worse than landing them anywhere.
+    if (explicitPage === null && all_admin_roles.includes(userRole ?? "")) {
+      router.replace(migratedHref("overview"));
+    }
+  }, [authLoading, token, explicitPage, userRole, router]);
 
   useEffect(() => {
     if (!token) {
