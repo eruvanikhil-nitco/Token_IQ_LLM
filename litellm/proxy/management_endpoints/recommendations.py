@@ -149,7 +149,7 @@ def recommendations_response(
     )
 
 
-async def _gather(prisma_client: object, *, start: datetime, end: datetime) -> RuleInput:
+async def gather_rule_input(prisma_client: object, *, start: datetime, end: datetime) -> RuleInput:
     """Every slice the rules read, gathered once so each rule stays pure."""
     db: Final = prisma_client.db  # pyright: ignore[reportAttributeAccessIssue]  # object has no .db attr
 
@@ -201,7 +201,7 @@ async def recommendations(
     if prisma_client is None:
         raise _proxy_error(status.HTTP_500_INTERNAL_SERVER_ERROR, CommonProxyErrors.db_not_connected_error.value)
 
-    rule_input: Final = await _gather(prisma_client, start=start, end=end)
+    rule_input: Final = await gather_rule_input(prisma_client, start=start, end=end)
     states: Final = await RecommendationStateRepository(prisma_client).all()
 
     return recommendations_response(period_start=start, period_end=end, cards=evaluate(rule_input), states=states)
