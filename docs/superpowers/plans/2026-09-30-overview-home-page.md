@@ -62,20 +62,20 @@ SQL; this page must not work around it.
 - Create: `litellm/overview/__init__.py`, `litellm/overview/totals.py`
 - Create: `tests/test_litellm/overview/test_totals.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 The headline total is provider spend plus tool new money plus seats, and adding the gateway
 figure to it is the mutation that must fail. A period with nothing in it reports nothing
 rather than zero. The change against the previous period is absent when there is no previous
 period, rather than reported as a rise from zero.
 
-- [ ] **Step 2: Write the pure function**
+- [x] **Step 2: Write the pure function**
 
 Pure, taking the figures as arguments, so the rule can be tested without a database.
 
-- [ ] **Step 3: Mutate each rule and confirm a test dies**
+- [x] **Step 3: Mutate each rule and confirm a test dies**
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ---
 
@@ -86,16 +86,16 @@ Pure, taking the figures as arguments, so the rule can be tested without a datab
 - Create: `litellm/types/proxy/management_endpoints/overview_endpoints.py`
 - Create: `tests/test_litellm/proxy/management_endpoints/test_overview.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Admin only. Every amount crosses as a string. The response carries the period it was asked
 for. A source that has never synced reports never rather than a date.
 
-- [ ] **Step 2: Build it, reading the repositories that already hold each figure**
+- [x] **Step 2: Build it, reading the repositories that already hold each figure**
 
-- [ ] **Step 3: Prove it live against the running proxy and real data**
+- [x] **Step 3: Prove it live against the running proxy and real data**
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ---
 
@@ -106,20 +106,20 @@ for. A source that has never synced reports never rather than a date.
 - Create: `ui/litellm-dashboard/src/app/(dashboard)/hooks/overview/useOverview.ts`
 - Create: `ui/litellm-dashboard/src/app/(dashboard)/overview/page.tsx` and `_components/`
 
-- [ ] **Step 1: Write the failing display tests**
+- [x] **Step 1: Write the failing display tests**
 
 Formatting and labelling on their own, away from a render: an absent figure shows nothing
 rather than a zero, a rise and a fall read differently, and the attribution share is a share
 of the provider total rather than of anything else.
 
-- [ ] **Step 2: Write the failing integration tests**
+- [x] **Step 2: Write the failing integration tests**
 
-- [ ] **Step 3: Build it in the dashboard's existing patterns**
+- [x] **Step 3: Build it in the dashboard's existing patterns**
 
 Stat tiles in the card grid the Combined screens already use. Status carries a word beside any
 colour. The recommendation list links to the full screen rather than repeating it.
 
-- [ ] **Step 4: Run only the touched tests, regenerate the API types, commit**
+- [x] **Step 4: Run only the touched tests, regenerate the API types, commit**
 
 ---
 
@@ -128,13 +128,13 @@ colour. The recommendation list links to the full screen rather than repeating i
 **Files:**
 - Modify: `leftnav.tsx`, `migratedPages.ts`, `leftnav.test.tsx`, and wherever the default route is decided
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 A new HOME group with Overview in it, and the group list updated in the same commit.
 
-- [ ] **Step 2: Add the entry, the route and the redirect together**
+- [x] **Step 2: Add the entry, the route and the redirect together**
 
-- [ ] **Step 3: Run the touched tests and commit**
+- [x] **Step 3: Run the touched tests and commit**
 
 ---
 
@@ -143,11 +143,11 @@ A new HOME group with Overview in it, and the group list updated in the same com
 **Files:**
 - Modify: `docs/superpowers/specs/2026-09-14-token-iq-product-design.md`, `PROJECT.md`
 
-- [ ] **Step 1: Record what the headline total includes and, more importantly, what it excludes**
+- [x] **Step 1: Record what the headline total includes and, more importantly, what it excludes**
 
-- [ ] **Step 2: Record what the page cannot yet show and why**
+- [x] **Step 2: Record what the page cannot yet show and why**
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ---
 
@@ -180,3 +180,33 @@ That the headline total does not include the gateway figure. It is the product's
 this is the most prominent number in the product, and the failure is silent: every screen
 keeps working and the one figure a customer repeats to their finance team is roughly double
 what they actually spent.
+
+---
+
+## Whole-plan review, 2026-09-30
+
+All five tasks are done. The Self-Review said a reviewer should check hardest that the
+headline total excludes the gateway figure, and that held: six mutations were applied to the
+counting rules and all six were caught, including adding the gateway figure to the total and
+taking the unallocated share of the wrong denominator. Checked live too, on real data, where
+the total reads the provider figure rather than the provider figure plus the gateway's.
+
+Two decisions worth keeping.
+
+The page has its own queries rather than reusing the existing repositories. Most of those
+take a window in days counted back from today, and a landing page cannot have one tile
+showing last week beside another showing last month. Five focused queries were a smaller
+change than bending five signatures.
+
+A provider's standing has four states rather than a boolean, and one of them is neutral. A
+bill larger than the gateway's record and one smaller are different problems, and a provider
+read only through its bill is neither: that is a normal way to run, and a permanent amber
+badge on a working connection teaches people to ignore the column.
+
+Nothing on this page is a chart. Every figure it shows is a single number or a short list,
+and a chart added to fill space would have been worse than a number. The tiles reuse the card
+pattern the Combined screens already use, because consistency is most of what makes a product
+look considered.
+
+What it cannot yet show: a spend trend over time, which needs the daily series rather than
+one period's totals, and any figure from a user tool, since no tool has met a real account.
