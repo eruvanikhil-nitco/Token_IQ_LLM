@@ -3858,7 +3858,7 @@ class CommonProxyErrors(str, enum.Enum):
     not_premium_user = "This feature is not included in this installation's Token IQ plan."
     max_parallel_request_limit_reached = "Crossed TPM / RPM / Max Parallel Request Limit"
     missing_enterprise_package = "This feature is not available in Token IQ."
-    missing_enterprise_package_docker = "This uses the enterprise folder - only available on the Docker image."
+    missing_enterprise_package_docker = "This feature is not available in Token IQ."
 
 
 class SpendCalculateRequest(LiteLLMPydanticObjectBase):
