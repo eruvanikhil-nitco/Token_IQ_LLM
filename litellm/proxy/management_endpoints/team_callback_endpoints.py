@@ -243,7 +243,7 @@ async def add_team_callbacks(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
     litellm_changed_by: str | None = Header(
         None,
-        description="The litellm-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
+        description="The Token IQ-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
     ),
 ):
     """
@@ -280,7 +280,7 @@ async def add_team_callbacks(
         "callback_name": "langfuse",
         "callback_type": "success",
         "callback_vars": {"langfuse_public_key": "pk-lf-xxxx1", "langfuse_secret_key": "sk-xxxxx"}
-        
+
     }'
     ```
 
@@ -407,7 +407,7 @@ async def delete_team_callback(
     litellm_changed_by: Annotated[
         str | None,
         Header(
-            description="The litellm-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability"
+            description="The Token IQ-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability"
         ),
     ] = None,
 ):
@@ -549,7 +549,7 @@ async def disable_team_logging(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
     litellm_changed_by: str | None = Header(
         None,
-        description="The litellm-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
+        description="The Token IQ-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
     ),
 ):
     """

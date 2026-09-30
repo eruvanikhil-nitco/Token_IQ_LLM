@@ -16,7 +16,7 @@ __all__ = ["SearchProvider", "SearchProviders"]
 
 class SearchToolLiteLLMParams(TypedDict, total=False):
     """
-    LiteLLM params for search tools configuration.
+    Token IQ params for search tools configuration.
     """
 
     search_provider: Required[str]
@@ -33,7 +33,7 @@ class SearchTool(TypedDict, total=False):
     Example:
         {
             "search_tool_id": "123e4567-e89b-12d3-a456-426614174000",
-            "search_tool_name": "litellm-search",
+            "search_tool_name": "Token IQ-search",
             "litellm_params": {
                 "search_provider": "perplexity",
                 "api_key": "sk-..."

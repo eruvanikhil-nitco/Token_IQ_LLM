@@ -332,7 +332,7 @@ async def update_hashicorp_vault_config(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
     litellm_changed_by: str | None = Header(
         None,
-        description="The litellm-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
+        description="The Token IQ-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
     ),
 ):
     """
@@ -527,7 +527,7 @@ async def delete_hashicorp_vault_config(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
     litellm_changed_by: str | None = Header(
         None,
-        description="The litellm-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
+        description="The Token IQ-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
     ),
 ):
     """Delete Hashicorp Vault configuration. Idempotent."""
@@ -656,7 +656,7 @@ async def update_cyberark_config(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),  # noqa: B008  # FastAPI dependency injection
     litellm_changed_by: str | None = Header(
         None,
-        description="The litellm-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
+        description="The Token IQ-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
     ),
 ) -> dict[str, str]:
     """
@@ -828,7 +828,7 @@ async def delete_cyberark_config(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),  # noqa: B008  # FastAPI dependency injection
     litellm_changed_by: str | None = Header(
         None,
-        description="The litellm-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
+        description="The Token IQ-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
     ),
 ) -> dict[str, str]:
     """Delete CyberArk Conjur configuration. Idempotent."""

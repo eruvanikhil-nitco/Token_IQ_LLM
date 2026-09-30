@@ -126,7 +126,7 @@ async def cache_ping():
 )
 async def cache_delete(request: Request):
     """
-    Endpoint for deleting a key from the cache. All responses from litellm proxy have `x-litellm-cache-key` in the headers
+    Endpoint for deleting a key from the cache. All responses from Token IQ have `x-Token IQ-cache-key` in the headers
 
     Parameters:
     - **keys**: *Optional[List[str]]* - A list of keys to delete from the cache. Example {"keys": ["key1", "key2"]}

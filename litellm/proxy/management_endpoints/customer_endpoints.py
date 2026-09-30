@@ -320,8 +320,7 @@ async def new_end_user(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ) -> CustomerResponse:
     """
-    Allow creating a new Customer 
-
+    Allow creating a new Customer
 
     Parameters:
     - user_id: str - The unique identifier for the user.
@@ -350,9 +349,8 @@ async def new_end_user(
         * agent_access_groups: List[str] - List of agent access group names
         Example: {"mcp_servers": ["server_1", "server_2"], "vector_stores": ["vector_store_1"], "agents": ["agent_1"]}
         IF null or {} then no object-level restrictions apply.
-    
-    
-    - Allow specifying allowed regions 
+
+    - Allow specifying allowed regions
     - Allow specifying default model
 
     Example curl:
@@ -361,7 +359,7 @@ async def new_end_user(
         --header 'Authorization: Bearer sk-1234' \
         --header 'Content-Type: application/json' \
         --data '{
-            "user_id" : "ishaan-jaff-3",
+            "user_id": "ishaan-jaff-3",
             "allowed_region": "eu",
             "budget_id": "free_tier",
             "default_model": "azure/gpt-3.5-turbo-eu"
@@ -512,7 +510,7 @@ async def end_user_info(
 
     Example curl:
     ```
-    curl -X GET 'http://localhost:4000/customer/info?end_user_id=test-litellm-user-4' \
+    curl -X GET 'http://localhost:4000/customer/info?end_user_id=test-Token IQ-user-4' \
         -H 'Authorization: Bearer sk-1234'
     ```
     """
@@ -564,7 +562,7 @@ async def update_end_user(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ) -> CustomerResponse:
     """
-    Example curl 
+    Example curl
 
     Parameters:
     - user_id: str
@@ -595,7 +593,7 @@ async def update_end_user(
     --header 'Authorization: Bearer sk-1234' \
     --header 'Content-Type: application/json' \
     --data '{
-        "user_id": "test-litellm-user-4",
+        "user_id": "test-Token IQ-user-4",
         "budget_id": "paid_tier"
     }'
 

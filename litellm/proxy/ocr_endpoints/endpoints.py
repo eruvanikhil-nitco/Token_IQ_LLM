@@ -293,7 +293,7 @@ async def ocr(
         -F "file=@document.pdf"
     ```
 
-    Response format is normalized to the LiteLLM OCR schema by default. Providers
+    Response format is normalized to the Token IQ OCR schema by default. Providers
     that support it (Azure Document Intelligence) can return their own payload
     instead, with cost tracking unchanged, via `x-req-format: native` (or
     `"req_format": "native"` in the body).

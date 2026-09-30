@@ -907,7 +907,7 @@ class ComplexityRouterConfig(BaseModel):
     )
     embedding_model: str | None = Field(
         default=None,
-        description="Embedding model (LiteLLM model name) used when semantic_keyword_matching is enabled",
+        description="Embedding model (Token IQ model name) used when semantic_keyword_matching is enabled",
     )
     match_threshold: float = Field(
         default=0.5,

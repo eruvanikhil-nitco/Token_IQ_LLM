@@ -96,7 +96,7 @@ async def get_marketplace():
     Example:
         ```bash
         claude plugin marketplace add http://localhost:4000/claude-code/marketplace.json
-        claude plugin install my-plugin@litellm
+        claude plugin install my-plugin@Token IQ
         ```
     """
     try:
@@ -245,9 +245,9 @@ async def register_plugin(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ):
     """
-    Register a new plugin in the LiteLLM marketplace.
+    Register a new plugin in the Token IQ marketplace.
 
-    LiteLLM acts as a registry/discovery layer. Plugins are hosted on
+    Token IQ acts as a registry/discovery layer. Plugins are hosted on
     GitHub/GitLab/Bitbucket. Claude Code will clone from the git source
     when users install.
 
@@ -488,7 +488,7 @@ async def update_plugin(
     user_api_key_dict: Annotated[UserAPIKeyAuth, Depends(user_api_key_auth)],
 ):
     """
-    Update an existing plugin in the LiteLLM marketplace.
+    Update an existing plugin in the Token IQ marketplace.
 
     The plugin is identified by its name in the path, which is the resource
     identity and cannot be changed here. This is a full replace, not a merge:

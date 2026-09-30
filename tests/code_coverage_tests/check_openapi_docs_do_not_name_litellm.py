@@ -21,7 +21,20 @@ from typing import Final
 
 REPO: Final = Path(__file__).resolve().parents[2]
 
-FORBIDDEN: Final = re.compile(r"LiteLLM|litellm\.ai|berri\.ai", re.IGNORECASE)
+FORBIDDEN: Final = re.compile(
+    # The product name as a word. Not when it is part of an identifier: `LiteLLM_SpendLogs` is
+    # a database table, `litellm_call_id` a request field and `x-litellm-model` a header a
+    # client must send, and renaming any of them is a migration or a breaking change rather
+    # than a rewrite of a sentence. Not when quoted either, because `Defaults to 'litellm'`
+    # states the value the API really uses, and changing that changes behaviour.
+    # `litellm.skip_system_message_in_guardrail` is a setting a customer really writes, so the
+    # dotted attribute path is excluded too, while a sentence ending in the word is not.
+    r"(?<![\w.'\"-])litellm(?![\w'\"-])(?!\.\w)"
+    # A link to the other product's site, and a real person's address at its company.
+    r"|litellm\.ai"
+    r"|berri\.ai",
+    re.IGNORECASE,
+)
 
 PROSE_KEYS: Final[frozenset[str]] = frozenset({"description", "summary", "title", "example"})
 """The keys whose values a reader sees as words. `$ref` and the schema names it points at are

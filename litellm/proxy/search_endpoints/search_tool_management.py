@@ -155,7 +155,7 @@ async def list_search_tools(
         "search_tools": [
             {
                 "search_tool_id": "123e4567-e89b-12d3-a456-426614174000",
-                "search_tool_name": "litellm-search",
+                "search_tool_name": "Token IQ-search",
                 "litellm_params": {
                     "search_provider": "perplexity",
                     "api_key": "sk-***",
@@ -280,7 +280,7 @@ async def create_search_tool(request: CreateSearchToolRequest):
         -H "Content-Type: application/json" \\
         -d '{
             "search_tool": {
-                "search_tool_name": "litellm-search",
+                "search_tool_name": "Token IQ-search",
                 "litellm_params": {
                     "search_provider": "perplexity",
                     "api_key": "sk-..."
@@ -296,7 +296,7 @@ async def create_search_tool(request: CreateSearchToolRequest):
     ```json
     {
         "search_tool_id": "123e4567-e89b-12d3-a456-426614174000",
-        "search_tool_name": "litellm-search",
+        "search_tool_name": "Token IQ-search",
         "litellm_params": {
             "search_provider": "perplexity",
             "api_key": "sk-..."
@@ -438,7 +438,7 @@ async def delete_search_tool(search_tool_id: str):
     ```json
     {
         "message": "Search tool 123e4567-e89b-12d3-a456-426614174000 deleted successfully",
-        "search_tool_name": "litellm-search"
+        "search_tool_name": "Token IQ-search"
     }
     ```
     """
@@ -494,7 +494,7 @@ async def get_search_tool_info(search_tool_id: str):
     ```json
     {
         "search_tool_id": "123e4567-e89b-12d3-a456-426614174000",
-        "search_tool_name": "litellm-search",
+        "search_tool_name": "Token IQ-search",
         "litellm_params": {
             "search_provider": "perplexity",
             "api_key": "sk-***"
@@ -560,7 +560,7 @@ class TestSearchToolConnectionRequest(BaseModel):
 async def test_search_tool_connection(request: TestSearchToolConnectionRequest):
     """
     Test connection to a search provider with the given configuration.
-    
+
     Makes a simple test search query to verify the API key and configuration are valid.
 
     Example Request:

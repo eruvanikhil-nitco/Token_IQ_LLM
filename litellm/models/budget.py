@@ -15,7 +15,7 @@ from litellm.types.llms.base import LiteLLMPydanticObjectBase
 class LiteLLM_BudgetTable(LiteLLMPydanticObjectBase):
     """Represents user-controllable params for a LiteLLM_BudgetTable record.
 
-    Budget-write paths use `model_fields.keys()` on this class as an allowlist
+    Budget-write paths use `model_fields.keys` on this class as an allowlist
     for user input. Keep server-managed fields (e.g. `budget_reset_at`) on
     `LiteLLM_BudgetTableFull` so they aren't user-settable.
     """

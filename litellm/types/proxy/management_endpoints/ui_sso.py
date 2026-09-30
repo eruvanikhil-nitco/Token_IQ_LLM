@@ -64,7 +64,7 @@ class AccessControl_UI_AccessMode(LiteLLMPydanticObjectBase):
 
 class RoleMappings(LiteLLMPydanticObjectBase):
     """
-    Configuration for mapping SSO groups to LiteLLM roles.
+    Configuration for mapping SSO groups to Token IQ roles.
 
     The system will look at the group_claim field in the SSO token to determine
     which role to assign the user based on the roles mapping.
@@ -80,7 +80,7 @@ class RoleMappings(LiteLLMPydanticObjectBase):
     )
     roles: dict[LitellmUserRoles, list[str]] = Field(
         default_factory=dict,
-        description="Mapping of LiteLLM role names to arrays of SSO group names. Example: {'proxy_admin': ['group-1', 'group-2'], 'proxy_admin_viewer': ['group-3']}",
+        description="Mapping of Token IQ role names to arrays of SSO group names. Example: {'proxy_admin': ['group-1', 'group-2'], 'proxy_admin_viewer': ['group-3']}",
     )
 
 
@@ -190,7 +190,7 @@ class SSOConfig(LiteLLMPydanticObjectBase):
     # Role Mappings
     role_mappings: RoleMappings | None = Field(
         default=None,
-        description="Configuration for mapping SSO groups to LiteLLM roles based on group claims in the SSO token",
+        description="Configuration for mapping SSO groups to Token IQ roles based on group claims in the SSO token",
     )
 
     # Team Mappings
@@ -203,7 +203,7 @@ class SSOConfig(LiteLLMPydanticObjectBase):
 class DefaultTeamSSOParams(LiteLLMPydanticObjectBase):
     """
     Default parameters applied to every /team/new call for fields not explicitly provided in the request.
-    `models` is the exception: it only applies to teams automatically created by LiteLLM via SSO Groups.
+    `models` is the exception: it only applies to teams automatically created by Token IQ via SSO Groups.
     """
 
     models: list[str] = Field(

@@ -37,14 +37,14 @@ async def create_skill(
 ):
     """
     Create a new skill on Anthropic.
-    
+
     Requires `?beta=true` query parameter.
-    
+
     Model-based routing (for multi-account support):
-    - Pass model via header: `x-litellm-model: claude-account-1`
+    - Pass model via header: `x-Token IQ-model: claude-account-1`
     - Pass model via query: `?model=claude-account-1`
     - Pass model via form field: `model=claude-account-1`
-    
+
     Example usage:
     ```bash
     # Basic usage
@@ -53,16 +53,16 @@ async def create_skill(
       -H "Authorization: Bearer your-key" \
       -F "display_title=My Skill" \
       -F "files[]=@skill.zip"
-    
+
     # With model-based routing
     curl -X POST "http://localhost:4000/v1/skills?beta=true" \
       -H "Content-Type: multipart/form-data" \
       -H "Authorization: Bearer your-key" \
-      -H "x-litellm-model: claude-account-1" \
+      -H "x-Token IQ-model: claude-account-1" \
       -F "display_title=My Skill" \
       -F "files[]=@skill.zip"
     ```
-    
+
     Returns: Skill object with id, display_title, etc.
     """
     from litellm.proxy.proxy_server import (
@@ -138,26 +138,26 @@ async def list_skills(
 ):
     """
     List skills on Anthropic.
-    
+
     Requires `?beta=true` query parameter.
-    
+
     Model-based routing (for multi-account support):
-    - Pass model via header: `x-litellm-model: claude-account-1`
+    - Pass model via header: `x-Token IQ-model: claude-account-1`
     - Pass model via query: `?model=claude-account-1`
     - Pass model via body: `{"model": "claude-account-1"}`
-    
+
     Example usage:
     ```bash
     # Basic usage
     curl "http://localhost:4000/v1/skills?beta=true&limit=10" \
       -H "Authorization: Bearer your-key"
-    
+
     # With model-based routing
     curl "http://localhost:4000/v1/skills?beta=true&limit=10" \
       -H "Authorization: Bearer your-key" \
-      -H "x-litellm-model: claude-account-1"
+      -H "x-Token IQ-model: claude-account-1"
     ```
-    
+
     Returns: ListSkillsResponse with list of skills
     """
     from litellm.proxy.proxy_server import (
@@ -240,26 +240,26 @@ async def get_skill(
 ):
     """
     Get a specific skill by ID from Anthropic.
-    
+
     Requires `?beta=true` query parameter.
-    
+
     Model-based routing (for multi-account support):
-    - Pass model via header: `x-litellm-model: claude-account-1`
+    - Pass model via header: `x-Token IQ-model: claude-account-1`
     - Pass model via query: `?model=claude-account-1`
     - Pass model via body: `{"model": "claude-account-1"}`
-    
+
     Example usage:
     ```bash
     # Basic usage
     curl "http://localhost:4000/v1/skills/skill_123?beta=true" \
       -H "Authorization: Bearer your-key"
-    
+
     # With model-based routing
     curl "http://localhost:4000/v1/skills/skill_123?beta=true" \
       -H "Authorization: Bearer your-key" \
-      -H "x-litellm-model: claude-account-1"
+      -H "x-Token IQ-model: claude-account-1"
     ```
-    
+
     Returns: Skill object
     """
     from litellm.proxy.proxy_server import (
@@ -337,28 +337,28 @@ async def delete_skill(
 ):
     """
     Delete a skill by ID from Anthropic.
-    
+
     Requires `?beta=true` query parameter.
-    
+
     Note: Anthropic does not allow deleting skills with existing versions.
-    
+
     Model-based routing (for multi-account support):
-    - Pass model via header: `x-litellm-model: claude-account-1`
+    - Pass model via header: `x-Token IQ-model: claude-account-1`
     - Pass model via query: `?model=claude-account-1`
     - Pass model via body: `{"model": "claude-account-1"}`
-    
+
     Example usage:
     ```bash
     # Basic usage
     curl -X DELETE "http://localhost:4000/v1/skills/skill_123?beta=true" \
       -H "Authorization: Bearer your-key"
-    
+
     # With model-based routing
     curl -X DELETE "http://localhost:4000/v1/skills/skill_123?beta=true" \
       -H "Authorization: Bearer your-key" \
-      -H "x-litellm-model: claude-account-1"
+      -H "x-Token IQ-model: claude-account-1"
     ```
-    
+
     Returns: DeleteSkillResponse with type="skill_deleted"
     """
     from litellm.proxy.proxy_server import (

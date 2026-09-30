@@ -40,7 +40,7 @@ async def create_eval(
     Create a new evaluation.
 
     Model-based routing (for multi-account support):
-    - Pass model via header: `x-litellm-model: gpt-4-account-1`
+    - Pass model via header: `x-Token IQ-model: gpt-4-account-1`
     - Pass model via query: `?model=gpt-4-account-1`
     - Pass model via body: `{"model": "gpt-4-account-1"}`
 
@@ -136,7 +136,7 @@ async def list_evals(
     List evaluations with pagination.
 
     Model-based routing (for multi-account support):
-    - Pass model via header: `x-litellm-model: gpt-4-account-1`
+    - Pass model via header: `x-Token IQ-model: gpt-4-account-1`
     - Pass model via query: `?model=gpt-4-account-1`
     - Pass model via body: `{"model": "gpt-4-account-1"}`
 
@@ -233,7 +233,7 @@ async def get_eval(
     Get a specific evaluation by ID.
 
     Model-based routing (for multi-account support):
-    - Pass model via header: `x-litellm-model: gpt-4-account-1`
+    - Pass model via header: `x-Token IQ-model: gpt-4-account-1`
     - Pass model via query: `?model=gpt-4-account-1`
     - Pass model via body: `{"model": "gpt-4-account-1"}`
 
@@ -321,7 +321,7 @@ async def update_eval(
     Update an evaluation.
 
     Model-based routing (for multi-account support):
-    - Pass model via header: `x-litellm-model: gpt-4-account-1`
+    - Pass model via header: `x-Token IQ-model: gpt-4-account-1`
     - Pass model via query: `?model=gpt-4-account-1`
     - Pass model via body: `{"model": "gpt-4-account-1"}`
 
@@ -411,7 +411,7 @@ async def delete_eval(
     Delete an evaluation.
 
     Model-based routing (for multi-account support):
-    - Pass model via header: `x-litellm-model: gpt-4-account-1`
+    - Pass model via header: `x-Token IQ-model: gpt-4-account-1`
     - Pass model via query: `?model=gpt-4-account-1`
     - Pass model via body: `{"model": "gpt-4-account-1"}`
 
@@ -499,7 +499,7 @@ async def cancel_eval(
     Cancel a running evaluation.
 
     Model-based routing (for multi-account support):
-    - Pass model via header: `x-litellm-model: gpt-4-account-1`
+    - Pass model via header: `x-Token IQ-model: gpt-4-account-1`
     - Pass model via query: `?model=gpt-4-account-1`
     - Pass model via body: `{"model": "gpt-4-account-1"}`
 
@@ -592,7 +592,7 @@ async def create_run(
     Create a new run for an evaluation.
 
     Model-based routing (for multi-account support):
-    - Pass model via header: `x-litellm-model: gpt-4-account-1`
+    - Pass model via header: `x-Token IQ-model: gpt-4-account-1`
     - Pass model via query: `?model=gpt-4-account-1`
     - Pass model via body: `{"model": "gpt-4-account-1"}`
     - Pass model via completion.model: `{"completion": {"model": "gpt-4-account-1"}}`
@@ -695,7 +695,7 @@ async def list_runs(
     List all runs for an evaluation with pagination.
 
     Model-based routing (for multi-account support):
-    - Pass model via header: `x-litellm-model: gpt-4-account-1`
+    - Pass model via header: `x-Token IQ-model: gpt-4-account-1`
     - Pass model via query: `?model=gpt-4-account-1`
 
     Example usage:
@@ -785,7 +785,7 @@ async def get_run(
     Get a specific run by ID.
 
     Model-based routing (for multi-account support):
-    - Pass model via header: `x-litellm-model: gpt-4-account-1`
+    - Pass model via header: `x-Token IQ-model: gpt-4-account-1`
     - Pass model via query: `?model=gpt-4-account-1`
 
     Example usage:
@@ -872,7 +872,7 @@ async def cancel_run(
     Cancel a running run.
 
     Model-based routing (for multi-account support):
-    - Pass model via header: `x-litellm-model: gpt-4-account-1`
+    - Pass model via header: `x-Token IQ-model: gpt-4-account-1`
     - Pass model via query: `?model=gpt-4-account-1`
 
     Example usage:
@@ -961,7 +961,7 @@ async def delete_run(
     Delete a run.
 
     Model-based routing (for multi-account support):
-    - Pass model via header: `x-litellm-model: gpt-4-account-1`
+    - Pass model via header: `x-Token IQ-model: gpt-4-account-1`
     - Pass model via query: `?model=gpt-4-account-1`
 
     Example usage:

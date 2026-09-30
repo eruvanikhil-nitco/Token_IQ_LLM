@@ -355,7 +355,7 @@ class PresidioPresidioConfigModelUserInterface(BaseModel):
     )
     output_parse_pii: bool | None = Field(
         default=None,
-        description="When True, LiteLLM will replace the masked text with the original text in the response",
+        description="When True, Token IQ will replace the masked text with the original text in the response",
         # extra param to let the ui know this is a boolean
         json_schema_extra={"ui_type": GuardrailParamUITypes.BOOL},
     )
@@ -666,7 +666,7 @@ class NomaGuardrailConfigModel(BaseModel):
     )
     application_id: str | None = Field(
         default=None,
-        description="Application ID for Noma Security. Defaults to 'litellm' if not provided",
+        description="Application ID for Noma Security. Defaults to 'Token IQ' if not provided",
     )
     monitor_mode: bool | None = Field(
         default=None,

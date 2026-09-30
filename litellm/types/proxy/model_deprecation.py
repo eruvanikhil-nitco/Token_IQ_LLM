@@ -18,7 +18,7 @@ class ModelDeprecationInfo(BaseModel):
     model_name: str = Field(description="The public name of the model on the proxy (model_group).")
     litellm_model: str | None = Field(
         default=None,
-        description="The underlying litellm model string the deprecation date is sourced from.",
+        description="The underlying Token IQ model string the deprecation date is sourced from.",
     )
     deprecation_date: date = Field(description="The date (UTC) when the model becomes deprecated.")
     days_until_deprecation: int = Field(

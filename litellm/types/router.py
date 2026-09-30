@@ -95,7 +95,7 @@ class RetryPolicy(BaseModel):
     Use this to set a custom number of retries per exception type
     If RateLimitErrorRetries = 3, then 3 retries will be made for RateLimitError
     Mapping of Exception type to number of retries
-    https://docs.litellm.ai/docs/exception_mapping
+
     """
 
     BadRequestErrorRetries: int | None = None
@@ -418,7 +418,7 @@ class GenericLiteLLMParams(CredentialLiteLLMParams, CustomPricingLiteLLMParams):
 
 class LiteLLM_Params(GenericLiteLLMParams):
     """
-    LiteLLM Params with 'model' requirement - used for completions
+    Token IQ Params with 'model' requirement - used for completions
     """
 
     model: str

@@ -259,9 +259,7 @@ async def gemini_proxy_route(
     request: Request,
     fastapi_response: Response,
 ):
-    """
-    [Docs](https://docs.litellm.ai/docs/pass_through/google_ai_studio)
-    """
+    """ """
     ## CHECK FOR LITELLM API KEY IN THE QUERY PARAMS - ?..key=LITELLM_API_KEY
     google_ai_studio_api_key: Final = request.query_params.get("key") or request.headers.get("x-goog-api-key")
 
@@ -327,9 +325,7 @@ async def cohere_proxy_route(
     fastapi_response: Response,
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ):
-    """
-    [Docs](https://docs.litellm.ai/docs/pass_through/cohere)
-    """
+    """ """
     base_target_url: Final = os.getenv("COHERE_API_BASE") or "https://api.cohere.com"
     encoded_endpoint = httpx.URL(endpoint).path
 
@@ -382,9 +378,7 @@ async def vllm_proxy_route(
     fastapi_response: Response,
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ):
-    """
-    [Docs](https://docs.litellm.ai/docs/pass_through/vllm)
-    """
+    """ """
     from litellm.proxy.proxy_server import llm_router
 
     request_body: Final = await get_request_body(request)
@@ -451,9 +445,7 @@ async def mistral_proxy_route(
     fastapi_response: Response,
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ):
-    """
-    [Docs](https://docs.litellm.ai/docs/pass_through/mistral)
-    """
+    """ """
     base_target_url: Final = os.getenv("MISTRAL_API_BASE") or "https://api.mistral.ai"
     encoded_endpoint = httpx.URL(endpoint).path
 
@@ -647,9 +639,7 @@ async def anthropic_proxy_route(
     fastapi_response: Response,
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ):
-    """
-    [Docs](https://docs.litellm.ai/docs/pass_through/anthropic_completion)
-    """
+    """ """
     base_target_url = os.getenv("ANTHROPIC_API_BASE") or os.getenv("ANTHROPIC_BASE_URL") or "https://api.anthropic.com"
     encoded_endpoint = httpx.URL(endpoint).path
 
@@ -1077,7 +1067,7 @@ async def bedrock_proxy_route(
     """
     This is the v1 passthrough for Bedrock.
     V2 is handled by the `/bedrock/v2` endpoint.
-    [Docs](https://docs.litellm.ai/docs/pass_through/bedrock)
+
     """
     create_request_copy(request)
 
@@ -1188,7 +1178,6 @@ async def comprehend_medical_proxy_route(
     The request body is forwarded as-is to the AWS JSON 1.1 API and signed with SigV4
     using the proxy's AWS credentials.
 
-    [Docs](https://docs.litellm.ai/docs/pass_through/comprehend_medical)
     """
     try:
         from botocore.auth import SigV4Auth
@@ -1267,7 +1256,6 @@ async def comprehend_medical_sdk_proxy_route(
     `endpoint_url` at `/comprehendmedical` and the operation is read from the
     `X-Amz-Target` header, per the AWS JSON 1.1 protocol.
 
-    [Docs](https://docs.litellm.ai/docs/pass_through/comprehend_medical)
     """
     target_header: Final = request.headers.get("x-amz-target", "")
     target_prefix, _, operation = target_header.partition(".")
@@ -1539,7 +1527,7 @@ async def azure_proxy_route(
 
     Just use `{PROXY_BASE_URL}/azure/{endpoint:path}`
 
-    Checks if the deployment id in the url is a litellm model name. If so, it will route using the llm_router.allm_passthrough_route.
+    Checks if the deployment id in the url is a Token IQ model name. If so, it will route using the llm_router.allm_passthrough_route.
     """
     from litellm.proxy.proxy_server import llm_router
 
@@ -2254,9 +2242,8 @@ async def vertex_proxy_route(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ):
     """
-    Call LiteLLM proxy via Vertex AI SDK.
+    Call Token IQ via Vertex AI SDK.
 
-    [Docs](https://docs.litellm.ai/docs/pass_through/vertex_ai)
     """
     ai_platform_handler: Final = get_vertex_pass_through_handler(call_type="aiplatform")
 
@@ -2293,7 +2280,7 @@ async def openai_proxy_route(
     - /openai_passthrough/{endpoint:path} - Dedicated passthrough route (recommended for Responses API)
 
     Use /openai_passthrough/* when you need guaranteed passthrough to OpenAI without conflicts
-    with LiteLLM's native implementations (e.g., for the Responses API at /v1/responses).
+    with Token IQ's native implementations (e.g., for the Responses API at /v1/responses).
 
     Examples:
         Standard route:
@@ -2306,7 +2293,6 @@ async def openai_proxy_route(
         - /openai_passthrough/v1/responses/{response_id}
         - /openai_passthrough/v1/responses/{response_id}/input_items
 
-    [Docs](https://docs.litellm.ai/docs/pass_through/openai_passthrough)
     """
     base_target_url: Final = os.getenv("OPENAI_API_BASE") or "https://api.openai.com/"
     # Add or update query parameters
@@ -2535,7 +2521,7 @@ async def cursor_proxy_route(
 
     Credential lookup order:
     1. passthrough_endpoint_router (config.yaml deployments with use_in_pass_through)
-    2. litellm.credential_list (credentials added via UI)
+    2. Token IQ.credential_list (credentials added via UI)
     3. CURSOR_API_KEY environment variable
     """
     import base64
@@ -2872,9 +2858,7 @@ async def gigachat_proxy_route(
     fastapi_response: Response,
     user_api_key_dict: Annotated[UserAPIKeyAuth, Depends(user_api_key_auth)],
 ) -> Response:
-    """
-    [Docs](https://docs.litellm.ai/docs/pass_through/gigachat)
-    """
+    """ """
     from litellm.proxy.proxy_server import (
         general_settings,
         llm_router,

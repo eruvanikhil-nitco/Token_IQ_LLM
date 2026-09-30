@@ -12572,7 +12572,7 @@ async def token_counter(request: TokenCountRequest, call_endpoint: bool = False)
 )
 async def supported_openai_params(model: str):
     """
-    Returns supported openai params for a given litellm model name
+    Returns supported openai params for a given Token IQ model name
 
     e.g. `gpt-4` vs `gpt-3.5-turbo`
 
@@ -13759,7 +13759,7 @@ async def model_info_v2(
     exclude_auto_routers: bool | None = fastapi.Query(
         False,
         description=(
-            "Omit auto-router deployments (litellm model prefixed `auto_router/`). "
+            "Omit auto-router deployments (gateway model prefixed `auto_router/`). "
             "They select among deployments rather than being deployments themselves, so a "
             "caller rendering a deployment list can leave them out. Defaults to false, so "
             "existing callers are unaffected"
@@ -13786,7 +13786,7 @@ async def model_info_v2(
             on each model and filter to deployments the caller can use.
         page / size: Pagination controls (defaults: page=1, size=50).
         search: Case-insensitive partial match on model name or team public name.
-        modelId: Return a single deployment by LiteLLM model id.
+        modelId: Return a single deployment by Token IQ model id.
         teamId: Filter to models with direct access or team membership for this team id.
         sortBy / sortOrder: Sort by model_name, created_at, updated_at, costs, or status.
 
@@ -14543,7 +14543,7 @@ async def model_info_v1(
     Provides more info about each model in /models, including config.yaml descriptions (except api key and api base)
 
     Parameters:
-        litellm_model_id: Optional[str] = None (this is the value of `x-litellm-model-id` returned in response headers)
+        litellm_model_id: Optional[str] = None (this is the value of `x-Token IQ-model-id` returned in response headers)
 
         - When litellm_model_id is passed, it will return the info for that specific model
         - When litellm_model_id is not passed, it will return the info for all models
@@ -14819,12 +14819,10 @@ async def model_group_info(
     model_group: str | None = None,
 ):
     """
-    Get information about all the deployments on litellm proxy, including config.yaml descriptions (except api key and api base)
+    Get information about all the deployments on Token IQ, including config.yaml descriptions (except api key and api base)
 
     - /model_group/info returns all model groups. End users of proxy should use /model_group/info since those models will be used for /chat/completions, /embeddings, etc.
     - /model_group/info?model_group=rerank-english-v3.0 returns all model groups for a specific model group (`model_name` in config.yaml)
-
-
 
     Example Request (All Models):
     ```shell
@@ -14850,7 +14848,7 @@ async def model_group_info(
     -H 'Authorization: Bearersk-1234'
     ```
 
-    Learn how to use and set wildcard models [here](https://docs.litellm.ai/docs/wildcard_routing)
+    Learn how to use and set wildcard models
 
     Example Response:
     ```json

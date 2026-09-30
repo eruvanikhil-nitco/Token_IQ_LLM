@@ -368,7 +368,7 @@ async def list_prompts(
     """
     List the prompts that are available on the proxy server
 
-    👉 [Prompt docs](https://docs.litellm.ai/docs/proxy/prompt_management)
+    👉
 
     Example Request:
     ```bash
@@ -462,15 +462,15 @@ async def get_prompt_versions(
 ):
     """
     Get all versions of a specific prompt by base prompt ID
-    
-    👉 [Prompt docs](https://docs.litellm.ai/docs/proxy/prompt_management)
-    
+
+    👉
+
     Example Request:
     ```bash
     curl -X GET "http://localhost:4000/prompts/jack_success/versions" \\
         -H "Authorization: Bearer <your_api_key>"
     ```
-    
+
     Example Response:
     ```json
     {
@@ -618,7 +618,7 @@ async def get_prompt_info(
     """
     Get detailed information about a specific prompt by ID, including prompt content
 
-    👉 [Prompt docs](https://docs.litellm.ai/docs/proxy/prompt_management)
+    👉
 
     Example Request:
     ```bash
@@ -743,7 +743,7 @@ async def create_prompt(
     """
     Create a new prompt
 
-    👉 [Prompt docs](https://docs.litellm.ai/docs/proxy/prompt_management)
+    👉
 
     Example Request:
     ```bash
@@ -840,7 +840,7 @@ async def update_prompt(
     """
     Update an existing prompt
 
-    👉 [Prompt docs](https://docs.litellm.ai/docs/proxy/prompt_management)
+    👉
 
     Example Request:
     ```bash
@@ -959,7 +959,7 @@ async def delete_prompt(
     """
     Delete a prompt
 
-    👉 [Prompt docs](https://docs.litellm.ai/docs/proxy/prompt_management)
+    👉
 
     Example Request:
     ```bash
@@ -1054,11 +1054,11 @@ async def patch_prompt(
     """
     Partially update an existing prompt
 
-    👉 [Prompt docs](https://docs.litellm.ai/docs/proxy/prompt_management)
+    👉
 
     This endpoint allows updating specific fields of a prompt without sending the entire object.
     Only the following fields can be updated:
-    - litellm_params: LiteLLM parameters for the prompt
+    - litellm_params: Token IQ parameters for the prompt
     - prompt_info: Additional information about the prompt
 
     Example Request:
@@ -1181,12 +1181,12 @@ async def test_prompt(
 ):
     """
     Test a prompt by rendering it with variables and executing an LLM call.
-    
+
     This endpoint allows testing prompts before saving them to the database.
     The response is always streamed.
-    
-    👉 [Prompt docs](https://docs.litellm.ai/docs/proxy/prompt_management)
-    
+
+    👉
+
     Example Request:
     ```bash
     curl -X POST "http://localhost:4000/prompts/test" \\

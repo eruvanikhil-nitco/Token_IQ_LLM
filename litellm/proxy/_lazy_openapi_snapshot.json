@@ -106,7 +106,7 @@
       },
       "/a2a/{agent_id}/.well-known/agent-card.json": {
         "get": {
-          "description": "Get the agent card for an agent (A2A discovery endpoint).\n\nSupports both standard paths:\n- /.well-known/agent-card.json\n- /.well-known/agent.json\n\nThe URL in the agent card is rewritten to point to the LiteLLM proxy,\nso all subsequent A2A calls go through LiteLLM for logging and cost tracking.",
+          "description": "Get the agent card for an agent (A2A discovery endpoint).\n\nSupports both standard paths:\n- /.well-known/agent-card.json\n- /.well-known/agent.json\n\nThe URL in the agent card is rewritten to point to the Token IQ,\nso all subsequent A2A calls go through Token IQ for logging and cost tracking.",
           "operationId": "get_agent_card_a2a__agent_id___well_known_agent_card_json_get",
           "parameters": [
             {
@@ -152,7 +152,7 @@
       },
       "/a2a/{agent_id}/.well-known/agent.json": {
         "get": {
-          "description": "Get the agent card for an agent (A2A discovery endpoint).\n\nSupports both standard paths:\n- /.well-known/agent-card.json\n- /.well-known/agent.json\n\nThe URL in the agent card is rewritten to point to the LiteLLM proxy,\nso all subsequent A2A calls go through LiteLLM for logging and cost tracking.",
+          "description": "Get the agent card for an agent (A2A discovery endpoint).\n\nSupports both standard paths:\n- /.well-known/agent-card.json\n- /.well-known/agent.json\n\nThe URL in the agent card is rewritten to point to the Token IQ,\nso all subsequent A2A calls go through Token IQ for logging and cost tracking.",
           "operationId": "get_agent_card_a2a__agent_id___well_known_agent_json_get",
           "parameters": [
             {
@@ -4251,7 +4251,6 @@
     "paths": {
       "/anthropic/{endpoint}": {
         "delete": {
-          "description": "[Docs](https://docs.litellm.ai/docs/pass_through/anthropic_completion)",
           "operationId": "anthropic_proxy_route_anthropic__endpoint__delete",
           "parameters": [
             {
@@ -4295,7 +4294,6 @@
           ]
         },
         "get": {
-          "description": "[Docs](https://docs.litellm.ai/docs/pass_through/anthropic_completion)",
           "operationId": "anthropic_proxy_route_anthropic__endpoint__get",
           "parameters": [
             {
@@ -4339,7 +4337,6 @@
           ]
         },
         "patch": {
-          "description": "[Docs](https://docs.litellm.ai/docs/pass_through/anthropic_completion)",
           "operationId": "anthropic_proxy_route_anthropic__endpoint__patch",
           "parameters": [
             {
@@ -4383,7 +4380,6 @@
           ]
         },
         "post": {
-          "description": "[Docs](https://docs.litellm.ai/docs/pass_through/anthropic_completion)",
           "operationId": "anthropic_proxy_route_anthropic__endpoint__post",
           "parameters": [
             {
@@ -4427,7 +4423,6 @@
           ]
         },
         "put": {
-          "description": "[Docs](https://docs.litellm.ai/docs/pass_through/anthropic_completion)",
           "operationId": "anthropic_proxy_route_anthropic__endpoint__put",
           "parameters": [
             {
@@ -4493,7 +4488,7 @@
       },
       "/v1/messages": {
         "post": {
-          "description": "Use `{PROXY_BASE_URL}/anthropic/v1/messages` instead - [Docs](https://docs.litellm.ai/docs/pass_through/anthropic_completion).\n\nThis was a BETA endpoint that calls 100+ LLMs in the anthropic format.",
+          "description": "Use `{PROXY_BASE_URL}/anthropic/v1/messages` instead -.\n\nThis was a BETA endpoint that calls 100+ LLMs in the anthropic format.",
           "operationId": "anthropic_response_v1_messages_post",
           "responses": {
             "200": {
@@ -4712,7 +4707,7 @@
     "paths": {
       "/v1/skills": {
         "get": {
-          "description": "List skills on Anthropic.\n\nRequires `?beta=true` query parameter.\n\nModel-based routing (for multi-account support):\n- Pass model via header: `x-litellm-model: claude-account-1`\n- Pass model via query: `?model=claude-account-1`\n- Pass model via body: `{\"model\": \"claude-account-1\"}`\n\nExample usage:\n```bash\n# Basic usage\ncurl \"http://localhost:4000/v1/skills?beta=true&limit=10\"       -H \"Authorization: Bearer your-key\"\n\n# With model-based routing\ncurl \"http://localhost:4000/v1/skills?beta=true&limit=10\"       -H \"Authorization: Bearer your-key\"       -H \"x-litellm-model: claude-account-1\"\n```\n\nReturns: ListSkillsResponse with list of skills",
+          "description": "List skills on Anthropic.\n\nRequires `?beta=true` query parameter.\n\nModel-based routing (for multi-account support):\n- Pass model via header: `x-Token IQ-model: claude-account-1`\n- Pass model via query: `?model=claude-account-1`\n- Pass model via body: `{\"model\": \"claude-account-1\"}`\n\nExample usage:\n```bash\n# Basic usage\ncurl \"http://localhost:4000/v1/skills?beta=true&limit=10\"       -H \"Authorization: Bearer your-key\"\n\n# With model-based routing\ncurl \"http://localhost:4000/v1/skills?beta=true&limit=10\"       -H \"Authorization: Bearer your-key\"       -H \"x-Token IQ-model: claude-account-1\"\n```\n\nReturns: ListSkillsResponse with list of skills",
           "operationId": "list_skills_v1_skills_get",
           "parameters": [
             {
@@ -4815,7 +4810,7 @@
           ]
         },
         "post": {
-          "description": "Create a new skill on Anthropic.\n\nRequires `?beta=true` query parameter.\n\nModel-based routing (for multi-account support):\n- Pass model via header: `x-litellm-model: claude-account-1`\n- Pass model via query: `?model=claude-account-1`\n- Pass model via form field: `model=claude-account-1`\n\nExample usage:\n```bash\n# Basic usage\ncurl -X POST \"http://localhost:4000/v1/skills?beta=true\"       -H \"Content-Type: multipart/form-data\"       -H \"Authorization: Bearer your-key\"       -F \"display_title=My Skill\"       -F \"files[]=@skill.zip\"\n\n# With model-based routing\ncurl -X POST \"http://localhost:4000/v1/skills?beta=true\"       -H \"Content-Type: multipart/form-data\"       -H \"Authorization: Bearer your-key\"       -H \"x-litellm-model: claude-account-1\"       -F \"display_title=My Skill\"       -F \"files[]=@skill.zip\"\n```\n\nReturns: Skill object with id, display_title, etc.",
+          "description": "Create a new skill on Anthropic.\n\nRequires `?beta=true` query parameter.\n\nModel-based routing (for multi-account support):\n- Pass model via header: `x-Token IQ-model: claude-account-1`\n- Pass model via query: `?model=claude-account-1`\n- Pass model via form field: `model=claude-account-1`\n\nExample usage:\n```bash\n# Basic usage\ncurl -X POST \"http://localhost:4000/v1/skills?beta=true\"       -H \"Content-Type: multipart/form-data\"       -H \"Authorization: Bearer your-key\"       -F \"display_title=My Skill\"       -F \"files[]=@skill.zip\"\n\n# With model-based routing\ncurl -X POST \"http://localhost:4000/v1/skills?beta=true\"       -H \"Content-Type: multipart/form-data\"       -H \"Authorization: Bearer your-key\"       -H \"x-Token IQ-model: claude-account-1\"       -F \"display_title=My Skill\"       -F \"files[]=@skill.zip\"\n```\n\nReturns: Skill object with id, display_title, etc.",
           "operationId": "create_skill_v1_skills_post",
           "parameters": [
             {
@@ -4871,7 +4866,7 @@
       },
       "/v1/skills/{skill_id}": {
         "delete": {
-          "description": "Delete a skill by ID from Anthropic.\n\nRequires `?beta=true` query parameter.\n\nNote: Anthropic does not allow deleting skills with existing versions.\n\nModel-based routing (for multi-account support):\n- Pass model via header: `x-litellm-model: claude-account-1`\n- Pass model via query: `?model=claude-account-1`\n- Pass model via body: `{\"model\": \"claude-account-1\"}`\n\nExample usage:\n```bash\n# Basic usage\ncurl -X DELETE \"http://localhost:4000/v1/skills/skill_123?beta=true\"       -H \"Authorization: Bearer your-key\"\n\n# With model-based routing\ncurl -X DELETE \"http://localhost:4000/v1/skills/skill_123?beta=true\"       -H \"Authorization: Bearer your-key\"       -H \"x-litellm-model: claude-account-1\"\n```\n\nReturns: DeleteSkillResponse with type=\"skill_deleted\"",
+          "description": "Delete a skill by ID from Anthropic.\n\nRequires `?beta=true` query parameter.\n\nNote: Anthropic does not allow deleting skills with existing versions.\n\nModel-based routing (for multi-account support):\n- Pass model via header: `x-Token IQ-model: claude-account-1`\n- Pass model via query: `?model=claude-account-1`\n- Pass model via body: `{\"model\": \"claude-account-1\"}`\n\nExample usage:\n```bash\n# Basic usage\ncurl -X DELETE \"http://localhost:4000/v1/skills/skill_123?beta=true\"       -H \"Authorization: Bearer your-key\"\n\n# With model-based routing\ncurl -X DELETE \"http://localhost:4000/v1/skills/skill_123?beta=true\"       -H \"Authorization: Bearer your-key\"       -H \"x-Token IQ-model: claude-account-1\"\n```\n\nReturns: DeleteSkillResponse with type=\"skill_deleted\"",
           "operationId": "delete_skill_v1_skills__skill_id__delete",
           "parameters": [
             {
@@ -4934,7 +4929,7 @@
           ]
         },
         "get": {
-          "description": "Get a specific skill by ID from Anthropic.\n\nRequires `?beta=true` query parameter.\n\nModel-based routing (for multi-account support):\n- Pass model via header: `x-litellm-model: claude-account-1`\n- Pass model via query: `?model=claude-account-1`\n- Pass model via body: `{\"model\": \"claude-account-1\"}`\n\nExample usage:\n```bash\n# Basic usage\ncurl \"http://localhost:4000/v1/skills/skill_123?beta=true\"       -H \"Authorization: Bearer your-key\"\n\n# With model-based routing\ncurl \"http://localhost:4000/v1/skills/skill_123?beta=true\"       -H \"Authorization: Bearer your-key\"       -H \"x-litellm-model: claude-account-1\"\n```\n\nReturns: Skill object",
+          "description": "Get a specific skill by ID from Anthropic.\n\nRequires `?beta=true` query parameter.\n\nModel-based routing (for multi-account support):\n- Pass model via header: `x-Token IQ-model: claude-account-1`\n- Pass model via query: `?model=claude-account-1`\n- Pass model via body: `{\"model\": \"claude-account-1\"}`\n\nExample usage:\n```bash\n# Basic usage\ncurl \"http://localhost:4000/v1/skills/skill_123?beta=true\"       -H \"Authorization: Bearer your-key\"\n\n# With model-based routing\ncurl \"http://localhost:4000/v1/skills/skill_123?beta=true\"       -H \"Authorization: Bearer your-key\"       -H \"x-Token IQ-model: claude-account-1\"\n```\n\nReturns: Skill object",
           "operationId": "get_skill_v1_skills__skill_id__get",
           "parameters": [
             {
@@ -5273,7 +5268,7 @@
           "type": "object"
         },
         "RegisterPluginRequest": {
-          "description": "Request body for registering a plugin in the marketplace.\n\nLiteLLM acts as a registry/discovery layer. Plugins are hosted on\nGitHub/GitLab/Bitbucket and referenced by their git source.",
+          "description": "Request body for registering a plugin in the marketplace.\n\nToken IQ acts as a registry/discovery layer. Plugins are hosted on\nGitHub/GitLab/Bitbucket and referenced by their git source.",
           "properties": {
             "author": {
               "anyOf": [
@@ -5583,7 +5578,7 @@
     "paths": {
       "/claude-code/marketplace.json": {
         "get": {
-          "description": "Serve marketplace.json for Claude Code plugin discovery.\n\nThis endpoint is accessed by Claude Code CLI when users run:\n- claude plugin marketplace add <url>\n- claude plugin install <name>@<marketplace>\n\nReturns:\n    Marketplace catalog with list of available plugins and their git sources.\n\nExample:\n    ```bash\n    claude plugin marketplace add http://localhost:4000/claude-code/marketplace.json\n    claude plugin install my-plugin@litellm\n    ```",
+          "description": "Serve marketplace.json for Claude Code plugin discovery.\n\nThis endpoint is accessed by Claude Code CLI when users run:\n- claude plugin marketplace add <url>\n- claude plugin install <name>@<marketplace>\n\nReturns:\n    Marketplace catalog with list of available plugins and their git sources.\n\nExample:\n    ```bash\n    claude plugin marketplace add http://localhost:4000/claude-code/marketplace.json\n    claude plugin install my-plugin@Token IQ\n    ```",
           "operationId": "get_marketplace_claude_code_marketplace_json_get",
           "responses": {
             "200": {
@@ -5650,7 +5645,7 @@
           ]
         },
         "post": {
-          "description": "Register a new plugin in the LiteLLM marketplace.\n\nLiteLLM acts as a registry/discovery layer. Plugins are hosted on\nGitHub/GitLab/Bitbucket. Claude Code will clone from the git source\nwhen users install.\n\nThis endpoint is create-only and never overwrites. If a plugin with\nthe same name already exists it returns 409 Conflict; use\nPUT /claude-code/plugins/{plugin_name} to update an existing plugin.\n\nRequires a proxy admin API key.\n\nParameters:\n    - name: Plugin name (kebab-case)\n    - source: Git source reference (github, url, or git-subdir format)\n    - version: Semantic version (optional)\n    - description: Plugin description (optional)\n    - author: Author information (optional)\n    - homepage: Plugin homepage URL (optional)\n    - keywords: Search keywords (optional)\n    - category: Plugin category (optional)\n\nReturns:\n    Registration status (action is always \"created\") and plugin information.\n\nExample:\n    ```bash\n    curl -X POST http://localhost:4000/claude-code/plugins \\\n      -H \"Authorization: Bearer sk-...\" \\\n      -H \"Content-Type: application/json\" \\\n      -d '{\n        \"name\": \"my-plugin\",\n        \"source\": {\"source\": \"github\", \"repo\": \"org/my-plugin\"},\n        \"version\": \"1.0.0\",\n        \"description\": \"My awesome plugin\"\n      }'\n    ```",
+          "description": "Register a new plugin in the Token IQ marketplace.\n\nToken IQ acts as a registry/discovery layer. Plugins are hosted on\nGitHub/GitLab/Bitbucket. Claude Code will clone from the git source\nwhen users install.\n\nThis endpoint is create-only and never overwrites. If a plugin with\nthe same name already exists it returns 409 Conflict; use\nPUT /claude-code/plugins/{plugin_name} to update an existing plugin.\n\nRequires a proxy admin API key.\n\nParameters:\n    - name: Plugin name (kebab-case)\n    - source: Git source reference (github, url, or git-subdir format)\n    - version: Semantic version (optional)\n    - description: Plugin description (optional)\n    - author: Author information (optional)\n    - homepage: Plugin homepage URL (optional)\n    - keywords: Search keywords (optional)\n    - category: Plugin category (optional)\n\nReturns:\n    Registration status (action is always \"created\") and plugin information.\n\nExample:\n    ```bash\n    curl -X POST http://localhost:4000/claude-code/plugins \\\n      -H \"Authorization: Bearer sk-...\" \\\n      -H \"Content-Type: application/json\" \\\n      -d '{\n        \"name\": \"my-plugin\",\n        \"source\": {\"source\": \"github\", \"repo\": \"org/my-plugin\"},\n        \"version\": \"1.0.0\",\n        \"description\": \"My awesome plugin\"\n      }'\n    ```",
           "operationId": "register_plugin_claude_code_plugins_post",
           "requestBody": {
             "content": {
@@ -5785,7 +5780,7 @@
           ]
         },
         "put": {
-          "description": "Update an existing plugin in the LiteLLM marketplace.\n\nThe plugin is identified by its name in the path, which is the resource\nidentity and cannot be changed here. This is a full replace, not a merge:\nthe manifest is rebuilt from the request body, so any optional field left\nout is reset to its default (e.g. an omitted version is cleared, not kept).\nSend the full desired state.\n\nReturns 404 if no plugin with the given name exists; use\nPOST /claude-code/plugins to create a new plugin.\n\nRequires a proxy admin API key.\n\nParameters:\n    - plugin_name: Name of the plugin to update (path parameter)\n    - source: Git source reference (github, url, or git-subdir format)\n    - version: Semantic version (optional)\n    - description: Plugin description (optional)\n    - author: Author information (optional)\n    - homepage: Plugin homepage URL (optional)\n    - keywords: Search keywords (optional)\n    - category: Plugin category (optional)\n\nReturns:\n    Update status (action is always \"updated\") and plugin information.\n\nExample:\n    ```bash\n    curl -X PUT http://localhost:4000/claude-code/plugins/my-plugin \\\n      -H \"Authorization: Bearer sk-...\" \\\n      -H \"Content-Type: application/json\" \\\n      -d '{\n        \"source\": {\"source\": \"github\", \"repo\": \"org/my-plugin\"},\n        \"version\": \"2.0.0\",\n        \"description\": \"My awesome plugin\"\n      }'\n    ```",
+          "description": "Update an existing plugin in the Token IQ marketplace.\n\nThe plugin is identified by its name in the path, which is the resource\nidentity and cannot be changed here. This is a full replace, not a merge:\nthe manifest is rebuilt from the request body, so any optional field left\nout is reset to its default (e.g. an omitted version is cleared, not kept).\nSend the full desired state.\n\nReturns 404 if no plugin with the given name exists; use\nPOST /claude-code/plugins to create a new plugin.\n\nRequires a proxy admin API key.\n\nParameters:\n    - plugin_name: Name of the plugin to update (path parameter)\n    - source: Git source reference (github, url, or git-subdir format)\n    - version: Semantic version (optional)\n    - description: Plugin description (optional)\n    - author: Author information (optional)\n    - homepage: Plugin homepage URL (optional)\n    - keywords: Search keywords (optional)\n    - category: Plugin category (optional)\n\nReturns:\n    Update status (action is always \"updated\") and plugin information.\n\nExample:\n    ```bash\n    curl -X PUT http://localhost:4000/claude-code/plugins/my-plugin \\\n      -H \"Authorization: Bearer sk-...\" \\\n      -H \"Content-Type: application/json\" \\\n      -d '{\n        \"source\": {\"source\": \"github\", \"repo\": \"org/my-plugin\"},\n        \"version\": \"2.0.0\",\n        \"description\": \"My awesome plugin\"\n      }'\n    ```",
           "operationId": "update_plugin_claude_code_plugins__plugin_name__put",
           "parameters": [
             {
@@ -7096,7 +7091,7 @@
           "operationId": "delete_cyberark_config_config_overrides_cyberark_delete",
           "parameters": [
             {
-              "description": "The litellm-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
+              "description": "The Token IQ-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
               "in": "header",
               "name": "litellm-changed-by",
               "required": false,
@@ -7109,7 +7104,7 @@
                     "type": "null"
                   }
                 ],
-                "description": "The litellm-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
+                "description": "The Token IQ-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
                 "title": "Litellm-Changed-By"
               }
             }
@@ -7180,7 +7175,7 @@
           "operationId": "update_cyberark_config_config_overrides_cyberark_post",
           "parameters": [
             {
-              "description": "The litellm-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
+              "description": "The Token IQ-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
               "in": "header",
               "name": "litellm-changed-by",
               "required": false,
@@ -7193,7 +7188,7 @@
                     "type": "null"
                   }
                 ],
-                "description": "The litellm-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
+                "description": "The Token IQ-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
                 "title": "Litellm-Changed-By"
               }
             }
@@ -7282,7 +7277,7 @@
           "operationId": "delete_hashicorp_vault_config_config_overrides_hashicorp_vault_delete",
           "parameters": [
             {
-              "description": "The litellm-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
+              "description": "The Token IQ-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
               "in": "header",
               "name": "litellm-changed-by",
               "required": false,
@@ -7295,7 +7290,7 @@
                     "type": "null"
                   }
                 ],
-                "description": "The litellm-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
+                "description": "The Token IQ-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
                 "title": "Litellm-Changed-By"
               }
             }
@@ -7360,7 +7355,7 @@
           "operationId": "update_hashicorp_vault_config_config_overrides_hashicorp_vault_post",
           "parameters": [
             {
-              "description": "The litellm-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
+              "description": "The Token IQ-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
               "in": "header",
               "name": "litellm-changed-by",
               "required": false,
@@ -7373,7 +7368,7 @@
                     "type": "null"
                   }
                 ],
-                "description": "The litellm-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
+                "description": "The Token IQ-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
                 "title": "Litellm-Changed-By"
               }
             }
@@ -8022,7 +8017,7 @@
     "paths": {
       "/v1/evals": {
         "get": {
-          "description": "List evaluations with pagination.\n\nModel-based routing (for multi-account support):\n- Pass model via header: `x-litellm-model: gpt-4-account-1`\n- Pass model via query: `?model=gpt-4-account-1`\n- Pass model via body: `{\"model\": \"gpt-4-account-1\"}`\n\nExample usage:\n```bash\ncurl \"http://localhost:4000/v1/evals?limit=10\"       -H \"Authorization: Bearer your-key\"\n```\n\nReturns: ListEvalsResponse with list of evaluations",
+          "description": "List evaluations with pagination.\n\nModel-based routing (for multi-account support):\n- Pass model via header: `x-Token IQ-model: gpt-4-account-1`\n- Pass model via query: `?model=gpt-4-account-1`\n- Pass model via body: `{\"model\": \"gpt-4-account-1\"}`\n\nExample usage:\n```bash\ncurl \"http://localhost:4000/v1/evals?limit=10\"       -H \"Authorization: Bearer your-key\"\n```\n\nReturns: ListEvalsResponse with list of evaluations",
           "operationId": "list_evals_v1_evals_get",
           "parameters": [
             {
@@ -8157,7 +8152,7 @@
           ]
         },
         "post": {
-          "description": "Create a new evaluation.\n\nModel-based routing (for multi-account support):\n- Pass model via header: `x-litellm-model: gpt-4-account-1`\n- Pass model via query: `?model=gpt-4-account-1`\n- Pass model via body: `{\"model\": \"gpt-4-account-1\"}`\n\nExample usage:\n```bash\ncurl -X POST \"http://localhost:4000/v1/evals\"       -H \"Authorization: Bearer your-key\"       -H \"Content-Type: application/json\"       -d '{\n    \"name\": \"Test Eval\",\n    \"data_source_config\": {\"type\": \"file\", \"file_id\": \"file-abc123\"},\n    \"testing_criteria\": {\"graders\": [{\"type\": \"llm_as_judge\"}]}\n  }'\n```\n\nReturns: Eval object with id, status, timestamps, etc.",
+          "description": "Create a new evaluation.\n\nModel-based routing (for multi-account support):\n- Pass model via header: `x-Token IQ-model: gpt-4-account-1`\n- Pass model via query: `?model=gpt-4-account-1`\n- Pass model via body: `{\"model\": \"gpt-4-account-1\"}`\n\nExample usage:\n```bash\ncurl -X POST \"http://localhost:4000/v1/evals\"       -H \"Authorization: Bearer your-key\"       -H \"Content-Type: application/json\"       -d '{\n    \"name\": \"Test Eval\",\n    \"data_source_config\": {\"type\": \"file\", \"file_id\": \"file-abc123\"},\n    \"testing_criteria\": {\"graders\": [{\"type\": \"llm_as_judge\"}]}\n  }'\n```\n\nReturns: Eval object with id, status, timestamps, etc.",
           "operationId": "create_eval_v1_evals_post",
           "parameters": [
             {
@@ -8213,7 +8208,7 @@
       },
       "/v1/evals/{eval_id}": {
         "delete": {
-          "description": "Delete an evaluation.\n\nModel-based routing (for multi-account support):\n- Pass model via header: `x-litellm-model: gpt-4-account-1`\n- Pass model via query: `?model=gpt-4-account-1`\n- Pass model via body: `{\"model\": \"gpt-4-account-1\"}`\n\nExample usage:\n```bash\ncurl -X DELETE \"http://localhost:4000/v1/evals/eval_123\"       -H \"Authorization: Bearer your-key\"\n```\n\nReturns: DeleteEvalResponse with deletion confirmation",
+          "description": "Delete an evaluation.\n\nModel-based routing (for multi-account support):\n- Pass model via header: `x-Token IQ-model: gpt-4-account-1`\n- Pass model via query: `?model=gpt-4-account-1`\n- Pass model via body: `{\"model\": \"gpt-4-account-1\"}`\n\nExample usage:\n```bash\ncurl -X DELETE \"http://localhost:4000/v1/evals/eval_123\"       -H \"Authorization: Bearer your-key\"\n```\n\nReturns: DeleteEvalResponse with deletion confirmation",
           "operationId": "delete_eval_v1_evals__eval_id__delete",
           "parameters": [
             {
@@ -8276,7 +8271,7 @@
           ]
         },
         "get": {
-          "description": "Get a specific evaluation by ID.\n\nModel-based routing (for multi-account support):\n- Pass model via header: `x-litellm-model: gpt-4-account-1`\n- Pass model via query: `?model=gpt-4-account-1`\n- Pass model via body: `{\"model\": \"gpt-4-account-1\"}`\n\nExample usage:\n```bash\ncurl \"http://localhost:4000/v1/evals/eval_123\"       -H \"Authorization: Bearer your-key\"\n```\n\nReturns: Eval object",
+          "description": "Get a specific evaluation by ID.\n\nModel-based routing (for multi-account support):\n- Pass model via header: `x-Token IQ-model: gpt-4-account-1`\n- Pass model via query: `?model=gpt-4-account-1`\n- Pass model via body: `{\"model\": \"gpt-4-account-1\"}`\n\nExample usage:\n```bash\ncurl \"http://localhost:4000/v1/evals/eval_123\"       -H \"Authorization: Bearer your-key\"\n```\n\nReturns: Eval object",
           "operationId": "get_eval_v1_evals__eval_id__get",
           "parameters": [
             {
@@ -8339,7 +8334,7 @@
           ]
         },
         "post": {
-          "description": "Update an evaluation.\n\nModel-based routing (for multi-account support):\n- Pass model via header: `x-litellm-model: gpt-4-account-1`\n- Pass model via query: `?model=gpt-4-account-1`\n- Pass model via body: `{\"model\": \"gpt-4-account-1\"}`\n\nExample usage:\n```bash\ncurl -X POST \"http://localhost:4000/v1/evals/eval_123\"       -H \"Authorization: Bearer your-key\"       -H \"Content-Type: application/json\"       -d '{\"name\": \"Updated Name\"}'\n```\n\nReturns: Updated Eval object",
+          "description": "Update an evaluation.\n\nModel-based routing (for multi-account support):\n- Pass model via header: `x-Token IQ-model: gpt-4-account-1`\n- Pass model via query: `?model=gpt-4-account-1`\n- Pass model via body: `{\"model\": \"gpt-4-account-1\"}`\n\nExample usage:\n```bash\ncurl -X POST \"http://localhost:4000/v1/evals/eval_123\"       -H \"Authorization: Bearer your-key\"       -H \"Content-Type: application/json\"       -d '{\"name\": \"Updated Name\"}'\n```\n\nReturns: Updated Eval object",
           "operationId": "update_eval_v1_evals__eval_id__post",
           "parameters": [
             {
@@ -8404,7 +8399,7 @@
       },
       "/v1/evals/{eval_id}/cancel": {
         "post": {
-          "description": "Cancel a running evaluation.\n\nModel-based routing (for multi-account support):\n- Pass model via header: `x-litellm-model: gpt-4-account-1`\n- Pass model via query: `?model=gpt-4-account-1`\n- Pass model via body: `{\"model\": \"gpt-4-account-1\"}`\n\nExample usage:\n```bash\ncurl -X POST \"http://localhost:4000/v1/evals/eval_123/cancel\"       -H \"Authorization: Bearer your-key\"\n```\n\nReturns: CancelEvalResponse with cancellation confirmation",
+          "description": "Cancel a running evaluation.\n\nModel-based routing (for multi-account support):\n- Pass model via header: `x-Token IQ-model: gpt-4-account-1`\n- Pass model via query: `?model=gpt-4-account-1`\n- Pass model via body: `{\"model\": \"gpt-4-account-1\"}`\n\nExample usage:\n```bash\ncurl -X POST \"http://localhost:4000/v1/evals/eval_123/cancel\"       -H \"Authorization: Bearer your-key\"\n```\n\nReturns: CancelEvalResponse with cancellation confirmation",
           "operationId": "cancel_eval_v1_evals__eval_id__cancel_post",
           "parameters": [
             {
@@ -8469,7 +8464,7 @@
       },
       "/v1/evals/{eval_id}/runs": {
         "get": {
-          "description": "List all runs for an evaluation with pagination.\n\nModel-based routing (for multi-account support):\n- Pass model via header: `x-litellm-model: gpt-4-account-1`\n- Pass model via query: `?model=gpt-4-account-1`\n\nExample usage:\n```bash\ncurl \"http://localhost:4000/v1/evals/eval_123/runs?limit=10\"       -H \"Authorization: Bearer your-key\"\n```\n\nReturns: ListRunsResponse with list of runs",
+          "description": "List all runs for an evaluation with pagination.\n\nModel-based routing (for multi-account support):\n- Pass model via header: `x-Token IQ-model: gpt-4-account-1`\n- Pass model via query: `?model=gpt-4-account-1`\n\nExample usage:\n```bash\ncurl \"http://localhost:4000/v1/evals/eval_123/runs?limit=10\"       -H \"Authorization: Bearer your-key\"\n```\n\nReturns: ListRunsResponse with list of runs",
           "operationId": "list_runs_v1_evals__eval_id__runs_get",
           "parameters": [
             {
@@ -8597,7 +8592,7 @@
           ]
         },
         "post": {
-          "description": "Create a new run for an evaluation.\n\nModel-based routing (for multi-account support):\n- Pass model via header: `x-litellm-model: gpt-4-account-1`\n- Pass model via query: `?model=gpt-4-account-1`\n- Pass model via body: `{\"model\": \"gpt-4-account-1\"}`\n- Pass model via completion.model: `{\"completion\": {\"model\": \"gpt-4-account-1\"}}`\n\nExample usage:\n```bash\ncurl -X POST \"http://localhost:4000/v1/evals/eval_123/runs\"       -H \"Authorization: Bearer your-key\"       -H \"Content-Type: application/json\"       -d '{\n    \"data_source\": {\"type\": \"dataset\", \"dataset_id\": \"dataset_123\"},\n    \"completion\": {\"model\": \"gpt-4\", \"temperature\": 0.7}\n  }'\n```\n\nReturns: Run object with id, status, timestamps, etc.",
+          "description": "Create a new run for an evaluation.\n\nModel-based routing (for multi-account support):\n- Pass model via header: `x-Token IQ-model: gpt-4-account-1`\n- Pass model via query: `?model=gpt-4-account-1`\n- Pass model via body: `{\"model\": \"gpt-4-account-1\"}`\n- Pass model via completion.model: `{\"completion\": {\"model\": \"gpt-4-account-1\"}}`\n\nExample usage:\n```bash\ncurl -X POST \"http://localhost:4000/v1/evals/eval_123/runs\"       -H \"Authorization: Bearer your-key\"       -H \"Content-Type: application/json\"       -d '{\n    \"data_source\": {\"type\": \"dataset\", \"dataset_id\": \"dataset_123\"},\n    \"completion\": {\"model\": \"gpt-4\", \"temperature\": 0.7}\n  }'\n```\n\nReturns: Run object with id, status, timestamps, etc.",
           "operationId": "create_run_v1_evals__eval_id__runs_post",
           "parameters": [
             {
@@ -8662,7 +8657,7 @@
       },
       "/v1/evals/{eval_id}/runs/{run_id}": {
         "delete": {
-          "description": "Delete a run.\n\nModel-based routing (for multi-account support):\n- Pass model via header: `x-litellm-model: gpt-4-account-1`\n- Pass model via query: `?model=gpt-4-account-1`\n\nExample usage:\n```bash\ncurl -X DELETE \"http://localhost:4000/v1/evals/eval_123/runs/run_456\"       -H \"Authorization: Bearer your-key\"\n```\n\nReturns: RunDeleteResponse with deletion confirmation",
+          "description": "Delete a run.\n\nModel-based routing (for multi-account support):\n- Pass model via header: `x-Token IQ-model: gpt-4-account-1`\n- Pass model via query: `?model=gpt-4-account-1`\n\nExample usage:\n```bash\ncurl -X DELETE \"http://localhost:4000/v1/evals/eval_123/runs/run_456\"       -H \"Authorization: Bearer your-key\"\n```\n\nReturns: RunDeleteResponse with deletion confirmation",
           "operationId": "delete_run_v1_evals__eval_id__runs__run_id__delete",
           "parameters": [
             {
@@ -8734,7 +8729,7 @@
           ]
         },
         "get": {
-          "description": "Get a specific run by ID.\n\nModel-based routing (for multi-account support):\n- Pass model via header: `x-litellm-model: gpt-4-account-1`\n- Pass model via query: `?model=gpt-4-account-1`\n\nExample usage:\n```bash\ncurl \"http://localhost:4000/v1/evals/eval_123/runs/run_456\"       -H \"Authorization: Bearer your-key\"\n```\n\nReturns: Run object with full details",
+          "description": "Get a specific run by ID.\n\nModel-based routing (for multi-account support):\n- Pass model via header: `x-Token IQ-model: gpt-4-account-1`\n- Pass model via query: `?model=gpt-4-account-1`\n\nExample usage:\n```bash\ncurl \"http://localhost:4000/v1/evals/eval_123/runs/run_456\"       -H \"Authorization: Bearer your-key\"\n```\n\nReturns: Run object with full details",
           "operationId": "get_run_v1_evals__eval_id__runs__run_id__get",
           "parameters": [
             {
@@ -8806,7 +8801,7 @@
           ]
         },
         "post": {
-          "description": "Cancel a running run.\n\nModel-based routing (for multi-account support):\n- Pass model via header: `x-litellm-model: gpt-4-account-1`\n- Pass model via query: `?model=gpt-4-account-1`\n\nExample usage:\n```bash\ncurl -X POST \"http://localhost:4000/v1/evals/eval_123/runs/run_456/cancel\"       -H \"Authorization: Bearer your-key\"\n```\n\nReturns: CancelRunResponse with cancellation confirmation",
+          "description": "Cancel a running run.\n\nModel-based routing (for multi-account support):\n- Pass model via header: `x-Token IQ-model: gpt-4-account-1`\n- Pass model via query: `?model=gpt-4-account-1`\n\nExample usage:\n```bash\ncurl -X POST \"http://localhost:4000/v1/evals/eval_123/runs/run_456/cancel\"       -H \"Authorization: Bearer your-key\"\n```\n\nReturns: CancelRunResponse with cancellation confirmation",
           "operationId": "cancel_run_v1_evals__eval_id__runs__run_id__post",
           "parameters": [
             {
@@ -10860,7 +10855,7 @@
                   "type": "null"
                 }
               ],
-              "description": "Application ID for Noma Security. Defaults to 'litellm' if not provided",
+              "description": "Application ID for Noma Security. Defaults to 'Token IQ' if not provided",
               "title": "Application Id"
             },
             "assertions": {
@@ -11859,7 +11854,7 @@
                   "type": "null"
                 }
               ],
-              "description": "When True, LiteLLM will replace the masked text with the original text in the response",
+              "description": "When True, Token IQ will replace the masked text with the original text in the response",
               "title": "Output Parse Pii",
               "ui_type": "bool"
             },
@@ -13511,7 +13506,7 @@
       },
       "/guardrails": {
         "post": {
-          "description": "Create a new guardrail\n\n\ud83d\udc49 [Guardrail docs](https://docs.litellm.ai/docs/proxy/guardrails/quick_start)\n\nExample Request:\n```bash\ncurl -X POST \"http://localhost:4000/guardrails\" \\\n    -H \"Authorization: Bearer <your_api_key>\" \\\n    -H \"Content-Type: application/json\" \\\n    -d '{\n        \"guardrail\": {\n            \"guardrail_name\": \"my-bedrock-guard\",\n            \"litellm_params\": {\n                \"guardrail\": \"bedrock\",\n                \"mode\": \"pre_call\",\n                \"guardrailIdentifier\": \"ff6ujrregl1q\",\n                \"guardrailVersion\": \"DRAFT\",\n                \"default_on\": true\n            },\n            \"guardrail_info\": {\n                \"description\": \"Bedrock content moderation guardrail\"\n            }\n        }\n    }'\n```\n\nExample Response:\n```json\n{\n    \"guardrail_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n    \"guardrail_name\": \"my-bedrock-guard\",\n    \"litellm_params\": {\n        \"guardrail\": \"bedrock\",\n        \"mode\": \"pre_call\",\n        \"guardrailIdentifier\": \"ff6ujrregl1q\",\n        \"guardrailVersion\": \"DRAFT\",\n        \"default_on\": true\n    },\n    \"guardrail_info\": {\n        \"description\": \"Bedrock content moderation guardrail\"\n    },\n    \"created_at\": \"2023-11-09T12:34:56.789Z\",\n    \"updated_at\": \"2023-11-09T12:34:56.789Z\"\n}\n```",
+          "description": "Create a new guardrail\n\n\ud83d\udc49\n\nExample Request:\n```bash\ncurl -X POST \"http://localhost:4000/guardrails\" \\\n    -H \"Authorization: Bearer <your_api_key>\" \\\n    -H \"Content-Type: application/json\" \\\n    -d '{\n        \"guardrail\": {\n            \"guardrail_name\": \"my-bedrock-guard\",\n            \"litellm_params\": {\n                \"guardrail\": \"bedrock\",\n                \"mode\": \"pre_call\",\n                \"guardrailIdentifier\": \"ff6ujrregl1q\",\n                \"guardrailVersion\": \"DRAFT\",\n                \"default_on\": true\n            },\n            \"guardrail_info\": {\n                \"description\": \"Bedrock content moderation guardrail\"\n            }\n        }\n    }'\n```\n\nExample Response:\n```json\n{\n    \"guardrail_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n    \"guardrail_name\": \"my-bedrock-guard\",\n    \"litellm_params\": {\n        \"guardrail\": \"bedrock\",\n        \"mode\": \"pre_call\",\n        \"guardrailIdentifier\": \"ff6ujrregl1q\",\n        \"guardrailVersion\": \"DRAFT\",\n        \"default_on\": true\n    },\n    \"guardrail_info\": {\n        \"description\": \"Bedrock content moderation guardrail\"\n    },\n    \"created_at\": \"2023-11-09T12:34:56.789Z\",\n    \"updated_at\": \"2023-11-09T12:34:56.789Z\"\n}\n```",
           "operationId": "create_guardrail_guardrails_post",
           "requestBody": {
             "content": {
@@ -13603,7 +13598,7 @@
       },
       "/guardrails/list": {
         "get": {
-          "description": "List the guardrails that are available on the proxy server\n\n\ud83d\udc49 [Guardrail docs](https://docs.litellm.ai/docs/proxy/guardrails/quick_start)\n\nExample Request:\n```bash\ncurl -X GET \"http://localhost:4000/guardrails/list\" -H \"Authorization: Bearer <your_api_key>\"\n```\n\nExample Response:\n```json\n{\n    \"guardrails\": [\n        {\n        \"guardrail_name\": \"bedrock-pre-guard\",\n        \"guardrail_info\": {\n            \"params\": [\n            {\n                \"name\": \"toxicity_score\",\n                \"type\": \"float\",\n                \"description\": \"Score between 0-1 indicating content toxicity level\"\n            },\n            {\n                \"name\": \"pii_detection\",\n                \"type\": \"boolean\"\n            }\n            ]\n        }\n        }\n    ]\n}\n```",
+          "description": "List the guardrails that are available on the proxy server\n\n\ud83d\udc49\n\nExample Request:\n```bash\ncurl -X GET \"http://localhost:4000/guardrails/list\" -H \"Authorization: Bearer <your_api_key>\"\n```\n\nExample Response:\n```json\n{\n    \"guardrails\": [\n        {\n        \"guardrail_name\": \"bedrock-pre-guard\",\n        \"guardrail_info\": {\n            \"params\": [\n            {\n                \"name\": \"toxicity_score\",\n                \"type\": \"float\",\n                \"description\": \"Score between 0-1 indicating content toxicity level\"\n            },\n            {\n                \"name\": \"pii_detection\",\n                \"type\": \"boolean\"\n            }\n            ]\n        }\n        }\n    ]\n}\n```",
           "operationId": "list_guardrails_guardrails_list_get",
           "responses": {
             "200": {
@@ -13630,7 +13625,7 @@
       },
       "/guardrails/register": {
         "post": {
-          "description": "Register a guardrail for onboarding (team submission).\n\nAccepts a guardrail config in the\n[Generic Guardrail API](https://docs.litellm.ai/docs/adding_provider/generic_guardrail_api) format.\nThe submission is stored with status `pending_review` until an admin approves it.",
+          "description": "Register a guardrail for onboarding (team submission).\n\n    Accepts a guardrail config in the\nformat.\n    The submission is stored with status `pending_review` until an admin approves it.",
           "operationId": "register_guardrail_guardrails_register_post",
           "requestBody": {
             "content": {
@@ -13904,7 +13899,7 @@
       },
       "/guardrails/test_custom_code": {
         "post": {
-          "description": "Test custom code guardrail logic without creating a guardrail.\n\nThis endpoint allows admins to experiment with custom code guardrails by:\n1. Compiling the provided code in a sandbox\n2. Executing the apply_guardrail function with test input\n3. Returning the result (allow/block/modify)\n\n\ud83d\udc49 [Custom Code Guardrail docs](https://docs.litellm.ai/docs/proxy/guardrails/custom_code_guardrail)\n\nExample Request:\n```bash\ncurl -X POST \"http://localhost:4000/guardrails/test_custom_code\" \\\n    -H \"Authorization: Bearer <your_api_key>\" \\\n    -H \"Content-Type: application/json\" \\\n    -d '{\n        \"custom_code\": \"def apply_guardrail(inputs, request_data, input_type):\\n    for text in inputs[\\\"texts\\\"]:\\n        if regex_match(text, r\\\"\\\\d{3}-\\\\d{2}-\\\\d{4}\\\"):\\n            return block(\\\"SSN detected\\\")\\n    return allow()\",\n        \"test_input\": {\n            \"texts\": [\"My SSN is 123-45-6789\"]\n        },\n        \"input_type\": \"request\"\n    }'\n```\n\nExample Success Response (blocked):\n```json\n{\n    \"success\": true,\n    \"result\": {\n        \"action\": \"block\",\n        \"reason\": \"SSN detected\"\n    },\n    \"error\": null,\n    \"error_type\": null\n}\n```\n\nExample Success Response (allowed):\n```json\n{\n    \"success\": true,\n    \"result\": {\n        \"action\": \"allow\"\n    },\n    \"error\": null,\n    \"error_type\": null\n}\n```\n\nExample Success Response (modified):\n```json\n{\n    \"success\": true,\n    \"result\": {\n        \"action\": \"modify\",\n        \"texts\": [\"My SSN is [REDACTED]\"]\n    },\n    \"error\": null,\n    \"error_type\": null\n}\n```\n\nExample Error Response (compilation error):\n```json\n{\n    \"success\": false,\n    \"result\": null,\n    \"error\": \"Syntax error in custom code: invalid syntax (<guardrail>, line 1)\",\n    \"error_type\": \"compilation\"\n}\n```",
+          "description": "Test custom code guardrail logic without creating a guardrail.\n\nThis endpoint allows admins to experiment with custom code guardrails by:\n1. Compiling the provided code in a sandbox\n2. Executing the apply_guardrail function with test input\n3. Returning the result (allow/block/modify)\n\n\ud83d\udc49\n\nExample Request:\n```bash\ncurl -X POST \"http://localhost:4000/guardrails/test_custom_code\" \\\n    -H \"Authorization: Bearer <your_api_key>\" \\\n    -H \"Content-Type: application/json\" \\\n    -d '{\n        \"custom_code\": \"def apply_guardrail(inputs, request_data, input_type):\\n    for text in inputs[\\\"texts\\\"]:\\n        if regex_match(text, r\\\"\\\\d{3}-\\\\d{2}-\\\\d{4}\\\"):\\n            return block(\\\"SSN detected\\\")\\n    return allow\",\n        \"test_input\": {\n            \"texts\": [\"My SSN is 123-45-6789\"]\n        },\n        \"input_type\": \"request\"\n    }'\n```\n\nExample Success Response (blocked):\n```json\n{\n    \"success\": true,\n    \"result\": {\n        \"action\": \"block\",\n        \"reason\": \"SSN detected\"\n    },\n    \"error\": null,\n    \"error_type\": null\n}\n```\n\nExample Success Response (allowed):\n```json\n{\n    \"success\": true,\n    \"result\": {\n        \"action\": \"allow\"\n    },\n    \"error\": null,\n    \"error_type\": null\n}\n```\n\nExample Success Response (modified):\n```json\n{\n    \"success\": true,\n    \"result\": {\n        \"action\": \"modify\",\n        \"texts\": [\"My SSN is [REDACTED]\"]\n    },\n    \"error\": null,\n    \"error_type\": null\n}\n```\n\nExample Error Response (compilation error):\n```json\n{\n    \"success\": false,\n    \"result\": null,\n    \"error\": \"Syntax error in custom code: invalid syntax (<guardrail>, line 1)\",\n    \"error_type\": \"compilation\"\n}\n```",
           "operationId": "test_custom_code_guardrail_guardrails_test_custom_code_post",
           "requestBody": {
             "content": {
@@ -14418,7 +14413,7 @@
       },
       "/guardrails/{guardrail_id}": {
         "delete": {
-          "description": "Delete a guardrail\n\n\ud83d\udc49 [Guardrail docs](https://docs.litellm.ai/docs/proxy/guardrails/quick_start)\n\nExample Request:\n```bash\ncurl -X DELETE \"http://localhost:4000/guardrails/123e4567-e89b-12d3-a456-426614174000\" \\\n    -H \"Authorization: Bearer <your_api_key>\"\n```\n\nExample Response:\n```json\n{\n    \"message\": \"Guardrail 123e4567-e89b-12d3-a456-426614174000 deleted successfully\"\n}\n```",
+          "description": "Delete a guardrail\n\n\ud83d\udc49\n\nExample Request:\n```bash\ncurl -X DELETE \"http://localhost:4000/guardrails/123e4567-e89b-12d3-a456-426614174000\" \\\n    -H \"Authorization: Bearer <your_api_key>\"\n```\n\nExample Response:\n```json\n{\n    \"message\": \"Guardrail 123e4567-e89b-12d3-a456-426614174000 deleted successfully\"\n}\n```",
           "operationId": "delete_guardrail_guardrails__guardrail_id__delete",
           "parameters": [
             {
@@ -14462,7 +14457,7 @@
           ]
         },
         "get": {
-          "description": "Get detailed information about a specific guardrail by ID\n\n\ud83d\udc49 [Guardrail docs](https://docs.litellm.ai/docs/proxy/guardrails/quick_start)\n\nExample Request:\n```bash\ncurl -X GET \"http://localhost:4000/guardrails/123e4567-e89b-12d3-a456-426614174000/info\" \\\n    -H \"Authorization: Bearer <your_api_key>\"\n```\n\nExample Response:\n```json\n{\n    \"guardrail_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n    \"guardrail_name\": \"my-bedrock-guard\",\n    \"litellm_params\": {\n        \"guardrail\": \"bedrock\",\n        \"mode\": \"pre_call\",\n        \"guardrailIdentifier\": \"ff6ujrregl1q\",\n        \"guardrailVersion\": \"DRAFT\",\n        \"default_on\": true\n    },\n    \"guardrail_info\": {\n        \"description\": \"Bedrock content moderation guardrail\"\n    },\n    \"created_at\": \"2023-11-09T12:34:56.789Z\",\n    \"updated_at\": \"2023-11-09T12:34:56.789Z\"\n}\n```",
+          "description": "Get detailed information about a specific guardrail by ID\n\n\ud83d\udc49\n\nExample Request:\n```bash\ncurl -X GET \"http://localhost:4000/guardrails/123e4567-e89b-12d3-a456-426614174000/info\" \\\n    -H \"Authorization: Bearer <your_api_key>\"\n```\n\nExample Response:\n```json\n{\n    \"guardrail_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n    \"guardrail_name\": \"my-bedrock-guard\",\n    \"litellm_params\": {\n        \"guardrail\": \"bedrock\",\n        \"mode\": \"pre_call\",\n        \"guardrailIdentifier\": \"ff6ujrregl1q\",\n        \"guardrailVersion\": \"DRAFT\",\n        \"default_on\": true\n    },\n    \"guardrail_info\": {\n        \"description\": \"Bedrock content moderation guardrail\"\n    },\n    \"created_at\": \"2023-11-09T12:34:56.789Z\",\n    \"updated_at\": \"2023-11-09T12:34:56.789Z\"\n}\n```",
           "operationId": "get_guardrail_info_guardrails__guardrail_id__get",
           "parameters": [
             {
@@ -14506,7 +14501,7 @@
           ]
         },
         "patch": {
-          "description": "Partially update an existing guardrail\n\n\ud83d\udc49 [Guardrail docs](https://docs.litellm.ai/docs/proxy/guardrails/quick_start)\n\nThis endpoint allows updating specific fields of a guardrail without sending the entire object.\nOnly the following fields can be updated:\n- guardrail_name: The name of the guardrail\n- default_on: Whether the guardrail is enabled by default\n- guardrail_info: Additional information about the guardrail\n\nExample Request:\n```bash\ncurl -X PATCH \"http://localhost:4000/guardrails/123e4567-e89b-12d3-a456-426614174000\" \\\n    -H \"Authorization: Bearer <your_api_key>\" \\\n    -H \"Content-Type: application/json\" \\\n    -d '{\n        \"guardrail_name\": \"updated-name\",\n        \"default_on\": true,\n        \"guardrail_info\": {\n            \"description\": \"Updated description\"\n        }\n    }'\n```\n\nExample Response:\n```json\n{\n    \"guardrail_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n    \"guardrail_name\": \"updated-name\",\n    \"litellm_params\": {\n        \"guardrail\": \"bedrock\",\n        \"mode\": \"pre_call\",\n        \"guardrailIdentifier\": \"ff6ujrregl1q\",\n        \"guardrailVersion\": \"DRAFT\",\n        \"default_on\": true\n    },\n    \"guardrail_info\": {\n        \"description\": \"Updated description\"\n    },\n    \"created_at\": \"2023-11-09T12:34:56.789Z\",\n    \"updated_at\": \"2023-11-09T14:22:33.456Z\"\n}\n```",
+          "description": "Partially update an existing guardrail\n\n\ud83d\udc49\n\nThis endpoint allows updating specific fields of a guardrail without sending the entire object.\nOnly the following fields can be updated:\n- guardrail_name: The name of the guardrail\n- default_on: Whether the guardrail is enabled by default\n- guardrail_info: Additional information about the guardrail\n\nExample Request:\n```bash\ncurl -X PATCH \"http://localhost:4000/guardrails/123e4567-e89b-12d3-a456-426614174000\" \\\n    -H \"Authorization: Bearer <your_api_key>\" \\\n    -H \"Content-Type: application/json\" \\\n    -d '{\n        \"guardrail_name\": \"updated-name\",\n        \"default_on\": true,\n        \"guardrail_info\": {\n            \"description\": \"Updated description\"\n        }\n    }'\n```\n\nExample Response:\n```json\n{\n    \"guardrail_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n    \"guardrail_name\": \"updated-name\",\n    \"litellm_params\": {\n        \"guardrail\": \"bedrock\",\n        \"mode\": \"pre_call\",\n        \"guardrailIdentifier\": \"ff6ujrregl1q\",\n        \"guardrailVersion\": \"DRAFT\",\n        \"default_on\": true\n    },\n    \"guardrail_info\": {\n        \"description\": \"Updated description\"\n    },\n    \"created_at\": \"2023-11-09T12:34:56.789Z\",\n    \"updated_at\": \"2023-11-09T14:22:33.456Z\"\n}\n```",
           "operationId": "patch_guardrail_guardrails__guardrail_id__patch",
           "parameters": [
             {
@@ -14560,7 +14555,7 @@
           ]
         },
         "put": {
-          "description": "Update an existing guardrail\n\n\ud83d\udc49 [Guardrail docs](https://docs.litellm.ai/docs/proxy/guardrails/quick_start)\n\nExample Request:\n```bash\ncurl -X PUT \"http://localhost:4000/guardrails/123e4567-e89b-12d3-a456-426614174000\" \\\n    -H \"Authorization: Bearer <your_api_key>\" \\\n    -H \"Content-Type: application/json\" \\\n    -d '{\n        \"guardrail\": {\n            \"guardrail_name\": \"updated-bedrock-guard\",\n            \"litellm_params\": {\n                \"guardrail\": \"bedrock\",\n                \"mode\": \"pre_call\",\n                \"guardrailIdentifier\": \"ff6ujrregl1q\",\n                \"guardrailVersion\": \"1.0\",\n                \"default_on\": true\n            },\n            \"guardrail_info\": {\n                \"description\": \"Updated Bedrock content moderation guardrail\"\n            }\n        }\n    }'\n```\n\nExample Response:\n```json\n{\n    \"guardrail_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n    \"guardrail_name\": \"updated-bedrock-guard\",\n    \"litellm_params\": {\n        \"guardrail\": \"bedrock\",\n        \"mode\": \"pre_call\",\n        \"guardrailIdentifier\": \"ff6ujrregl1q\",\n        \"guardrailVersion\": \"1.0\",\n        \"default_on\": true\n    },\n    \"guardrail_info\": {\n        \"description\": \"Updated Bedrock content moderation guardrail\"\n    },\n    \"created_at\": \"2023-11-09T12:34:56.789Z\",\n    \"updated_at\": \"2023-11-09T13:45:12.345Z\"\n}\n```",
+          "description": "Update an existing guardrail\n\n\ud83d\udc49\n\nExample Request:\n```bash\ncurl -X PUT \"http://localhost:4000/guardrails/123e4567-e89b-12d3-a456-426614174000\" \\\n    -H \"Authorization: Bearer <your_api_key>\" \\\n    -H \"Content-Type: application/json\" \\\n    -d '{\n        \"guardrail\": {\n            \"guardrail_name\": \"updated-bedrock-guard\",\n            \"litellm_params\": {\n                \"guardrail\": \"bedrock\",\n                \"mode\": \"pre_call\",\n                \"guardrailIdentifier\": \"ff6ujrregl1q\",\n                \"guardrailVersion\": \"1.0\",\n                \"default_on\": true\n            },\n            \"guardrail_info\": {\n                \"description\": \"Updated Bedrock content moderation guardrail\"\n            }\n        }\n    }'\n```\n\nExample Response:\n```json\n{\n    \"guardrail_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n    \"guardrail_name\": \"updated-bedrock-guard\",\n    \"litellm_params\": {\n        \"guardrail\": \"bedrock\",\n        \"mode\": \"pre_call\",\n        \"guardrailIdentifier\": \"ff6ujrregl1q\",\n        \"guardrailVersion\": \"1.0\",\n        \"default_on\": true\n    },\n    \"guardrail_info\": {\n        \"description\": \"Updated Bedrock content moderation guardrail\"\n    },\n    \"created_at\": \"2023-11-09T12:34:56.789Z\",\n    \"updated_at\": \"2023-11-09T13:45:12.345Z\"\n}\n```",
           "operationId": "update_guardrail_guardrails__guardrail_id__put",
           "parameters": [
             {
@@ -14616,7 +14611,7 @@
       },
       "/guardrails/{guardrail_id}/info": {
         "get": {
-          "description": "Get detailed information about a specific guardrail by ID\n\n\ud83d\udc49 [Guardrail docs](https://docs.litellm.ai/docs/proxy/guardrails/quick_start)\n\nExample Request:\n```bash\ncurl -X GET \"http://localhost:4000/guardrails/123e4567-e89b-12d3-a456-426614174000/info\" \\\n    -H \"Authorization: Bearer <your_api_key>\"\n```\n\nExample Response:\n```json\n{\n    \"guardrail_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n    \"guardrail_name\": \"my-bedrock-guard\",\n    \"litellm_params\": {\n        \"guardrail\": \"bedrock\",\n        \"mode\": \"pre_call\",\n        \"guardrailIdentifier\": \"ff6ujrregl1q\",\n        \"guardrailVersion\": \"DRAFT\",\n        \"default_on\": true\n    },\n    \"guardrail_info\": {\n        \"description\": \"Bedrock content moderation guardrail\"\n    },\n    \"created_at\": \"2023-11-09T12:34:56.789Z\",\n    \"updated_at\": \"2023-11-09T12:34:56.789Z\"\n}\n```",
+          "description": "Get detailed information about a specific guardrail by ID\n\n\ud83d\udc49\n\nExample Request:\n```bash\ncurl -X GET \"http://localhost:4000/guardrails/123e4567-e89b-12d3-a456-426614174000/info\" \\\n    -H \"Authorization: Bearer <your_api_key>\"\n```\n\nExample Response:\n```json\n{\n    \"guardrail_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n    \"guardrail_name\": \"my-bedrock-guard\",\n    \"litellm_params\": {\n        \"guardrail\": \"bedrock\",\n        \"mode\": \"pre_call\",\n        \"guardrailIdentifier\": \"ff6ujrregl1q\",\n        \"guardrailVersion\": \"DRAFT\",\n        \"default_on\": true\n    },\n    \"guardrail_info\": {\n        \"description\": \"Bedrock content moderation guardrail\"\n    },\n    \"created_at\": \"2023-11-09T12:34:56.789Z\",\n    \"updated_at\": \"2023-11-09T12:34:56.789Z\"\n}\n```",
           "operationId": "get_guardrail_info_guardrails__guardrail_id__info_get",
           "parameters": [
             {
@@ -14737,7 +14732,7 @@
       },
       "/v2/guardrails/list": {
         "get": {
-          "description": "List the guardrails that are available in the database using GuardrailRegistry\n\n\ud83d\udc49 [Guardrail docs](https://docs.litellm.ai/docs/proxy/guardrails/quick_start)\n\nExample Request:\n```bash\ncurl -X GET \"http://localhost:4000/v2/guardrails/list\" -H \"Authorization: Bearer <your_api_key>\"\n```\n\nExample Response:\n```json\n{\n    \"guardrails\": [\n        {\n            \"guardrail_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n            \"guardrail_name\": \"my-bedrock-guard\",\n            \"litellm_params\": {\n                \"guardrail\": \"bedrock\",\n                \"mode\": \"pre_call\",\n                \"guardrailIdentifier\": \"ff6ujrregl1q\",\n                \"guardrailVersion\": \"DRAFT\",\n                \"default_on\": true\n            },\n            \"guardrail_info\": {\n                \"description\": \"Bedrock content moderation guardrail\"\n            }\n        }\n    ]\n}\n```",
+          "description": "List the guardrails that are available in the database using GuardrailRegistry\n\n\ud83d\udc49\n\nExample Request:\n```bash\ncurl -X GET \"http://localhost:4000/v2/guardrails/list\" -H \"Authorization: Bearer <your_api_key>\"\n```\n\nExample Response:\n```json\n{\n    \"guardrails\": [\n        {\n            \"guardrail_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n            \"guardrail_name\": \"my-bedrock-guard\",\n            \"litellm_params\": {\n                \"guardrail\": \"bedrock\",\n                \"mode\": \"pre_call\",\n                \"guardrailIdentifier\": \"ff6ujrregl1q\",\n                \"guardrailVersion\": \"DRAFT\",\n                \"default_on\": true\n            },\n            \"guardrail_info\": {\n                \"description\": \"Bedrock content moderation guardrail\"\n            }\n        }\n    ]\n}\n```",
           "operationId": "list_guardrails_v2_v2_guardrails_list_get",
           "responses": {
             "200": {
@@ -15298,7 +15293,7 @@
     "paths": {
       "/langfuse/{endpoint}": {
         "delete": {
-          "description": "Call Langfuse via LiteLLM proxy. Works with Langfuse SDK.\n\n[Docs](https://docs.litellm.ai/docs/pass_through/langfuse)",
+          "description": "Call Langfuse via Token IQ. Works with Langfuse SDK.",
           "operationId": "langfuse_proxy_route_langfuse__endpoint__delete",
           "parameters": [
             {
@@ -15337,7 +15332,7 @@
           ]
         },
         "get": {
-          "description": "Call Langfuse via LiteLLM proxy. Works with Langfuse SDK.\n\n[Docs](https://docs.litellm.ai/docs/pass_through/langfuse)",
+          "description": "Call Langfuse via Token IQ. Works with Langfuse SDK.",
           "operationId": "langfuse_proxy_route_langfuse__endpoint__get",
           "parameters": [
             {
@@ -15376,7 +15371,7 @@
           ]
         },
         "patch": {
-          "description": "Call Langfuse via LiteLLM proxy. Works with Langfuse SDK.\n\n[Docs](https://docs.litellm.ai/docs/pass_through/langfuse)",
+          "description": "Call Langfuse via Token IQ. Works with Langfuse SDK.",
           "operationId": "langfuse_proxy_route_langfuse__endpoint__patch",
           "parameters": [
             {
@@ -15415,7 +15410,7 @@
           ]
         },
         "post": {
-          "description": "Call Langfuse via LiteLLM proxy. Works with Langfuse SDK.\n\n[Docs](https://docs.litellm.ai/docs/pass_through/langfuse)",
+          "description": "Call Langfuse via Token IQ. Works with Langfuse SDK.",
           "operationId": "langfuse_proxy_route_langfuse__endpoint__post",
           "parameters": [
             {
@@ -15454,7 +15449,7 @@
           ]
         },
         "put": {
-          "description": "Call Langfuse via LiteLLM proxy. Works with Langfuse SDK.\n\n[Docs](https://docs.litellm.ai/docs/pass_through/langfuse)",
+          "description": "Call Langfuse via Token IQ. Works with Langfuse SDK.",
           "operationId": "langfuse_proxy_route_langfuse__endpoint__put",
           "parameters": [
             {
@@ -16971,7 +16966,7 @@
       },
       "/.well-known/oauth-protected-resource": {
         "get": {
-          "description": "OAuth protected resource discovery endpoint using LiteLLM legacy URL pattern.\n\nLegacy pattern: /{server_name}/mcp\nDiscovery path: /.well-known/oauth-protected-resource/{server_name}/mcp\n\nThis endpoint is kept for backward compatibility. New integrations should\nuse the standard MCP pattern (/mcp/{server_name}) instead.",
+          "description": "OAuth protected resource discovery endpoint using Token IQ legacy URL pattern.\n\nLegacy pattern: /{server_name}/mcp\nDiscovery path: /.well-known/oauth-protected-resource/{server_name}/mcp\n\nThis endpoint is kept for backward compatibility. New integrations should\nuse the standard MCP pattern (/mcp/{server_name}) instead.",
           "operationId": "oauth_protected_resource_mcp__well_known_oauth_protected_resource_get",
           "parameters": [
             {
@@ -17080,7 +17075,7 @@
       },
       "/.well-known/oauth-protected-resource/{mcp_server_name}/mcp": {
         "get": {
-          "description": "OAuth protected resource discovery endpoint using LiteLLM legacy URL pattern.\n\nLegacy pattern: /{server_name}/mcp\nDiscovery path: /.well-known/oauth-protected-resource/{server_name}/mcp\n\nThis endpoint is kept for backward compatibility. New integrations should\nuse the standard MCP pattern (/mcp/{server_name}) instead.",
+          "description": "OAuth protected resource discovery endpoint using Token IQ legacy URL pattern.\n\nLegacy pattern: /{server_name}/mcp\nDiscovery path: /.well-known/oauth-protected-resource/{server_name}/mcp\n\nThis endpoint is kept for backward compatibility. New integrations should\nuse the standard MCP pattern (/mcp/{server_name}) instead.",
           "operationId": "oauth_protected_resource_mcp__well_known_oauth_protected_resource__mcp_server_name__mcp_get",
           "parameters": [
             {
@@ -19182,7 +19177,7 @@
       },
       "/.well-known/oauth-protected-resource": {
         "get": {
-          "description": "OAuth protected resource discovery endpoint using LiteLLM legacy URL pattern.\n\nLegacy pattern: /{server_name}/mcp\nDiscovery path: /.well-known/oauth-protected-resource/{server_name}/mcp\n\nThis endpoint is kept for backward compatibility. New integrations should\nuse the standard MCP pattern (/mcp/{server_name}) instead.",
+          "description": "OAuth protected resource discovery endpoint using Token IQ legacy URL pattern.\n\nLegacy pattern: /{server_name}/mcp\nDiscovery path: /.well-known/oauth-protected-resource/{server_name}/mcp\n\nThis endpoint is kept for backward compatibility. New integrations should\nuse the standard MCP pattern (/mcp/{server_name}) instead.",
           "operationId": "oauth_protected_resource_mcp__well_known_oauth_protected_resource_get_2",
           "parameters": [
             {
@@ -19291,7 +19286,7 @@
       },
       "/.well-known/oauth-protected-resource/{mcp_server_name}/mcp": {
         "get": {
-          "description": "OAuth protected resource discovery endpoint using LiteLLM legacy URL pattern.\n\nLegacy pattern: /{server_name}/mcp\nDiscovery path: /.well-known/oauth-protected-resource/{server_name}/mcp\n\nThis endpoint is kept for backward compatibility. New integrations should\nuse the standard MCP pattern (/mcp/{server_name}) instead.",
+          "description": "OAuth protected resource discovery endpoint using Token IQ legacy URL pattern.\n\nLegacy pattern: /{server_name}/mcp\nDiscovery path: /.well-known/oauth-protected-resource/{server_name}/mcp\n\nThis endpoint is kept for backward compatibility. New integrations should\nuse the standard MCP pattern (/mcp/{server_name}) instead.",
           "operationId": "oauth_protected_resource_mcp__well_known_oauth_protected_resource__mcp_server_name__mcp_get_2",
           "parameters": [
             {
@@ -19724,7 +19719,7 @@
       },
       "/guardrails/register": {
         "post": {
-          "description": "Register a guardrail for onboarding (team submission).\n\nAccepts a guardrail config in the\n[Generic Guardrail API](https://docs.litellm.ai/docs/adding_provider/generic_guardrail_api) format.\nThe submission is stored with status `pending_review` until an admin approves it.",
+          "description": "Register a guardrail for onboarding (team submission).\n\n    Accepts a guardrail config in the\nformat.\n    The submission is stored with status `pending_review` until an admin approves it.",
           "operationId": "register_guardrail_guardrails_register_post_2",
           "requestBody": {
             "content": {
@@ -19771,7 +19766,7 @@
       },
       "/introspect": {
         "post": {
-          "description": "RFC 7662 introspection for gateway-issued session tokens (``llm_session_`` /\n``llm_srefresh_``), so an external gateway can validate them without the signing\nsecret. The caller authenticates with a LiteLLM virtual key (section 2.1, enforced by\nthe route dependency); any token the gateway cannot vouch for answers\n``{\"active\": false}`` with no further detail.",
+          "description": "RFC 7662 introspection for gateway-issued session tokens (``llm_session_`` /\n``llm_srefresh_``), so an external gateway can validate them without the signing\nsecret. The caller authenticates with a Token IQ virtual key (section 2.1, enforced by\nthe route dependency); any token the gateway cannot vouch for answers\n``{\"active\": false}`` with no further detail.",
           "operationId": "introspect_endpoint_introspect_post",
           "requestBody": {
             "content": {
@@ -19903,7 +19898,7 @@
       },
       "/token": {
         "post": {
-          "description": "Accept the authorization code from client and exchange it for OAuth token.\nSupports PKCE flow by forwarding code_verifier to upstream provider.\n\n1. Call the token endpoint with PKCE parameters\n2. Store the user's token in the db - and generate a LiteLLM virtual key\n3. Return the token\n4. Return a virtual key in this response",
+          "description": "Accept the authorization code from client and exchange it for OAuth token.\nSupports PKCE flow by forwarding code_verifier to upstream provider.\n\n1. Call the token endpoint with PKCE parameters\n2. Store the user's token in the db - and generate a Token IQ virtual key\n3. Return the token\n4. Return a virtual key in this response",
           "operationId": "token_endpoint_token_post",
           "parameters": [
             {
@@ -20217,7 +20212,7 @@
       },
       "/{mcp_server_name}/token": {
         "post": {
-          "description": "Accept the authorization code from client and exchange it for OAuth token.\nSupports PKCE flow by forwarding code_verifier to upstream provider.\n\n1. Call the token endpoint with PKCE parameters\n2. Store the user's token in the db - and generate a LiteLLM virtual key\n3. Return the token\n4. Return a virtual key in this response",
+          "description": "Accept the authorization code from client and exchange it for OAuth token.\nSupports PKCE flow by forwarding code_verifier to upstream provider.\n\n1. Call the token endpoint with PKCE parameters\n2. Store the user's token in the db - and generate a Token IQ virtual key\n3. Return the token\n4. Return a virtual key in this response",
           "operationId": "token_endpoint__mcp_server_name__token_post",
           "parameters": [
             {
@@ -23177,7 +23172,7 @@
           "operationId": "add_mcp_server_v1_mcp_server_post",
           "parameters": [
             {
-              "description": "The litellm-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
+              "description": "The Token IQ-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
               "in": "header",
               "name": "litellm-changed-by",
               "required": false,
@@ -23190,7 +23185,7 @@
                     "type": "null"
                   }
                 ],
-                "description": "The litellm-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
+                "description": "The Token IQ-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
                 "title": "Litellm-Changed-By"
               }
             }
@@ -23242,7 +23237,7 @@
           "operationId": "edit_mcp_server_v1_mcp_server_put",
           "parameters": [
             {
-              "description": "The litellm-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
+              "description": "The Token IQ-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
               "in": "header",
               "name": "litellm-changed-by",
               "required": false,
@@ -23255,7 +23250,7 @@
                     "type": "null"
                   }
                 ],
-                "description": "The litellm-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
+                "description": "The Token IQ-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
                 "title": "Litellm-Changed-By"
               }
             }
@@ -23414,7 +23409,7 @@
           "operationId": "add_session_mcp_server_v1_mcp_server_oauth_session_post",
           "parameters": [
             {
-              "description": "The litellm-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
+              "description": "The Token IQ-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
               "in": "header",
               "name": "litellm-changed-by",
               "required": false,
@@ -23427,7 +23422,7 @@
                     "type": "null"
                   }
                 ],
-                "description": "The litellm-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
+                "description": "The Token IQ-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
                 "title": "Litellm-Changed-By"
               }
             }
@@ -23562,7 +23557,7 @@
               }
             },
             {
-              "description": "The litellm-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
+              "description": "The Token IQ-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
               "in": "header",
               "name": "litellm-changed-by",
               "required": false,
@@ -23575,7 +23570,7 @@
                     "type": "null"
                   }
                 ],
-                "description": "The litellm-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
+                "description": "The Token IQ-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
                 "title": "Litellm-Changed-By"
               }
             }
@@ -30744,7 +30739,7 @@
     "paths": {
       "/prompts": {
         "post": {
-          "description": "Create a new prompt\n\n\ud83d\udc49 [Prompt docs](https://docs.litellm.ai/docs/proxy/prompt_management)\n\nExample Request:\n```bash\ncurl -X POST \"http://localhost:4000/prompts\" \\\n    -H \"Authorization: Bearer <your_api_key>\" \\\n    -H \"Content-Type: application/json\" \\\n    -d '{\n        \"prompt_id\": \"my_prompt\",\n        \"litellm_params\": {\n            \"prompt_id\": \"my_prompt\",\n            \"prompt_integration\": \"dotprompt\",\n            \"prompt_data\": {\"content\": \"This is a prompt\", \"metadata\": {\"model\": \"gpt-4\"}}\n        },\n        \"prompt_info\": {\n            \"prompt_type\": \"config\"\n        }\n    }'\n```",
+          "description": "Create a new prompt\n\n\ud83d\udc49\n\nExample Request:\n```bash\ncurl -X POST \"http://localhost:4000/prompts\" \\\n    -H \"Authorization: Bearer <your_api_key>\" \\\n    -H \"Content-Type: application/json\" \\\n    -d '{\n        \"prompt_id\": \"my_prompt\",\n        \"litellm_params\": {\n            \"prompt_id\": \"my_prompt\",\n            \"prompt_integration\": \"dotprompt\",\n            \"prompt_data\": {\"content\": \"This is a prompt\", \"metadata\": {\"model\": \"gpt-4\"}}\n        },\n        \"prompt_info\": {\n            \"prompt_type\": \"config\"\n        }\n    }'\n```",
           "operationId": "create_prompt_prompts_post",
           "requestBody": {
             "content": {
@@ -30789,7 +30784,7 @@
       },
       "/prompts/list": {
         "get": {
-          "description": "List the prompts that are available on the proxy server\n\n\ud83d\udc49 [Prompt docs](https://docs.litellm.ai/docs/proxy/prompt_management)\n\nExample Request:\n```bash\ncurl -X GET \"http://localhost:4000/prompts/list\" -H \"Authorization: Bearer <your_api_key>\"\n```\n\nExample Response:\n```json\n{\n    \"prompts\": [\n        {\n            \"prompt_id\": \"my_prompt_id\",\n            \"litellm_params\": {\n                \"prompt_id\": \"my_prompt_id\",\n                \"prompt_integration\": \"dotprompt\",\n                \"prompt_directory\": \"/path/to/prompts\"\n            },\n            \"prompt_info\": {\n                \"prompt_type\": \"config\"\n            },\n            \"created_at\": \"2023-11-09T12:34:56.789Z\",\n            \"updated_at\": \"2023-11-09T12:34:56.789Z\"\n        }\n    ]\n}\n```",
+          "description": "List the prompts that are available on the proxy server\n\n\ud83d\udc49\n\nExample Request:\n```bash\ncurl -X GET \"http://localhost:4000/prompts/list\" -H \"Authorization: Bearer <your_api_key>\"\n```\n\nExample Response:\n```json\n{\n    \"prompts\": [\n        {\n            \"prompt_id\": \"my_prompt_id\",\n            \"litellm_params\": {\n                \"prompt_id\": \"my_prompt_id\",\n                \"prompt_integration\": \"dotprompt\",\n                \"prompt_directory\": \"/path/to/prompts\"\n            },\n            \"prompt_info\": {\n                \"prompt_type\": \"config\"\n            },\n            \"created_at\": \"2023-11-09T12:34:56.789Z\",\n            \"updated_at\": \"2023-11-09T12:34:56.789Z\"\n        }\n    ]\n}\n```",
           "operationId": "list_prompts_prompts_list_get",
           "parameters": [
             {
@@ -30844,7 +30839,7 @@
       },
       "/prompts/test": {
         "post": {
-          "description": "Test a prompt by rendering it with variables and executing an LLM call.\n\nThis endpoint allows testing prompts before saving them to the database.\nThe response is always streamed.\n\n\ud83d\udc49 [Prompt docs](https://docs.litellm.ai/docs/proxy/prompt_management)\n\nExample Request:\n```bash\ncurl -X POST \"http://localhost:4000/prompts/test\" \\\n    -H \"Authorization: Bearer <your_api_key>\" \\\n    -H \"Content-Type: application/json\" \\\n    -d '{\n        \"dotprompt_content\": \"---\\nmodel: gpt-4o\\ntemperature: 0.7\\n---\\n\\nUser: Hello {{name}}\",\n        \"prompt_variables\": {\n            \"name\": \"World\"\n        }\n    }'\n```",
+          "description": "Test a prompt by rendering it with variables and executing an LLM call.\n\nThis endpoint allows testing prompts before saving them to the database.\nThe response is always streamed.\n\n\ud83d\udc49\n\nExample Request:\n```bash\ncurl -X POST \"http://localhost:4000/prompts/test\" \\\n    -H \"Authorization: Bearer <your_api_key>\" \\\n    -H \"Content-Type: application/json\" \\\n    -d '{\n        \"dotprompt_content\": \"---\\nmodel: gpt-4o\\ntemperature: 0.7\\n---\\n\\nUser: Hello {{name}}\",\n        \"prompt_variables\": {\n            \"name\": \"World\"\n        }\n    }'\n```",
           "operationId": "test_prompt_prompts_test_post",
           "requestBody": {
             "content": {
@@ -30889,7 +30884,7 @@
       },
       "/prompts/{prompt_id}": {
         "delete": {
-          "description": "Delete a prompt\n\n\ud83d\udc49 [Prompt docs](https://docs.litellm.ai/docs/proxy/prompt_management)\n\nExample Request:\n```bash\ncurl -X DELETE \"http://localhost:4000/prompts/my_prompt_id\" \\\n    -H \"Authorization: Bearer <your_api_key>\"\n```\n\nExample Response:\n```json\n{\n    \"message\": \"Prompt my_prompt_id deleted successfully\"\n}\n```",
+          "description": "Delete a prompt\n\n\ud83d\udc49\n\nExample Request:\n```bash\ncurl -X DELETE \"http://localhost:4000/prompts/my_prompt_id\" \\\n    -H \"Authorization: Bearer <your_api_key>\"\n```\n\nExample Response:\n```json\n{\n    \"message\": \"Prompt my_prompt_id deleted successfully\"\n}\n```",
           "operationId": "delete_prompt_prompts__prompt_id__delete",
           "parameters": [
             {
@@ -30949,7 +30944,7 @@
           ]
         },
         "get": {
-          "description": "Get detailed information about a specific prompt by ID, including prompt content\n\n    \ud83d\udc49 [Prompt docs](https://docs.litellm.ai/docs/proxy/prompt_management)\n\n    Example Request:\n    ```bash\n    curl -X GET \"http://localhost:4000/prompts/my_prompt_id/info\" \\\n        -H \"Authorization: Bearer <your_api_key>\"\n    ```\n\n    Example Response:\n    ```json\n    {\n        \"prompt_id\": \"my_prompt_id\",\n        \"litellm_params\": {\n            \"prompt_id\": \"my_prompt_id\",\n            \"prompt_integration\": \"dotprompt\",\n            \"prompt_directory\": \"/path/to/prompts\"\n        },\n        \"prompt_info\": {\n            \"prompt_type\": \"config\"\n        },\n        \"created_at\": \"2023-11-09T12:34:56.789Z\",\n        \"updated_at\": \"2023-11-09T12:34:56.789Z\",\n        \"content\": \"System: You are a helpful assistant.\n\nUser: {{user_message}}\"\n    }\n    ```",
+          "description": "Get detailed information about a specific prompt by ID, including prompt content\n\n    \ud83d\udc49\n\n    Example Request:\n    ```bash\n    curl -X GET \"http://localhost:4000/prompts/my_prompt_id/info\" \\\n        -H \"Authorization: Bearer <your_api_key>\"\n    ```\n\n    Example Response:\n    ```json\n    {\n        \"prompt_id\": \"my_prompt_id\",\n        \"litellm_params\": {\n            \"prompt_id\": \"my_prompt_id\",\n            \"prompt_integration\": \"dotprompt\",\n            \"prompt_directory\": \"/path/to/prompts\"\n        },\n        \"prompt_info\": {\n            \"prompt_type\": \"config\"\n        },\n        \"created_at\": \"2023-11-09T12:34:56.789Z\",\n        \"updated_at\": \"2023-11-09T12:34:56.789Z\",\n        \"content\": \"System: You are a helpful assistant.\n\nUser: {{user_message}}\"\n    }\n    ```",
           "operationId": "get_prompt_info_prompts__prompt_id__get",
           "parameters": [
             {
@@ -31011,7 +31006,7 @@
           ]
         },
         "patch": {
-          "description": "Partially update an existing prompt\n\n\ud83d\udc49 [Prompt docs](https://docs.litellm.ai/docs/proxy/prompt_management)\n\nThis endpoint allows updating specific fields of a prompt without sending the entire object.\nOnly the following fields can be updated:\n- litellm_params: LiteLLM parameters for the prompt\n- prompt_info: Additional information about the prompt\n\nExample Request:\n```bash\ncurl -X PATCH \"http://localhost:4000/prompts/my_prompt_id\" \\\n    -H \"Authorization: Bearer <your_api_key>\" \\\n    -H \"Content-Type: application/json\" \\\n    -d '{\n        \"prompt_info\": {\n            \"prompt_type\": \"db\"\n        }\n    }'\n```",
+          "description": "Partially update an existing prompt\n\n\ud83d\udc49\n\nThis endpoint allows updating specific fields of a prompt without sending the entire object.\nOnly the following fields can be updated:\n- litellm_params: Token IQ parameters for the prompt\n- prompt_info: Additional information about the prompt\n\nExample Request:\n```bash\ncurl -X PATCH \"http://localhost:4000/prompts/my_prompt_id\" \\\n    -H \"Authorization: Bearer <your_api_key>\" \\\n    -H \"Content-Type: application/json\" \\\n    -d '{\n        \"prompt_info\": {\n            \"prompt_type\": \"db\"\n        }\n    }'\n```",
           "operationId": "patch_prompt_prompts__prompt_id__patch",
           "parameters": [
             {
@@ -31081,7 +31076,7 @@
           ]
         },
         "put": {
-          "description": "Update an existing prompt\n\n\ud83d\udc49 [Prompt docs](https://docs.litellm.ai/docs/proxy/prompt_management)\n\nExample Request:\n```bash\ncurl -X PUT \"http://localhost:4000/prompts/my_prompt_id\" \\\n    -H \"Authorization: Bearer <your_api_key>\" \\\n    -H \"Content-Type: application/json\" \\\n    -d '{\n        \"prompt_id\": \"my_prompt\",\n        \"litellm_params\": {\n            \"prompt_id\": \"my_prompt\",\n                \"prompt_integration\": \"dotprompt\",\n                \"prompt_directory\": \"/path/to/prompts\"\n            },\n            \"prompt_info\": {\n                \"prompt_type\": \"config\"\n            }\n        }\n    }'\n```",
+          "description": "Update an existing prompt\n\n\ud83d\udc49\n\nExample Request:\n```bash\ncurl -X PUT \"http://localhost:4000/prompts/my_prompt_id\" \\\n    -H \"Authorization: Bearer <your_api_key>\" \\\n    -H \"Content-Type: application/json\" \\\n    -d '{\n        \"prompt_id\": \"my_prompt\",\n        \"litellm_params\": {\n            \"prompt_id\": \"my_prompt\",\n                \"prompt_integration\": \"dotprompt\",\n                \"prompt_directory\": \"/path/to/prompts\"\n            },\n            \"prompt_info\": {\n                \"prompt_type\": \"config\"\n            }\n        }\n    }'\n```",
           "operationId": "update_prompt_prompts__prompt_id__put",
           "parameters": [
             {
@@ -31137,7 +31132,7 @@
       },
       "/prompts/{prompt_id}/info": {
         "get": {
-          "description": "Get detailed information about a specific prompt by ID, including prompt content\n\n    \ud83d\udc49 [Prompt docs](https://docs.litellm.ai/docs/proxy/prompt_management)\n\n    Example Request:\n    ```bash\n    curl -X GET \"http://localhost:4000/prompts/my_prompt_id/info\" \\\n        -H \"Authorization: Bearer <your_api_key>\"\n    ```\n\n    Example Response:\n    ```json\n    {\n        \"prompt_id\": \"my_prompt_id\",\n        \"litellm_params\": {\n            \"prompt_id\": \"my_prompt_id\",\n            \"prompt_integration\": \"dotprompt\",\n            \"prompt_directory\": \"/path/to/prompts\"\n        },\n        \"prompt_info\": {\n            \"prompt_type\": \"config\"\n        },\n        \"created_at\": \"2023-11-09T12:34:56.789Z\",\n        \"updated_at\": \"2023-11-09T12:34:56.789Z\",\n        \"content\": \"System: You are a helpful assistant.\n\nUser: {{user_message}}\"\n    }\n    ```",
+          "description": "Get detailed information about a specific prompt by ID, including prompt content\n\n    \ud83d\udc49\n\n    Example Request:\n    ```bash\n    curl -X GET \"http://localhost:4000/prompts/my_prompt_id/info\" \\\n        -H \"Authorization: Bearer <your_api_key>\"\n    ```\n\n    Example Response:\n    ```json\n    {\n        \"prompt_id\": \"my_prompt_id\",\n        \"litellm_params\": {\n            \"prompt_id\": \"my_prompt_id\",\n            \"prompt_integration\": \"dotprompt\",\n            \"prompt_directory\": \"/path/to/prompts\"\n        },\n        \"prompt_info\": {\n            \"prompt_type\": \"config\"\n        },\n        \"created_at\": \"2023-11-09T12:34:56.789Z\",\n        \"updated_at\": \"2023-11-09T12:34:56.789Z\",\n        \"content\": \"System: You are a helpful assistant.\n\nUser: {{user_message}}\"\n    }\n    ```",
           "operationId": "get_prompt_info_prompts__prompt_id__info_get",
           "parameters": [
             {
@@ -31201,7 +31196,7 @@
       },
       "/prompts/{prompt_id}/versions": {
         "get": {
-          "description": "Get all versions of a specific prompt by base prompt ID\n\n\ud83d\udc49 [Prompt docs](https://docs.litellm.ai/docs/proxy/prompt_management)\n\nExample Request:\n```bash\ncurl -X GET \"http://localhost:4000/prompts/jack_success/versions\" \\\n    -H \"Authorization: Bearer <your_api_key>\"\n```\n\nExample Response:\n```json\n{\n    \"prompts\": [\n        {\n            \"prompt_id\": \"jack_success.v1\",\n            \"litellm_params\": {...},\n            \"prompt_info\": {\"prompt_type\": \"db\"},\n            \"created_at\": \"2023-11-09T12:34:56.789Z\",\n            \"updated_at\": \"2023-11-09T12:34:56.789Z\"\n        },\n        {\n            \"prompt_id\": \"jack_success.v2\",\n            \"litellm_params\": {...},\n            \"prompt_info\": {\"prompt_type\": \"db\"},\n            \"created_at\": \"2023-11-09T13:45:12.345Z\",\n            \"updated_at\": \"2023-11-09T13:45:12.345Z\"\n        }\n    ]\n}\n```",
+          "description": "Get all versions of a specific prompt by base prompt ID\n\n\ud83d\udc49\n\nExample Request:\n```bash\ncurl -X GET \"http://localhost:4000/prompts/jack_success/versions\" \\\n    -H \"Authorization: Bearer <your_api_key>\"\n```\n\nExample Response:\n```json\n{\n    \"prompts\": [\n        {\n            \"prompt_id\": \"jack_success.v1\",\n            \"litellm_params\": {...},\n            \"prompt_info\": {\"prompt_type\": \"db\"},\n            \"created_at\": \"2023-11-09T12:34:56.789Z\",\n            \"updated_at\": \"2023-11-09T12:34:56.789Z\"\n        },\n        {\n            \"prompt_id\": \"jack_success.v2\",\n            \"litellm_params\": {...},\n            \"prompt_info\": {\"prompt_type\": \"db\"},\n            \"created_at\": \"2023-11-09T13:45:12.345Z\",\n            \"updated_at\": \"2023-11-09T13:45:12.345Z\"\n        }\n    ]\n}\n```",
           "operationId": "get_prompt_versions_prompts__prompt_id__versions_get",
           "parameters": [
             {
@@ -33869,7 +33864,7 @@
           "type": "object"
         },
         "SearchTool": {
-          "description": "Search tool configuration.\n\nExample:\n    {\n        \"search_tool_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n        \"search_tool_name\": \"litellm-search\",\n        \"litellm_params\": {\n            \"search_provider\": \"perplexity\",\n            \"api_key\": \"sk-...\"\n        },\n        \"search_tool_info\": {\n            \"description\": \"Perplexity search tool\"\n        }\n    }",
+          "description": "Search tool configuration.\n\nExample:\n    {\n        \"search_tool_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n        \"search_tool_name\": \"Token IQ-search\",\n        \"litellm_params\": {\n            \"search_provider\": \"perplexity\",\n            \"api_key\": \"sk-...\"\n        },\n        \"search_tool_info\": {\n            \"description\": \"Perplexity search tool\"\n        }\n    }",
           "properties": {
             "created_at": {
               "anyOf": [
@@ -34004,7 +33999,7 @@
           "type": "object"
         },
         "SearchToolLiteLLMParams": {
-          "description": "LiteLLM params for search tools configuration.",
+          "description": "Token IQ params for search tools configuration.",
           "properties": {
             "api_base": {
               "anyOf": [
@@ -34132,7 +34127,7 @@
     "paths": {
       "/search_tools": {
         "post": {
-          "description": "Create a new search tool.\n\nExample Request:\n```bash\ncurl -X POST \"http://localhost:4000/search_tools\" \\\n    -H \"Authorization: Bearer <your_api_key>\" \\\n    -H \"Content-Type: application/json\" \\\n    -d '{\n        \"search_tool\": {\n            \"search_tool_name\": \"litellm-search\",\n            \"litellm_params\": {\n                \"search_provider\": \"perplexity\",\n                \"api_key\": \"sk-...\"\n            },\n            \"search_tool_info\": {\n                \"description\": \"Perplexity search tool\"\n            }\n        }\n    }'\n```\n\nExample Response:\n```json\n{\n    \"search_tool_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n    \"search_tool_name\": \"litellm-search\",\n    \"litellm_params\": {\n        \"search_provider\": \"perplexity\",\n        \"api_key\": \"sk-...\"\n    },\n    \"search_tool_info\": {\n        \"description\": \"Perplexity search tool\"\n    },\n    \"created_at\": \"2023-11-09T12:34:56.789Z\",\n    \"updated_at\": \"2023-11-09T12:34:56.789Z\"\n}\n```",
+          "description": "Create a new search tool.\n\nExample Request:\n```bash\ncurl -X POST \"http://localhost:4000/search_tools\" \\\n    -H \"Authorization: Bearer <your_api_key>\" \\\n    -H \"Content-Type: application/json\" \\\n    -d '{\n        \"search_tool\": {\n            \"search_tool_name\": \"Token IQ-search\",\n            \"litellm_params\": {\n                \"search_provider\": \"perplexity\",\n                \"api_key\": \"sk-...\"\n            },\n            \"search_tool_info\": {\n                \"description\": \"Perplexity search tool\"\n            }\n        }\n    }'\n```\n\nExample Response:\n```json\n{\n    \"search_tool_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n    \"search_tool_name\": \"Token IQ-search\",\n    \"litellm_params\": {\n        \"search_provider\": \"perplexity\",\n        \"api_key\": \"sk-...\"\n    },\n    \"search_tool_info\": {\n        \"description\": \"Perplexity search tool\"\n    },\n    \"created_at\": \"2023-11-09T12:34:56.789Z\",\n    \"updated_at\": \"2023-11-09T12:34:56.789Z\"\n}\n```",
           "operationId": "create_search_tool_search_tools_post",
           "requestBody": {
             "content": {
@@ -34177,7 +34172,7 @@
       },
       "/search_tools/list": {
         "get": {
-          "description": "List all search tools that are available in the database and config file.\n\nExample Request:\n```bash\ncurl -X GET \"http://localhost:4000/search_tools/list\" -H \"Authorization: Bearer <your_api_key>\"\n```\n\nExample Response:\n```json\n{\n    \"search_tools\": [\n        {\n            \"search_tool_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n            \"search_tool_name\": \"litellm-search\",\n            \"litellm_params\": {\n                \"search_provider\": \"perplexity\",\n                \"api_key\": \"sk-***\",\n                \"api_base\": \"https://api.perplexity.ai\"\n            },\n            \"search_tool_info\": {\n                \"description\": \"Perplexity search tool\"\n            },\n            \"created_at\": \"2023-11-09T12:34:56.789Z\",\n            \"updated_at\": \"2023-11-09T12:34:56.789Z\",\n            \"is_from_config\": false\n        },\n        {\n            \"search_tool_name\": \"config-search-tool\",\n            \"litellm_params\": {\n                \"search_provider\": \"tavily\",\n                \"api_key\": \"tvly-***\"\n            },\n            \"is_from_config\": true\n        }\n    ]\n}\n```",
+          "description": "List all search tools that are available in the database and config file.\n\nExample Request:\n```bash\ncurl -X GET \"http://localhost:4000/search_tools/list\" -H \"Authorization: Bearer <your_api_key>\"\n```\n\nExample Response:\n```json\n{\n    \"search_tools\": [\n        {\n            \"search_tool_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n            \"search_tool_name\": \"Token IQ-search\",\n            \"litellm_params\": {\n                \"search_provider\": \"perplexity\",\n                \"api_key\": \"sk-***\",\n                \"api_base\": \"https://api.perplexity.ai\"\n            },\n            \"search_tool_info\": {\n                \"description\": \"Perplexity search tool\"\n            },\n            \"created_at\": \"2023-11-09T12:34:56.789Z\",\n            \"updated_at\": \"2023-11-09T12:34:56.789Z\",\n            \"is_from_config\": false\n        },\n        {\n            \"search_tool_name\": \"config-search-tool\",\n            \"litellm_params\": {\n                \"search_provider\": \"tavily\",\n                \"api_key\": \"tvly-***\"\n            },\n            \"is_from_config\": true\n        }\n    ]\n}\n```",
           "operationId": "list_search_tools_search_tools_list_get",
           "responses": {
             "200": {
@@ -34274,7 +34269,7 @@
       },
       "/search_tools/{search_tool_id}": {
         "delete": {
-          "description": "Delete a search tool.\n\nExample Request:\n```bash\ncurl -X DELETE \"http://localhost:4000/search_tools/123e4567-e89b-12d3-a456-426614174000\" \\\n    -H \"Authorization: Bearer <your_api_key>\"\n```\n\nExample Response:\n```json\n{\n    \"message\": \"Search tool 123e4567-e89b-12d3-a456-426614174000 deleted successfully\",\n    \"search_tool_name\": \"litellm-search\"\n}\n```",
+          "description": "Delete a search tool.\n\nExample Request:\n```bash\ncurl -X DELETE \"http://localhost:4000/search_tools/123e4567-e89b-12d3-a456-426614174000\" \\\n    -H \"Authorization: Bearer <your_api_key>\"\n```\n\nExample Response:\n```json\n{\n    \"message\": \"Search tool 123e4567-e89b-12d3-a456-426614174000 deleted successfully\",\n    \"search_tool_name\": \"Token IQ-search\"\n}\n```",
           "operationId": "delete_search_tool_search_tools__search_tool_id__delete",
           "parameters": [
             {
@@ -34318,7 +34313,7 @@
           ]
         },
         "get": {
-          "description": "Get detailed information about a specific search tool by ID.\n\nExample Request:\n```bash\ncurl -X GET \"http://localhost:4000/search_tools/123e4567-e89b-12d3-a456-426614174000\" \\\n    -H \"Authorization: Bearer <your_api_key>\"\n```\n\nExample Response:\n```json\n{\n    \"search_tool_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n    \"search_tool_name\": \"litellm-search\",\n    \"litellm_params\": {\n        \"search_provider\": \"perplexity\",\n        \"api_key\": \"sk-***\"\n    },\n    \"search_tool_info\": {\n        \"description\": \"Perplexity search tool\"\n    },\n    \"created_at\": \"2023-11-09T12:34:56.789Z\",\n    \"updated_at\": \"2023-11-09T12:34:56.789Z\"\n}\n```",
+          "description": "Get detailed information about a specific search tool by ID.\n\nExample Request:\n```bash\ncurl -X GET \"http://localhost:4000/search_tools/123e4567-e89b-12d3-a456-426614174000\" \\\n    -H \"Authorization: Bearer <your_api_key>\"\n```\n\nExample Response:\n```json\n{\n    \"search_tool_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n    \"search_tool_name\": \"Token IQ-search\",\n    \"litellm_params\": {\n        \"search_provider\": \"perplexity\",\n        \"api_key\": \"sk-***\"\n    },\n    \"search_tool_info\": {\n        \"description\": \"Perplexity search tool\"\n    },\n    \"created_at\": \"2023-11-09T12:34:56.789Z\",\n    \"updated_at\": \"2023-11-09T12:34:56.789Z\"\n}\n```",
           "operationId": "get_search_tool_info_search_tools__search_tool_id__get",
           "parameters": [
             {
@@ -34601,6 +34596,133 @@
           "title": "LiteLLM_ToolTableRow",
           "type": "object"
         },
+        "ToolConnection": {
+          "properties": {
+            "accounts": {
+              "items": {
+                "$ref": "#/components/schemas/ToolConnectionAccount"
+              },
+              "title": "Accounts",
+              "type": "array"
+            },
+            "display_name": {
+              "title": "Display Name",
+              "type": "string"
+            },
+            "fetches": {
+              "$ref": "#/components/schemas/ToolFetchDetail"
+            },
+            "state": {
+              "enum": [
+                "not_connected",
+                "waiting_for_first_data",
+                "healthy",
+                "needs_attention"
+              ],
+              "title": "State",
+              "type": "string"
+            },
+            "tool": {
+              "title": "Tool",
+              "type": "string"
+            },
+            "verified_against_real_account": {
+              "title": "Verified Against Real Account",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "tool",
+            "display_name",
+            "state",
+            "accounts",
+            "fetches",
+            "verified_against_real_account"
+          ],
+          "title": "ToolConnection",
+          "type": "object"
+        },
+        "ToolConnectionAccount": {
+          "properties": {
+            "credential_name": {
+              "title": "Credential Name",
+              "type": "string"
+            },
+            "detail": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Detail"
+            },
+            "last_outcome": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Last Outcome"
+            },
+            "last_sync_at": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Last Sync At"
+            },
+            "rows_stored": {
+              "title": "Rows Stored",
+              "type": "integer"
+            },
+            "state": {
+              "enum": [
+                "not_connected",
+                "waiting_for_first_data",
+                "healthy",
+                "needs_attention"
+              ],
+              "title": "State",
+              "type": "string"
+            }
+          },
+          "required": [
+            "credential_name",
+            "state",
+            "detail",
+            "last_sync_at",
+            "last_outcome",
+            "rows_stored"
+          ],
+          "title": "ToolConnectionAccount",
+          "type": "object"
+        },
+        "ToolConnectionsResponse": {
+          "properties": {
+            "tools": {
+              "items": {
+                "$ref": "#/components/schemas/ToolConnection"
+              },
+              "title": "Tools",
+              "type": "array"
+            }
+          },
+          "required": [
+            "tools"
+          ],
+          "title": "ToolConnectionsResponse",
+          "type": "object"
+        },
         "ToolDetailResponse": {
           "properties": {
             "overrides": {
@@ -34618,6 +34740,44 @@
             "tool"
           ],
           "title": "ToolDetailResponse",
+          "type": "object"
+        },
+        "ToolFetchDetail": {
+          "properties": {
+            "backfill_note": {
+              "title": "Backfill Note",
+              "type": "string"
+            },
+            "endpoint": {
+              "title": "Endpoint",
+              "type": "string"
+            },
+            "endpoint_url": {
+              "title": "Endpoint Url",
+              "type": "string"
+            },
+            "verification_note": {
+              "title": "Verification Note",
+              "type": "string"
+            },
+            "what_it_cannot_give": {
+              "title": "What It Cannot Give",
+              "type": "string"
+            },
+            "what_it_gives": {
+              "title": "What It Gives",
+              "type": "string"
+            }
+          },
+          "required": [
+            "endpoint",
+            "endpoint_url",
+            "what_it_gives",
+            "what_it_cannot_give",
+            "backfill_note",
+            "verification_note"
+          ],
+          "title": "ToolFetchDetail",
           "type": "object"
         },
         "ToolListResponse": {
@@ -35159,6 +35319,33 @@
       }
     },
     "paths": {
+      "/tool/connections": {
+        "get": {
+          "description": "One row per user tool, with one row per stored account inside it.",
+          "operationId": "tool_connections_tool_connections_get",
+          "responses": {
+            "200": {
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ToolConnectionsResponse"
+                  }
+                }
+              },
+              "description": "Successful Response"
+            }
+          },
+          "security": [
+            {
+              "APIKeyHeader": []
+            }
+          ],
+          "summary": "Tool Connections",
+          "tags": [
+            "tools"
+          ]
+        }
+      },
       "/toolset/{toolset_name}/mcp": {
         "delete": {
           "description": "Namespace a toolset as its own MCP endpoint.\n\nConnecting to /toolset/<name>/mcp exposes exactly the tools defined in\nthe toolset. Access is enforced: non-admin API keys must have the toolset\nlisted in their object_permission.mcp_toolsets grant list, or the request\nwill be rejected with a 403.",
@@ -37932,7 +38119,7 @@
           "type": "object"
         },
         "LiteLLM_ManagedVectorStore": {
-          "description": "LiteLLM managed vector store object - this is is the object stored in the database",
+          "description": "Token IQ managed vector store object - this is is the object stored in the database",
           "properties": {
             "created_at": {
               "anyOf": [
@@ -38313,6 +38500,17 @@
               ],
               "title": "Custom Llm Provider"
             },
+            "litellm_credential_name": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Litellm Credential Name"
+            },
             "vector_store_description": {
               "anyOf": [
                 {
@@ -38573,7 +38771,7 @@
       },
       "/vector_store/new": {
         "post": {
-          "description": "Create a new vector store.\n\nParameters:\n- vector_store_id: str - Unique identifier for the vector store\n- custom_llm_provider: str - Provider of the vector store\n- vector_store_name: Optional[str] - Name of the vector store\n- vector_store_description: Optional[str] - Description of the vector store\n- vector_store_metadata: Optional[Dict] - Additional metadata for the vector store",
+          "description": "Create a new vector store.\n\nParameters:\n- vector_store_id: str - Unique identifier for the vector store\n- custom_llm_provider: str - Provider of the vector store\n- vector_store_name: Optional[str] - Name of the vector store\n- vector_store_description: Optional[str] - Description of the vector store\n- vector_store_metadata: Optional[Dict] - Additional metadata for the vector store\n- litellm_credential_name: Optional[str] - Saved credential to register the store with\n  (proxy admins only)",
           "operationId": "new_vector_store_vector_store_new_post",
           "requestBody": {
             "content": {
@@ -38618,7 +38816,7 @@
       },
       "/vector_store/update": {
         "post": {
-          "description": "Update vector store details in both database and in-memory registry.\nThe updated data is immediately synchronized to the in-memory registry.",
+          "description": "Update vector store details in both database and in-memory registry.\nThe updated data is immediately synchronized to the in-memory registry.\n\n``litellm_credential_name`` may only be set or cleared by a proxy admin.",
           "operationId": "update_vector_store_vector_store_update_post",
           "requestBody": {
             "content": {
@@ -38749,7 +38947,7 @@
           "type": "object"
         },
         "LiteLLM_ManagedVectorStoreIndex": {
-          "description": "LiteLLM managed vector store index object - this is is the object stored in the database",
+          "description": "Token IQ managed vector store index object - this is is the object stored in the database",
           "properties": {
             "created_at": {
               "anyOf": [

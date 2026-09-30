@@ -566,8 +566,8 @@ async def get_agent_card(
     - /.well-known/agent-card.json
     - /.well-known/agent.json
 
-    The URL in the agent card is rewritten to point to the LiteLLM proxy,
-    so all subsequent A2A calls go through LiteLLM for logging and cost tracking.
+    The URL in the agent card is rewritten to point to the Token IQ,
+    so all subsequent A2A calls go through Token IQ for logging and cost tracking.
     """
     from litellm.proxy.agent_endpoints.auth.agent_permission_handler import (
         AgentRequestHandler,

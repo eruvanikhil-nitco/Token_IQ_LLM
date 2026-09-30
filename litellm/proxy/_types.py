@@ -1005,7 +1005,7 @@ class LiteLLMPromptInjectionParams(LiteLLMPydanticObjectBase):
 class ProxyChatCompletionRequest(LiteLLMPydanticObjectBase):
     """
     Pydantic model for chat completion requests that includes both OpenAI standard fields
-    and LiteLLM-specific parameters. This replaces the previous TypedDict version.
+    and Token IQ-specific parameters. This replaces the previous TypedDict version.
     """
 
     # Required fields (from ChatCompletionRequest)
@@ -2221,7 +2221,7 @@ class PassThroughGenericEndpoint(LiteLLMPydanticObjectBase):
         default=None,
         description="Optional unique identifier for the pass-through endpoint. If not provided, endpoints will be identified by path for backwards compatibility.",
     )
-    path: str = Field(description="The route to be added to the LiteLLM Proxy Server.")
+    path: str = Field(description="The route to be added to the the Token IQ gateway.")
     target: str = Field(description="The URL to which requests for this path should be forwarded.")
     headers: dict = Field(
         default={},
@@ -2245,7 +2245,7 @@ class PassThroughGenericEndpoint(LiteLLMPydanticObjectBase):
     )
     auth: bool = Field(
         default=True,
-        description="Whether authentication is required for the pass-through endpoint. Defaults to True so a pass-through silently created without an explicit value still requires a valid LiteLLM API key — set to False only if the endpoint is meant to be a public forwarder (e.g. an unauthenticated webhook target).",
+        description="Whether authentication is required for the pass-through endpoint. Defaults to True so a pass-through silently created without an explicit value still requires a valid Token IQ API key — set to False only if the endpoint is meant to be a public forwarder (e.g. an unauthenticated webhook target).",
     )
     guardrails: PassThroughGuardrailsConfig | None = Field(
         default=None,

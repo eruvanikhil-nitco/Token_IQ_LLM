@@ -243,7 +243,7 @@ async def retrieve_fine_tuning_job(
     This is the equivalent of GET https://api.openai.com/v1/fine_tuning/jobs/{fine_tuning_job_id}
 
     Supported Query Params:
-    - `custom_llm_provider`: Name of the LiteLLM provider
+    - `custom_llm_provider`: Name of the Token IQ provider
     - `fine_tuning_job_id`: The ID of the fine-tuning job to retrieve.
     """
     from litellm.proxy.proxy_server import (
@@ -394,7 +394,7 @@ async def list_fine_tuning_jobs(
     This is the equivalent of GET https://api.openai.com/v1/fine_tuning/jobs
 
     Supported Query Params:
-    - `custom_llm_provider`: Name of the LiteLLM provider
+    - `custom_llm_provider`: Name of the Token IQ provider
     - `after`: Identifier for the last job from the previous pagination request.
     - `limit`: Number of fine-tuning jobs to retrieve (default is 20).
     """
@@ -516,7 +516,7 @@ async def cancel_fine_tuning_job(
     This is the equivalent of POST https://api.openai.com/v1/fine_tuning/jobs/{fine_tuning_job_id}/cancel
 
     Supported Query Params:
-    - `custom_llm_provider`: Name of the LiteLLM provider
+    - `custom_llm_provider`: Name of the Token IQ provider
     - `fine_tuning_job_id`: The ID of the fine-tuning job to cancel.
     """
     from litellm.proxy.proxy_server import (

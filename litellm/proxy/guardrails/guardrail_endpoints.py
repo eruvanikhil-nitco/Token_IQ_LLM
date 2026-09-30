@@ -133,7 +133,7 @@ async def list_guardrails():
     """
     List the guardrails that are available on the proxy server
 
-    👉 [Guardrail docs](https://docs.litellm.ai/docs/proxy/guardrails/quick_start)
+    👉
 
     Example Request:
     ```bash
@@ -187,7 +187,7 @@ async def list_guardrails_v2(
     """
     List the guardrails that are available in the database using GuardrailRegistry
 
-    👉 [Guardrail docs](https://docs.litellm.ai/docs/proxy/guardrails/quick_start)
+    👉
 
     Example Request:
     ```bash
@@ -333,7 +333,7 @@ async def create_guardrail(
     """
     Create a new guardrail
 
-    👉 [Guardrail docs](https://docs.litellm.ai/docs/proxy/guardrails/quick_start)
+    👉
 
     Example Request:
     ```bash
@@ -441,7 +441,7 @@ async def update_guardrail(
     """
     Update an existing guardrail
 
-    👉 [Guardrail docs](https://docs.litellm.ai/docs/proxy/guardrails/quick_start)
+    👉
 
     Example Request:
     ```bash
@@ -563,7 +563,7 @@ async def delete_guardrail(
     """
     Delete a guardrail
 
-    👉 [Guardrail docs](https://docs.litellm.ai/docs/proxy/guardrails/quick_start)
+    👉
 
     Example Request:
     ```bash
@@ -691,11 +691,11 @@ async def register_guardrail(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ):
     """
-    Register a guardrail for onboarding (team submission).
+        Register a guardrail for onboarding (team submission).
 
-    Accepts a guardrail config in the
-    [Generic Guardrail API](https://docs.litellm.ai/docs/adding_provider/generic_guardrail_api) format.
-    The submission is stored with status `pending_review` until an admin approves it.
+        Accepts a guardrail config in the
+    format.
+        The submission is stored with status `pending_review` until an admin approves it.
     """
     from litellm.proxy.proxy_server import prisma_client
 
@@ -1126,7 +1126,7 @@ async def patch_guardrail(
     """
     Partially update an existing guardrail
 
-    👉 [Guardrail docs](https://docs.litellm.ai/docs/proxy/guardrails/quick_start)
+    👉
 
     This endpoint allows updating specific fields of a guardrail without sending the entire object.
     Only the following fields can be updated:
@@ -1289,7 +1289,7 @@ async def get_guardrail_info(guardrail_id: str):
     """
     Get detailed information about a specific guardrail by ID
 
-    👉 [Guardrail docs](https://docs.litellm.ai/docs/proxy/guardrails/quick_start)
+    👉
 
     Example Request:
     ```bash
@@ -2038,7 +2038,7 @@ async def test_custom_code_guardrail(
     2. Executing the apply_guardrail function with test input
     3. Returning the result (allow/block/modify)
 
-    👉 [Custom Code Guardrail docs](https://docs.litellm.ai/docs/proxy/guardrails/custom_code_guardrail)
+    👉
 
     Example Request:
     ```bash
@@ -2046,7 +2046,7 @@ async def test_custom_code_guardrail(
         -H "Authorization: Bearer <your_api_key>" \\
         -H "Content-Type: application/json" \\
         -d '{
-            "custom_code": "def apply_guardrail(inputs, request_data, input_type):\\n    for text in inputs[\\"texts\\"]:\\n        if regex_match(text, r\\"\\\\d{3}-\\\\d{2}-\\\\d{4}\\"):\\n            return block(\\"SSN detected\\")\\n    return allow()",
+            "custom_code": "def apply_guardrail(inputs, request_data, input_type):\\n    for text in inputs[\\"texts\\"]:\\n        if regex_match(text, r\\"\\\\d{3}-\\\\d{2}-\\\\d{4}\\"):\\n            return block(\\"SSN detected\\")\\n    return allow",
             "test_input": {
                 "texts": ["My SSN is 123-45-6789"]
             },

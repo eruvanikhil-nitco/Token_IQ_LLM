@@ -641,7 +641,7 @@ async def rag_query(
         -H "Content-Type: application/json" \\
         -d '{
             "model": "gpt-4o-mini",
-            "messages": [{"role": "user", "content": "What is LiteLLM?"}],
+            "messages": [{"role": "user", "content": "What is Token IQ?"}],
             "retrieval_config": {
                 "vector_store_id": "vs_abc123",
                 "custom_llm_provider": "openai",
@@ -657,7 +657,7 @@ async def rag_query(
         -H "Content-Type: application/json" \\
         -d '{
             "model": "gpt-4o-mini",
-            "messages": [{"role": "user", "content": "What is LiteLLM?"}],
+            "messages": [{"role": "user", "content": "What is Token IQ?"}],
             "retrieval_config": {
                 "vector_store_id": "vs_abc123",
                 "custom_llm_provider": "openai",

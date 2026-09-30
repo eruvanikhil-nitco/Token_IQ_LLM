@@ -157,9 +157,8 @@ async def langfuse_proxy_route(
     fastapi_response: Response,
 ):
     """
-    Call Langfuse via LiteLLM proxy. Works with Langfuse SDK.
+    Call Langfuse via Token IQ. Works with Langfuse SDK.
 
-    [Docs](https://docs.litellm.ai/docs/pass_through/langfuse)
     """
     from litellm.proxy.proxy_server import proxy_config
 

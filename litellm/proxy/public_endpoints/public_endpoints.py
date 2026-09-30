@@ -373,7 +373,7 @@ async def public_model_hub_info():
 )
 async def get_supported_providers() -> list[str]:
     """
-    Return a sorted list of all providers supported by LiteLLM.
+    Return a sorted list of all providers supported by Token IQ.
     """
 
     return sorted(provider.value for provider in LlmProviders)
@@ -427,10 +427,11 @@ async def get_complexity_scorer_defaults() -> ComplexityScorerDefaults:
 @router.get(
     "/public/litellm_model_cost_map",
     tags=["public", "model management"],
+    summary="Get the public model cost map",
 )
 async def get_litellm_model_cost_map():
     """
-    Public endpoint to get the LiteLLM model cost map.
+    Public endpoint to get the Token IQ model cost map.
     Returns pricing information for all supported models.
     """
     import litellm
@@ -448,11 +449,12 @@ async def get_litellm_model_cost_map():
 @router.get(
     "/public/litellm_blog_posts",
     tags=["public"],
+    summary="Get the latest blog posts",
     response_model=BlogPostsResponse,
 )
 async def get_litellm_blog_posts():
     """
-    Public endpoint to get the latest LiteLLM blog posts.
+    Public endpoint to get the latest Token IQ blog posts.
 
     Fetches from GitHub with a 1-hour in-process cache.
     Falls back to the bundled local backup on any failure.
@@ -539,7 +541,7 @@ async def get_public_autorouter_presets() -> Mapping[str, AutoRouterPresetRecord
     """
     Return the auto-router preset catalog the dashboard's template picker renders.
 
-    Resolved once per process, like the model cost map: fetched from ``litellm.autorouter_presets_url``
+    Resolved once per process, like the model cost map: fetched from ``Token IQ.autorouter_presets_url``
     (override with ``LITELLM_AUTOROUTER_PRESETS_URL``) on the first request, falling back to the
     catalog bundled with the package on any failure. Set ``LITELLM_LOCAL_AUTOROUTER_PRESETS=True``
     to serve the bundled catalog only. A restart picks up a newly published catalog.
@@ -554,7 +556,7 @@ async def get_public_autorouter_presets() -> Mapping[str, AutoRouterPresetRecord
 )
 async def get_supported_endpoints() -> SupportedEndpointsResponse:
     """
-    Return the list of LiteLLM proxy endpoints and which providers support each one.
+    Return the list of Token IQ endpoints and which providers support each one.
 
     Reads from the bundled local backup file. Result is cached in-process for
     the lifetime of the server process.

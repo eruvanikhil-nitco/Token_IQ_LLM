@@ -46,17 +46,17 @@ async def search(
 ):
     """
     Search endpoint for performing web searches.
-    
+
     Follows the Perplexity Search API spec:
     https://docs.perplexity.ai/api-reference/search-post
-    
+
     The search_tool_name can be passed either:
     1. In the URL path: /v1/search/{search_tool_name}
     2. In the request body: {"search_tool_name": "..."}
-    
+
     Example with search_tool_name in URL (recommended - keeps body Perplexity-compatible):
     ```bash
-    curl -X POST "http://localhost:4000/v1/search/litellm-search" \
+    curl -X POST "http://localhost:4000/v1/search/Token IQ-search" \
         -H "Authorization: Bearer sk-1234" \
         -H "Content-Type: application/json" \
         -d '{
@@ -66,21 +66,21 @@ async def search(
             "country": "US"
         }'
     ```
-    
+
     Example with search_tool_name in body:
     ```bash
     curl -X POST "http://localhost:4000/v1/search" \
         -H "Authorization: Bearer sk-1234" \
         -H "Content-Type: application/json" \
         -d '{
-            "search_tool_name": "litellm-search",
+            "search_tool_name": "Token IQ-search",
             "query": "latest AI developments 2024",
             "max_results": 5,
             "search_domain_filter": ["arxiv.org", "nature.com"],
             "country": "US"
         }'
     ```
-    
+
     Request Body Parameters (when search_tool_name not in URL):
     - search_tool_name (str, required if not in URL): Name of the search tool configured in router
     - query (str or list[str], required): Search query
@@ -88,14 +88,14 @@ async def search(
     - search_domain_filter (list[str], optional): List of domains to filter (max 20)
     - max_tokens_per_page (int, optional): Max tokens per page, default 1024
     - country (str, optional): Country code filter (e.g., 'US', 'GB', 'DE')
-    
+
     When using URL path parameter, only Perplexity-compatible parameters are needed in body:
     - query (str or list[str], required): Search query
     - max_results (int, optional): Maximum number of results (1-20), default 10
     - search_domain_filter (list[str], optional): List of domains to filter (max 20)
     - max_tokens_per_page (int, optional): Max tokens per page, default 1024
     - country (str, optional): Country code filter (e.g., 'US', 'GB', 'DE')
-    
+
     Response follows Perplexity Search API format:
     ```json
     {
@@ -257,23 +257,23 @@ async def list_search_tools(
 ):
     """
     List all available search tools configured in the router.
-    
+
     This endpoint returns the search tools that are currently loaded and available
     for use with the /v1/search endpoint.
-    
+
     Example:
     ```bash
     curl -X GET "http://localhost:4000/v1/search/tools" \
         -H "Authorization: Bearer sk-1234"
     ```
-    
+
     Response:
     ```json
     {
         "object": "list",
         "data": [
             {
-                "search_tool_name": "litellm-search",
+                "search_tool_name": "Token IQ-search",
                 "search_provider": "perplexity",
                 "description": "Perplexity search tool"
             }

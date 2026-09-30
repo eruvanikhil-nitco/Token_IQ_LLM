@@ -439,7 +439,7 @@ async def new_user(
 ):
     """
     Use this to create a new INTERNAL user with a budget.
-    Internal Users can access LiteLLM Admin UI to make keys, request access to models.
+    Internal Users can access Token IQ Admin UI to make keys, request access to models.
     This creates a new user and generates a new api key for the new user. The new api key is returned.
 
     Returns user id, budget + new key.
@@ -450,29 +450,29 @@ async def new_user(
     - teams: Optional[list] - specify a list of team id's a user belongs to.
     - user_email: Optional[str] - Specify a user email.
     - send_invite_email: Optional[bool] - Specify if an invite email should be sent.
-    - user_role: Optional[str] - Specify a user role - "proxy_admin", "proxy_admin_viewer", "internal_user", "internal_user_viewer", "team", "customer". Info about each role here: `https://github.com/BerriAI/litellm/litellm/proxy/_types.py#L20`
+    - user_role: Optional[str] - Specify a user role - "proxy_admin", "proxy_admin_viewer", "internal_user", "internal_user_viewer", "team", "customer". Info about each role here: `https://github.com/BerriAI/Token IQ/Token IQ/proxy/_types.py#L20`
     - max_budget: Optional[float] - Specify max budget for a given user.
     - budget_duration: Optional[str] - Budget is reset at the end of specified duration. If not set, budget is never reset. You can set duration as seconds ("30s"), minutes ("30m"), hours ("30h"), days ("30d"), months ("1mo").
     - models: Optional[list] - Model_name's a user is allowed to call. (if empty, key is allowed to call all models). Set to ['no-default-models'] to block all model access. Restricting user to only team-based model access.
     - tpm_limit: Optional[int] - Specify tpm limit for a given user (Tokens per minute)
     - rpm_limit: Optional[int] - Specify rpm limit for a given user (Requests per minute)
     - auto_create_key: bool - Default=True. Flag used for returning a key as part of the /user/new response
-    - aliases: Optional[dict] - Model aliases for the user - [Docs](https://litellm.vercel.app/docs/proxy/virtual_keys#model-aliases)
+    - aliases: Optional[dict] - Model aliases for the user - [Docs](https://Token IQ.vercel.app/docs/proxy/virtual_keys#model-aliases)
     - config: Optional[dict] - [DEPRECATED PARAM] User-specific config.
-    - allowed_cache_controls: Optional[list] - List of allowed cache control values. Example - ["no-cache", "no-store"]. See all values - https://docs.litellm.ai/docs/proxy/caching#turn-on--off-caching-per-request-
+    - allowed_cache_controls: Optional[list] - List of allowed cache control values. Example - ["no-cache", "no-store"]. See all values
     - blocked: Optional[bool] - [Not Implemented Yet] Whether the user is blocked.
     - guardrails: Optional[List[str]] - [Not Implemented Yet] List of active guardrails for the user
     - policies: Optional[List[str]] - List of policy names to apply to the user. Policies define guardrails, conditions, and inheritance rules.
     - permissions: Optional[dict] - [Not Implemented Yet] User-specific permissions, eg. turning off pii masking.
-    - metadata: Optional[dict] - Metadata for user, store information for user. Example metadata = {"team": "core-infra", "app": "app2", "email": "ishaan@berri.ai" }
+    - metadata: Optional[dict] - Metadata for user, store information for user. Example metadata = {"team": "core-infra", "app": "app2", "email": "user@example.com" }
     - max_parallel_requests: Optional[int] - Rate limit a user based on the number of parallel requests. Raises 429 error, if user's parallel requests > x.
     - soft_budget: Optional[float] - Get alerts when user crosses given budget, doesn't block requests.
-    - model_max_budget: Optional[dict] - Model-specific max budget for user. [Docs](https://docs.litellm.ai/docs/proxy/users#add-model-specific-budgets-to-keys)
+    - model_max_budget: Optional[dict] - Model-specific max budget for user.
     - budget_fallbacks: Optional[Dict[str, List[str]]] - Per-model fallback chain tried in order when that model's own `model_max_budget` is exceeded, e.g. {"gpt-4o": ["gpt-4o-mini"]}.
-    - model_rpm_limit: Optional[float] - Model-specific rpm limit for user. [Docs](https://docs.litellm.ai/docs/proxy/users#add-model-specific-limits-to-keys)
+    - model_rpm_limit: Optional[float] - Model-specific rpm limit for user.
     - mcp_rpm_limit: Optional[dict] - Per-MCP-server rpm limit, keyed by MCP server name {"github": 100, "slack": 200}. Enforced for keys and teams only; values set on a user are stored but not enforced per user.
     - tag_rpm_limit: Optional[dict] - Per-request-tag rpm limit, keyed by request tag {"cell-1": 1000, "cell-2": 500}. Enforced for keys only; values set on a user are stored but not enforced per user.
-    - model_tpm_limit: Optional[float] - Model-specific tpm limit for user. [Docs](https://docs.litellm.ai/docs/proxy/users#add-model-specific-limits-to-keys)
+    - model_tpm_limit: Optional[float] - Model-specific tpm limit for user.
     - spend: Optional[float] - Amount spent by user. Default is 0. Will be updated by proxy whenever user is used. You can set duration as seconds ("30s"), minutes ("30m"), hours ("30h"), days ("30d"), months ("1mo").
     - agent_id: Optional[str] - The agent id associated with the user.
     - team_id: Optional[str] - [DEPRECATED PARAM] The team id of the user. Default is None.
@@ -489,7 +489,7 @@ async def new_user(
     - user_id: (str) Unique user id - used for tracking spend across multiple keys for same user id.
     - max_budget: (float|None) Max budget for given user.
 
-    Usage Example 
+    Usage Example
 
     ```shell
      curl -X POST "http://localhost:4000/user/new" \
@@ -890,12 +890,11 @@ async def user_info(
     [10/07/2024]
     Note: To get all users (+pagination), use `/user/list` endpoint.
 
-
     Use this to get user information. (user row + all user key info)
 
     Example request
     ```
-    curl -X GET 'http://localhost:4000/user/info?user_id=krrish7%40berri.ai' \
+    curl -X GET 'http://localhost:4000/user/info?user_id=someone%40example.com' \
     --header 'Authorization: Bearer sk-1234'
     ```
     """
@@ -1585,18 +1584,18 @@ async def user_update(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ):
     """
-    Example curl 
+    Example curl
 
     ```
     curl --location 'http://0.0.0.0:4000/user/update' \
     --header 'Authorization: Bearer sk-1234' \
     --header 'Content-Type: application/json' \
     --data '{
-        "user_id": "test-litellm-user-4",
+        "user_id": "test-Token IQ-user-4",
         "user_role": "proxy_admin_viewer"
     }'
     ```
-    
+
     Parameters:
         - user_id: Optional[str] - Specify a user id. If not set, a unique id will be generated.
         - user_email: Optional[str] - Specify a user email.
@@ -1604,29 +1603,29 @@ async def user_update(
         - user_alias: Optional[str] - A descriptive name for you to know who this user id refers to.
         - teams: Optional[list] - specify a list of team id's a user belongs to.
         - send_invite_email: Optional[bool] - Specify if an invite email should be sent.
-        - user_role: Optional[str] - Specify a user role - "proxy_admin", "proxy_admin_viewer", "internal_user", "internal_user_viewer", "team", "customer". Info about each role here: `https://github.com/BerriAI/litellm/litellm/proxy/_types.py#L20`
+        - user_role: Optional[str] - Specify a user role - "proxy_admin", "proxy_admin_viewer", "internal_user", "internal_user_viewer", "team", "customer". Info about each role here: `https://github.com/BerriAI/Token IQ/Token IQ/proxy/_types.py#L20`
         - max_budget: Optional[float] - Specify max budget for a given user.
         - budget_duration: Optional[str] - Budget is reset at the end of specified duration. If not set, budget is never reset. You can set duration as seconds ("30s"), minutes ("30m"), hours ("30h"), days ("30d"), months ("1mo").
         - models: Optional[list] - Model_name's a user is allowed to call. (if empty, key is allowed to call all models)
         - tpm_limit: Optional[int] - Specify tpm limit for a given user (Tokens per minute)
         - rpm_limit: Optional[int] - Specify rpm limit for a given user (Requests per minute)
         - auto_create_key: bool - Default=True. Flag used for returning a key as part of the /user/new response
-        - aliases: Optional[dict] - Model aliases for the user - [Docs](https://litellm.vercel.app/docs/proxy/virtual_keys#model-aliases)
+        - aliases: Optional[dict] - Model aliases for the user - [Docs](https://Token IQ.vercel.app/docs/proxy/virtual_keys#model-aliases)
         - config: Optional[dict] - [DEPRECATED PARAM] User-specific config.
-        - allowed_cache_controls: Optional[list] - List of allowed cache control values. Example - ["no-cache", "no-store"]. See all values - https://docs.litellm.ai/docs/proxy/caching#turn-on--off-caching-per-request-
+        - allowed_cache_controls: Optional[list] - List of allowed cache control values. Example - ["no-cache", "no-store"]. See all values
         - blocked: Optional[bool] - [Not Implemented Yet] Whether the user is blocked.
         - guardrails: Optional[List[str]] - [Not Implemented Yet] List of active guardrails for the user
         - policies: Optional[List[str]] - List of policy names to apply to the user. Policies define guardrails, conditions, and inheritance rules.
         - permissions: Optional[dict] - [Not Implemented Yet] User-specific permissions, eg. turning off pii masking.
-        - metadata: Optional[dict] - Metadata for user, store information for user. Example metadata = {"team": "core-infra", "app": "app2", "email": "ishaan@berri.ai" }
+        - metadata: Optional[dict] - Metadata for user, store information for user. Example metadata = {"team": "core-infra", "app": "app2", "email": "user@example.com" }
         - max_parallel_requests: Optional[int] - Rate limit a user based on the number of parallel requests. Raises 429 error, if user's parallel requests > x.
         - soft_budget: Optional[float] - Get alerts when user crosses given budget, doesn't block requests.
-        - model_max_budget: Optional[dict] - Model-specific max budget for user. [Docs](https://docs.litellm.ai/docs/proxy/users#add-model-specific-budgets-to-keys)
+        - model_max_budget: Optional[dict] - Model-specific max budget for user.
         - budget_fallbacks: Optional[Dict[str, List[str]]] - Per-model fallback chain tried in order when that model's own `model_max_budget` is exceeded, e.g. {"gpt-4o": ["gpt-4o-mini"]}.
-        - model_rpm_limit: Optional[float] - Model-specific rpm limit for user. [Docs](https://docs.litellm.ai/docs/proxy/users#add-model-specific-limits-to-keys)
+        - model_rpm_limit: Optional[float] - Model-specific rpm limit for user.
         - mcp_rpm_limit: Optional[dict] - Per-MCP-server rpm limit, keyed by MCP server name {"github": 100, "slack": 200}. Enforced for keys and teams only; values set on a user are stored but not enforced per user.
         - tag_rpm_limit: Optional[dict] - Per-request-tag rpm limit, keyed by request tag {"cell-1": 1000, "cell-2": 500}. Enforced for keys only; values set on a user are stored but not enforced per user.
-        - model_tpm_limit: Optional[float] - Model-specific tpm limit for user. [Docs](https://docs.litellm.ai/docs/proxy/users#add-model-specific-limits-to-keys)
+        - model_tpm_limit: Optional[float] - Model-specific tpm limit for user.
         - spend: Optional[float] - Amount spent by user. Default is 0. Will be updated by proxy whenever user is used. You can set duration as seconds ("30s"), minutes ("30m"), hours ("30h"), days ("30d"), months ("1mo").
         - agent_id: Optional[str] - The agent id associated with the user.
         - team_id: Optional[str] - [DEPRECATED PARAM] The team id of the user. Default is None.
@@ -1736,7 +1735,7 @@ async def bulk_user_update(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
     litellm_changed_by: str | None = Header(
         None,
-        description="The litellm-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
+        description="The Token IQ-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
     ),
 ):
     """
@@ -2245,7 +2244,7 @@ async def delete_user(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
     litellm_changed_by: str | None = Header(
         None,
-        description="The litellm-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
+        description="The Token IQ-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
     ),
 ):
     """

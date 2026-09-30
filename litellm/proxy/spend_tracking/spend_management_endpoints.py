@@ -405,7 +405,7 @@ async def view_spend_tags(
     ),
 ):
     """
-    LiteLLM Enterprise - View Spend Per Request Tag
+    Token IQ Enterprise - View Spend Per Request Tag
 
     Example Request:
     ```
@@ -1909,7 +1909,7 @@ async def global_view_spend_tags(
     ),
 ):
     """
-    LiteLLM Enterprise - View Spend Per Request Tag. Used by LiteLLM UI
+    Token IQ Enterprise - View Spend Per Request Tag. Used by Token IQ UI
 
     Example Request:
     ```
@@ -2060,7 +2060,7 @@ async def calculate_spend(request: SpendCalculateRequest):
 
     Calculate spend **before** making call:
 
-    Note: If you see a spend of $0.0 you need to set custom_pricing for your model: https://docs.litellm.ai/docs/proxy/custom_pricing
+    Note: If you see a spend of $0.0 you need to set custom_pricing for your model:
 
     ```
     curl --location 'http://localhost:4000/spend/calculate'
@@ -2254,7 +2254,7 @@ async def ui_view_spend_logs(
     model: str | None = fastapi.Query(default=None, description="Filter logs by model"),
     model_id: str | None = fastapi.Query(
         default=None,
-        description="Filter logs by model ID (litellm model deployment id)",
+        description="Filter logs by model ID (Token IQ model deployment id)",
     ),
     model_group: str | None = fastapi.Query(default=None, description="Filter logs by model group"),
     key_alias: str | None = fastapi.Query(default=None, description="Filter logs by key alias"),
@@ -2273,7 +2273,7 @@ async def ui_view_spend_logs(
     ),
     exclude_internal_health_checks: bool = fastapi.Query(
         default=False,
-        description="Exclude LiteLLM internal health check requests from results",
+        description="Exclude Token IQ internal health check requests from results",
     ),
     group_by_session: bool = fastapi.Query(
         default=False,
@@ -2966,7 +2966,7 @@ async def view_spend_logs(
 
     Example Request for specific user_id
     ```
-    curl -X GET "http://0.0.0.0:8000/spend/logs?user_id=ishaan@berri.ai" \
+    curl -X GET "http://0.0.0.0:8000/spend/logs?user_id=user@example.com" \
 -H "Authorization: Bearer sk-1234"
     ```
 
@@ -3759,7 +3759,7 @@ async def global_spend_models(
 )
 async def provider_budgets() -> ProviderBudgetResponse:
     """
-    Provider Budget Routing - Get Budget, Spend Details https://docs.litellm.ai/docs/proxy/provider_budget_routing
+    Provider Budget Routing - Get Budget, Spend Details
 
     Use this endpoint to check current budget, spend and budget reset time for a provider
 

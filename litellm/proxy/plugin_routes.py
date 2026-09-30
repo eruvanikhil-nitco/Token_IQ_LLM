@@ -222,7 +222,7 @@ async def plugin_auth_token(
     """Issue a short-lived, audience-scoped plugin session claim.
 
     The claim contains {user_id, user_role, plugin, exp}.  It does NOT
-    contain the caller's litellm bearer token — a compromised plugin can
+    contain the caller's Token IQ bearer token — a compromised plugin can
     only learn the caller's identity, not impersonate them against the proxy.
 
     Encrypted with a key derived from HMAC(LITELLM_SALT_KEY, plugin_name),

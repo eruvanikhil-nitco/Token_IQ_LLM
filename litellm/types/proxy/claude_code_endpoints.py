@@ -45,7 +45,7 @@ class RegisterPluginRequest(PluginSpec):
     """
     Request body for registering a plugin in the marketplace.
 
-    LiteLLM acts as a registry/discovery layer. Plugins are hosted on
+    Token IQ acts as a registry/discovery layer. Plugins are hosted on
     GitHub/GitLab/Bitbucket and referenced by their git source.
     """
 

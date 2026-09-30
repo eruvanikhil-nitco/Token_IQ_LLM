@@ -1002,15 +1002,14 @@ async def health_endpoint(
     """
     🚨 USE `/health/liveliness` to health check the proxy 🚨
 
-    See more 👉 https://docs.litellm.ai/docs/proxy/health
-
+    See more 👉
 
     Check the health of all the endpoints in config.yaml
 
     To run health checks in the background, add this to config.yaml:
     ```
     general_settings:
-        # ... other settings
+        #... other settings
         background_health_checks: True
     ```
     else, the health checks will be run on models when /health is called.
@@ -1386,7 +1385,7 @@ async def _db_health_readiness_check_unbounded() -> DBHealthCache:
 )
 async def active_callbacks():
     """
-    Returns a list of litellm level settings
+    Returns a list of Token IQ level settings
 
     This is useful for debugging and ensuring the proxy server is configured correctly.
 
@@ -1394,17 +1393,17 @@ async def active_callbacks():
     ```
     {
         "alerting": _alerting,
-        "litellm.callbacks": litellm_callbacks,
-        "litellm.input_callback": litellm_input_callbacks,
-        "litellm.failure_callback": litellm_failure_callbacks,
-        "litellm.success_callback": litellm_success_callbacks,
-        "litellm._async_success_callback": litellm_async_success_callbacks,
-        "litellm._async_failure_callback": litellm_async_failure_callbacks,
-        "litellm._async_input_callback": litellm_async_input_callbacks,
+        "Token IQ.callbacks": litellm_callbacks,
+        "Token IQ.input_callback": litellm_input_callbacks,
+        "Token IQ.failure_callback": litellm_failure_callbacks,
+        "Token IQ.success_callback": litellm_success_callbacks,
+        "Token IQ._async_success_callback": litellm_async_success_callbacks,
+        "Token IQ._async_failure_callback": litellm_async_failure_callbacks,
+        "Token IQ._async_input_callback": litellm_async_input_callbacks,
         "all_litellm_callbacks": all_litellm_callbacks,
         "num_callbacks": len(all_litellm_callbacks),
         "num_alerting": _num_alerting,
-        "litellm.request_timeout": litellm.request_timeout,
+        "Token IQ.request_timeout": Token IQ.request_timeout,
     }
     ```
     """
@@ -1698,7 +1697,7 @@ async def health_backlog():
 
     Use this to measure per-pod queue depth. A high value means the worker is
     processing many concurrent requests — requests arriving now will have to wait
-    for the event loop to get to them, adding latency before LiteLLM even starts
+    for the event loop to get to them, adding latency before Token IQ even starts
     its own timer.
     """
     return {"in_flight_requests": get_in_flight_requests()}
@@ -1837,7 +1836,7 @@ async def test_model_connection(
     ),
     litellm_params: dict = fastapi.Body(
         None,
-        description="Parameters for litellm.completion, litellm.embedding for the health check",
+        description="Parameters for Token IQ.completion, Token IQ.embedding for the health check",
     ),
     model_info: dict = fastapi.Body(
         None,
@@ -1847,10 +1846,10 @@ async def test_model_connection(
 ):
     """
     Test a direct connection to a specific model.
-    
+
     This endpoint allows you to verify if your proxy can successfully connect to a specific model.
     It's useful for troubleshooting model connectivity issues without going through the full proxy routing.
-    
+
     Example:
     ```bash
     # If model is configured in proxy_config.yaml, you only need to specify the model name:
@@ -1863,9 +1862,9 @@ async def test_model_connection(
         },
         "mode": "chat"
       }'
-    
+
     # The endpoint will automatically use api_key, api_base, etc. from proxy_config.yaml
-    
+
     # You can also override specific params or test with custom credentials:
     curl -X POST 'http://localhost:4000/health/test_connection' \\
       -H 'Authorization: Bearer sk-1234' \\
@@ -1880,14 +1879,14 @@ async def test_model_connection(
         "mode": "chat"
       }'
     ```
-    
-    Note: 
-    - If the model is configured in proxy_config.yaml, credentials (api_key, api_base, etc.) 
+
+    Note:
+    - If the model is configured in proxy_config.yaml, credentials (api_key, api_base, etc.)
       will be automatically loaded from the config (with resolved environment variables).
     - You can override specific params by including them in the request.
     - You can use `os.environ/VARIABLE_NAME` syntax to reference environment variables,
       which will be resolved automatically (same as in proxy_config.yaml).
-    
+
     Returns:
         dict: A dictionary containing the health check result with either success information or error details.
     """

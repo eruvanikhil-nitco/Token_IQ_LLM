@@ -1851,7 +1851,7 @@ async def token_endpoint(
     Supports PKCE flow by forwarding code_verifier to upstream provider.
 
     1. Call the token endpoint with PKCE parameters
-    2. Store the user's token in the db - and generate a LiteLLM virtual key
+    2. Store the user's token in the db - and generate a Token IQ virtual key
     3. Return the token
     4. Return a virtual key in this response
     """
@@ -1945,7 +1945,7 @@ async def revoke_endpoint(request: Request, token: str = Form(...), client_id: s
 async def introspect_endpoint(token: str = Form(...)) -> Response:
     """RFC 7662 introspection for gateway-issued session tokens (``llm_session_`` /
     ``llm_srefresh_``), so an external gateway can validate them without the signing
-    secret. The caller authenticates with a LiteLLM virtual key (section 2.1, enforced by
+    secret. The caller authenticates with a Token IQ virtual key (section 2.1, enforced by
     the route dependency); any token the gateway cannot vouch for answers
     ``{"active": false}`` with no further detail."""
     from litellm.proxy.proxy_server import (  # noqa: PLC0415  # circular import at module load
@@ -2537,7 +2537,7 @@ async def oauth_protected_resource_mcp_standard(request: Request, mcp_server_nam
 @router.get("/.well-known/oauth-protected-resource")
 async def oauth_protected_resource_mcp(request: Request, mcp_server_name: str | None = None):
     """
-    OAuth protected resource discovery endpoint using LiteLLM legacy URL pattern.
+    OAuth protected resource discovery endpoint using Token IQ legacy URL pattern.
 
     Legacy pattern: /{server_name}/mcp
     Discovery path: /.well-known/oauth-protected-resource/{server_name}/mcp

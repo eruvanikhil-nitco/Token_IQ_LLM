@@ -1033,7 +1033,7 @@ async def block_model(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
     litellm_changed_by: str | None = Header(
         None,
-        description="The litellm-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
+        description="The Token IQ-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
     ),
 ) -> LiteLLM_ProxyModelTable | None:
     """
@@ -1062,7 +1062,7 @@ async def unblock_model(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
     litellm_changed_by: str | None = Header(
         None,
-        description="The litellm-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
+        description="The Token IQ-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
     ),
 ) -> LiteLLM_ProxyModelTable | None:
     """
