@@ -5,8 +5,23 @@ current at the end of every session rather than rediscovering the answer from gi
 
 ## What we are doing right now
 
-**Phase 0 has one item left: the deployment pipeline, which waits on your choice of cloud
-provider.** Everything else in it is built.
+**Phase 0's last item is built as far as it can be without an AWS account.** The provider was
+chosen on 2026-09-30: AWS, plain containers on ECS Fargate, shared VPC and Postgres server and
+load balancer, with only the container, database, secrets and hostname separate per customer.
+
+Built and tested: the manifest listing every installation, the per-customer Terraform,
+provisioning, the fleet upgrade that stops at the first failure, and a gate making it
+impossible to deploy another company's images. Isolation between customers sharing one
+Postgres server is proved against a real server, and mutating the grants is what makes that
+claim worth anything: it caught my own test passing for the wrong reason.
+
+Not done, and needing an account: Terraform has never applied, no load balancer has routed a
+real hostname, and the cost estimate is list prices rather than a bill. Roughly $135 a month
+for the first customer and about $22 for each one after, with data transfer the figure most
+likely to surprise, since a gateway moves every token its customers send. `deploy/README.md`
+has the runbook and what the first account should check, in order.
+
+Also still open: building and publishing our own images to ECR.
 
 Finished 2026-09-30: `docs/superpowers/plans/2026-09-30-api-docs-branding.md`, all five tasks.
 
