@@ -54,6 +54,7 @@ import {
   BookOpen,
   Lightbulb,
   Wrench,
+  LayoutDashboard,
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -109,6 +110,18 @@ interface MenuGroup {
 // Shape (key/page/label/roles/children) is consumed by page_utils.ts; only the
 // icons changed to lucide as part of the sidebar redesign.
 const menuGroups: MenuGroup[] = [
+  {
+    groupLabel: "HOME",
+    items: [
+      {
+        key: "overview",
+        page: "overview",
+        label: "Overview",
+        icon: <LayoutDashboard {...ICON} />,
+        roles: all_admin_roles,
+      },
+    ],
+  },
   {
     groupLabel: "ANALYTICS",
     items: [

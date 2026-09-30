@@ -2779,6 +2779,61 @@ export const providerConnectionsCall = async (accessToken: string): Promise<Prov
   }
 };
 
+export type MatchStatus = "matched" | "gateway_saw_less" | "gateway_saw_more" | "not_seen_by_gateway";
+
+export interface ProviderStanding {
+  provider: string;
+  billed: string;
+  recorded: string | null;
+  status: MatchStatus;
+}
+
+export interface OverviewFreshness {
+  source: string;
+  last_sync_at: string | null;
+}
+
+export interface OverviewRecommendation {
+  rule_id: string;
+  title: string;
+  kind: string;
+  figure: string | null;
+  figure_kind: string;
+  currency: string | null;
+}
+
+export interface OverviewResponse {
+  period_start: string;
+  period_end: string;
+  currency: string;
+  /** Null, never "0", when the period holds nothing: those mean different things. */
+  total: string | null;
+  previous_total: string | null;
+  change: string | null;
+  attributed: string | null;
+  unallocated: string | null;
+  unallocated_share: string | null;
+  providers: ProviderStanding[];
+  recommendations: OverviewRecommendation[];
+  freshness: OverviewFreshness[];
+}
+
+export const overviewCall = async (
+  accessToken: string,
+  periodStart: string,
+  periodEnd: string,
+): Promise<OverviewResponse> => {
+  try {
+    return await apiClient.get<OverviewResponse>(`/overview`, {
+      accessToken,
+      query: { period_start: periodStart, period_end: periodEnd },
+    });
+  } catch (error) {
+    console.error("Failed to read the overview:", error);
+    throw error;
+  }
+};
+
 export interface ToolFetchDetail {
   endpoint: string;
   endpoint_url: string;

@@ -170,6 +170,7 @@ describe("Sidebar (leftnav)", () => {
     );
 
     expect(placements).toEqual({
+      HOME: ["overview"],
       ANALYTICS: ["new_usage", "ledger", "recommendations", "usage", "cost-optimization", "logs"],
       ORGANISATION: ["teams", "projects", "users", "access-groups", "budgets", "attribution"],
       "DATA SOURCES": ["provider-apis", "user-tools", "llm-provider-credentials"],
@@ -189,7 +190,7 @@ describe("Sidebar (leftnav)", () => {
   it("renders the agreed group labels and page names for an admin", () => {
     renderWithProviders(<Sidebar {...defaultProps} enableProjectsUI />);
 
-    ["ANALYTICS", "ORGANISATION", "DATA SOURCES", "GATEWAY", "SAFETY", "BUILD", "SETTINGS"].forEach((label) => {
+    ["HOME", "ANALYTICS", "ORGANISATION", "DATA SOURCES", "GATEWAY", "SAFETY", "BUILD", "SETTINGS"].forEach((label) => {
       expect(screen.getByText(label)).toBeInTheDocument();
     });
     [
