@@ -109,21 +109,21 @@ we want: an installation that cannot say which image it runs must not be created
 - Create: `deploy/images/build.py`, `deploy/images/README.md`
 - Create: `tests/test_litellm/deploy/test_image_build.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 The build names every image under our own registry, tags each with the same immutable version
 rather than a moving tag, and refuses to build when the working tree is dirty, because an
 image nobody can trace back to a commit cannot be rolled back with confidence.
 
-- [ ] **Step 2: Build the all-in-one image locally and run it**
+- [x] **Step 2: Build the all-in-one image locally and run it**
 
 Against the local Postgres, proving the container serves the API and the dashboard and applies
 its migrations at boot. This is the step that catches a Dockerfile that only builds on the
 machine it was written on.
 
-- [ ] **Step 3: Record what publishing to ECR needs, without an account to publish to**
+- [x] **Step 3: Record what publishing to ECR needs, without an account to publish to**
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ---
 
@@ -266,9 +266,16 @@ before trying to cross the boundary.
 
 ## Whole-plan review, 2026-09-30
 
-Six of seven tasks are done. Task 2, building and publishing our own images, is the one left,
-and it is deliberately last: nothing else depends on it, and it is the only task whose value
-comes mostly from a registry we do not have yet.
+All seven tasks are done.
+
+Task 2 was left until last and earned its place. Building the real image type checks the
+dashboard, and that found three dashboard write calls passing the body where the options
+belong, so creating an attribution rule, an invoice or a seat would each have failed for a
+customer. The fourth instance of that shape today, and like the others it had been verified
+with curl, which never goes through those functions. The image then ran against real
+Postgres: migrations at boot, healthy with the database connected, the dashboard served, the
+Token IQ plan reported rather than any licence, and both the user tools and recommendations
+endpoints answering.
 
 The plan's own Self-Review said a reviewer should check Task 5 hardest, and it was right to.
 Mutating the grants found two things, one of them mine.

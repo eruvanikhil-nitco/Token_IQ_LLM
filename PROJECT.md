@@ -21,7 +21,9 @@ for the first customer and about $22 for each one after, with data transfer the 
 likely to surprise, since a gateway moves every token its customers send. `deploy/README.md`
 has the runbook and what the first account should check, in order.
 
-Also still open: building and publishing our own images to ECR.
+The image is built and proved: 1.69 GB from a clean checkout, running against real Postgres
+with migrations at boot, the dashboard served and the Token IQ plan reported. Publishing it
+to a registry is the only part that waits on the account.
 
 Finished 2026-09-30: `docs/superpowers/plans/2026-09-30-api-docs-branding.md`, all five tasks.
 
