@@ -6,7 +6,7 @@ from typing import Final
 
 import pytest
 
-REPO: Final = Path(__file__).resolve().parents[3]
+REPO: Final = Path(__file__).resolve().parents[2]
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
