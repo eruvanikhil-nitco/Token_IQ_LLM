@@ -1,6 +1,6 @@
 # Token IQ, current state
 
-Updated 2026-09-29. This file is the one place to look for where the work stands. Keep it
+Updated 2026-09-30. This file is the one place to look for where the work stands. Keep it
 current at the end of every session rather than rediscovering the answer from git log.
 
 ## What we are doing right now
@@ -59,8 +59,9 @@ client with a mock that cannot fail the way a real one does.
   against real accounts remains, and that needs accounts
 - **Phase 3, combined view and ledger.** Complete and proven against the live database on
   2026-09-29, with the completion test actually run rather than assumed
-- **Phase 4, users and user tools.** Seats and per-user cost are done. The Claude Code and
-  Copilot connectors are blocked: no account of any kind exists to verify them against
+- **Phase 4, users and user tools.** Seats, per-user cost and all three tool connectors are
+  built, along with the User Tools page. None has met a real account, so the phase's own
+  test is not met. Codex and ChatGPT publish no per-user endpoint and are deferred
 - **Phase 5, recommendations.** Four rules built and running on real data. Its own success
   test is not met, and deliberately recorded as not met: only one rule can ever produce a
   savings figure, and the data it needs is not gathered
@@ -69,7 +70,7 @@ client with a mock that cannot fail the way a real one does.
 
 ## Complete backlog: everything on the plan that is not built
 
-Audited 2026-09-29 against the sidebar plan and phase list in the product design doc. The
+Audited 2026-09-29 and revised 2026-09-30 against the sidebar plan and phase list. The
 question for each row is the one that matters: is a real account genuinely the blocker, or
 have we just not built it yet.
 
@@ -90,11 +91,11 @@ is buildable today, including all four user tool connectors themselves.
 
 | Item | Blocked by an account |
 |---|---|
-| Claude Code connector | No. Buildable from the Admin API docs |
-| GitHub Copilot connector | No. Buildable from the published metrics and billing APIs |
-| Cursor connector | No. Buildable from the published admin API |
-| ChatGPT and Codex connector | No, though the enterprise API details need confirming first |
-| User Tools data source page, one tab per tool | No |
+| ~~Claude Code connector~~ Built 2026-09-29 | No |
+| ~~GitHub Copilot connector~~ Built 2026-09-29, reports seat holders because GitHub publishes no cost | No |
+| ~~Cursor connector~~ Built 2026-09-29 | No |
+| ChatGPT and Codex connector | Deferred: no per-user endpoint is published. That money already arrives through the OpenAI connector or the Seats model |
+| ~~User Tools data source page, one tab per tool~~ Built 2026-09-29 | No |
 | User Directory page: SSO Sync, SCIM moved from Admin Settings, Import | No |
 | Tools tab on a user | **Yes.** Nothing to show until a tool reports |
 | Tool Logins tab on Attribution Rules | **Yes.** Same reason |
@@ -105,10 +106,8 @@ is buildable today, including all four user tool connectors themselves.
 | Item | Phase |
 |---|---|
 | Overview home page: total spend across sources, change on last period, bill match per provider, share unallocated, top recommendations, data freshness | 1 |
-| Token IQ plan system replacing the LiteLLM licence key | 0 |
-| Remaining customer-visible LiteLLM branding | 0 |
-| Audit Logs tab moved onto the working audit trail, endpoint limited to admins | 0 |
-| Docker image from a clean checkout and a deployment pipeline | 0, waits on the cloud provider choice |
+| Deployment pipeline for customer installations | 0, and the only Phase 0 item left. Waits on the cloud provider choice |
+| Renaming identifiers that still carry the old product name, deliberately open | 0 |
 | Projects out of Beta and open to team admins | 1 |
 | Projects and Budget tabs on a team | 1 |
 | Provider Accounts tab on a team | 1 |
@@ -122,9 +121,9 @@ is buildable today, including all four user tool connectors themselves.
 
 ### What this means for sequencing
 
-The user tool connectors are the biggest genuine gap, because nothing exists for them at all,
-and they are not blocked. Building them now means that the day an account appears the work is
-one credential and one click, exactly like the provider connectors are becoming.
+The tool connectors and Phase 0 are done. What is left divides cleanly: Phase 6 (reports,
+alerts, forecasts) and the Phase 1 screens need nothing external and can start whenever; the
+deployment pipeline needs one decision from you; and everything else waits on an account.
 
 ## Blockers
 
