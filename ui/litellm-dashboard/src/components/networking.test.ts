@@ -862,3 +862,81 @@ describe("calls that must actually carry the admin token and body", () => {
     expect(headers.get("Authorization")).toBe("Bearer sk-test");
   });
 });
+
+describe("every write call passes its body where the options belong", () => {
+  const originalFetch = global.fetch;
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+  });
+
+  /* This has now been wrong four times: the recommendation decision, the attribution rule,
+     the invoice and the seat. Each sent no Authorization header and no body, and each was
+     "verified" with curl, which never goes through these functions. TypeScript does catch
+     it, but only on a full project type-check, which is slower than anyone runs by hand. */
+  const capture = () => {
+    const seen: { url: string; init: RequestInit }[] = [];
+    global.fetch = vi.fn(async (url: any, init: any) => {
+      seen.push({ url: String(url), init: init ?? {} });
+      return {
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({}),
+        text: async () => "{}",
+      } as unknown as Response;
+    }) as any;
+    return seen;
+  };
+
+  it("sends the attribution rule with the token and the rule as the body", async () => {
+    const seen = capture();
+    const rule = {
+      provider: "openai",
+      match_type: "credential_name" as const,
+      match_value: "acme-openai",
+      owner_type: "team" as const,
+      owner_id: "team-1",
+    };
+
+    await Networking.upsertAttributionRuleCall("sk-test", rule);
+
+    const headers = new Headers(seen[0].init.headers as HeadersInit);
+    expect(headers.get("Authorization")).toBe("Bearer sk-test");
+    expect(JSON.parse(String(seen[0].init.body))).toMatchObject({ provider: "openai" });
+  });
+
+  it("sends the invoice with the token and the invoice as the body", async () => {
+    const seen = capture();
+
+    await Networking.upsertInvoiceCall("sk-test", {
+      provider: "openai",
+      period_start: "2026-09-01",
+      period_end: "2026-09-30",
+      currency: "USD",
+      billed_total: "100.00",
+    } as any);
+
+    const headers = new Headers(seen[0].init.headers as HeadersInit);
+    expect(headers.get("Authorization")).toBe("Bearer sk-test");
+    expect(JSON.parse(String(seen[0].init.body))).toMatchObject({ provider: "openai" });
+  });
+
+  it("sends the seat with the token and the seat as the body", async () => {
+    const seen = capture();
+
+    await Networking.upsertSeatCall("sk-test", {
+      tool: "claude-code",
+      user_id: "u-1",
+      cadence: "monthly",
+      currency: "USD",
+      amount: "30.00",
+      period_start: "2026-09-01",
+      period_end: "2026-09-30",
+    } as any);
+
+    const headers = new Headers(seen[0].init.headers as HeadersInit);
+    expect(headers.get("Authorization")).toBe("Bearer sk-test");
+    expect(JSON.parse(String(seen[0].init.body))).toMatchObject({ tool: "claude-code" });
+  });
+});

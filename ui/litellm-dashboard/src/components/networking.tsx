@@ -8492,7 +8492,7 @@ export const upsertAttributionRuleCall = async (
   },
 ): Promise<AttributionRule> => {
   try {
-    return await apiClient.post<AttributionRule>("/attribution/rules", rule, { accessToken });
+    return await apiClient.post<AttributionRule>("/attribution/rules", { accessToken, body: rule });
   } catch (error) {
     console.error("Failed to save attribution rule:", error);
     throw error;
@@ -8689,7 +8689,7 @@ export const upsertInvoiceCall = async (
   },
 ): Promise<Invoice> => {
   try {
-    return await apiClient.post<Invoice>("/ledger/invoices", invoice, { accessToken });
+    return await apiClient.post<Invoice>("/ledger/invoices", { accessToken, body: invoice });
   } catch (error) {
     console.error("Failed to save the invoice:", error);
     throw error;
@@ -8790,7 +8790,7 @@ export const upsertSeatCall = async (
   },
 ): Promise<Seat> => {
   try {
-    return await apiClient.post<Seat>("/seats", seat, { accessToken });
+    return await apiClient.post<Seat>("/seats", { accessToken, body: seat });
   } catch (error) {
     console.error("Failed to save the seat:", error);
     throw error;
