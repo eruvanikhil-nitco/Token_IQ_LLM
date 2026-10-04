@@ -104,14 +104,7 @@ async function testFallbackModelResponse(selectedModel: string, accessToken: str
     toast.success(
       <span>
         Test model=<strong>{selectedModel}</strong>, received model=
-        <strong>{response.model}</strong>. See{" "}
-        <a
-          href="#"
-          onClick={() => window.open("https://docs.litellm.ai/docs/proxy/reliability", "_blank")}
-          style={{ textDecoration: "underline", color: "blue" }}
-        >
-          curl
-        </a>
+        <strong>{response.model}</strong>
       </span>,
     );
   } catch (error) {

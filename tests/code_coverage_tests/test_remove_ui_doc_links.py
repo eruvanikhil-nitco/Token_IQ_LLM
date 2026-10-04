@@ -147,3 +147,12 @@ class TestALinkUsedAsAPropValue:
         assert "docs.litellm.ai" not in got
         assert "render={" not in got, "the prop should be gone, not left empty"
         assert "<Button" in got
+
+    def test_an_inline_prop_value_is_caught_too(self) -> None:
+        """`<Badge variant="outline" render={<a .../>}>` has no newline before the prop.
+        Requiring one left `render={}` in two test files, invisible to the build because it
+        does not compile tests."""
+        source: Final = '    <Badge variant="outline" render={<a href="https://docs.litellm.ai/x" />}>\n'
+        got: Final = remove_links(source)
+        assert "render={}" not in got
+        assert 'variant="outline"' in got

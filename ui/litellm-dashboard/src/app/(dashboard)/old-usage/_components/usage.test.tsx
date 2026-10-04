@@ -104,13 +104,6 @@ describe("old usage page", () => {
       expect(screen.queryByRole("tab", { name: "All Up" })).not.toBeInTheDocument();
     });
 
-    it("links to the cost tracking guide in a new tab", async () => {
-      renderUsage();
-
-      const link = await screen.findByRole("link", { name: "View Usage Guide" });
-      expect(link).toHaveAttribute("href", "https://docs.litellm.ai/docs/proxy/cost_tracking");
-      expect(link).toHaveAttribute("target", "_blank");
-    });
 
     it("skips every expensive usage query", async () => {
       renderUsage();

@@ -41,7 +41,10 @@ ELEMENT: Final = re.compile(
 # An anchor passed as a prop value is the whole prop's reason to exist, so the prop goes
 # with it. Removing only the element leaves `render={}`, which is not valid JSX.
 PROP_VALUED: Final = re.compile(
-    rf'\n[ \t]*\w+=\{{<(?:a|HelpLink)\s+[^>]*href="{DOCS_HOST}"[^>]*/>\}}'
+    # The prop may sit on its own line or inline after another one. Requiring a leading
+    # newline missed the inline form and left `render={}` in two test files, which the
+    # build never caught because it does not compile tests.
+    rf'[ \t]*\n?[ \t]*\w+=\{{<(?:a|HelpLink)\s+[^>]*href="{DOCS_HOST}"[^>]*/>\}}'
 )
 
 # The same thing written across several lines, where the anchor has children. Removing only

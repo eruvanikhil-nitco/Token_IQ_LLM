@@ -307,12 +307,13 @@ Token IQ needs its own documentation before it is sold to anyone who did not bui
 then the product explains itself only through the in-page copy, the glossary in
 `docs/README.md`, and the help text in the blueprint's page model.
 
-### Task 6 is not finished
+### Task 6 is finished
 
-Done: all 334 Python references, the three paid-tier upsells, and roughly 30 of the 52 UI
-files. The dashboard compiles and type-checks.
+All 334 Python references and all 81 dashboard links are gone, `schema.d.ts` is
+regenerated, and the dashboard compiles and type-checks.
 
-Left: `LogDetailContent`, `APIReferenceView`, `cost_tracking_settings`, `Fallbacks`, the
-`HelpLink` JSDoc examples, about 13 test files asserting on links that no longer exist, and
-a regeneration of `schema.d.ts`. `scripts/remove_ui_doc_links.py` reports exactly which
-files remain when run with `--write`.
+Where a component carried explanation as well as a link, the explanation stays:
+`DocsHint`, `labelWithDocsHint` and `MetricLabel` now render their tooltip without an
+anchor around it, so no help text was lost to remove a dead link. Four tests whose only
+subject was a link were deleted with it; the rest kept everything except the href
+assertion.

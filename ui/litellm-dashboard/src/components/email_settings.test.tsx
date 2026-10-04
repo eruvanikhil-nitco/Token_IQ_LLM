@@ -44,10 +44,6 @@ describe("EmailSettings", () => {
     renderWithProviders(<EmailSettings accessToken="sk-test" premiumUser alerts={alerts} />);
 
     expect(screen.getByText("Email Server Settings")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Token IQ Docs: email alerts/ })).toHaveAttribute(
-      "href",
-      "https://docs.litellm.ai/docs/proxy/email",
-    );
   });
 
   it("renders one named input per email variable and none for other alert types", () => {

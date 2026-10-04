@@ -137,10 +137,6 @@ describe("VectorStoreManagement Indexes tab", () => {
     mockIndexesListCall.mockResolvedValue({ object: "list", data: [] });
     render(<VectorStoreManagement accessToken="sk-test" userID="user-1" userRole="Admin" />);
     await user.click(screen.getByRole("tab", { name: "Indexes" }));
-    expect(screen.getByRole("link", { name: "vector store index docs" })).toHaveAttribute(
-      "href",
-      "https://docs.litellm.ai/docs/providers/azure_ai/azure_ai_vector_stores_passthrough",
-    );
     expect(screen.getByRole("link", { name: "file a GitHub issue" })).toHaveAttribute(
       "href",
       "https://github.com/BerriAI/litellm/issues",

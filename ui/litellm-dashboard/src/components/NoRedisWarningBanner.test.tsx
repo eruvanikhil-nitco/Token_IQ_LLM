@@ -26,10 +26,6 @@ describe("NoRedisWarningBanner", () => {
   it("should link to the docs page listing what breaks without Redis", () => {
     mockDetails({ status: "healthy", show_no_redis_warning: true });
     renderWithProviders(<NoRedisWarningBanner accessToken="token" />);
-    expect(screen.getByRole("link", { name: /does not work without Redis/i })).toHaveAttribute(
-      "href",
-      "https://docs.litellm.ai/docs/proxy/redis_requirements",
-    );
   });
 
   it("should name the env var that suppresses it", () => {

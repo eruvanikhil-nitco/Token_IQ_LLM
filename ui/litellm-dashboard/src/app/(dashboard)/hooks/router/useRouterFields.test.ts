@@ -366,7 +366,7 @@ describe("useRouterFields", () => {
           field_default: false,
           options: null,
           ui_field_name: "Enable Tag Filtering",
-          link: "https://docs.litellm.ai/docs/proxy/tag_routing",
+          link: "https://example.com/tag-routing",
         },
       ],
       routing_strategy_descriptions: {},
@@ -383,6 +383,6 @@ describe("useRouterFields", () => {
       expect(result.current.isSuccess).toBe(true);
     });
 
-    expect(result.current.data?.fields[0].link).toBe("https://docs.litellm.ai/docs/proxy/tag_routing");
+    expect(result.current.data?.fields[0].link).toBe("https://example.com/tag-routing");
   });
 });

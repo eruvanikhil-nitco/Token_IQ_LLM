@@ -116,15 +116,4 @@ describe("SearchConnectionTest", () => {
     expect(screen.getByText("network down")).toBeInTheDocument();
   });
 
-  it("links out to the search documentation", async () => {
-    vi.mocked(networking.testSearchToolConnection).mockResolvedValue({
-      status: "success",
-      message: "ok",
-    });
-
-    render(<SearchConnectionTest {...defaultProps} />);
-
-    const docLink = await screen.findByRole("link", { name: /View Search Documentation/i });
-    expect(docLink).toHaveAttribute("href", "https://docs.litellm.ai/docs/search");
-  });
 });

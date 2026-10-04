@@ -14,13 +14,13 @@ describe("Badge", () => {
 
   it("renders as an anchor via the render prop while keeping badge styling", () => {
     render(
-      <Badge variant="outline" render={}>
+      <Badge variant="outline" render={<a href="https://example.com/release-notes" />}>
         v1.2.3
       </Badge>,
     );
     const link = screen.getByRole("link", { name: "v1.2.3" });
     expect(link.tagName).toBe("A");
-    expect(link).toHaveAttribute("href", "https://docs.litellm.ai/release_notes");
+    expect(link).toHaveAttribute("href", "https://example.com/release-notes");
     expect(link).toHaveAttribute("data-slot", "badge");
     expect(link).toHaveClass("border-border");
   });
