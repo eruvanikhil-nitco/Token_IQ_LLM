@@ -1,0 +1,1832 @@
+{
+  "rows": [
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 14,
+      "modules_known": 1,
+      "path": "litellm/_internal_context.py",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 469,
+      "modules_known": 1,
+      "path": "litellm/_lazy_imports.py",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 1510,
+      "modules_known": 1,
+      "path": "litellm/_lazy_imports_registry.py",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 823,
+      "modules_known": 1,
+      "path": "litellm/_logging.py",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 967,
+      "modules_known": 1,
+      "path": "litellm/_redis.py",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 132,
+      "modules_known": 1,
+      "path": "litellm/_redis_credential_provider.py",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 358,
+      "modules_known": 1,
+      "path": "litellm/_service_logger.py",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 15,
+      "modules_known": 1,
+      "path": "litellm/_uuid.py",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 6,
+      "modules_known": 1,
+      "path": "litellm/_version.py",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 29,
+      "kind": "folder",
+      "lines": 4785,
+      "modules_known": 29,
+      "path": "litellm/a2a_protocol/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 28,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 410,
+      "modules_known": 1,
+      "path": "litellm/anthropic_beta_headers_manager.py",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 5,
+      "kind": "folder",
+      "lines": 382,
+      "modules_known": 5,
+      "path": "litellm/anthropic_interface/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 3,
+      "used": 2,
+      "used_type_only": 0
+    },
+    {
+      "files": 2,
+      "kind": "folder",
+      "lines": 1499,
+      "modules_known": 2,
+      "path": "litellm/assistants/",
+      "reached_from": [],
+      "unproven": 2,
+      "used": 0,
+      "used_type_only": 0
+    },
+    {
+      "files": 2,
+      "kind": "folder",
+      "lines": 96,
+      "modules_known": 2,
+      "path": "litellm/attribution/",
+      "reached_from": [
+        "litellm.attribution",
+        "litellm.types.proxy.management_endpoints.attribution_endpoints"
+      ],
+      "unproven": 0,
+      "used": 2,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "folder",
+      "lines": 256,
+      "modules_known": 1,
+      "path": "litellm/batch_completion/",
+      "reached_from": [],
+      "unproven": 1,
+      "used": 0,
+      "used_type_only": 0
+    },
+    {
+      "files": 2,
+      "kind": "folder",
+      "lines": 1841,
+      "modules_known": 2,
+      "path": "litellm/batches/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 2,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 216,
+      "modules_known": 1,
+      "path": "litellm/budget_manager.py",
+      "reached_from": [],
+      "unproven": 1,
+      "used": 0,
+      "used_type_only": 0
+    },
+    {
+      "files": 20,
+      "kind": "folder",
+      "lines": 7790,
+      "modules_known": 20,
+      "path": "litellm/caching/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 1,
+      "used": 19,
+      "used_type_only": 0
+    },
+    {
+      "files": 4,
+      "kind": "folder",
+      "lines": 1990,
+      "modules_known": 4,
+      "path": "litellm/completion_extras/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 1,
+      "used": 3,
+      "used_type_only": 0
+    },
+    {
+      "files": 8,
+      "kind": "folder",
+      "lines": 899,
+      "modules_known": 8,
+      "path": "litellm/compression/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 1,
+      "used": 7,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 1984,
+      "modules_known": 1,
+      "path": "litellm/constants.py",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 4,
+      "kind": "folder",
+      "lines": 1814,
+      "modules_known": 4,
+      "path": "litellm/containers/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 1,
+      "used": 3,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 2597,
+      "modules_known": 1,
+      "path": "litellm/cost_calculator.py",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 2,
+      "kind": "folder",
+      "lines": 310,
+      "modules_known": 2,
+      "path": "litellm/endpoints/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 2,
+      "used_type_only": 0
+    },
+    {
+      "files": 2,
+      "kind": "folder",
+      "lines": 1974,
+      "modules_known": 2,
+      "path": "litellm/evals/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 1,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 1226,
+      "modules_known": 1,
+      "path": "litellm/exceptions.py",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 3,
+      "kind": "folder",
+      "lines": 1166,
+      "modules_known": 3,
+      "path": "litellm/experimental_mcp_client/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 1,
+      "used": 2,
+      "used_type_only": 0
+    },
+    {
+      "files": 4,
+      "kind": "folder",
+      "lines": 1373,
+      "modules_known": 4,
+      "path": "litellm/files/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 4,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "folder",
+      "lines": 778,
+      "modules_known": 1,
+      "path": "litellm/fine_tuning/",
+      "reached_from": [],
+      "unproven": 1,
+      "used": 0,
+      "used_type_only": 0
+    },
+    {
+      "files": 6,
+      "kind": "folder",
+      "lines": 1777,
+      "modules_known": 6,
+      "path": "litellm/google_genai/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 2,
+      "used": 4,
+      "used_type_only": 0
+    },
+    {
+      "files": 3,
+      "kind": "folder",
+      "lines": 1202,
+      "modules_known": 3,
+      "path": "litellm/images/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 2,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 205,
+      "kind": "folder",
+      "lines": 58410,
+      "modules_known": 205,
+      "path": "litellm/integrations/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 34,
+      "used": 171,
+      "used_type_only": 0
+    },
+    {
+      "files": 14,
+      "kind": "folder",
+      "lines": 3904,
+      "modules_known": 14,
+      "path": "litellm/interactions/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 1,
+      "used": 13,
+      "used_type_only": 0
+    },
+    {
+      "files": 2,
+      "kind": "folder",
+      "lines": 79,
+      "modules_known": 2,
+      "path": "litellm/ledger/",
+      "reached_from": [
+        "litellm.ledger",
+        "litellm.types.proxy.management_endpoints.ledger_endpoints"
+      ],
+      "unproven": 0,
+      "used": 2,
+      "used_type_only": 0
+    },
+    {
+      "files": 81,
+      "kind": "folder",
+      "lines": 39095,
+      "modules_known": 81,
+      "path": "litellm/litellm_core_utils/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 3,
+      "used": 78,
+      "used_type_only": 0
+    },
+    {
+      "files": 916,
+      "kind": "folder",
+      "lines": 197105,
+      "modules_known": 916,
+      "path": "litellm/llms/",
+      "reached_from": [
+        "litellm.llms.openrouter.passthrough",
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 285,
+      "used": 631,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 9087,
+      "modules_known": 1,
+      "path": "litellm/main.py",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 21,
+      "kind": "folder",
+      "lines": 1083,
+      "modules_known": 21,
+      "path": "litellm/models/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 2,
+      "used": 19,
+      "used_type_only": 0
+    },
+    {
+      "files": 2,
+      "kind": "folder",
+      "lines": 743,
+      "modules_known": 2,
+      "path": "litellm/ocr/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 2,
+      "used_type_only": 0
+    },
+    {
+      "files": 2,
+      "kind": "folder",
+      "lines": 97,
+      "modules_known": 2,
+      "path": "litellm/overview/",
+      "reached_from": [
+        "litellm.overview",
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 2,
+      "used_type_only": 0
+    },
+    {
+      "files": 4,
+      "kind": "folder",
+      "lines": 834,
+      "modules_known": 4,
+      "path": "litellm/passthrough/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 1,
+      "used": 3,
+      "used_type_only": 0
+    },
+    {
+      "files": 16,
+      "kind": "folder",
+      "lines": 2116,
+      "modules_known": 16,
+      "path": "litellm/provider_billing/",
+      "reached_from": [
+        "litellm.provider_billing",
+        "litellm.tool_usage.startup",
+        "litellm.types.proxy.management_endpoints.tool_endpoints"
+      ],
+      "unproven": 0,
+      "used": 16,
+      "used_type_only": 0
+    },
+    {
+      "files": 622,
+      "kind": "folder",
+      "lines": 314654,
+      "modules_known": 622,
+      "path": "litellm/proxy/",
+      "reached_from": [
+        "litellm.proxy.auth.courier_model_names",
+        "litellm.proxy.client.cli",
+        "litellm.proxy.prisma_migration",
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 227,
+      "used": 395,
+      "used_type_only": 0
+    },
+    {
+      "files": 2,
+      "kind": "folder",
+      "lines": 269,
+      "modules_known": 2,
+      "path": "litellm/proxy_auth/",
+      "reached_from": [],
+      "unproven": 2,
+      "used": 0,
+      "used_type_only": 0
+    },
+    {
+      "files": 15,
+      "kind": "folder",
+      "lines": 3585,
+      "modules_known": 15,
+      "path": "litellm/rag/",
+      "reached_from": [],
+      "unproven": 15,
+      "used": 0,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "folder",
+      "lines": 693,
+      "modules_known": 1,
+      "path": "litellm/realtime_api/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 8,
+      "kind": "folder",
+      "lines": 328,
+      "modules_known": 8,
+      "path": "litellm/recommendations/",
+      "reached_from": [
+        "litellm.recommendations",
+        "litellm.recommendations.rules",
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 8,
+      "used_type_only": 0
+    },
+    {
+      "files": 27,
+      "kind": "folder",
+      "lines": 4687,
+      "modules_known": 27,
+      "path": "litellm/repositories/",
+      "reached_from": [
+        "litellm.tool_usage.startup",
+        "litellm.types.proxy.management_endpoints.recommendation_endpoints"
+      ],
+      "unproven": 1,
+      "used": 26,
+      "used_type_only": 0
+    },
+    {
+      "files": 2,
+      "kind": "folder",
+      "lines": 616,
+      "modules_known": 2,
+      "path": "litellm/rerank_api/",
+      "reached_from": [],
+      "unproven": 2,
+      "used": 0,
+      "used_type_only": 0
+    },
+    {
+      "files": 15,
+      "kind": "folder",
+      "lines": 14172,
+      "modules_known": 15,
+      "path": "litellm/responses/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 1,
+      "used": 14,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 13715,
+      "modules_known": 1,
+      "path": "litellm/router.py",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 26,
+      "kind": "folder",
+      "lines": 10095,
+      "modules_known": 26,
+      "path": "litellm/router_strategy/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 5,
+      "used": 21,
+      "used_type_only": 0
+    },
+    {
+      "files": 25,
+      "kind": "folder",
+      "lines": 6448,
+      "modules_known": 25,
+      "path": "litellm/router_utils/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 2,
+      "used": 23,
+      "used_type_only": 0
+    },
+    {
+      "files": 11,
+      "kind": "folder",
+      "lines": 1403,
+      "modules_known": 11,
+      "path": "litellm/rust_bridge/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 2,
+      "used": 9,
+      "used_type_only": 0
+    },
+    {
+      "files": 3,
+      "kind": "folder",
+      "lines": 205,
+      "modules_known": 3,
+      "path": "litellm/sandbox/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 2,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 137,
+      "modules_known": 1,
+      "path": "litellm/scheduler.py",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 3,
+      "kind": "folder",
+      "lines": 413,
+      "modules_known": 3,
+      "path": "litellm/search/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 3,
+      "used_type_only": 0
+    },
+    {
+      "files": 2,
+      "kind": "folder",
+      "lines": 70,
+      "modules_known": 2,
+      "path": "litellm/seats/",
+      "reached_from": [
+        "litellm.seats",
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 2,
+      "used_type_only": 0
+    },
+    {
+      "files": 11,
+      "kind": "folder",
+      "lines": 2927,
+      "modules_known": 11,
+      "path": "litellm/secret_managers/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 11,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 630,
+      "modules_known": 1,
+      "path": "litellm/setup_wizard.py",
+      "reached_from": [
+        "litellm.proxy.prisma_migration"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 2,
+      "kind": "folder",
+      "lines": 791,
+      "modules_known": 2,
+      "path": "litellm/skills/",
+      "reached_from": [],
+      "unproven": 2,
+      "used": 0,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 117,
+      "modules_known": 1,
+      "path": "litellm/timeout.py",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 10,
+      "kind": "folder",
+      "lines": 977,
+      "modules_known": 10,
+      "path": "litellm/tool_usage/",
+      "reached_from": [
+        "litellm.tool_usage",
+        "litellm.tool_usage.copilot",
+        "litellm.tool_usage.runner",
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 10,
+      "used_type_only": 0
+    },
+    {
+      "files": 212,
+      "kind": "folder",
+      "lines": 31683,
+      "modules_known": 212,
+      "path": "litellm/types/",
+      "reached_from": [
+        "litellm.tool_usage.startup",
+        "litellm.types.proxy.management_endpoints.attribution_endpoints",
+        "litellm.types.proxy.management_endpoints.combined_endpoints",
+        "litellm.types.proxy.management_endpoints.ledger_endpoints"
+      ],
+      "unproven": 45,
+      "used": 166,
+      "used_type_only": 1
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 9855,
+      "modules_known": 1,
+      "path": "litellm/utils.py",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 3,
+      "kind": "folder",
+      "lines": 813,
+      "modules_known": 3,
+      "path": "litellm/vector_store_files/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 1,
+      "used": 2,
+      "used_type_only": 0
+    },
+    {
+      "files": 4,
+      "kind": "folder",
+      "lines": 1645,
+      "modules_known": 4,
+      "path": "litellm/vector_stores/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 4,
+      "used_type_only": 0
+    },
+    {
+      "files": 3,
+      "kind": "folder",
+      "lines": 1752,
+      "modules_known": 3,
+      "path": "litellm/videos/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 2,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 464,
+      "modules_known": 1,
+      "path": "litellm/proxy/_lazy_features.py",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 174,
+      "modules_known": 1,
+      "path": "litellm/proxy/_lazy_openapi_snapshot.py",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 41,
+      "modules_known": 1,
+      "path": "litellm/proxy/_logging.py",
+      "reached_from": [],
+      "unproven": 1,
+      "used": 0,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 5105,
+      "modules_known": 1,
+      "path": "litellm/proxy/_types.py",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 5,
+      "kind": "folder",
+      "lines": 960,
+      "modules_known": 5,
+      "path": "litellm/proxy/a2a/",
+      "reached_from": [],
+      "unproven": 5,
+      "used": 0,
+      "used_type_only": 0
+    },
+    {
+      "files": 10,
+      "kind": "folder",
+      "lines": 4061,
+      "modules_known": 10,
+      "path": "litellm/proxy/agent_endpoints/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 5,
+      "used": 5,
+      "used_type_only": 0
+    },
+    {
+      "files": 2,
+      "kind": "folder",
+      "lines": 230,
+      "modules_known": 2,
+      "path": "litellm/proxy/analytics_endpoints/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 2,
+      "used_type_only": 0
+    },
+    {
+      "files": 5,
+      "kind": "folder",
+      "lines": 1658,
+      "modules_known": 5,
+      "path": "litellm/proxy/anthropic_endpoints/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 4,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 27,
+      "kind": "folder",
+      "lines": 17817,
+      "modules_known": 27,
+      "path": "litellm/proxy/auth/",
+      "reached_from": [
+        "litellm.proxy.auth.courier_model_names",
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 27,
+      "used_type_only": 0
+    },
+    {
+      "files": 2,
+      "kind": "folder",
+      "lines": 1105,
+      "modules_known": 2,
+      "path": "litellm/proxy/batches_endpoints/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 2,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 249,
+      "modules_known": 1,
+      "path": "litellm/proxy/caching_routes.py",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 39,
+      "kind": "folder",
+      "lines": 7356,
+      "modules_known": 39,
+      "path": "litellm/proxy/client/",
+      "reached_from": [
+        "litellm.proxy.client.cli"
+      ],
+      "unproven": 37,
+      "used": 2,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 3943,
+      "modules_known": 1,
+      "path": "litellm/proxy/common_request_processing.py",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 43,
+      "kind": "folder",
+      "lines": 9939,
+      "modules_known": 43,
+      "path": "litellm/proxy/common_utils/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 1,
+      "used": 42,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 243,
+      "modules_known": 1,
+      "path": "litellm/proxy/compliance_checks.py",
+      "reached_from": [],
+      "unproven": 1,
+      "used": 0,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "folder",
+      "lines": 28,
+      "modules_known": 1,
+      "path": "litellm/proxy/config_management_endpoints/",
+      "reached_from": [],
+      "unproven": 1,
+      "used": 0,
+      "used_type_only": 0
+    },
+    {
+      "files": 4,
+      "kind": "folder",
+      "lines": 212,
+      "modules_known": 4,
+      "path": "litellm/proxy/config_resolvers/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 4,
+      "used_type_only": 0
+    },
+    {
+      "files": 4,
+      "kind": "folder",
+      "lines": 1383,
+      "modules_known": 4,
+      "path": "litellm/proxy/container_endpoints/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 1,
+      "used": 3,
+      "used_type_only": 0
+    },
+    {
+      "files": 2,
+      "kind": "folder",
+      "lines": 578,
+      "modules_known": 2,
+      "path": "litellm/proxy/credential_endpoints/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 2,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 27,
+      "modules_known": 1,
+      "path": "litellm/proxy/custom_auth_auto.py",
+      "reached_from": [],
+      "unproven": 1,
+      "used": 0,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "folder",
+      "lines": 38,
+      "modules_known": 1,
+      "path": "litellm/proxy/custom_hooks/",
+      "reached_from": [],
+      "unproven": 1,
+      "used": 0,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 45,
+      "modules_known": 1,
+      "path": "litellm/proxy/custom_prompt_management.py",
+      "reached_from": [],
+      "unproven": 1,
+      "used": 0,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 46,
+      "modules_known": 1,
+      "path": "litellm/proxy/custom_sso.py",
+      "reached_from": [],
+      "unproven": 1,
+      "used": 0,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 5,
+      "modules_known": 1,
+      "path": "litellm/proxy/custom_validate.py",
+      "reached_from": [],
+      "unproven": 1,
+      "used": 0,
+      "used_type_only": 0
+    },
+    {
+      "files": 33,
+      "kind": "folder",
+      "lines": 11185,
+      "modules_known": 33,
+      "path": "litellm/proxy/db/",
+      "reached_from": [
+        "litellm.proxy.prisma_migration",
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 2,
+      "used": 31,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 58,
+      "modules_known": 1,
+      "path": "litellm/proxy/dd_span_tagger.py",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 2,
+      "kind": "folder",
+      "lines": 49,
+      "modules_known": 2,
+      "path": "litellm/proxy/discovery_endpoints/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 1,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 9,
+      "kind": "folder",
+      "lines": 568,
+      "modules_known": 9,
+      "path": "litellm/proxy/example_config_yaml/",
+      "reached_from": [],
+      "unproven": 9,
+      "used": 0,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "folder",
+      "lines": 638,
+      "modules_known": 1,
+      "path": "litellm/proxy/fine_tuning_endpoints/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 2,
+      "kind": "folder",
+      "lines": 949,
+      "modules_known": 2,
+      "path": "litellm/proxy/google_endpoints/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 1,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 131,
+      "kind": "folder",
+      "lines": 50194,
+      "modules_known": 131,
+      "path": "litellm/proxy/guardrails/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 106,
+      "used": 25,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 929,
+      "modules_known": 1,
+      "path": "litellm/proxy/health_check.py",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 2,
+      "kind": "folder",
+      "lines": 372,
+      "modules_known": 2,
+      "path": "litellm/proxy/health_check_utils/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 1,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "folder",
+      "lines": 2026,
+      "modules_known": 1,
+      "path": "litellm/proxy/health_endpoints/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 25,
+      "kind": "folder",
+      "lines": 13734,
+      "modules_known": 25,
+      "path": "litellm/proxy/hooks/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 5,
+      "used": 20,
+      "used_type_only": 0
+    },
+    {
+      "files": 2,
+      "kind": "folder",
+      "lines": 340,
+      "modules_known": 2,
+      "path": "litellm/proxy/image_endpoints/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 1,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 7,
+      "modules_known": 1,
+      "path": "litellm/proxy/lambda.py",
+      "reached_from": [],
+      "unproven": 1,
+      "used": 0,
+      "used_type_only": 0
+    },
+    {
+      "files": 4,
+      "kind": "folder",
+      "lines": 810,
+      "modules_known": 4,
+      "path": "litellm/proxy/list_api/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 1,
+      "used": 3,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 3239,
+      "modules_known": 1,
+      "path": "litellm/proxy/litellm_pre_call_utils.py",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 2,
+      "kind": "folder",
+      "lines": 200,
+      "modules_known": 2,
+      "path": "litellm/proxy/logging_endpoints/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 1,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 64,
+      "kind": "folder",
+      "lines": 54140,
+      "modules_known": 64,
+      "path": "litellm/proxy/management_endpoints/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 10,
+      "used": 54,
+      "used_type_only": 0
+    },
+    {
+      "files": 9,
+      "kind": "folder",
+      "lines": 2716,
+      "modules_known": 9,
+      "path": "litellm/proxy/management_helpers/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 9,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 35,
+      "modules_known": 1,
+      "path": "litellm/proxy/mcp_tools.py",
+      "reached_from": [],
+      "unproven": 1,
+      "used": 0,
+      "used_type_only": 0
+    },
+    {
+      "files": 2,
+      "kind": "folder",
+      "lines": 544,
+      "modules_known": 2,
+      "path": "litellm/proxy/memory/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 1,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 5,
+      "kind": "folder",
+      "lines": 646,
+      "modules_known": 5,
+      "path": "litellm/proxy/middleware/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 5,
+      "used_type_only": 0
+    },
+    {
+      "files": 2,
+      "kind": "folder",
+      "lines": 351,
+      "modules_known": 2,
+      "path": "litellm/proxy/ocr_endpoints/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 1,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 2,
+      "kind": "folder",
+      "lines": 1039,
+      "modules_known": 2,
+      "path": "litellm/proxy/openai_evals_endpoints/",
+      "reached_from": [],
+      "unproven": 2,
+      "used": 0,
+      "used_type_only": 0
+    },
+    {
+      "files": 7,
+      "kind": "folder",
+      "lines": 4414,
+      "modules_known": 7,
+      "path": "litellm/proxy/openai_files_endpoints/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 7,
+      "used_type_only": 0
+    },
+    {
+      "files": 23,
+      "kind": "folder",
+      "lines": 14766,
+      "modules_known": 23,
+      "path": "litellm/proxy/pass_through_endpoints/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 23,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 327,
+      "modules_known": 1,
+      "path": "litellm/proxy/plugin_routes.py",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 11,
+      "kind": "folder",
+      "lines": 4555,
+      "modules_known": 11,
+      "path": "litellm/proxy/policy_engine/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 3,
+      "used": 8,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 8,
+      "modules_known": 1,
+      "path": "litellm/proxy/post_call_rules.py",
+      "reached_from": [],
+      "unproven": 1,
+      "used": 0,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 45,
+      "modules_known": 1,
+      "path": "litellm/proxy/prisma_migration.py",
+      "reached_from": [
+        "litellm.proxy.prisma_migration"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 40,
+      "modules_known": 1,
+      "path": "litellm/proxy/prometheus_cleanup.py",
+      "reached_from": [
+        "litellm.proxy.prisma_migration"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 4,
+      "kind": "folder",
+      "lines": 1631,
+      "modules_known": 4,
+      "path": "litellm/proxy/prompts/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 1,
+      "used": 3,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 1454,
+      "modules_known": 1,
+      "path": "litellm/proxy/proxy_cli.py",
+      "reached_from": [
+        "litellm.proxy.prisma_migration"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 18504,
+      "modules_known": 1,
+      "path": "litellm/proxy/proxy_server.py",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 4,
+      "kind": "folder",
+      "lines": 875,
+      "modules_known": 4,
+      "path": "litellm/proxy/public_endpoints/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 1,
+      "used": 3,
+      "used_type_only": 0
+    },
+    {
+      "files": 3,
+      "kind": "folder",
+      "lines": 1098,
+      "modules_known": 3,
+      "path": "litellm/proxy/rag_endpoints/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 1,
+      "used": 2,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 29,
+      "modules_known": 1,
+      "path": "litellm/proxy/read_model_list.py",
+      "reached_from": [],
+      "unproven": 1,
+      "used": 0,
+      "used_type_only": 0
+    },
+    {
+      "files": 2,
+      "kind": "folder",
+      "lines": 650,
+      "modules_known": 2,
+      "path": "litellm/proxy/realtime_endpoints/",
+      "reached_from": [],
+      "unproven": 2,
+      "used": 0,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "folder",
+      "lines": 126,
+      "modules_known": 1,
+      "path": "litellm/proxy/rerank_endpoints/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "folder",
+      "lines": 1549,
+      "modules_known": 1,
+      "path": "litellm/proxy/response_api_endpoints/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 3,
+      "kind": "folder",
+      "lines": 745,
+      "modules_known": 3,
+      "path": "litellm/proxy/response_polling/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 1,
+      "used": 2,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 717,
+      "modules_known": 1,
+      "path": "litellm/proxy/route_llm_request.py",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 4,
+      "kind": "folder",
+      "lines": 1295,
+      "modules_known": 4,
+      "path": "litellm/proxy/search_endpoints/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 2,
+      "used": 2,
+      "used_type_only": 0
+    },
+    {
+      "files": 2,
+      "kind": "folder",
+      "lines": 175,
+      "modules_known": 2,
+      "path": "litellm/proxy/shutdown/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 1,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 12,
+      "kind": "folder",
+      "lines": 10261,
+      "modules_known": 12,
+      "path": "litellm/proxy/spend_tracking/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 12,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "folder",
+      "lines": 212,
+      "modules_known": 1,
+      "path": "litellm/proxy/types_utils/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 3,
+      "kind": "folder",
+      "lines": 1830,
+      "modules_known": 3,
+      "path": "litellm/proxy/ui_crud_endpoints/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 1,
+      "used": 2,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "file",
+      "lines": 7640,
+      "modules_known": 1,
+      "path": "litellm/proxy/utils.py",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 1,
+      "used_type_only": 0
+    },
+    {
+      "files": 3,
+      "kind": "folder",
+      "lines": 1816,
+      "modules_known": 3,
+      "path": "litellm/proxy/vector_store_endpoints/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 0,
+      "used": 3,
+      "used_type_only": 0
+    },
+    {
+      "files": 2,
+      "kind": "folder",
+      "lines": 1113,
+      "modules_known": 2,
+      "path": "litellm/proxy/vector_store_files_endpoints/",
+      "reached_from": [],
+      "unproven": 2,
+      "used": 0,
+      "used_type_only": 0
+    },
+    {
+      "files": 1,
+      "kind": "folder",
+      "lines": 226,
+      "modules_known": 1,
+      "path": "litellm/proxy/vertex_ai_endpoints/",
+      "reached_from": [],
+      "unproven": 1,
+      "used": 0,
+      "used_type_only": 0
+    },
+    {
+      "files": 3,
+      "kind": "folder",
+      "lines": 978,
+      "modules_known": 3,
+      "path": "litellm/proxy/video_endpoints/",
+      "reached_from": [
+        "litellm.tool_usage.startup"
+      ],
+      "unproven": 1,
+      "used": 2,
+      "used_type_only": 0
+    }
+  ]
+}

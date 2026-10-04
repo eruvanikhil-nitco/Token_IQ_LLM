@@ -14,6 +14,7 @@ import dataclasses
 import json
 import pathlib
 import platform
+import shutil
 import subprocess
 import sys
 import xml.etree.ElementTree as ElementTree
@@ -139,9 +140,19 @@ def from_json(text: str) -> Baseline:
     )
 
 
+def _resolve(program: str) -> str:
+    """Find the real executable.
+
+    On Windows `npm`, `npx` and `make` are `.cmd` shims that `subprocess` cannot find from a
+    bare name, and the alternative, `shell=True`, is banned for good reason.
+    """
+    return shutil.which(program) or program
+
+
 def _run(command: tuple[str, ...], cwd: pathlib.Path) -> tuple[int, str]:
+    resolved: Final = (_resolve(command[0]), *command[1:])
     finished: Final = subprocess.run(  # noqa: S603  # fixed argument vectors, never a shell string
-        command, cwd=cwd, capture_output=True, text=True, encoding="utf-8", errors="replace", check=False
+        resolved, cwd=cwd, capture_output=True, text=True, encoding="utf-8", errors="replace", check=False
     )
     tail: Final = (finished.stdout + finished.stderr).strip().splitlines()
     return finished.returncode, "\n".join(tail[-12:])
@@ -158,6 +169,9 @@ def capture_suite(name: str, paths: Iterable[str], repo: pathlib.Path, reports: 
 
 
 def capture_command(name: str, command: tuple[str, ...], repo: pathlib.Path) -> CommandRun:
+    if shutil.which(command[0]) is None:
+        # Recording "exit 1, tool missing" would read later as a real failure of that check.
+        return CommandRun(name=name, command=" ".join(command), exit_code=-1, summary=f"{command[0]} not installed")
     exit_code, summary = _run(command, repo)
     return CommandRun(name=name, command=" ".join(command), exit_code=exit_code, summary=summary)
 

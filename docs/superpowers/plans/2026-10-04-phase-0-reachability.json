@@ -3,6 +3,9 @@
     "litellm",
     "litellm.proxy.proxy_server",
     "litellm.proxy.proxy_cli",
+    "litellm.proxy.prisma_migration",
+    "litellm",
+    "litellm.proxy.client.cli",
     "deploy",
     "deploy.images",
     "deploy.images.build",
@@ -105,11 +108,11 @@
   ],
   "summary": {
     "counts": {
-      "unproven": 719,
-      "used": 1711,
+      "unproven": 716,
+      "used": 1714,
       "used-type-only": 1
     },
-    "entry_points": 102,
+    "entry_points": 105,
     "literal_sources": 5,
     "modules": 2431,
     "unparsed_files": 0,
@@ -10099,8 +10102,10 @@
     },
     "litellm.proxy.client": {
       "module": "litellm.proxy.client",
-      "reached_from": [],
-      "verdict": "unproven"
+      "reached_from": [
+        "litellm.proxy.client.cli"
+      ],
+      "verdict": "used"
     },
     "litellm.proxy.client.chat": {
       "module": "litellm.proxy.client.chat",
@@ -10109,8 +10114,10 @@
     },
     "litellm.proxy.client.cli": {
       "module": "litellm.proxy.client.cli",
-      "reached_from": [],
-      "verdict": "unproven"
+      "reached_from": [
+        "litellm.proxy.client.cli"
+      ],
+      "verdict": "used"
     },
     "litellm.proxy.client.cli.commands": {
       "module": "litellm.proxy.client.cli.commands",
@@ -10723,7 +10730,7 @@
     "litellm.proxy.db.check_migration": {
       "module": "litellm.proxy.db.check_migration",
       "reached_from": [
-        "litellm.proxy.proxy_cli"
+        "litellm.proxy.prisma_migration"
       ],
       "verdict": "used"
     },
@@ -10821,7 +10828,7 @@
     "litellm.proxy.db.db_url_settings": {
       "module": "litellm.proxy.db.db_url_settings",
       "reached_from": [
-        "litellm.proxy.proxy_cli"
+        "litellm.proxy.prisma_migration"
       ],
       "verdict": "used"
     },
@@ -10868,7 +10875,7 @@
     "litellm.proxy.db.query_engine_reaper": {
       "module": "litellm.proxy.db.query_engine_reaper",
       "reached_from": [
-        "litellm.proxy.proxy_cli"
+        "litellm.proxy.prisma_migration"
       ],
       "verdict": "used"
     },
@@ -12829,13 +12836,15 @@
     },
     "litellm.proxy.prisma_migration": {
       "module": "litellm.proxy.prisma_migration",
-      "reached_from": [],
-      "verdict": "unproven"
+      "reached_from": [
+        "litellm.proxy.prisma_migration"
+      ],
+      "verdict": "used"
     },
     "litellm.proxy.prometheus_cleanup": {
       "module": "litellm.proxy.prometheus_cleanup",
       "reached_from": [
-        "litellm.proxy.proxy_cli"
+        "litellm.proxy.prisma_migration"
       ],
       "verdict": "used"
     },
@@ -12868,7 +12877,7 @@
     "litellm.proxy.proxy_cli": {
       "module": "litellm.proxy.proxy_cli",
       "reached_from": [
-        "litellm.proxy.proxy_cli"
+        "litellm.proxy.prisma_migration"
       ],
       "verdict": "used"
     },
@@ -14197,7 +14206,7 @@
     "litellm.setup_wizard": {
       "module": "litellm.setup_wizard",
       "reached_from": [
-        "litellm.proxy.proxy_cli"
+        "litellm.proxy.prisma_migration"
       ],
       "verdict": "used"
     },

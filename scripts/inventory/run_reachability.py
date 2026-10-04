@@ -9,6 +9,7 @@ import dataclasses
 import json
 import pathlib
 import subprocess
+import tomllib
 from collections.abc import Sequence
 from typing import Final
 
@@ -43,12 +44,23 @@ LITERAL_SOURCES: Final[tuple[str, ...]] = (
     "litellm.proxy.prompts.prompt_registry",
 )
 
-# The process entry point, plus the modules a console script names.
+# The process entry points that nothing imports. Hardcoding these was a mistake once already:
+# `litellm.proxy.client.cli` is a declared console script, and leaving it out made 7,356 lines
+# of CLI look dead. The console scripts are now read from pyproject rather than listed here.
 SEED_MODULES: Final[tuple[str, ...]] = (
     "litellm",
     "litellm.proxy.proxy_server",
     "litellm.proxy.proxy_cli",
+    # Run as a script by the container entrypoint, never imported.
+    "litellm.proxy.prisma_migration",
 )
+
+
+def console_script_modules(repo: pathlib.Path) -> tuple[str, ...]:
+    """Modules named by `[project.scripts]`, which are entry points by definition."""
+    config: Final = tomllib.loads((repo / "pyproject.toml").read_text(encoding="utf-8"))
+    targets: Final = config.get("project", {}).get("scripts", {})
+    return tuple(sorted({str(target).split(":", 1)[0] for target in targets.values()}))
 
 
 def token_iq_modules(repo: pathlib.Path) -> tuple[str, ...]:
@@ -96,7 +108,7 @@ def summarise(graph: Graph) -> dict[str, object]:
 
 def main(argv: Sequence[str] | None = None) -> int:
     del argv
-    entries: Final = (*SEED_MODULES, *token_iq_modules(REPO))
+    entries: Final = (*SEED_MODULES, *console_script_modules(REPO), *token_iq_modules(REPO))
     graph: Final = analyse(REPO, entry_points=entries, skip=SKIP, literal_sources=LITERAL_SOURCES)
 
     payload: Final = {

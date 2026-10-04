@@ -6,6 +6,12 @@
       "exit_code": 1,
       "name": "ci_coverage",
       "summary": "  - tests/deploy: 4 test file(s) invoked by no job: test_image_build.py, test_installation_isolation.py, test_manifest.py, +1 more\n  - tests/test_litellm/attribution: 1 test file(s) invoked by no job: test_gap_owner.py\n  - tests/test_litellm/ledger: 1 test file(s) invoked by no job: test_reconciliation.py\n  - tests/test_litellm/overview: 1 test file(s) invoked by no job: test_totals.py\n  - tests/test_litellm/provider_billing/contract: 6 test file(s) invoked by no job: test_anthropic_contract.py, test_azure_contract.py, test_bedrock_contract.py, +3 more\n  - tests/test_litellm/provider_billing: 15 test file(s) invoked by no job: test_anthropic_connector.py, test_azure_connector.py, test_bedrock_connector.py, +12 more\n  - tests/test_litellm/recommendations: 5 test file(s) invoked by no job: test_escaped_spend.py, test_failed_requests.py, test_provider_concentration.py, +2 more\n  - tests/test_litellm/seats: 1 test file(s) invoked by no job: test_user_cost.py\n  - tests/test_litellm/tool_usage/contract: 3 test file(s) invoked by no job: test_claude_code_contract.py, test_copilot_contract.py, test_cursor_contract.py\n  - tests/test_litellm/tool_usage: 4 test file(s) invoked by no job: test_credential_purpose.py, test_runner.py, test_startup.py, +1 more\n\nAdd each to a job's test path, or list it in .github/ci-coverage-allowlist.yml with a reason."
+    },
+    {
+      "command": "make lint",
+      "exit_code": -1,
+      "name": "lint",
+      "summary": "make not installed"
     }
   ],
   "commit": "c9603947a02ecdeadb7345721e167c68625e2e35",
