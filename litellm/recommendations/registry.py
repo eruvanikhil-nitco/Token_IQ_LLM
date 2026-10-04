@@ -13,6 +13,7 @@ from typing import Final, Protocol
 from litellm.recommendations.inputs import RuleInput
 from litellm.recommendations.rules.escaped_spend import escaped_spend
 from litellm.recommendations.rules.failed_requests import failed_requests
+from litellm.recommendations.rules.price_drift import price_drift
 from litellm.recommendations.rules.provider_concentration import provider_concentration
 from litellm.recommendations.rules.stale_budget import stale_budget
 from litellm.types.proxy.recommendation import Recommendation
@@ -29,7 +30,13 @@ class Rule(Protocol):
     def __call__(self, rule_input: RuleInput) -> Recommendation | None: ...
 
 
-_RULES: Final[tuple[Rule, ...]] = (escaped_spend, failed_requests, provider_concentration, stale_budget)
+_RULES: Final[tuple[Rule, ...]] = (
+    escaped_spend,
+    failed_requests,
+    price_drift,
+    provider_concentration,
+    stale_budget,
+)
 """Every rule, in the order their cards are offered to a reader.
 
 A rule is registered here and nowhere else, so the set a screen shows is readable in one place."""

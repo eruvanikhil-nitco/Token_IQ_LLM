@@ -18,6 +18,21 @@ _NO_SPEND: Final[Mapping[str, Decimal]] = MappingProxyType({})
 
 
 @dataclass(frozen=True, slots=True)
+class ModelPriceVariance:
+    """What one model cost according to each side, and for how long they have disagreed.
+
+    The gateway figure is calculated from the price list; the provider figure is what the
+    bill said. A sustained gap means the list price is wrong, which no amount of reviewing
+    upstream's changes can catch on its own.
+    """
+
+    model: str
+    consecutive_days: int
+    gateway_priced: Decimal
+    provider_billed: Decimal
+
+
+@dataclass(frozen=True, slots=True)
 class BudgetSnapshot:
     """One budget and what was actually spent against it."""
 
@@ -43,3 +58,4 @@ class RuleInput:
     spend_on_failures: Decimal | None = None
     spend_by_provider: Mapping[str, Decimal] = _NO_SPEND
     budgets: tuple[BudgetSnapshot, ...] = ()
+    model_price_variances: tuple[ModelPriceVariance, ...] = ()
