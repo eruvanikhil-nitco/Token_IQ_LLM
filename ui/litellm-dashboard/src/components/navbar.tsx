@@ -110,14 +110,6 @@ const Navbar: React.FC<NavbarProps> = ({
                     </span>
                   )}
                   <Badge variant="outline" className="relative z-raised cursor-pointer text-xs font-medium">
-                    <a
-                      href="https://docs.litellm.ai/release_notes"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="shrink-0"
-                    >
-                      v{version}
-                    </a>
                   </Badge>
                 </div>
               )}

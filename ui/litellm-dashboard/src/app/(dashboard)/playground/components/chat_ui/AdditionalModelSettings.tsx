@@ -163,15 +163,7 @@ const AdditionalModelSettings: React.FC<AdditionalModelSettingsProps> = ({
                 fallback setup.
               </p>
               <p>
-                Behavior can differ when keys, teams, or router settings are configured.{" "}
-                <a
-                  href="https://docs.litellm.ai/docs/proxy/keys_teams_router_settings"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-info hover:text-info/80"
-                >
-                  Learn more
-                </a>
+                Behavior can differ when keys, teams, or router settings are configured.
               </p>
             </PopoverContent>
           </Popover>

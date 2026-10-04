@@ -70,15 +70,7 @@ const PassThroughGuardrailsSection: React.FC<PassThroughGuardrailsSectionProps> 
         <Alert variant="info" className="mb-4">
           <Info />
           <AlertTitle>
-            Field-Level Targeting{" "}
-            <a
-              href="https://docs.litellm.ai/docs/proxy/pass_through_guardrails#field-level-targeting"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-info underline hover:text-info/80"
-            >
-              (Learn More)
-            </a>
+            Field-Level Targeting
           </AlertTitle>
           <AlertDescription>
             <div className="space-y-2">

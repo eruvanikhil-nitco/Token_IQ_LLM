@@ -164,15 +164,6 @@ export default function CyberArk() {
               <Info />
               <AlertTitle>Configuration changes are hot-reloaded across all proxy instances</AlertTitle>
               <AlertDescription>
-                <a
-                  href="https://docs.litellm.ai/docs/secret_managers/cyberark"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1"
-                >
-                  View documentation
-                  <ExternalLink className="size-3" />
-                </a>
               </AlertDescription>
             </Alert>
           )}

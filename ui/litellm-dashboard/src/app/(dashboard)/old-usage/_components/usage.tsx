@@ -537,11 +537,6 @@ const UsagePage: React.FC<UsagePageProps> = ({ accessToken, token, userRole, use
               Please follow our guide to view usage when SpendLogs has more than 1M rows.
             </p>
             <Button
-              render={
-                <a href="https://docs.litellm.ai/docs/proxy/cost_tracking" target="_blank" rel="noreferrer">
-                  View Usage Guide
-                </a>
-              }
             />
           </CardContent>
         </Card>
@@ -788,15 +783,7 @@ const UsagePage: React.FC<UsagePageProps> = ({ accessToken, token, userRole, use
 
         <TabsContent value="customer-usage" keepMounted>
           <p className="mb-2 text-[12px] text-muted-foreground italic">
-            Customers of your LLM API calls. Tracked when a `user` param is passed in your LLM calls{" "}
-            <a
-              className="text-primary"
-              href="https://docs.litellm.ai/docs/proxy/users"
-              target="_blank"
-              rel="noreferrer"
-            >
-              docs here
-            </a>
+            Customers of your LLM API calls. Tracked when a `user` param is passed in your LLM calls
           </p>
           <div className="grid grid-cols-2">
             <div>
@@ -920,15 +907,7 @@ const UsagePage: React.FC<UsagePageProps> = ({ accessToken, token, userRole, use
                 </CardHeader>
                 <CardContent className="flex flex-col gap-2">
                   <p className="text-sm text-muted-foreground">
-                    Get Started by Tracking cost per tag{" "}
-                    <a
-                      className="text-primary"
-                      href="https://docs.litellm.ai/docs/proxy/cost_tracking"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      here
-                    </a>
+                    Get Started by Tracking cost per tag
                   </p>
                   <BarChart className="h-72" data={topTagsData} index="name" categories={["spend"]} colors={["cyan"]} />
                 </CardContent>

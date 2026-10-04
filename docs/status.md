@@ -286,3 +286,33 @@ The three are not equal and should not be treated as such:
 Provider API changes is the first of the three to hand off when there is somebody to hand it
 to. Prices is the one that must never quietly lapse, because a stale price breaks every
 figure in the product without failing anything.
+
+## Token IQ has no documentation site, and the dashboard now shows that
+
+Decided 4 Oct 2026, during phase 2 Task 6.
+
+The dashboard carried 81 links to `docs.litellm.ai` across 52 files. They described a
+different product, for features Token IQ is deleting in phase 5 and renaming in phases 7 to
+9, so following one took a customer somewhere increasingly wrong. They are being removed
+rather than repointed, because there is nowhere to repoint them to.
+
+**This is a real gap, not a tidy-up.** Several of those links were the only explanation a
+customer had for a setting. Where the component carried useful text as well as a link, the
+text is kept and only the link is dropped: `DocsHint` and `labelWithDocsHint` now render
+their tooltip without wrapping it in an anchor, so every word of explanation survives.
+Where the link was the whole content, such as a "Docs" nav item or a "Read the docs" button,
+it is gone.
+
+Token IQ needs its own documentation before it is sold to anyone who did not build it. Until
+then the product explains itself only through the in-page copy, the glossary in
+`docs/README.md`, and the help text in the blueprint's page model.
+
+### Task 6 is not finished
+
+Done: all 334 Python references, the three paid-tier upsells, and roughly 30 of the 52 UI
+files. The dashboard compiles and type-checks.
+
+Left: `LogDetailContent`, `APIReferenceView`, `cost_tracking_settings`, `Fallbacks`, the
+`HelpLink` JSDoc examples, about 13 test files asserting on links that no longer exist, and
+a regeneration of `schema.d.ts`. `scripts/remove_ui_doc_links.py` reports exactly which
+files remain when run with `--write`.

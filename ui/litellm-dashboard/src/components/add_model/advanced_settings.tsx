@@ -139,14 +139,6 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
                 <span>
                   Attached Knowledge Bases (RAG){" "}
                   <SimpleTooltip content="Vector stores to use for RAG. Every request to this model will automatically retrieve context from these knowledge bases.">
-                    <a
-                      href="https://docs.litellm.ai/docs/completion/knowledgebase"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Info className="ml-1 inline size-3.5 align-text-bottom" />
-                    </a>
                   </SimpleTooltip>
                 </span>
               }
@@ -169,14 +161,6 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
                 <span>
                   Guardrails{" "}
                   <SimpleTooltip content="Apply safety guardrails to this key to filter content or enforce policies">
-                    <a
-                      href="https://docs.litellm.ai/docs/proxy/guardrails/quick_start"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()} // Prevent accordion from collapsing when clicking link
-                    >
-                      <Info className="ml-1 inline size-3.5 align-text-bottom" />
-                    </a>
                   </SimpleTooltip>
                 </span>
               }
@@ -351,15 +335,7 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
               label={labelWithHint(
                 "Use in pass through routes",
                 <span>
-                  Allow using these credentials in pass through routes.{" "}
-                  <a
-                    href="https://docs.litellm.ai/docs/pass_through/vertex_ai"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary underline-offset-4 hover:underline"
-                  >
-                    Learn more
-                  </a>
+                  Allow using these credentials in pass through routes.
                 </span>,
               )}
               className="mb-4 mt-4"
@@ -422,15 +398,7 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
             </MountedFormField>
             <div className="grid grid-cols-24 mb-4">
               <p className="col-start-11 col-span-10 text-muted-foreground text-sm">
-                Pass JSON of litellm supported params{" "}
-                <a
-                  href="https://docs.litellm.ai/docs/completion/input"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary underline-offset-4 hover:underline"
-                >
-                  litellm.completion() call
-                </a>
+                Pass JSON of litellm supported params
               </p>
             </div>
             <MountedFormField

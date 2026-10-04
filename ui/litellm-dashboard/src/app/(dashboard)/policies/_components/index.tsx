@@ -70,14 +70,6 @@ const AboutPoliciesAlert = () => (
       <li>Group guardrails into a single policy</li>
       <li>Inherit from existing policies and override what you need</li>
     </ul>
-    <a
-      href="https://docs.litellm.ai/docs/proxy/guardrails/guardrail_policies"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="mt-1 inline-block text-primary underline underline-offset-4"
-    >
-      Learn more in the documentation -&gt;
-    </a>
   </DismissibleAlert>
 );
 
@@ -561,14 +553,6 @@ const PoliciesPanel: React.FC<PoliciesPanelProps> = ({ accessToken, userRole }) 
                 <code>prod-*</code>).
               </li>
             </ul>
-            <a
-              href="https://docs.litellm.ai/docs/proxy/guardrails/guardrail_policies#attachments"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-1 inline-block text-primary underline underline-offset-4"
-            >
-              Learn more about attachments -&gt;
-            </a>
           </DismissibleAlert>
 
           <DismissibleAlert title="Enterprise Feature Notice" icon={<TriangleAlert />}>

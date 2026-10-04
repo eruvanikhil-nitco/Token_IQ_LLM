@@ -25,15 +25,7 @@ const SECRET_KEY_PATH = ["credentials", "aws_secret_access_key"] as const;
 const AwsSigV4Fields: React.FC = () => (
   <>
     <p className="text-sm text-muted-foreground mb-2">
-      For MCP servers hosted on AWS Bedrock AgentCore.{" "}
-      <a
-        href="https://docs.litellm.ai/docs/mcp_aws_sigv4"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-info hover:text-info/80"
-      >
-        View docs &rarr;
-      </a>
+      For MCP servers hosted on AWS Bedrock AgentCore.
     </p>
     <MountedFormField
       label={<FieldLabel label="AWS Region" tooltip="AWS region for SigV4 signing (e.g., us-east-1)" />}

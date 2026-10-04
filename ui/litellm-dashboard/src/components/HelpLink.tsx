@@ -24,21 +24,15 @@ interface DocsMenuProps {
  *
  * @example
  * // Inline "Learn more" style
- * <HelpLink href="https://docs.litellm.ai/docs/proxy/custom_pricing">
- *   Learn more about custom pricing
- * </HelpLink>
+ * 
  *
  * @example
  * // Subtle link (just icon + text, minimal styling)
- * <HelpLink href="https://docs.litellm.ai/docs/proxy/cost_tracking" variant="subtle">
- *   View docs
- * </HelpLink>
+ * 
  *
  * @example
  * // Button style (more prominent)
- * <HelpLink href="https://docs.litellm.ai/docs/proxy/custom_pricing" variant="button">
- *   Custom Pricing Documentation
- * </HelpLink>
+ * 
  */
 export const HelpLink: React.FC<HelpLinkProps> = ({
   href,

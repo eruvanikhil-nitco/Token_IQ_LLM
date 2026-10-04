@@ -316,11 +316,7 @@ const Hint: React.FC<{ text: string }> = ({ text }) => (
   </Tooltip>
 );
 
-const DocsHint: React.FC<{ text: string; href: string }> = ({ text, href }) => (
-  <a href={href} target="_blank" rel="noopener noreferrer" onClick={(event) => event.stopPropagation()}>
-    <Hint text={text} />
-  </a>
-);
+const DocsHint: React.FC<{ text: string }> = ({ text }) => <Hint text={text} />;
 
 const ChipList: React.FC<{ values: unknown; emptyLabel: string }> = ({ values, emptyLabel }) => {
   if (!values) {
@@ -564,7 +560,6 @@ const ModelInfoEditForm: React.FC<ModelInfoEditFormProps> = ({
                 Guardrails
                 <DocsHint
                   text="Apply safety guardrails to this model to filter content or enforce policies"
-                  href="https://docs.litellm.ai/docs/proxy/guardrails/quick_start"
                 />
               </FieldLabel>
               {isEditing ? (
@@ -585,7 +580,6 @@ const ModelInfoEditForm: React.FC<ModelInfoEditFormProps> = ({
                 Attached Knowledge Bases (RAG)
                 <DocsHint
                   text="Vector stores used for RAG. Every request to this model will automatically retrieve context from these knowledge bases."
-                  href="https://docs.litellm.ai/docs/completion/knowledgebase"
                 />
               </FieldLabel>
               {isEditing ? (
@@ -778,7 +772,6 @@ const ModelInfoEditForm: React.FC<ModelInfoEditFormProps> = ({
                 Provider Params
                 <DocsHint
                   text="Optional litellm params used for making a litellm.completion() call. Some params are automatically added by Token IQ."
-                  href="https://docs.litellm.ai/docs/completion/input"
                 />
               </FieldLabel>
               {isEditing ? (

@@ -31,7 +31,7 @@ const APIReferenceView: React.FC<ApiRefProps> = ({ proxySettings }) => {
 
         <p className="mt-2 mb-2 text-sm text-muted-foreground">
           Token IQ is OpenAI Compatible. This means your API Key works with the OpenAI SDK. Just replace the base_url to
-          point to your litellm proxy. Example Below{" "}
+          point to your litellm proxy. Example Below
         </p>
 
         <Tabs defaultValue="openai">

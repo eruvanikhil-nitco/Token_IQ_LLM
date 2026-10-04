@@ -24,15 +24,7 @@ function EmptyState() {
       </div>
       <div className="text-sm font-medium text-foreground">No available teams to join</div>
       <div className="text-sm text-muted-foreground">
-        See how to set available teams{" "}
-        <a
-          href="https://docs.litellm.ai/docs/proxy/self_serve#all-settings-for-self-serve--sso-flow"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-primary underline-offset-4 hover:underline"
-        >
-          here
-        </a>
+        See how to set available teams
       </div>
     </div>
   );

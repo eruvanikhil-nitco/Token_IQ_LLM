@@ -93,14 +93,6 @@ const EmailSettings: React.FC<EmailSettingsProps> = ({ accessToken, premiumUser,
         <CardHeader>
           <CardTitle className="text-base">Email Server Settings</CardTitle>
           <p className="text-sm">
-            <a
-              href="https://docs.litellm.ai/docs/proxy/email"
-              target="_blank"
-              rel="noreferrer"
-              className="text-primary underline underline-offset-4"
-            >
-              Token IQ Docs: email alerts
-            </a>
           </p>
         </CardHeader>
 

@@ -30,7 +30,7 @@ describe("Button", () => {
   });
 
   it("renders the element passed via the render prop with button semantics", () => {
-    render(<Button nativeButton={false} render={<a href="https://docs.litellm.ai">Docs</a>} />);
+    render(<Button nativeButton={false} render={} />);
     const button = screen.getByRole("button", { name: "Docs" });
     expect(button.tagName).toBe("A");
     expect(button).toHaveAttribute("href", "https://docs.litellm.ai");

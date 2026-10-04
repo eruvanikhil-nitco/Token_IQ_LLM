@@ -481,12 +481,6 @@ const EntityUsage: React.FC<EntityUsageProps> = ({
               <p className="text-xs text-muted-foreground">Showing Top 5 by Spend</p>
               <div className="flex items-center text-sm text-muted-foreground">
                 <span>Get Started by Tracking cost per {capitalizedEntityLabel} </span>
-                <a
-                  href="https://docs.litellm.ai/docs/proxy/enterprise#spend-tracking"
-                  className="text-info hover:text-info/80 ml-1"
-                >
-                  here
-                </a>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-6">

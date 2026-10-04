@@ -206,7 +206,6 @@ ${formattedBody}
         variant="link"
         className="px-0"
         nativeButton={false}
-        render={<a href="https://docs.litellm.ai/docs/providers" target="_blank" rel="noopener noreferrer" />}
       >
         <Info data-icon="inline-start" />
         View Documentation
