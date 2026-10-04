@@ -209,3 +209,54 @@ this is the first thing to finish before any code moves.
 
 **Phase 5 does not start until the owner approves the inventory.** That approval is the whole
 point of this phase.
+
+## Phase 1 of the independent-codebase programme, 4 Oct 2026
+
+Plan: `docs/plans/2026-10-04-phase-1-decisions-licence-documentation.md`
+
+Documentation only. No behaviour changed.
+
+### What was written
+
+Decision records `0022-independent-codebase.md` and `0023-remove-litellm-names.md`, with
+`0021` marked superseded. `LICENSE` corrected and `NOTICE` added. `docs/README.md` with the
+glossary of the seven terms the product's screens use without explaining.
+`docs/product/README.md` on how to read the blueprint. `README.md` and `CLAUDE.md` rewritten.
+
+### The documentation now lives here
+
+`docs/status.md`, `docs/decisions/` (24), `docs/plans/` (34), `docs/specs/` (5),
+`docs/product/` (4). `project_usage/` and `docs/superpowers/` are gone.
+
+### Three things worth remembering
+
+**The case-only rename did exactly what the plan warned.** `git mv docs/Product docs/product`
+reported success and left the directory named `Product`, because this filesystem does not
+distinguish the two. Done through a temporary name instead. Any future case-only rename needs
+the same treatment and needs checking with `git ls-files`, not `ls`.
+
+**A literal search missed five files.** Eighteen files referenced the old paths as strings
+and were rewritten. Five more built the same path from separate segments
+(`REPO / "docs" / "superpowers" / "plans"`), so searching for `docs/superpowers` did not find
+them. Those were the inventory scripts, which would have written their artifacts into a
+folder that no longer exists.
+
+**The blueprint and the restructure document were never in git.** Both arrived as browser
+downloads, complete with `(1)` in their names. The two documents the whole programme is
+written against existed only on one machine until this phase.
+
+### A defect found while working, not fixed here
+
+**Importing `litellm.proxy.proxy_server` rewrites the committed UI bundle in place.** At
+module scope, around line 1998 of `proxy_server.py`, it reads every file under
+`litellm/proxy/_experimental/out/` and writes back a copy with `/litellm-asset-prefix`
+replaced by `$SERVER_ROOT_PATH`. It is not inside a function and nothing guards it.
+
+So any test that sets `SERVER_ROOT_PATH` and imports the proxy permanently modifies 548
+tracked files. It happened twice during this work, both times from the unit suite, and each
+time left the working tree holding a bundle whose assets all point at `/my-custom-path/`.
+Committing that would make the proxy serve a UI whose every stylesheet and script 404s.
+
+Not fixed here because phase 1 changes no behaviour. It belongs with the other defects in
+phase 11. Until then, check `git status` for changes under `_experimental/out/` after running
+the Python suite, and restore with `git checkout -- litellm/proxy/_experimental/out/`.
