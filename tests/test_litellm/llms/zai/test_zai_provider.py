@@ -16,7 +16,7 @@ from litellm.cost_calculator import cost_per_token
 @pytest.fixture
 def local_model_cost_map(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map(url=""))
+    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
 
 
 @pytest.fixture

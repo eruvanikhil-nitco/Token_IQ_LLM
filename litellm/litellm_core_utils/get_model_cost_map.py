@@ -1,25 +1,20 @@
+"""The cost, context window and provider route for every model Token IQ can price.
+
+Read from the file bundled with this package and from nowhere else. Nothing is fetched at
+runtime, so an installation behind a firewall prices exactly as one with open egress does.
+
+A stale price is the failure this guards against, and it is a silent one: nothing crashes,
+no test goes red, the ledger keeps reconciling, and every figure the product reports is
+wrong for any model whose price moved. Freshness is therefore a build-time concern, handled
+by the daily update job in `scripts/update_model_prices.py`, which proposes upstream's
+changes as a reviewed pull request rather than letting a running process decide.
 """
-Pulls the cost + context window + provider route for known models from https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json
 
-This can be disabled by setting the LITELLM_LOCAL_MODEL_COST_MAP environment variable to True.
-
-```
-export LITELLM_LOCAL_MODEL_COST_MAP=True
-```
-"""
-
-import asyncio
 import json
-import os
-import random
-import time
-from collections.abc import Awaitable, Callable
+import pathlib
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from importlib.resources import files
-from typing import Final, Protocol
-
-import httpx
+from typing import Final
 
 from litellm import verbose_logger
 from litellm.constants import (
@@ -31,6 +26,15 @@ from litellm.litellm_core_utils.fallback_generalizations import (
 )
 
 FALLBACK_GENERALIZATIONS_KEY: Final = "fallback_generalizations"
+
+# The single source of prices. One copy on purpose: there were two byte-identical 2.1MB
+# files kept in step by convention, and two copies of anything eventually disagree.
+PRICES_PATH: Final = pathlib.Path(__file__).resolve().parents[2] / "data" / "pricing" / "model_prices.json"
+
+
+def load_bundled_prices() -> dict:
+    """The bundled price list, as written. No network, no fallback, no second copy."""
+    return json.loads(PRICES_PATH.read_text(encoding="utf-8"))
 
 # Reserved top-level keys that are not model entries. They must be excluded
 # from the model-count integrity check so a real upstream shrink can't be masked.
@@ -55,9 +59,9 @@ class GetModelCostMap:
 
     @staticmethod
     def load_local_model_cost_map() -> dict:
-        """Load the local backup model cost map bundled with the package."""
+        """Kept as the name the rest of the codebase already calls. Reads the bundled file."""
         content: Final = json.loads(
-            files("litellm").joinpath("model_prices_and_context_window_backup.json").read_text(encoding="utf-8")
+            PRICES_PATH.read_text(encoding="utf-8")
         )
         return content
 
@@ -156,11 +160,6 @@ class GetModelCostMap:
         return True
 
 
-RETRYABLE_FETCH_STATUS_CODES: Final = frozenset({429, 500, 502, 503, 504})
-MODEL_COST_MAP_FETCH_MAX_ATTEMPTS: Final = 3
-MODEL_COST_MAP_FETCH_MAX_WAIT_SECONDS: Final = 30.0
-
-
 @dataclass(frozen=True, slots=True)
 class ModelCostMapReloaded:
     model_cost_map: dict  # mutable-ok: adopted as litellm.model_cost, whose consumer contract is a plain mutable dict
@@ -174,203 +173,29 @@ class ModelCostMapReloadUnavailable:
 ModelCostMapReloadResult = ModelCostMapReloaded | ModelCostMapReloadUnavailable
 
 
-@dataclass(frozen=True, slots=True)
-class _FetchAttemptRetryable:
-    reason: str
-    retry_after_seconds: float | None
+async def refetch_model_cost_map() -> ModelCostMapReloadResult:
+    """Re-read the bundled price file.
 
-
-def _parse_retry_after_seconds(response: httpx.Response) -> float | None:
-    header: Final = response.headers.get("Retry-After")
-    if header is None:
-        return None
-    try:
-        seconds: Final = float(header)
-    except ValueError:
-        return None
-    return seconds if seconds >= 0 else None
-
-
-def _retry_wait_seconds(outcome: _FetchAttemptRetryable, attempt: int, rng: random.Random) -> float:
-    if outcome.retry_after_seconds is not None:
-        return min(outcome.retry_after_seconds, MODEL_COST_MAP_FETCH_MAX_WAIT_SECONDS)
-    return min(float(2**attempt) + rng.uniform(0.0, 1.0), MODEL_COST_MAP_FETCH_MAX_WAIT_SECONDS)
-
-
-class _AsyncGetClient(Protocol):
-    def get(self, url: str, *, timeout: float | None = None) -> Awaitable[httpx.Response]: ...
-
-
-class _SyncGetClient(Protocol):
-    def get(self, url: str, *, timeout: float | None = None) -> httpx.Response: ...
-
-
-_FetchAttemptOutcome = ModelCostMapReloaded | ModelCostMapReloadUnavailable | _FetchAttemptRetryable
-
-
-def _default_reload_client() -> _AsyncGetClient:
-    from litellm.llms.custom_httpx.http_handler import get_async_httpx_client
-    from litellm.types.llms.custom_http import httpxSpecialProvider
-
-    return get_async_httpx_client(llm_provider=httpxSpecialProvider.ModelCostMap)
-
-
-def _classify_fetch_error(error: httpx.HTTPError | httpx.InvalidURL, url: str) -> _FetchAttemptOutcome:
-    reason: Final = f"{type(error).__name__} fetching {url}: {error}"
-    if isinstance(error, (httpx.InvalidURL, httpx.UnsupportedProtocol)):
-        return ModelCostMapReloadUnavailable(reason=reason)
-    return _FetchAttemptRetryable(reason=reason, retry_after_seconds=None)
-
-
-async def _attempt_fetch(client: _AsyncGetClient, url: str, timeout: int) -> _FetchAttemptOutcome:
-    try:
-        response: Final = await client.get(url, timeout=timeout)
-    except (httpx.HTTPError, httpx.InvalidURL) as e:
-        return _classify_fetch_error(e, url)
-    return _classify_fetch_response(response, url)
-
-
-def _attempt_fetch_sync(client: _SyncGetClient, url: str, timeout: int) -> _FetchAttemptOutcome:
-    try:
-        response: Final = client.get(url, timeout=timeout)
-    except (httpx.HTTPError, httpx.InvalidURL) as e:
-        return _classify_fetch_error(e, url)
-    return _classify_fetch_response(response, url)
-
-
-def _classify_fetch_response(response: httpx.Response, url: str) -> _FetchAttemptOutcome:
-    if response.status_code in RETRYABLE_FETCH_STATUS_CODES:
-        return _FetchAttemptRetryable(
-            reason=f"HTTP {response.status_code} from {url}",
-            retry_after_seconds=_parse_retry_after_seconds(response),
-        )
-    if response.is_error:
-        return ModelCostMapReloadUnavailable(reason=f"HTTP {response.status_code} from {url}")
-    try:
-        parsed: Final = response.json()
-    except ValueError as e:
-        return ModelCostMapReloadUnavailable(reason=f"invalid JSON from {url}: {e}")
-    if not isinstance(parsed, dict):
-        return ModelCostMapReloadUnavailable(reason=f"expected a JSON object from {url}, got {type(parsed).__name__}")
-    return ModelCostMapReloaded(model_cost_map=parsed)
-
-
-def _next_retry_wait(
-    outcome: _FetchAttemptRetryable, attempt: int, max_attempts: int, rng: random.Random
-) -> float | ModelCostMapReloadUnavailable:
-    if attempt == max_attempts:
-        return ModelCostMapReloadUnavailable(reason=f"{outcome.reason} (after {max_attempts} attempts)")
-    wait_seconds: Final = _retry_wait_seconds(outcome=outcome, attempt=attempt, rng=rng)
-    verbose_logger.warning(
-        "LiteLLM: model cost map fetch attempt %d/%d failed (%s); retrying in %.1fs",
-        attempt,
-        max_attempts,
-        outcome.reason,
-        wait_seconds,
-    )
-    return wait_seconds
-
-
-async def _fetch_remote_model_cost_map_with_retry(
-    url: str,
-    timeout: int,
-    max_attempts: int,
-    sleep: Callable[[float], Awaitable[None]],
-    rng: random.Random,
-    client: _AsyncGetClient,
-) -> ModelCostMapReloadResult:
-    for attempt in range(1, max_attempts + 1):
-        outcome = await _attempt_fetch(client=client, url=url, timeout=timeout)
-        if not isinstance(outcome, _FetchAttemptRetryable):
-            return outcome
-        wait_seconds = _next_retry_wait(outcome=outcome, attempt=attempt, max_attempts=max_attempts, rng=rng)
-        if isinstance(wait_seconds, ModelCostMapReloadUnavailable):
-            return wait_seconds
-        await sleep(wait_seconds)
-    return ModelCostMapReloadUnavailable(reason="model cost map fetch failed")
-
-
-def _fetch_remote_model_cost_map_with_retry_sync(
-    url: str,
-    timeout: int,
-    max_attempts: int,
-    sleep: Callable[[float], None],
-    rng: random.Random,
-    client: _SyncGetClient,
-) -> ModelCostMapReloadResult:
-    for attempt in range(1, max_attempts + 1):
-        outcome = _attempt_fetch_sync(client=client, url=url, timeout=timeout)
-        if not isinstance(outcome, _FetchAttemptRetryable):
-            return outcome
-        wait_seconds = _next_retry_wait(outcome=outcome, attempt=attempt, max_attempts=max_attempts, rng=rng)
-        if isinstance(wait_seconds, ModelCostMapReloadUnavailable):
-            return wait_seconds
-        sleep(wait_seconds)
-    return ModelCostMapReloadUnavailable(reason="model cost map fetch failed")
-
-
-async def refetch_model_cost_map(
-    url: str,
-    timeout: int = 5,
-    max_attempts: int = MODEL_COST_MAP_FETCH_MAX_ATTEMPTS,
-    sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
-    rng: random.Random | None = None,
-    client: "_AsyncGetClient | None" = None,
-) -> ModelCostMapReloadResult:
+    Kept for the admin reload endpoints, whose purpose changes rather than disappearing:
+    they used to pull a fresh copy from upstream, and now they pick up a file that a deploy
+    swapped underneath a running process. There is nothing to fetch and nothing to fall back
+    to, so the only failure left is a file that will not parse.
     """
-    Re-fetch the model cost map for a runtime reload, retrying transient HTTP
-    errors (429/5xx/transport) with Retry-After-aware backoff.
-
-    Unlike ``get_model_cost_map`` this never falls back to the packaged backup:
-    on failure it returns ``ModelCostMapReloadUnavailable`` so callers keep the
-    map they already have.
-    """
-    if os.getenv("LITELLM_LOCAL_MODEL_COST_MAP", "").lower() == "true":
-        _cost_map_source_info.source = "local"
-        _cost_map_source_info.url = None
-        _cost_map_source_info.is_env_forced = True
-        _cost_map_source_info.fallback_reason = None
-        return ModelCostMapReloaded(
-            model_cost_map=_finalize_model_cost_map(GetModelCostMap.load_local_model_cost_map())
-        )
-
-    result: Final = await _fetch_remote_model_cost_map_with_retry(
-        url=url,
-        timeout=timeout,
-        max_attempts=max_attempts,
-        sleep=sleep,
-        rng=rng if rng is not None else random.Random(),
-        client=client if client is not None else _default_reload_client(),
-    )
-    if isinstance(result, ModelCostMapReloadUnavailable):
-        verbose_logger.warning(
-            "LiteLLM: model cost map reload failed: %s. Keeping the currently loaded map.",
-            result.reason,
-        )
-        return result
-    if not GetModelCostMap.validate_model_cost_map(
-        fetched_map=result.model_cost_map,
-        backup_model_count=GetModelCostMap._get_backup_model_count(),
-    ):
-        return ModelCostMapReloadUnavailable(reason=f"model cost map from {url} failed integrity validation")
-    _cost_map_source_info.source = "remote"
-    _cost_map_source_info.url = url
-    _cost_map_source_info.is_env_forced = False
-    _cost_map_source_info.fallback_reason = None
-    return ModelCostMapReloaded(model_cost_map=_finalize_model_cost_map(result.model_cost_map))
-
+    try:
+        return ModelCostMapReloaded(model_cost_map=_finalize_model_cost_map(load_bundled_prices()))
+    except (OSError, json.JSONDecodeError) as error:
+        return ModelCostMapReloadUnavailable(reason=f"bundled price file could not be read: {error}")
 
 class ModelCostMapSourceInfo:
-    """Tracks the source of the currently loaded model cost map."""
+    """Where the price list in this process came from."""
 
-    source: str = "local"  # "local" or "remote"
+    source: str = "bundled"
     url: str | None = None
     is_env_forced: bool = False
     fallback_reason: str | None = None
     loaded_at: "datetime | None" = None
 
 
-# Module-level singleton tracking the source of the current cost map
 _cost_map_source_info: Final = ModelCostMapSourceInfo()
 
 
@@ -379,10 +204,9 @@ def get_model_cost_map_source_info() -> dict:
     Return metadata about where the current model cost map was loaded from.
 
     Returns a dict with:
-    - source: "local" or "remote"
-    - url: the remote URL attempted (or None for local-only)
-    - is_env_forced: True if LITELLM_LOCAL_MODEL_COST_MAP=True forced local usage
-    - fallback_reason: human-readable reason if remote failed and local was used
+    - source: always "bundled"
+    - url, is_env_forced, fallback_reason: retained so the admin endpoint's response shape
+      does not change; there is no remote source left for them to describe
     """
     return {
         "source": _cost_map_source_info.source,
@@ -464,71 +288,16 @@ def _finalize_model_cost_map(model_cost: dict) -> dict:
     return _expand_model_aliases(model_cost)
 
 
-def get_model_cost_map(
-    url: str,
-    timeout: int = 5,
-    max_attempts: int = MODEL_COST_MAP_FETCH_MAX_ATTEMPTS,
-    sleep: Callable[[float], None] = time.sleep,
-    rng: random.Random | None = None,
-    client: "_SyncGetClient | None" = None,
-) -> dict:
-    """
-    Public entry point — returns the model cost map dict.
+def get_model_cost_map() -> dict:
+    """The price list this process will use.
 
-    1. If ``LITELLM_LOCAL_MODEL_COST_MAP`` is set, uses the local backup only.
-    2. Otherwise fetches from ``url``, retrying transient HTTP errors
-       (429/5xx/transport) with Retry-After-aware backoff, validates
-       integrity, and falls back to the local backup on any failure.
-
-    Only the backup model count is cached (a single int) for validation.
-    The full backup dict is only parsed when it must be *returned* as a
-    fallback — it is never held in memory long-term.
+    Reads the bundled file and nothing else. There is no url, no retry and no fallback,
+    because there is only one source and it ships with the code.
     """
     _cost_map_source_info.loaded_at = datetime.now(timezone.utc)
-    # Note: can't use get_secret_bool here — this runs during litellm.__init__
-    # before litellm._key_management_settings is set.
-    if os.getenv("LITELLM_LOCAL_MODEL_COST_MAP", "").lower() == "true":
-        _cost_map_source_info.source = "local"
-        _cost_map_source_info.url = None
-        _cost_map_source_info.is_env_forced = True
-        _cost_map_source_info.fallback_reason = None
-        return _finalize_model_cost_map(GetModelCostMap.load_local_model_cost_map())
-
-    _cost_map_source_info.url = url
+    _cost_map_source_info.source = "bundled"
+    _cost_map_source_info.url = None
     _cost_map_source_info.is_env_forced = False
-
-    result: Final = _fetch_remote_model_cost_map_with_retry_sync(
-        url=url,
-        timeout=timeout,
-        max_attempts=max_attempts,
-        sleep=sleep,
-        rng=rng if rng is not None else random.Random(),
-        client=client if client is not None else httpx,
-    )
-    if isinstance(result, ModelCostMapReloadUnavailable):
-        verbose_logger.warning(
-            "LiteLLM: Failed to fetch remote model cost map from %s: %s. Falling back to local backup.",
-            url,
-            result.reason,
-        )
-        _cost_map_source_info.source = "local"
-        _cost_map_source_info.fallback_reason = f"Remote fetch failed: {result.reason}"
-        return _finalize_model_cost_map(GetModelCostMap.load_local_model_cost_map())
-    content: Final = result.model_cost_map
-
-    # Validate using cached count (cheap int comparison, no file I/O)
-    if not GetModelCostMap.validate_model_cost_map(
-        fetched_map=content,
-        backup_model_count=GetModelCostMap._get_backup_model_count(),
-    ):
-        verbose_logger.warning(
-            "LiteLLM: Fetched model cost map failed integrity check. Using local backup instead. url=%s",
-            url,
-        )
-        _cost_map_source_info.source = "local"
-        _cost_map_source_info.fallback_reason = "Remote data failed integrity validation"
-        return _finalize_model_cost_map(GetModelCostMap.load_local_model_cost_map())
-
-    _cost_map_source_info.source = "remote"
     _cost_map_source_info.fallback_reason = None
-    return _finalize_model_cost_map(content)
+    return _finalize_model_cost_map(load_bundled_prices())
+

@@ -113,7 +113,7 @@ def test_crusoe_model_list_populated(monkeypatch):
     original_env = os.environ.get("LITELLM_LOCAL_MODEL_COST_MAP")
     try:
         monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-        litellm.model_cost = litellm.get_model_cost_map(url="")
+        litellm.model_cost = litellm.get_model_cost_map()
 
         expected = [
             "crusoe/meta-llama/Llama-3.3-70B-Instruct",

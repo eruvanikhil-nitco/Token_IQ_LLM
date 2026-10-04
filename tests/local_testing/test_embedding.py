@@ -119,7 +119,7 @@ def test_openai_embedding_3():
 async def test_together_ai_embedding(model, api_base, api_key, sync_mode):
     try:
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map(url="")
+        litellm.model_cost = litellm.get_model_cost_map()
         # litellm.set_verbose = True
         if sync_mode:
             response = embedding(
@@ -200,7 +200,7 @@ async def test_azure_ai_embedding_image(sync_mode):
     api_key = os.getenv("AZURE_AI_API_KEY")
     try:
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map(url="")
+        litellm.model_cost = litellm.get_model_cost_map()
         input = base64_image
         if sync_mode:
             client = HTTPHandler()

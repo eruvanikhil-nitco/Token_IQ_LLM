@@ -236,7 +236,7 @@ def test_gemini_image_generation_accumulates_multiple_image_prompt_token_details
     previous_model_cost = litellm.model_cost
     try:
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map(url="")
+        litellm.model_cost = litellm.get_model_cost_map()
 
         model = "gemini/gemini-3-pro-image-preview"
         config = GoogleImageGenConfig()

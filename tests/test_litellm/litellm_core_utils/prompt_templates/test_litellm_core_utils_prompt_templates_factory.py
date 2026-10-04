@@ -2870,7 +2870,7 @@ def test_add_cache_point_tool_block_passes_ttl_for_claude_4_5(monkeypatch):
     old_env = os.environ.get("LITELLM_LOCAL_MODEL_COST_MAP")
     old_cost = litellm.model_cost
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
     try:
         tool_with_1h = {
             "type": "function",
@@ -2941,7 +2941,7 @@ def test_add_cache_point_tool_block_stands_down_for_model_without_prompt_caching
     )
 
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map(url=""))
+    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
     tool = {"cache_control": {"type": "ephemeral"}}
 
     assert add_cache_point_tool_block(tool, model="nvidia.nemotron-super-3-120b") is None
@@ -2969,7 +2969,7 @@ def test_bedrock_tools_pt_passes_ttl_for_claude_4_5(monkeypatch):
     old_env = os.environ.get("LITELLM_LOCAL_MODEL_COST_MAP")
     old_cost = litellm.model_cost
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
     try:
         tools = [
             {

@@ -31,7 +31,7 @@ BACKUP_MAP = os.path.join(
 def _use_local_model_cost_map(monkeypatch):
     original_model_cost = litellm.model_cost
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
     try:
         yield
     finally:

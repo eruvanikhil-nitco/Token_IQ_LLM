@@ -229,7 +229,7 @@ class TestLogger(CustomLogger):
 @pytest.mark.flaky(retries=3, delay=1)
 async def test_rerank_custom_callbacks():
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
 
     custom_logger = TestLogger()
     litellm.callbacks = [custom_logger]

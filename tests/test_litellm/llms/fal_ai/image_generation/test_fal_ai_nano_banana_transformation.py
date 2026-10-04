@@ -7,7 +7,7 @@ os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
 
 import litellm
 
-litellm.model_cost = litellm.get_model_cost_map(url="")
+litellm.model_cost = litellm.get_model_cost_map()
 from litellm.llms.fal_ai.cost_calculator import cost_calculator
 from litellm.llms.fal_ai.image_generation import (
     FalAIImagen4Config,

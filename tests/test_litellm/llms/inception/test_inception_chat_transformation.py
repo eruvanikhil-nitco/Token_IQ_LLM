@@ -235,7 +235,7 @@ def test_inception_model_configuration(monkeypatch):
     from litellm import get_model_info
 
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
     litellm.inception_models = set()
     litellm.add_known_models()
 
@@ -253,7 +253,7 @@ def test_inception_model_configuration(monkeypatch):
 
 def test_inception_model_list_populated(monkeypatch):
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
     litellm.inception_models = set()
     litellm.add_known_models()
 

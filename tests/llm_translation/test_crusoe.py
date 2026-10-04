@@ -81,7 +81,7 @@ def test_crusoe_models_configuration():
     original_env = os.environ.get("LITELLM_LOCAL_MODEL_COST_MAP")
     try:
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map(url="")
+        litellm.model_cost = litellm.get_model_cost_map()
 
         crusoe_models = [
             "crusoe/meta-llama/Llama-3.3-70B-Instruct",

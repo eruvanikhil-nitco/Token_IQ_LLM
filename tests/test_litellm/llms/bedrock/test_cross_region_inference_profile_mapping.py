@@ -28,7 +28,7 @@ def local_model_cost_map(monkeypatch):
     ``main`` copy, which lags this branch until merge."""
     original_converse_models = set(litellm.bedrock_converse_models)
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map(url=""))
+    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
     litellm.get_model_info.cache_clear()
     try:
         litellm.bedrock_converse_models.update(

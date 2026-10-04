@@ -59,7 +59,7 @@ def force_local_model_cost(monkeypatch):
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
     from litellm.litellm_core_utils.get_model_cost_map import get_model_cost_map
 
-    monkeypatch.setattr(litellm, "model_cost", get_model_cost_map(url=litellm.model_cost_map_url))
+    monkeypatch.setattr(litellm, "model_cost", get_model_cost_map())
 
 
 @pytest.fixture(autouse=True)

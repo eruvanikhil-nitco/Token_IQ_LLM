@@ -17,7 +17,7 @@ def test_deepseek_supported_openai_params(monkeypatch):
 
     # Ensure we're using the local model cost map
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
 
     supported_openai_params = DeepInfraConfig().get_supported_openai_params(
         model="deepinfra/deepseek-ai/DeepSeek-V3.1"

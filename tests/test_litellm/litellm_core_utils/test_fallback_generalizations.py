@@ -310,7 +310,7 @@ def shipped_cost_map(monkeypatch):
     original_cost = litellm.model_cost
     previous_rules = list(get_fallback_generalization_rules())
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
     litellm.get_model_info.cache_clear()
     try:
         yield

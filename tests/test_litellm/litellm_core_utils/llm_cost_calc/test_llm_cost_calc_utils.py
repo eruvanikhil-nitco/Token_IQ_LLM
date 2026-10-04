@@ -44,7 +44,7 @@ from litellm.types.utils import CacheCreationTokenDetails, Usage
 @pytest.fixture
 def _local_model_cost_map(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map(url=""))
+    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
 
 
 def test_reasoning_tokens_no_price_set(_local_model_cost_map):
@@ -1633,7 +1633,7 @@ def test_generic_cost_per_token_gpt56_cyber(
     monkeypatch,
 ):
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map(url=""))
+    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
 
     cached_tokens = 50000
     cache_write_tokens = 40000

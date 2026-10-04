@@ -115,7 +115,7 @@ def test_bedrock_converse_1h_cache_write_billed_at_1h_rate(monkeypatch):
     """Regression for issue #36760: without the cacheDetails split, the whole
     write is billed at the (cheaper) 5m rate."""
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map(url=""))
+    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
     usage = ConverseTokenUsageBlock(
         **{
             "inputTokens": 16,
@@ -1011,7 +1011,7 @@ def test_parallel_tool_calls_config_kept_for_sonnet_5(monkeypatch):
     old_env = os.environ.get("LITELLM_LOCAL_MODEL_COST_MAP")
     old_cost = litellm.model_cost
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
     try:
         config = AmazonConverseConfig()
         optional_params = config.map_openai_params(
@@ -3907,7 +3907,7 @@ def test_supports_native_structured_outputs(monkeypatch):
     old_env = os.environ.get("LITELLM_LOCAL_MODEL_COST_MAP")
     old_cost = litellm.model_cost
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
     try:
         config = AmazonConverseConfig()
 
@@ -4011,7 +4011,7 @@ def test_translate_response_format_native_output_config(monkeypatch):
     old_env = os.environ.get("LITELLM_LOCAL_MODEL_COST_MAP")
     old_cost = litellm.model_cost
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
     try:
         config = AmazonConverseConfig()
 
@@ -4106,7 +4106,7 @@ def test_native_structured_output_no_fake_stream(monkeypatch):
     old_env = os.environ.get("LITELLM_LOCAL_MODEL_COST_MAP")
     old_cost = litellm.model_cost
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
     try:
         config = AmazonConverseConfig()
 
@@ -4450,7 +4450,7 @@ def test_json_object_no_schema_skips_tool_injection(monkeypatch):
     old_env = os.environ.get("LITELLM_LOCAL_MODEL_COST_MAP")
     old_cost = litellm.model_cost
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
     try:
         config = AmazonConverseConfig()
         optional_params: dict = {}
@@ -5143,7 +5143,7 @@ def test_cache_control_injection_tool_config_honors_ttl_for_supported_model(monk
     old_env = os.environ.get("LITELLM_LOCAL_MODEL_COST_MAP")
     old_cost = litellm.model_cost
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
     try:
         config = AmazonConverseConfig()
         messages = [
@@ -5194,7 +5194,7 @@ def test_cache_control_injection_tool_config_honors_ttl_for_regional_model_lacki
     old_env = os.environ.get("LITELLM_LOCAL_MODEL_COST_MAP")
     old_cost = litellm.model_cost
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
     try:
         assert "cache_creation_input_token_cost_above_1hr" not in litellm.model_cost["jp.anthropic.claude-opus-4-7"]
         assert "cache_creation_input_token_cost_above_1hr" in litellm.model_cost["anthropic.claude-opus-4-7"]
@@ -5300,7 +5300,7 @@ def test_cache_points_emitted_only_for_models_that_support_prompt_caching(model,
     inference profile ARNs, models newer than the map) keep emitting so existing
     caching setups never silently degrade."""
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map(url=""))
+    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
 
     body = AmazonConverseConfig().transform_request(
         model=model,
@@ -5323,7 +5323,7 @@ def test_tool_config_cachepoint_not_placed_or_credited_for_model_without_prompt_
     emission when the model cannot cache, and spend attribution must not credit the
     gateway for a breakpoint that was never placed."""
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map(url=""))
+    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
 
     bucket: dict = {"user_api_key": "sk-test"}
     data = AmazonConverseConfig()._transform_request_helper(

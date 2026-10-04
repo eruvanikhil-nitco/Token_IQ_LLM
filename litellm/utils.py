@@ -14,6 +14,7 @@ import hashlib
 import inspect
 import io
 import itertools
+import pathlib
 import json
 import logging
 import os
@@ -3052,7 +3053,9 @@ def register_model(
         # Convert stringified numbers to appropriate numeric types
         loaded_model_cost = model_cost
     elif isinstance(model_cost, str):
-        loaded_model_cost = litellm.get_model_cost_map(url=model_cost)
+        # A path, not a URL. Nothing is fetched at runtime any more, so a caller wanting a
+        # custom price list points at a file they control.
+        loaded_model_cost = json.loads(pathlib.Path(model_cost).read_text(encoding="utf-8"))
 
     if persist_across_reloads:
         _registrations: Final[Mapping[str, Mapping[str, object]]] = loaded_model_cost

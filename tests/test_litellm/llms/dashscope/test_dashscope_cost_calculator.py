@@ -33,7 +33,7 @@ class TestDashscopeCostCalculator:
     def setup_model_cost_map(self):
         """Set up the model cost map for testing by loading it locally."""
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map(url="")
+        litellm.model_cost = litellm.get_model_cost_map()
 
     def test_dashscope_flat_pricing_fallback(self):
         """

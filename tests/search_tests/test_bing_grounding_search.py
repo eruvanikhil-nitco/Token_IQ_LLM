@@ -177,7 +177,7 @@ class TestBingGroundingSearchTransformation:
 
     def test_web_search_mode_is_not_billed_the_g1_price(self, monkeypatch: pytest.MonkeyPatch):
         monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-        monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map(url=""))
+        monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
         with patch(  # test-quality-ok: litellm.search has no client injection seam
             "litellm.llms.custom_httpx.http_handler.HTTPHandler.post",
             return_value=_mock_response(),
@@ -189,7 +189,7 @@ class TestBingGroundingSearchTransformation:
     def test_connection_mode_tracks_the_g1_cost(self, monkeypatch: pytest.MonkeyPatch):
         monkeypatch.setenv("BING_GROUNDING_CONNECTION_ID", "conn-id")
         monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-        monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map(url=""))
+        monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
         with patch(  # test-quality-ok: litellm.search has no client injection seam
             "litellm.llms.custom_httpx.http_handler.HTTPHandler.post",
             return_value=_mock_response(),

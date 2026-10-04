@@ -29,7 +29,7 @@ def local_model_cost_map(monkeypatch):
     """Force get_model_info to resolve against the in-repo cost map instead of the
     remote one fetched at import time, which still carries the pre-merge pricing."""
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map(url=""))
+    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
     litellm.get_model_info.cache_clear()
     yield
     litellm.get_model_info.cache_clear()

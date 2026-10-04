@@ -1131,7 +1131,7 @@ class TestVertexAIPassThroughHandler:
             litellm,
             "model_cost",
             {
-                **litellm.get_model_cost_map(url=""),
+                **litellm.get_model_cost_map(),
                 "vertex_ai/gemini-fake-regional": {
                     "litellm_provider": "vertex_ai",
                     "mode": "chat",

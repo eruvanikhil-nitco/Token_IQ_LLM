@@ -43,7 +43,7 @@ class TestXAICostCalculator:
         except FileNotFoundError:
             # Fallback to default behavior
             os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-            litellm.model_cost = litellm.get_model_cost_map(url="")
+            litellm.model_cost = litellm.get_model_cost_map()
 
     def test_basic_cost_calculation(self):
         """Test basic cost calculation without reasoning tokens."""

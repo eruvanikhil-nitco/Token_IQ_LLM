@@ -136,7 +136,7 @@ def test_batch_cost_calculator_applies_data_residency_uplift(
     data_residency is set and the model carries a configured multiplier."""
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
     prev_model_cost = litellm.model_cost
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
     try:
         usage = Usage(prompt_tokens=1000, completion_tokens=500, total_tokens=1500)
 

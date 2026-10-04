@@ -148,7 +148,7 @@ class BaseLLMChatTest(ABC):
         from litellm.utils import supports_function_calling
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map(url="")
+        litellm.model_cost = litellm.get_model_cost_map()
 
         base_completion_call_args = self.get_base_completion_call_args()
         if not supports_function_calling(base_completion_call_args["model"], None):
@@ -194,7 +194,7 @@ class BaseLLMChatTest(ABC):
         from litellm.utils import supports_function_calling
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map(url="")
+        litellm.model_cost = litellm.get_model_cost_map()
 
         base_completion_call_args = self.get_base_completion_call_args()
         if not supports_function_calling(base_completion_call_args["model"], None):
@@ -299,7 +299,7 @@ class BaseLLMChatTest(ABC):
         from litellm.utils import supports_web_search
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map(url="")
+        litellm.model_cost = litellm.get_model_cost_map()
 
         litellm._turn_on_debug()
 
@@ -325,7 +325,7 @@ class BaseLLMChatTest(ABC):
         from litellm.utils import supports_url_context
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map(url="")
+        litellm.model_cost = litellm.get_model_cost_map()
 
         litellm._turn_on_debug()
 
@@ -354,7 +354,7 @@ class BaseLLMChatTest(ABC):
         from litellm.utils import supports_pdf_input
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map(url="")
+        litellm.model_cost = litellm.get_model_cost_map()
 
         litellm._turn_on_debug()
 
@@ -393,7 +393,7 @@ class BaseLLMChatTest(ABC):
         from litellm.utils import supports_pdf_input
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map(url="")
+        litellm.model_cost = litellm.get_model_cost_map()
 
         litellm._turn_on_debug()
 
@@ -607,7 +607,7 @@ class BaseLLMChatTest(ABC):
         from litellm.utils import supports_response_schema
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map(url="")
+        litellm.model_cost = litellm.get_model_cost_map()
 
         class TestModel(BaseModel):
             first_response: str
@@ -647,7 +647,7 @@ class BaseLLMChatTest(ABC):
         from litellm.utils import supports_response_schema
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map(url="")
+        litellm.model_cost = litellm.get_model_cost_map()
 
     @pytest.mark.flaky(retries=6, delay=1)
     def test_json_response_nested_pydantic_obj(self):
@@ -655,7 +655,7 @@ class BaseLLMChatTest(ABC):
         from litellm.utils import supports_response_schema
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map(url="")
+        litellm.model_cost = litellm.get_model_cost_map()
 
         class CalendarEvent(BaseModel):
             name: str
@@ -704,7 +704,7 @@ class BaseLLMChatTest(ABC):
         from litellm.llms.base_llm.base_utils import type_to_response_format_param
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map(url="")
+        litellm.model_cost = litellm.get_model_cost_map()
 
         class CalendarEvent(BaseModel):
             name: str
@@ -868,7 +868,7 @@ class BaseLLMChatTest(ABC):
         from litellm.utils import supports_vision
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map(url="")
+        litellm.model_cost = litellm.get_model_cost_map()
 
         base_completion_call_args = self.get_base_completion_call_args()
         if not supports_vision(base_completion_call_args["model"], None):
@@ -927,7 +927,7 @@ class BaseLLMChatTest(ABC):
         from litellm.utils import supports_vision
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map(url="")
+        litellm.model_cost = litellm.get_model_cost_map()
 
         image_url = "https://awsmp-logos.s3.amazonaws.com/seller-xw5kijmvmzasy/c233c9ade2ccb5491072ae232c814942.png"
 
@@ -970,7 +970,7 @@ class BaseLLMChatTest(ABC):
         from litellm.utils import supports_prompt_caching
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map(url="")
+        litellm.model_cost = litellm.get_model_cost_map()
 
         base_completion_call_args = self.get_base_completion_call_args()
         if not supports_prompt_caching(base_completion_call_args["model"], None):
@@ -1094,7 +1094,7 @@ class BaseLLMChatTest(ABC):
             from litellm.utils import supports_function_calling
 
             os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-            litellm.model_cost = litellm.get_model_cost_map(url="")
+            litellm.model_cost = litellm.get_model_cost_map()
 
             base_completion_call_args = self.get_base_completion_call_args()
             if not supports_function_calling(base_completion_call_args["model"], None):
@@ -1127,7 +1127,7 @@ class BaseLLMChatTest(ABC):
             from litellm.utils import supports_function_calling
 
             os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-            litellm.model_cost = litellm.get_model_cost_map(url="")
+            litellm.model_cost = litellm.get_model_cost_map()
 
             base_completion_call_args = self.get_base_completion_call_args()
             if not supports_function_calling(base_completion_call_args["model"], None):
@@ -1248,7 +1248,7 @@ class BaseLLMChatTest(ABC):
         litellm._turn_on_debug()
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map(url="")
+        litellm.model_cost = litellm.get_model_cost_map()
 
         litellm.set_verbose = True
         response = await self.async_completion_function(
@@ -1266,7 +1266,7 @@ class BaseLLMChatTest(ABC):
         from litellm.types.utils import CallTypes
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map(url="")
+        litellm.model_cost = litellm.get_model_cost_map()
 
         litellm.drop_params = True
         base_completion_call_args = self.get_base_completion_call_args()
@@ -1336,7 +1336,7 @@ class BaseLLMChatTest(ABC):
         try:
 
             os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-            litellm.model_cost = litellm.get_model_cost_map(url="")
+            litellm.model_cost = litellm.get_model_cost_map()
 
             base_completion_call_args = self.get_base_completion_call_args()
             if not supports_function_calling(base_completion_call_args["model"], None):
@@ -1432,7 +1432,7 @@ class BaseLLMChatTest(ABC):
         from litellm import completion
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map(url="")
+        litellm.model_cost = litellm.get_model_cost_map()
 
         base_completion_call_args = (
             self.get_base_completion_call_args_with_reasoning_model()

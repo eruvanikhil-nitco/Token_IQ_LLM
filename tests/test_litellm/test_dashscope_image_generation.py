@@ -64,7 +64,7 @@ def test_get_model_info_mode_is_image_generation(
     prev_model_cost = litellm.model_cost
     try:
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map(url="")
+        litellm.model_cost = litellm.get_model_cost_map()
 
         info = litellm.get_model_info(
             model=model_string, custom_llm_provider=custom_provider

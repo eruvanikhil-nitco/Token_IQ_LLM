@@ -30,7 +30,7 @@ from litellm.utils import TranscriptionResponse
 @pytest.fixture
 def _local_model_cost_map(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map(url=""))
+    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
 
 
 def test_cost_per_token_duplicate_openai_prefix_matches_model_cost(monkeypatch):
@@ -39,7 +39,7 @@ def test_cost_per_token_duplicate_openai_prefix_matches_model_cost(monkeypatch):
     resolve to model_prices keys (e.g. gpt-5.5), not fail or multiply prefixes.
     """
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map(url=""))
+    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
 
     prompt_usd, completion_usd = cost_per_token(
         model="openai/openai/gpt-5.5",
@@ -58,7 +58,7 @@ def test_cost_per_token_tiered_only_model_bills_at_tier_rate(monkeypatch):
     recording zero spend.
     """
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map(url=""))
+    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
 
     prompt_usd, completion_usd = cost_per_token(
         model="volcengine/doubao-seed-2-0-pro-260215",
@@ -703,7 +703,7 @@ def test_realtime_transcription_duration_cost(monkeypatch):
     from litellm.litellm_core_utils.litellm_logging import Logging
 
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map(url=""))
+    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
 
     from litellm.cost_calculator import RealtimeAPITokenUsageProcessor
 
@@ -774,7 +774,7 @@ def test_realtime_transcription_duration_cost_resolves_model_from_litellm_name(
 ):
     """When no session event carries the ASR model, the litellm_model_name is used."""
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map(url=""))
+    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
 
     results: OpenAIRealtimeStreamList = [
         {
@@ -794,7 +794,7 @@ def test_realtime_transcription_duration_cost_resolves_model_from_litellm_name(
 def test_realtime_transcription_no_completed_events_is_zero(monkeypatch):
     """A realtime stream without transcription completed events adds no extra cost."""
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map(url=""))
+    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
 
     from litellm.cost_calculator import handle_realtime_transcription_cost_calculation
 
@@ -818,7 +818,7 @@ def test_realtime_transcription_token_billed_fallback(monkeypatch):
     fallback path multiplies audio tokens by the model's audio token cost.
     """
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map(url=""))
+    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
 
     from litellm.cost_calculator import _transcription_usage_cost
 
@@ -854,7 +854,7 @@ def test_transcription_usage_cost_returns_zero_for_unknown_type():
 def test_get_transcription_model_falls_back_to_session_model(monkeypatch):
     """session.model is used when transcription-specific model fields are absent."""
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map(url=""))
+    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
 
     from litellm.cost_calculator import _get_transcription_model_name_from_results
 
@@ -1829,7 +1829,7 @@ def test_vertex_regional_deployment_costs_uplift_over_global(monkeypatch):
     cost_per_character's token fallback).
     """
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map(url=""))
+    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
 
     usage = Usage(prompt_tokens=15, completion_tokens=5, total_tokens=20)
     for model in ("claude-haiku-4-5@20251001", "gemini-3.5-flash"):
@@ -1862,7 +1862,7 @@ def test_vertex_uplift_composes_with_above_128k_pricing(monkeypatch):
         litellm,
         "model_cost",
         {
-            **litellm.get_model_cost_map(url=""),
+            **litellm.get_model_cost_map(),
             "vertex_ai/fake-regional-128k-model": {
                 "litellm_provider": "vertex_ai",
                 "mode": "chat",
@@ -3691,7 +3691,7 @@ def test_cost_per_token_per_second_pricing(monkeypatch):
     must be billed as cost_per_second * response_time_ms / 1000 in cost_per_token.
     """
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map(url=""))
+    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
 
     model = "test-per-second-pricing-model"
     litellm.register_model(

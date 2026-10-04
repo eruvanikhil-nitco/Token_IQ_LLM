@@ -566,7 +566,7 @@ def test_gemini_completion_cost(provider):
     Check if cost correctly calculated for gemini models based on context window
     """
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
     model_name = "gemini-2.0-flash"
     prompt_tokens = 128.0
     output_tokens = 228.0
@@ -597,7 +597,7 @@ def _count_characters(text):
 
 def test_vertex_ai_completion_cost():
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
 
     prompt_tokens = 100
 
@@ -624,7 +624,7 @@ def test_vertex_ai_medlm_completion_cost():
     """Test for medlm completion cost ."""
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
 
     model = "vertex_ai/medlm-medium"
     messages = [{"role": "user", "content": "Test MedLM completion cost."}]
@@ -644,7 +644,7 @@ def test_vertex_ai_claude_completion_cost():
     from litellm.utils import Usage
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
 
     litellm.set_verbose = True
     input_tokens = litellm.token_counter(
@@ -694,7 +694,7 @@ def test_vertex_ai_embedding_completion_cost(caplog):
     Relevant issue - https://github.com/BerriAI/litellm/issues/4630
     """
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
 
     text = "The quick brown fox jumps over the lazy dog."
     input_tokens = litellm.token_counter(
@@ -737,7 +737,7 @@ def test_vertex_ai_embedding_completion_cost(caplog):
 
 #     load_vertex_ai_credentials()
 #     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-#     litellm.model_cost = litellm.get_model_cost_map(url="")
+#     litellm.model_cost = litellm.get_model_cost_map()
 
 #     text = "The quick brown fox jumps over the lazy dog."
 #     input_tokens = litellm.token_counter(
@@ -852,7 +852,7 @@ def test_vertex_ai_mistral_predict_cost(usage):
 )
 def test_completion_cost_tts(model):
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
 
     cost = completion_cost(
         model=model,
@@ -978,7 +978,7 @@ def test_completion_cost_azure_common_deployment_name():
 )
 def test_completion_cost_prompt_caching(model, custom_llm_provider):
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
 
     from litellm.utils import Choices, Message, ModelResponse, Usage
 
@@ -1083,7 +1083,7 @@ def test_completion_cost_prompt_caching(model, custom_llm_provider):
 def test_completion_cost_databricks(model):
     litellm._turn_on_debug()
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
     messages = [{"role": "user", "content": "What is 2+2?"}]
 
     resp = litellm.completion(model=model, messages=messages)  # works fine
@@ -1110,7 +1110,7 @@ def test_completion_cost_databricks_embedding(model, monkeypatch):
     monkeypatch.setenv("DATABRICKS_API_KEY", api_key)
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
 
     mock_response_data = {
         "object": "list",
@@ -1179,7 +1179,7 @@ def test_completion_cost_fireworks_ai(model):
     non-zero cost against the local cost map.
     """
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
 
     mock_response_data = {
         "id": "chatcmpl-test",
@@ -1221,7 +1221,7 @@ def test_cost_azure_openai_prompt_caching():
     from litellm import get_model_info
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
 
     model = "azure/o1-mini"
 
@@ -1313,7 +1313,7 @@ def test_cost_azure_openai_prompt_caching():
 
 def test_completion_cost_vertex_llama3():
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
 
     from litellm.utils import Choices, Message, ModelResponse, Usage
 
@@ -1354,7 +1354,7 @@ def test_cost_openai_prompt_caching():
     from litellm import get_model_info
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
 
     model = "gpt-4o-mini-2024-07-18"
 
@@ -1445,7 +1445,7 @@ def test_completion_cost_azure_ai_rerank(model):
     from litellm import RerankResponse, rerank
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
 
     response = RerankResponse(
         id="b01dbf2e-63c8-4981-9e69-32241da559ed",
@@ -1476,7 +1476,7 @@ def test_together_ai_embedding_completion_cost():
     from litellm.utils import Choices, EmbeddingResponse, Message, ModelResponse, Usage
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
     response = EmbeddingResponse(
         model="togethercomputer/m2-bert-80M-8k-retrieval",
         data=[
@@ -2332,7 +2332,7 @@ def test_completion_cost_params_gemini_3():
     from litellm.llms.vertex_ai.cost_calculator import cost_per_character
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
 
     usage = Usage(
         completion_tokens=2,
@@ -2405,7 +2405,7 @@ def test_completion_cost_params_gemini_3():
 @pytest.mark.parametrize("stream", [False])  # True,
 async def test_test_completion_cost_gpt4o_audio_output_from_model(stream):
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
     from litellm.types.utils import (
         Choices,
         Message,
@@ -2503,7 +2503,7 @@ def test_completion_cost_model_response_cost(response_model, custom_llm_provider
     from litellm import ModelResponse
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
 
     litellm.set_verbose = True
     response = {
@@ -2604,7 +2604,7 @@ def test_moderations():
     from litellm import moderation
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
     litellm.add_known_models()
 
     assert "omni-moderation-latest" in litellm.model_cost
@@ -2659,7 +2659,7 @@ def test_bedrock_cost_calc_with_region():
     from litellm import ModelResponse
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
 
     litellm.add_known_models()
 
@@ -2853,7 +2853,7 @@ def test_json_valid_model_cost_map():
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
 
-    model_cost = litellm.get_model_cost_map(url="")
+    model_cost = litellm.get_model_cost_map()
 
     try:
         # Attempt to serialize and deserialize the JSON

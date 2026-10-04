@@ -57,7 +57,7 @@ def test_get_model_info_shows_correct_supports_vision():
 
 def test_get_model_info_shows_assistant_prefill():
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
     info = litellm.get_model_info("deepseek/deepseek-chat")
     print("info", info)
     assert info.get("supports_assistant_prefill") is True
@@ -65,7 +65,7 @@ def test_get_model_info_shows_assistant_prefill():
 
 def test_get_model_info_shows_supports_prompt_caching():
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
     info = litellm.get_model_info("deepseek/deepseek-chat")
     print("info", info)
     assert info.get("supports_prompt_caching") is True
@@ -112,7 +112,7 @@ def test_get_model_info_ollama_chat():
 
 def test_get_model_info_bedrock_region():
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
     args = {
         "model": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
         "custom_llm_provider": "bedrock",
@@ -175,7 +175,7 @@ def test_model_info_bedrock_converse(monkeypatch):
     This ensures they are automatically routed to the converse endpoint.
     """
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
     try:
         # Load whitelist models from file
         with open("whitelisted_bedrock_models.txt", "r") as file:
@@ -194,7 +194,7 @@ def test_model_info_bedrock_converse_enforcement(monkeypatch):
     Test the enforcement of the whitelist by adding a fake model and ensuring the test fails.
     """
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
 
     # Add a fake unwhitelisted model
     litellm.model_cost["fake.bedrock-chat-model"] = {
@@ -288,7 +288,7 @@ def test_get_model_info_bedrock_models():
     from litellm.llms.bedrock.common_utils import BedrockModelInfo
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
 
     for k, v in litellm.model_cost.items():
         if v["litellm_provider"] == "bedrock":
@@ -329,7 +329,7 @@ def test_get_model_info_bedrock_cross_region_capability_parity():
     regional drift check above (which filters on "bedrock") never reaches them.
     """
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
 
     prefixes = ("us.", "eu.", "apac.", "us-gov.")
     checked = 0
@@ -417,7 +417,7 @@ def test_get_model_info_case_insensitive_lookup(monkeypatch):
     because the lookup was case-sensitive.
     """
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
 
     # Register a test model with mixed-case name
     litellm.register_model(
@@ -458,7 +458,7 @@ def test_get_model_info_case_insensitive_supports_function_calling(monkeypatch):
     Test that supports_function_calling check works with case-insensitive model lookup.
     """
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
 
     # Register a model with mixed-case name that supports function calling
     litellm.register_model(

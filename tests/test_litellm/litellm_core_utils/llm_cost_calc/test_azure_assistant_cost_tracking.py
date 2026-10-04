@@ -30,7 +30,7 @@ class TestAzureAssistantCostTracking:
         """Set up test environment to use local model cost map."""
         # Force use of local model cost map for CI/CD consistency
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map(url="")
+        litellm.model_cost = litellm.get_model_cost_map()
 
         yield
 

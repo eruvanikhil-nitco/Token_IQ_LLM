@@ -14,7 +14,7 @@ import pytest
 @pytest.fixture(autouse=True)
 def reload_model_costs():
     """Reload model costs from JSON before each test."""
-    litellm.model_cost = get_model_cost_map(url=None)
+    litellm.model_cost = get_model_cost_map()
     yield
 
 

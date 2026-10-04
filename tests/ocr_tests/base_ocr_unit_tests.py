@@ -46,7 +46,7 @@ class BaseOCRTest(ABC):
         base_ocr_call_args = self.get_base_ocr_call_args()
         print("BASE OCR Call args=", base_ocr_call_args)
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map(url="")
+        litellm.model_cost = litellm.get_model_cost_map()
 
         try:
             if sync_mode:

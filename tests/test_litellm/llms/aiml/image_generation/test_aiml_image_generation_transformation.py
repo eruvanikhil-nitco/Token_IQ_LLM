@@ -7,7 +7,7 @@ os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
 
 import litellm
 
-litellm.model_cost = litellm.get_model_cost_map(url="")
+litellm.model_cost = litellm.get_model_cost_map()
 
 from litellm.llms.aiml.image_generation.cost_calculator import (
     cost_calculator as aiml_cost_calculator,

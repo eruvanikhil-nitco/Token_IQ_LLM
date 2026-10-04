@@ -59,7 +59,7 @@ def bundled_cost_map(monkeypatch):
     """
     from litellm.utils import _invalidate_model_cost_lowercase_map
 
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map(url=""))
+    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
     _invalidate_model_cost_lowercase_map()
     yield
     monkeypatch.undo()

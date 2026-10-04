@@ -9,7 +9,7 @@ from litellm.types.utils import ImageObject, ImageResponse
 @pytest.fixture(autouse=True)
 def _use_local_model_cost_map(monkeypatch):
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map(url=""))
+    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
     litellm.get_model_info.cache_clear()
     yield
     litellm.get_model_info.cache_clear()

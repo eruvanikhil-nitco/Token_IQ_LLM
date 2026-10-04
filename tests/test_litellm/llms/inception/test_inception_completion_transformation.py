@@ -147,7 +147,7 @@ def test_inception_fim_model_configuration(monkeypatch):
     from litellm import get_model_info
 
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
     litellm.text_completion_inception_models = set()
     litellm.add_known_models()
 

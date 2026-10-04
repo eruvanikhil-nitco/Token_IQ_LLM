@@ -249,7 +249,7 @@ class TestBedrockMoonshotInvoke(BaseLLMChatTest):
         """Verify LiteLLM computes a positive cost from a mocked Bedrock
         Moonshot response, using the local model cost map."""
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map(url="")
+        litellm.model_cost = litellm.get_model_cost_map()
 
         mock_response = self._make_moonshot_response()
         client = AsyncHTTPHandler()

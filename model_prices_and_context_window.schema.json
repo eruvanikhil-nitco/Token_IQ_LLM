@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "LiteLLM model_prices_and_context_window.json",
-  "description": "Schema for LiteLLM's model price and context window registry (https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json). Every top-level key except 'sample_spec' and 'fallback_generalizations' is a model id, optionally prefixed with its provider (e.g. 'azure/gpt-5.4'), mapping to a model entry. All costs are USD per unit. New optional fields are added regularly, so consumers should ignore unknown fields rather than reject them.",
+  "title": "Token IQ model prices",
+  "description": "Schema for LiteLLM's model price and context window registry (data/pricing/model_prices.json). Every top-level key except 'sample_spec' and 'fallback_generalizations' is a model id, optionally prefixed with its provider (e.g. 'azure/gpt-5.4'), mapping to a model entry. All costs are USD per unit. New optional fields are added regularly, so consumers should ignore unknown fields rather than reject them.",
   "type": "object",
   "properties": {
     "sample_spec": {

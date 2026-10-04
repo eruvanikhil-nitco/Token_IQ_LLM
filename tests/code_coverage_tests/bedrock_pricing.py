@@ -190,7 +190,7 @@ def _check_if_model_name_in_pricing(
     output_cost_per_1k_tokens: str,
 ):
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
 
     for model, value in litellm.model_cost.items():
         if model.startswith(bedrock_model_name):

@@ -700,7 +700,7 @@ def test_all_model_configs():
 
 def test_anthropic_web_search_in_model_info(monkeypatch):
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
 
     supported_models = [
         "anthropic/claude-4-sonnet-20250514",
@@ -1242,7 +1242,7 @@ def test_get_model_info_gemini(monkeypatch):
     Tests if ALL gemini models have 'tpm' and 'rpm' in the model info
     """
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
 
     model_map = litellm.model_cost
     for model, info in model_map.items():
@@ -1298,7 +1298,7 @@ def test_get_model_info_bedrock_double_provider_prefix_resolves(local_model_cost
 
 def test_openai_models_in_model_info(monkeypatch):
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
 
     model_map = litellm.model_cost
     violated_models = []
@@ -1485,7 +1485,7 @@ def test_supports_computer_use_utility(monkeypatch):
     original_model_cost = getattr(litellm, "model_cost", None)
 
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map(url="")  # Load with local/backup
+    litellm.model_cost = litellm.get_model_cost_map()  # Load with local/backup
 
     try:
         # Test a model known to support computer_use from backup JSON
@@ -1519,7 +1519,7 @@ def test_get_model_info_shows_supports_computer_use(monkeypatch):
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
     # Ensure litellm.model_cost is loaded, relying on the backup mechanism if primary fails
     # as per previous debugging.
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
 
     # This model should have 'supports_computer_use': True in the backup JSON
     model_known_to_support_computer_use = "claude-4-sonnet-20250514"

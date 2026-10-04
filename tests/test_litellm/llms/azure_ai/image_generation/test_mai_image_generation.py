@@ -40,7 +40,7 @@ class TestAzureMAIImageGeneration:
 
     def test_mai_flash_and_2e_model_pricing_in_cost_map(self, monkeypatch):
         monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-        litellm.model_cost = litellm.get_model_cost_map(url="")
+        litellm.model_cost = litellm.get_model_cost_map()
 
         flash_info = litellm.get_model_info(
             model="azure_ai/MAI-Image-2.5-Flash",
@@ -328,7 +328,7 @@ class TestAzureMAIImageGeneration:
 
     def test_mai_image_cost_calculator_token_based(self, monkeypatch):
         monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-        litellm.model_cost = litellm.get_model_cost_map(url="")
+        litellm.model_cost = litellm.get_model_cost_map()
         model = "azure_ai/MAI-Image-2.5"
         model_info = litellm.get_model_info(model=model, custom_llm_provider="azure_ai")
         input_text_tokens = 100
@@ -360,7 +360,7 @@ class TestAzureMAIImageGeneration:
 
     def test_mai_image_cost_calculator_falls_back_to_flat_image_pricing(self, monkeypatch):
         monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-        litellm.model_cost = litellm.get_model_cost_map(url="")
+        litellm.model_cost = litellm.get_model_cost_map()
         model = "azure_ai/MAI-Image-2.5"
         model_info = litellm.get_model_info(model=model, custom_llm_provider="azure_ai")
         image_response = ImageResponse(

@@ -335,7 +335,7 @@ def test_register_model_inherits_builtin_cache_pricing_for_unmapped_key(monkeypa
 
     original_model_cost = litellm.model_cost
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
 
     builtin_key = "us.anthropic.claude-sonnet-4-6"
     registered_key = f"bedrock/bedrock/bedrock/{builtin_key}"

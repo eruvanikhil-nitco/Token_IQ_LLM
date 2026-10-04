@@ -119,7 +119,7 @@ def test_v0_models_configuration():
 
     # Reload model cost map to pick up local changes
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
 
     # All v0 models
     v0_models = ["v0/v0-1.0-md", "v0/v0-1.5-md", "v0/v0-1.5-lg"]

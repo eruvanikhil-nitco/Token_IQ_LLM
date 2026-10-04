@@ -7383,7 +7383,7 @@ class ProxyConfig:
                 refetch_model_cost_map,
             )
 
-            reload_result = await refetch_model_cost_map(url=litellm.model_cost_map_url)
+            reload_result = await refetch_model_cost_map()
             if isinstance(reload_result, ModelCostMapReloadUnavailable):
                 verbose_proxy_logger.warning(
                     "Model cost map reload failed (%s); keeping current pricing data. The revision stays "
@@ -17544,7 +17544,7 @@ async def reload_model_cost_map(
             refetch_model_cost_map,
         )
 
-        reload_result = await refetch_model_cost_map(url=litellm.model_cost_map_url)
+        reload_result = await refetch_model_cost_map()
         if isinstance(reload_result, ModelCostMapReloadUnavailable):
             raise HTTPException(
                 status_code=502,

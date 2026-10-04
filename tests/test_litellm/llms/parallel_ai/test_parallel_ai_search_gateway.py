@@ -102,7 +102,7 @@ def test_parallel_search_gateway_route(client, auth_as, monkeypatch):
     The tool-level `mode` must survive the router hop, so the upstream request
     is sent as `turbo` rather than falling back to the adapter default.
     """
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map(url=""))
+    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
     monkeypatch.setattr(proxy_server, "llm_router", _parallel_router())
     mock_post = _mock_async_post(
         monkeypatch,
@@ -141,7 +141,7 @@ def test_parallel_search_gateway_route(client, auth_as, monkeypatch):
 @pytest.mark.asyncio
 async def test_web_search_interception_executes_parallel_search(monkeypatch):
     """An intercepted web-search call uses the configured Parallel Search tool."""
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map(url=""))
+    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
     monkeypatch.setattr(proxy_server, "llm_router", _parallel_router(mode="fast"))
     mock_post = _mock_async_post(
         monkeypatch,

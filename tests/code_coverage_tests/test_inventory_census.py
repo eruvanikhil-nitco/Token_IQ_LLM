@@ -87,7 +87,6 @@ class TestAllowlist:
         for path in (
             "docs/decisions/0021-client-facing-rebrand.md",
             "docs/plans/2026-10-04-independent-codebase.md",
-            "docs/superpowers/plans/2026-09-29-recommendations.md",
             "LICENSE",
             "NOTICE",
             "CHANGELOG.md",
@@ -95,7 +94,9 @@ class TestAllowlist:
             assert is_allowlisted(pathlib.PurePosixPath(path)), path
 
     def test_product_code_and_docs_are_not_allowlisted(self) -> None:
-        for path in ("litellm/proxy/proxy_server.py", "docs/README.md", "schema.prisma"):
+        # docs/specs/ is deliberately NOT allowlisted: a spec is a current document and phase 10
+        # requires it to lose the name like any other.
+        for path in ("litellm/proxy/proxy_server.py", "docs/README.md", "docs/specs/a.md", "schema.prisma"):
             assert not is_allowlisted(pathlib.PurePosixPath(path)), path
 
     def test_allowlisted_occurrences_are_reported_but_kept_out_of_the_target(

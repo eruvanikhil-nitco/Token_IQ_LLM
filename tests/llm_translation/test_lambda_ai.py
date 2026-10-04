@@ -109,7 +109,7 @@ def test_lambda_ai_models_configuration():
 
     # Reload model cost map to pick up local changes
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
 
     # Clear and repopulate lambda_ai_models list after reloading model_cost
     litellm.lambda_ai_models = set()
@@ -149,7 +149,7 @@ def test_lambda_ai_model_list_populated():
     """Test that lambda_ai_models list is populated correctly"""
     # Ensure we're using local model cost map and repopulate models
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
 
     # Clear and repopulate all model lists after reloading model_cost
     litellm.lambda_ai_models = set()

@@ -302,7 +302,7 @@ class TestCostRegression:
     @pytest.fixture
     def local_cost_map(self, monkeypatch):
         monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-        monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map(url=""))
+        monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
 
     def test_registry_entries(self, local_cost_map):
         batch_entry = litellm.model_cost["gemini/gemini-3.5-transcribe"]

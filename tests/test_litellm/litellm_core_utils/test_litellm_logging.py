@@ -5641,7 +5641,7 @@ def test_response_cost_calculator_prices_proxy_vertex_calls_on_the_configured_lo
     from litellm.litellm_core_utils.get_model_cost_map import get_model_cost_map
 
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", get_model_cost_map(url=""))
+    monkeypatch.setattr(litellm, "model_cost", get_model_cost_map())
     monkeypatch.setenv("VERTEXAI_LOCATION", "us-east5")
     monkeypatch.setattr(litellm, "vertex_location", None)
 

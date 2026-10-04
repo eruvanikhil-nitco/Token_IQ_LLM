@@ -1892,7 +1892,7 @@ def test_gemini_response_done_bills_audio_output_tokens_at_audio_rate(monkeypatc
     )
 
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map(url=""))
+    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
 
     config = GeminiRealtimeConfig()
     done_event = config.transform_response_done_event(

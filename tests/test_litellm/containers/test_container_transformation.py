@@ -341,7 +341,7 @@ class TestOpenAIContainerTransformation:
         """Test that container create response includes code interpreter cost calculation."""
         # Force use of local model cost map for CI/CD consistency
         monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-        litellm.model_cost = litellm.get_model_cost_map(url="")
+        litellm.model_cost = litellm.get_model_cost_map()
 
         from litellm.litellm_core_utils.llm_cost_calc.tool_call_cost_tracking import (
             StandardBuiltInToolCostTracking,

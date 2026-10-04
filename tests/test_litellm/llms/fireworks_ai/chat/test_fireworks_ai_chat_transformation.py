@@ -26,7 +26,7 @@ def force_local_model_cost(monkeypatch):
     import litellm
     from litellm.litellm_core_utils.get_model_cost_map import get_model_cost_map
 
-    litellm.model_cost = get_model_cost_map(url=litellm.model_cost_map_url)
+    litellm.model_cost = get_model_cost_map()
 
 
 def test_validate_environment_sets_session_affinity_from_litellm_session_id():

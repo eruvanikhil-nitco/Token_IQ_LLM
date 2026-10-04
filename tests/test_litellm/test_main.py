@@ -2880,7 +2880,7 @@ def local_cost_map(monkeypatch):
     and ``completion_cost`` bills at those while the assertions read the pinned map.
     Clear on the way in and out so entries never leak across tests in either direction."""
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map(url=""))
+    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
     litellm.get_model_info.cache_clear()
     yield
     litellm.get_model_info.cache_clear()

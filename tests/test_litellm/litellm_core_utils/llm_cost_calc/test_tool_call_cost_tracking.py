@@ -379,7 +379,7 @@ def test_azure_assistant_features_integrated_cost_tracking(monkeypatch):
     """
     # Force use of local model cost map for CI/CD consistency
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map(url="")
+    litellm.model_cost = litellm.get_model_cost_map()
 
     model = "azure/gpt-4o"
 

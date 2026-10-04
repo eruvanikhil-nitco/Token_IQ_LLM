@@ -412,10 +412,6 @@ add_function_to_prompt: bool = (
 client_session: Optional[httpx.Client] = None
 aclient_session: Optional[httpx.AsyncClient] = None
 model_fallbacks: Optional[List] = None  # Deprecated for 'litellm.fallbacks'
-model_cost_map_url: str = os.getenv(
-    "LITELLM_MODEL_COST_MAP_URL",
-    "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json",
-)
 blog_posts_url: str = os.getenv(
     "LITELLM_BLOG_POSTS_URL",
     "https://docs.litellm.ai/blog/rss.xml",
@@ -543,7 +539,7 @@ output_parse_pii: bool = False
 #############################################
 from litellm.litellm_core_utils.get_model_cost_map import get_model_cost_map
 
-model_cost = get_model_cost_map(url=model_cost_map_url)
+model_cost = get_model_cost_map()
 cost_discount_config: Dict[str, float] = {}  # Provider-specific cost discounts {"vertex_ai": 0.05} = 5% discount
 cost_margin_config: Dict[
     str, Union[float, Dict[str, float]]

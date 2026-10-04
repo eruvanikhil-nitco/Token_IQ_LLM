@@ -249,7 +249,7 @@ class TestQwenBrandCostParity:
     @pytest.fixture(autouse=True)
     def setup_model_cost_map(self, monkeypatch):
         monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-        monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map(url=""))
+        monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
 
     @pytest.mark.parametrize("brand", BRAND_CASES)
     def test_get_model_info(self, brand):

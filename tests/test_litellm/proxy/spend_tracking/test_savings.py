@@ -899,7 +899,7 @@ def test_the_baseline_is_priced_on_the_vertex_location_the_request_was_billed_at
     have paid it too. The served model carries no uplift field, so only the
     baseline moves with the recorded location."""
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map(url=""))
+    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
 
     gemini = litellm.get_model_info("gemini-3.5-flash", "vertex_ai")
     haiku = litellm.get_model_info("claude-haiku-4-5", "anthropic")

@@ -10,8 +10,7 @@ import pytest
 
 REPO_ROOT = Path(__file__).parents[2]
 GENERATOR_PATH = REPO_ROOT / "ci_cd" / "generate_model_prices_schema.py"
-PRICES_PATH = REPO_ROOT / "model_prices_and_context_window.json"
-BACKUP_PRICES_PATH = REPO_ROOT / "litellm" / "model_prices_and_context_window_backup.json"
+PRICES_PATH = REPO_ROOT / "data" / "pricing" / "model_prices.json"
 SCHEMA_PATH = REPO_ROOT / "model_prices_and_context_window.schema.json"
 
 
@@ -134,7 +133,7 @@ def find_duplicate_keys(path: Path) -> list[str]:
     return duplicates
 
 
-@pytest.mark.parametrize("path", (PRICES_PATH, BACKUP_PRICES_PATH), ids=("main", "backup"))
+@pytest.mark.parametrize("path", (PRICES_PATH,), ids=("bundled",))
 def test_price_map_has_no_duplicate_keys(path: Path):
     assert find_duplicate_keys(path) == [], (
         f"{path.name} defines the same key twice; JSON parsers keep only the last "

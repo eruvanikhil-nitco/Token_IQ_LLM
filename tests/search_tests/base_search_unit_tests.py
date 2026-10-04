@@ -40,7 +40,7 @@ class BaseSearchTest(ABC):
         Test basic search functionality with a simple query.
         """
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map(url="")
+        litellm.model_cost = litellm.get_model_cost_map()
         litellm._turn_on_debug()
         search_provider = self.get_search_provider()
         print("Search Provider=", search_provider)

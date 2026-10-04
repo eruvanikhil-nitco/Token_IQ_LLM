@@ -139,7 +139,7 @@ def test_cost_calculator_uses_registry_price(
     model, expected_cost_for_two_images, monkeypatch: pytest.MonkeyPatch
 ):
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map(url=""))
+    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
     litellm.get_model_info.cache_clear()
     response = ImageResponse(
         data=[
