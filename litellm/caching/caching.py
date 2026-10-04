@@ -1,11 +1,3 @@
-# +-----------------------------------------------+
-# |                                               |
-# |           Give Feedback / Get Help            |
-# | https://github.com/BerriAI/litellm/issues/new |
-# |                                               |
-# +-----------------------------------------------+
-#
-#  Thank you users! We ❤️ you! - Krrish & Ishaan
 
 import ast
 import hashlib
@@ -393,7 +385,7 @@ class Cache:
         """
         Handles getting the value for the 'model' param from kwargs
 
-        1. If caching groups are set, then return the caching group as the model https://docs.litellm.ai/docs/routing#caching-across-model-groups
+        1. If caching groups are set, then return the caching group as the model
         2. Else if a model_group is set, then return the model_group as the model. This is used for all requests sent through the litellm.Router()
         3. Else use the `model` passed in kwargs
         """

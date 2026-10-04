@@ -11,7 +11,7 @@ class IdentityResolutionError(Exception):
 
 class NoDatabaseConnectionError(IdentityResolutionError):
     def __init__(self) -> None:
-        super().__init__("No DB Connected. See - https://docs.litellm.ai/docs/proxy/virtual_keys")
+        super().__init__("No DB Connected. See")
 
 
 class KeyNotInCacheError(IdentityResolutionError):

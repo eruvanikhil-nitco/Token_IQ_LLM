@@ -857,12 +857,12 @@ def _gemini_convert_messages_with_history(
                 """
                 check that user_content has 'text' parameter.
                     - Known Vertex Error: Unable to submit request because it must have a text parameter.
-                    - Relevant Issue: https://github.com/BerriAI/litellm/issues/5515
+                    - Relevant Issue
                 """
                 has_text_in_content = _check_text_in_content(user_content)
                 if has_text_in_content is False:
                     verbose_logger.warning(
-                        "No text in user content. Adding a blank text to user content, to ensure Gemini doesn't fail the request. Relevant Issue - https://github.com/BerriAI/litellm/issues/5515"
+                        "No text in user content. Adding a blank text to user content, to ensure Gemini doesn't fail the request. Relevant Issue"
                     )
                     user_content.append(
                         PartType(text=" ")
@@ -1052,7 +1052,7 @@ def _gemini_convert_messages_with_history(
 
             if msg_i == init_msg_i:  # prevent infinite loops
                 raise Exception(
-                    f"Invalid Message passed in - {messages[msg_i]}. File an issue https://github.com/BerriAI/litellm/issues"
+                    f"Invalid Message passed in - {messages[msg_i]}. File an issue"
                 )
         if len(tool_call_responses) > 0:
             contents.append(ContentType(role="user", parts=tool_call_responses))
@@ -1064,7 +1064,7 @@ def _gemini_convert_messages_with_history(
                 If the original request did not comply to OpenAI API requirements it should have failed by now,
                 but LiteLLM does not check for missing messages.
                 Setting an empty content to prevent an 400 error.
-                Relevant Issue - https://github.com/BerriAI/litellm/issues/9733
+                Relevant Issue
                 """)
             contents.append(ContentType(role="user", parts=[PartType(text=" ")]))
         return contents
@@ -1417,7 +1417,7 @@ def _transform_system_message(
     if len(system_content_blocks) > 0:
         #########################################################
         # If no messages are passed in, add a blank user message
-        # Relevant Issue - https://github.com/BerriAI/litellm/issues/13769
+        # Relevant Issue
         #########################################################
         if len(messages) == 0:
             messages.append(_default_user_message_when_system_message_passed())

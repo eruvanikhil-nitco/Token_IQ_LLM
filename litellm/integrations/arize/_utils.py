@@ -230,7 +230,7 @@ def _safe_get(obj, key, default=None):
     Pydantic models (e.g. ``openai.types.completion_usage.CompletionUsage`` and
     nested ``CompletionTokensDetails`` / ``OutputTokensDetails``) which do NOT
     expose ``.get``. Calling ``.get`` on the latter raised ``AttributeError`` —
-    see https://github.com/BerriAI/litellm/issues/13672.
+
     """
     if obj is None:
         return default

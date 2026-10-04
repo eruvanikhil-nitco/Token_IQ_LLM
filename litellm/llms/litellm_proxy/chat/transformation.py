@@ -60,7 +60,7 @@ class LiteLLMProxyChatConfig(OpenAIGPTConfig):
         """
         Returns True if litellm proxy should be used by default for a given request
 
-        Issue: https://github.com/BerriAI/litellm/issues/10559
+        Issue
 
         Use case:
         - When using Google ADK, users want a flag to dynamically enable sending the request to litellm proxy or not
@@ -84,7 +84,7 @@ class LiteLLMProxyChatConfig(OpenAIGPTConfig):
         """
         Force use litellm proxy for all models
 
-        Issue: https://github.com/BerriAI/litellm/issues/10559
+        Issue
 
         Expected behavior:
         - custom_llm_provider will be 'litellm_proxy'

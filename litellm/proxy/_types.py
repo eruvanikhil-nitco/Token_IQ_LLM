@@ -2507,7 +2507,7 @@ class ConfigGeneralSettings(LiteLLMPydanticObjectBase):
     )
     custom_auth: str | None = Field(
         None,
-        description="override user_api_key_auth with your own auth script - https://docs.litellm.ai/docs/proxy/virtual_keys#custom-auth",
+        description="override user_api_key_auth with your own auth script",
     )
     max_parallel_requests: int | None = Field(
         None,
@@ -2624,7 +2624,7 @@ class ConfigGeneralSettings(LiteLLMPydanticObjectBase):
     )
     pass_through_endpoints: list[PassThroughGenericEndpoint] | None = Field(
         default=None,
-        description="Set-up pass-through endpoints for provider-specific endpoints. Docs - https://docs.litellm.ai/docs/proxy/pass_through",
+        description="Set-up pass-through endpoints for provider-specific endpoints. Docs",
     )
     user_header_name: str | None = Field(
         None,
@@ -3818,7 +3818,7 @@ class ProxyException(Exception):
         self.openai_code = openai_code or code
         # If we look on official python OpenAI lib, the code should be a string:
         # https://github.com/openai/openai-python/blob/195c05a64d39c87b2dfdf1eca2d339597f1fce03/src/openai/types/shared/error_object.py#L11
-        # Related LiteLLM issue: https://github.com/BerriAI/litellm/discussions/4834
+        # Related LiteLLM issue
         self.code = str(code)
         if headers is not None:
             for k, v in headers.items():
@@ -3828,7 +3828,7 @@ class ProxyException(Exception):
         self.provider_specific_fields = provider_specific_fields
         # rules for proxyExceptions
         # Litellm router.py returns "No healthy deployment available" when there are no deployments available
-        # Should map to 429 errors https://github.com/BerriAI/litellm/issues/2487
+        # Should map to 429 errors
         if "No healthy deployment available" in self.message or "No deployments available" in self.message:
             self.code = "429"
         elif RouterErrors.no_deployments_with_tag_routing.value in self.message:
@@ -3851,7 +3851,7 @@ class CommonProxyErrors(str, enum.Enum):
     db_not_connected_error = (
         "DB not connected. This endpoint needs a database; set DATABASE_URL to a "
         "PostgreSQL connection string (postgresql://...) to enable it. "
-        "See https://docs.litellm.ai/docs/proxy/virtual_keys"
+        ""
     )
     no_llm_router = "No models configured on proxy"
     not_allowed_access = "Admin-only endpoint. Not allowed to access this."
@@ -4399,7 +4399,7 @@ class UserManagementEndpointParamDocStringEnums(str, enum.Enum):
     teams_doc_str = "Optional[list] - specify a list of team id's a user belongs to."
     user_email_doc_str = "Optional[str] - Specify a user email."
     send_invite_email_doc_str = "Optional[bool] - Specify if an invite email should be sent."
-    user_role_doc_str = """Optional[str] - Specify a user role - "proxy_admin", "proxy_admin_viewer", "internal_user", "internal_user_viewer", "team", "customer". Info about each role here: `https://github.com/BerriAI/litellm/litellm/proxy/_types.py#L20`"""
+    user_role_doc_str ="""Optional[str] - Specify a user role -"proxy_admin","proxy_admin_viewer","internal_user","internal_user_viewer","team","customer". Info about each role here: ``"""
     max_budget_doc_str = """Optional[float] - Specify max budget for a given user."""
     budget_duration_doc_str = """Optional[str] - Budget is reset at the end of specified duration. If not set, budget is never reset. You can set duration as seconds ("30s"), minutes ("30m"), hours ("30h"), days ("30d"), months ("1mo")."""
     models_doc_str = (
@@ -4410,7 +4410,7 @@ class UserManagementEndpointParamDocStringEnums(str, enum.Enum):
     auto_create_key_doc_str = """bool - Default=True. Flag used for returning a key as part of the /user/new response"""
     aliases_doc_str = """Optional[dict] - Model aliases for the user - [Docs](https://litellm.vercel.app/docs/proxy/virtual_keys#model-aliases)"""
     config_doc_str = """Optional[dict] - [DEPRECATED PARAM] User-specific config."""
-    allowed_cache_controls_doc_str = """Optional[list] - List of allowed cache control values. Example - ["no-cache", "no-store"]. See all values - https://docs.litellm.ai/docs/proxy/caching#turn-on--off-caching-per-request-"""
+    allowed_cache_controls_doc_str ="""Optional[list] - List of allowed cache control values. Example - ["no-cache","no-store"]. See all values"""
     blocked_doc_str = """Optional[bool] - [Not Implemented Yet] Whether the user is blocked."""
     guardrails_doc_str = """Optional[List[str]] - [Not Implemented Yet] List of active guardrails for the user"""
     permissions_doc_str = (
@@ -4419,9 +4419,9 @@ class UserManagementEndpointParamDocStringEnums(str, enum.Enum):
     metadata_doc_str = """Optional[dict] - Metadata for user, store information for user. Example metadata = {"team": "core-infra", "app": "app2", "email": "ishaan@berri.ai" }"""
     max_parallel_requests_doc_str = """Optional[int] - Rate limit a user based on the number of parallel requests. Raises 429 error, if user's parallel requests > x."""
     soft_budget_doc_str = """Optional[float] - Get alerts when user crosses given budget, doesn't block requests."""
-    model_max_budget_doc_str = """Optional[dict] - Model-specific max budget for user. [Docs](https://docs.litellm.ai/docs/proxy/users#add-model-specific-budgets-to-keys)"""
-    model_rpm_limit_doc_str = """Optional[float] - Model-specific rpm limit for user. [Docs](https://docs.litellm.ai/docs/proxy/users#add-model-specific-limits-to-keys)"""
-    model_tpm_limit_doc_str = """Optional[float] - Model-specific tpm limit for user. [Docs](https://docs.litellm.ai/docs/proxy/users#add-model-specific-limits-to-keys)"""
+    model_max_budget_doc_str ="""Optional[dict] - Model-specific max budget for user. [Docs]"""
+    model_rpm_limit_doc_str ="""Optional[float] - Model-specific rpm limit for user. [Docs]"""
+    model_tpm_limit_doc_str ="""Optional[float] - Model-specific tpm limit for user. [Docs]"""
     spend_doc_str = (
         """Optional[float] - Amount spent by user. Default is 0. Will be updated by proxy whenever user is used."""
     )

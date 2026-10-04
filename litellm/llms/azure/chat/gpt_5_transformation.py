@@ -116,7 +116,7 @@ class AzureOpenAIGPT5Config(AzureOpenAIConfig, OpenAIGPT5Config):
                         "Supported values are: 'low', 'medium', and 'high'. "
                         "To drop this parameter, set `litellm.drop_params=True` or for proxy:\n\n"
                         "`litellm_settings:\n drop_params: true`\n"
-                        "Issue: https://github.com/BerriAI/litellm/issues/16704"
+                        "Issue"
                     ),
                 )
 

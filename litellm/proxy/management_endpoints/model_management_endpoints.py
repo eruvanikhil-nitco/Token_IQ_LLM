@@ -1746,7 +1746,7 @@ class ModelManagementAuthChecks:
         return True
 
 
-#### [BETA] - This is a beta endpoint, format might change based on user feedback. - https://github.com/BerriAI/litellm/issues/964
+#### [BETA] - This is a beta endpoint, format might change based on user feedback.
 @router.post(
     "/model/delete",
     description="Allows deleting models in the model list in the config.yaml",
@@ -1761,7 +1761,7 @@ async def delete_model(
 
     try:
         """
-        [BETA] - This is a beta endpoint, format might change based on user feedback. - https://github.com/BerriAI/litellm/issues/964
+        [BETA] - This is a beta endpoint, format might change based on user feedback.
 
         - Check if id in db
         - Delete
@@ -1781,7 +1781,7 @@ async def delete_model(
             raise HTTPException(
                 status_code=500,
                 detail={
-                    "error": "No DB Connected. Here's how to do it - https://docs.litellm.ai/docs/proxy/virtual_keys"
+                    "error":"No DB Connected. Here's how to do it"
                 },
             )
 
@@ -1913,7 +1913,7 @@ async def delete_team_model_alias(
     return removed_model_aliases
 
 
-#### [BETA] - This is a beta endpoint, format might change based on user feedback. - https://github.com/BerriAI/litellm/issues/964
+#### [BETA] - This is a beta endpoint, format might change based on user feedback.
 @router.post(
     "/model/new",
     description="Allows adding new models to the model list in the config.yaml",
@@ -1972,7 +1972,7 @@ async def add_new_model(
             raise HTTPException(
                 status_code=500,
                 detail={
-                    "error": "No DB Connected. Here's how to do it - https://docs.litellm.ai/docs/proxy/virtual_keys"
+                    "error":"No DB Connected. Here's how to do it"
                 },
             )
 
@@ -2146,7 +2146,7 @@ async def update_model(
             raise HTTPException(
                 status_code=500,
                 detail={
-                    "error": "No DB Connected. Here's how to do it - https://docs.litellm.ai/docs/proxy/virtual_keys"
+                    "error":"No DB Connected. Here's how to do it"
                 },
             )
 

@@ -181,7 +181,7 @@ class ModelRateLimitingCheck(CustomLogger):
                             headers={"retry-after": str(60)},
                             request=httpx.Request(
                                 method="model_rate_limit_check",
-                                url="https://github.com/BerriAI/litellm",
+                                url="",
                             ),
                         ),
                     )
@@ -200,7 +200,7 @@ class ModelRateLimitingCheck(CustomLogger):
                             headers={"retry-after": str(60)},
                             request=httpx.Request(
                                 method="model_rate_limit_check",
-                                url="https://github.com/BerriAI/litellm",
+                                url="",
                             ),
                         ),
                     )
@@ -262,7 +262,7 @@ class ModelRateLimitingCheck(CustomLogger):
                             headers={"retry-after": str(60)},
                             request=httpx.Request(
                                 method="model_rate_limit_check",
-                                url="https://github.com/BerriAI/litellm",
+                                url="",
                             ),
                         ),
                         num_retries=0,  # Don't retry - return 429 immediately
@@ -287,7 +287,7 @@ class ModelRateLimitingCheck(CustomLogger):
                             headers={"retry-after": str(60)},
                             request=httpx.Request(
                                 method="model_rate_limit_check",
-                                url="https://github.com/BerriAI/litellm",
+                                url="",
                             ),
                         ),
                         num_retries=0,  # Don't retry - return 429 immediately

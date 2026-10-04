@@ -46,7 +46,7 @@ class BaseRepository(ABC, Generic[T]):
     @property
     def prisma_client(self) -> Any:  # any-ok: PrismaClient is an untyped runtime wrapper
         if self._prisma_client is None:
-            raise RuntimeError("No DB Connected. See - https://docs.litellm.ai/docs/proxy/virtual_keys")
+            raise RuntimeError("No DB Connected. See")
         return self._prisma_client
 
     @property

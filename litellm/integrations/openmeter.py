@@ -1,5 +1,5 @@
 # What is this?
-## On Success events log cost to OpenMeter - https://github.com/BerriAI/litellm/issues/1268
+## On Success events log cost to OpenMeter
 
 import json
 import os

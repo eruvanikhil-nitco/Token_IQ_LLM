@@ -51,7 +51,7 @@ class PatternMatchRouter:
     """
     Class to handle llm wildcard routing and regex pattern matching
 
-    doc: https://docs.litellm.ai/docs/proxy/configs#provider-specific-wildcard-routing
+    doc
 
     This class will store a mapping for regex pattern: List[Deployments]
     """

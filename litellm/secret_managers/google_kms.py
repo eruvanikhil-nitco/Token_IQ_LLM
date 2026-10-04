@@ -1,7 +1,7 @@
 """
 This is a file for the Google KMS integration
 
-Relevant issue: https://github.com/BerriAI/litellm/issues/1235
+Relevant issue
 
 Requires:
 * `os.environ["GOOGLE_APPLICATION_CREDENTIALS"], os.environ["GOOGLE_KMS_RESOURCE_NAME"]`

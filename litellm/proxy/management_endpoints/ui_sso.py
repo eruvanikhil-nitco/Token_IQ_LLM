@@ -2013,7 +2013,7 @@ async def auth_callback(request: Request, state: str | None = None):
     # get url from request
     if master_key is None:
         raise ProxyException(
-            message="Master Key not set for Proxy. Please set Master Key to use Admin UI. Set `LITELLM_MASTER_KEY` in .env or set general_settings:master_key in config.yaml.  https://docs.litellm.ai/docs/proxy/virtual_keys. If set, use `--detailed_debug` to debug issue.",
+            message="Master Key not set for Proxy. Please set Master Key to use Admin UI. Set `LITELLM_MASTER_KEY` in.env or set general_settings:master_key in config.yaml. If set, use `--detailed_debug` to debug issue.",
             type=ProxyErrorTypes.auth_error,
             param="master_key",
             code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -2991,7 +2991,7 @@ class SSOAuthenticationHandler:
                 request=request,
             )
         raise ValueError(
-            "Unknown SSO provider. Please setup SSO with client IDs https://docs.litellm.ai/docs/proxy/admin_ui_sso"
+            "Unknown SSO provider. Please setup SSO with client IDs"
         )
 
     @staticmethod
@@ -3556,7 +3556,7 @@ class SSOAuthenticationHandler:
 
         if user_defined_values is None:
             raise Exception(
-                "Unable to map user identity to known values. 'user_defined_values' is None. File an issue - https://github.com/BerriAI/litellm/issues"
+                "Unable to map user identity to known values.'user_defined_values' is None. File an issue"
             )
 
         verbose_proxy_logger.info("user_defined_values for creating ui key: %s", user_defined_values)

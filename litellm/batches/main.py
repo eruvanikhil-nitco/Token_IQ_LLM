@@ -328,7 +328,7 @@ def create_batch(
                 response=httpx.Response(
                     status_code=400,
                     content="Unsupported provider",
-                    request=httpx.Request(method="create_batch", url="https://github.com/BerriAI/litellm"),
+                    request=httpx.Request(method="create_batch", url=""),
                 ),
             )
         return response
@@ -503,7 +503,7 @@ def _handle_retrieve_batch_providers_without_provider_config(
             response=httpx.Response(
                 status_code=400,
                 content="Unsupported provider",
-                request=httpx.Request(method="retrieve_batch", url="https://github.com/BerriAI/litellm"),
+                request=httpx.Request(method="retrieve_batch", url=""),
             ),
         )
     return response
@@ -821,7 +821,7 @@ def list_batches(
                 response=httpx.Response(
                     status_code=400,
                     content="Unsupported provider",
-                    request=httpx.Request(method="create_thread", url="https://github.com/BerriAI/litellm"),
+                    request=httpx.Request(method="create_thread", url=""),
                 ),
             )
         return response
@@ -1012,7 +1012,7 @@ def cancel_batch(
                 response=httpx.Response(
                     status_code=400,
                     content="Unsupported provider",
-                    request=httpx.Request(method="cancel_batch", url="https://github.com/BerriAI/litellm"),
+                    request=httpx.Request(method="cancel_batch", url=""),
                 ),
             )
         return response

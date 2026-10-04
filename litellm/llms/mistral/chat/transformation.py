@@ -224,7 +224,7 @@ class MistralConfig(OpenAIGPTConfig):
         - handles scenario where content is list and not string
         - content list is just text, and no images
         - if image passed in, then just return as is (user-intended)
-        - if `name` is passed, then drop it for mistral API: https://github.com/BerriAI/litellm/issues/6696
+        - if `name` is passed, then drop it for mistral API
 
         Motivation: mistral api doesn't support content as a list.
         The above statement is not valid now. Need to plan to remove all the #1,2,3

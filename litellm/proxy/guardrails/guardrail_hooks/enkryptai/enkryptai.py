@@ -473,7 +473,7 @@ class EnkryptAIGuardrails(CustomGuardrail):
 
         This is useful for guardrails that need to see the entire response, such as PII masking.
 
-        See Aim guardrail implementation for an example - https://github.com/BerriAI/litellm/blob/d0e022cfacb8e9ebc5409bb652059b6fd97b45c0/litellm/proxy/guardrails/guardrail_hooks/aim.py#L168
+        See Aim guardrail implementation for an example
 
         Triggered by mode: 'post_call'
         """

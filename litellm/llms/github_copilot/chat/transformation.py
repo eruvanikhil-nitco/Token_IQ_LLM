@@ -215,7 +215,7 @@ class GithubCopilotConfig(OpenAIConfig):
         max_tokens=1 probe returns no content at all. Returns the response
         unchanged when it already carries choices.
 
-        See: https://github.com/BerriAI/litellm/issues/29391
+        See
         """
         if response_json.get("choices"):
             return response_json
@@ -266,7 +266,7 @@ class GithubCopilotConfig(OpenAIConfig):
     def transform_parsed_response_dict(self, parsed_response: dict) -> dict:
         """
         Repair the OpenAI-SDK-parsed response on the handler path that bypasses
-        transform_response. See: https://github.com/BerriAI/litellm/issues/30927
+        transform_response. See
         """
         return self._synthesize_choices_for_anthropic_native(parsed_response)
 

@@ -46,7 +46,7 @@ class HealthCheckHelpers:
         cheapest_models = pick_cheapest_chat_models_from_llm_provider(custom_llm_provider=custom_llm_provider, n=3)
         if len(cheapest_models) == 0:
             raise Exception(
-                f"Unable to health check wildcard model for provider {custom_llm_provider}. Add a model on your config.yaml or contribute here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json"
+                f"Unable to health check wildcard model for provider {custom_llm_provider}. Add a model on your config.yaml or contribute here"
             )
         if len(cheapest_models) > 1:
             fallback_models = cheapest_models[1:]  # Pick the last 2 models from the shuffled list

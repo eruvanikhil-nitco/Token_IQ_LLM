@@ -677,7 +677,7 @@ class BedrockFilesConfig(BaseAWSLLM, BaseFilesConfig):
                 "Bedrock batch embedding currently supports only Amazon "
                 "Titan Text Embeddings V2 (model id contains "
                 f"'titan-embed-text-v2'). Got model={model!r}. Track other "
-                "embedding models in https://github.com/BerriAI/litellm/issues."
+                "embedding models in"
             )
 
         input_text: Final = self._coerce_embedding_input_to_string(openai_request_body.get("input"), model=model)

@@ -280,7 +280,7 @@ async def spend_key_fn(
     try:
         if prisma_client is None:
             raise Exception(
-                "Database not connected. Connect a database to your proxy - https://docs.litellm.ai/docs/simple_proxy#managing-auth---virtual-keys"
+                "Database not connected. Connect a database to your proxy"
             )
 
         if _is_admin_view_safe(user_api_key_dict=user_api_key_dict):
@@ -353,7 +353,7 @@ async def spend_user_fn(
     try:
         if prisma_client is None:
             raise Exception(
-                "Database not connected. Connect a database to your proxy - https://docs.litellm.ai/docs/simple_proxy#managing-auth---virtual-keys"
+                "Database not connected. Connect a database to your proxy"
             )
 
         if not _is_admin_view_safe(user_api_key_dict=user_api_key_dict):
@@ -425,7 +425,7 @@ async def view_spend_tags(
     try:
         if prisma_client is None:
             raise Exception(
-                "Database not connected. Connect a database to your proxy - https://docs.litellm.ai/docs/simple_proxy#managing-auth---virtual-keys"
+                "Database not connected. Connect a database to your proxy"
             )
 
         # run the following SQL query on prisma
@@ -544,7 +544,7 @@ async def get_global_activity(
     try:
         if prisma_client is None:
             raise Exception(
-                "Database not connected. Connect a database to your proxy - https://docs.litellm.ai/docs/simple_proxy#managing-auth---virtual-keys"
+                "Database not connected. Connect a database to your proxy"
             )
 
         db_response: Sequence[_ActivityRow] | None
@@ -709,7 +709,7 @@ async def get_global_activity_model(
     try:
         if prisma_client is None:
             raise Exception(
-                "Database not connected. Connect a database to your proxy - https://docs.litellm.ai/docs/simple_proxy#managing-auth---virtual-keys"
+                "Database not connected. Connect a database to your proxy"
             )
 
         db_response: Sequence[_ActivityModelRow] | None
@@ -857,7 +857,7 @@ async def get_global_activity_exceptions_per_deployment(
     try:
         if prisma_client is None:
             raise Exception(
-                "Database not connected. Connect a database to your proxy - https://docs.litellm.ai/docs/simple_proxy#managing-auth---virtual-keys"
+                "Database not connected. Connect a database to your proxy"
             )
 
         sql_query: Final = """
@@ -984,7 +984,7 @@ async def get_global_activity_exceptions(
     try:
         if prisma_client is None:
             raise Exception(
-                "Database not connected. Connect a database to your proxy - https://docs.litellm.ai/docs/simple_proxy#managing-auth---virtual-keys"
+                "Database not connected. Connect a database to your proxy"
             )
 
         sql_query: Final = """
@@ -1090,7 +1090,7 @@ async def get_global_spend_provider(
     try:
         if prisma_client is None:
             raise Exception(
-                "Database not connected. Connect a database to your proxy - https://docs.litellm.ai/docs/simple_proxy#managing-auth---virtual-keys"
+                "Database not connected. Connect a database to your proxy"
             )
 
         db_response: Sequence[_ModelIdSpendRow] | None
@@ -1250,7 +1250,7 @@ async def get_global_spend_report(
     try:
         if prisma_client is None:
             raise Exception(
-                "Database not connected. Connect a database to your proxy - https://docs.litellm.ai/docs/simple_proxy#managing-auth---virtual-keys"
+                "Database not connected. Connect a database to your proxy"
             )
 
         if premium_user is not True:
@@ -1849,7 +1849,7 @@ async def global_get_all_tag_names():
 
         if prisma_client is None:
             raise Exception(
-                "Database not connected. Connect a database to your proxy - https://docs.litellm.ai/docs/simple_proxy#managing-auth---virtual-keys"
+                "Database not connected. Connect a database to your proxy"
             )
 
         sql_query: Final = """
@@ -1930,7 +1930,7 @@ async def global_view_spend_tags(
     try:
         if prisma_client is None:
             raise Exception(
-                "Database not connected. Connect a database to your proxy - https://docs.litellm.ai/docs/simple_proxy#managing-auth---virtual-keys"
+                "Database not connected. Connect a database to your proxy"
             )
 
         if end_date is None or start_date is None:
@@ -2988,7 +2988,7 @@ async def view_spend_logs(
         verbose_proxy_logger.debug("inside view_spend_logs")
         if prisma_client is None:
             raise Exception(
-                "Database not connected. Connect a database to your proxy - https://docs.litellm.ai/docs/simple_proxy#managing-auth---virtual-keys"
+                "Database not connected. Connect a database to your proxy"
             )
         if (
             start_date is not None
@@ -3814,7 +3814,7 @@ async def provider_budgets() -> ProviderBudgetResponse:
         provider_budget_config: Final = llm_router.provider_budget_config
         if provider_budget_config is None:
             raise ValueError(
-                "No provider budget config found. Please set a provider budget config in the router settings. https://docs.litellm.ai/docs/proxy/provider_budget_routing"
+                "No provider budget config found. Please set a provider budget config in the router settings."
             )
 
         router_budget_logger: Final = llm_router._get_router_deployment_budget_limiter()

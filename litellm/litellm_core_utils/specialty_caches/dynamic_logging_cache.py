@@ -34,7 +34,7 @@ class LangfuseInMemoryCache(InMemoryCache):
 
         LangfuseLoggers consume threads when initalized, this shuts them down when they are expired
 
-        Relevant Issue: https://github.com/BerriAI/litellm/issues/11169
+        Relevant Issue
         """
         from litellm.integrations.langfuse.langfuse import LangFuseLogger
 
@@ -66,7 +66,7 @@ class DynamicLoggingCache:
     """
     Prevent memory leaks caused by initializing new logging clients on each request.
 
-    Relevant Issue: https://github.com/BerriAI/litellm/issues/5695
+    Relevant Issue
     """
 
     def __init__(self) -> None:

@@ -135,7 +135,7 @@ class BudgetManager:
             model = completion_obj["model"]  # if this throws an error try, model = completion_obj['model']
         else:
             raise ValueError(
-                "Either a chat completion object or the text response needs to be passed in. Learn more - https://docs.litellm.ai/docs/budget_manager"
+                "Either a chat completion object or the text response needs to be passed in."
             )
 
         self.user_dict[user]["current_cost"] = cost + self.user_dict[user].get("current_cost", 0)

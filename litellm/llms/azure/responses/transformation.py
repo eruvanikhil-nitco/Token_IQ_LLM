@@ -50,7 +50,7 @@ class AzureOpenAIResponsesAPIConfig(OpenAIResponsesAPIConfig):
     def _handle_reasoning_item(self, item: dict[str, Any]) -> dict[str, Any]:
         """
         Handle reasoning items to filter out the status field.
-        Issue: https://github.com/BerriAI/litellm/issues/13484
+        Issue
 
         Azure OpenAI API does not accept 'status' field in reasoning input items.
         """

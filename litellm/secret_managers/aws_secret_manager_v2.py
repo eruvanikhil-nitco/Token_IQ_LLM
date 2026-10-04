@@ -7,7 +7,7 @@ Handles Async Operations for:
 - Update Secret (PutSecretValue) - for in-place rotation when alias is preserved
 - Delete Secret
 
-Relevant issue: https://github.com/BerriAI/litellm/issues/1883
+Relevant issue
 
 Requires:
 * `os.environ["AWS_REGION_NAME"],

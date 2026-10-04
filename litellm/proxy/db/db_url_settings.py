@@ -162,7 +162,7 @@ def unsupported_db_scheme_message(env_var: str, scheme: str) -> str:
         "features (virtual keys, store_model_in_db, spend tracking) require "
         "PostgreSQL; use a 'postgresql://' connection string. SQLite and other "
         "engines are not supported. "
-        "See https://docs.litellm.ai/docs/proxy/virtual_keys"
+        ""
     )
 
 

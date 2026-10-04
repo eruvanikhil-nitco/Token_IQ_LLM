@@ -305,7 +305,7 @@ class FireworksAIConfig(FireworksAIMixin, OpenAIGPTConfig):
         for param, value in non_default_params.items():
             if param == "tool_choice":
                 if value == "required":
-                    # relevant issue: https://github.com/BerriAI/litellm/issues/4416
+                    # relevant issue
                     optional_params["tool_choice"] = "any"
                 else:
                     # pass through the value of tool choice
@@ -667,7 +667,7 @@ class FireworksAIConfig(FireworksAIMixin, OpenAIGPTConfig):
         """
         Fireworks AI sends tool calls in the content field instead of tool_calls
 
-        Relevant Issue: https://github.com/BerriAI/litellm/issues/7209#issuecomment-2813208780
+        Relevant Issue
         """
         if tool_calls is not None and message.content is not None and message.tool_calls is None:
             try:

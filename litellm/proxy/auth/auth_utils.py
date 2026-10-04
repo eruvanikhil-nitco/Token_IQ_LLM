@@ -1391,7 +1391,7 @@ def custom_auth_common_checks_warning(
         "on your DB team/project records will NOT be enforced for custom-auth requests "
         "(rate limits set directly on the returned UserAPIKeyAuth still apply). "
         "Fix: set 'general_settings.custom_auth_run_common_checks: true'. "
-        "Docs: https://docs.litellm.ai/docs/proxy/custom_auth"
+        "Docs"
     )
 
 

@@ -200,7 +200,7 @@ response = client.chat.completions.create(<br>
 )
             </div>
             
-            <a href="https://docs.litellm.ai/docs/proxy/user_keys" class="btn" style="color: #ffffff;">View Documentation</a>
+            <a href="" class="btn" style="color: #ffffff;">View Documentation</a>
             
             <div class="separator"></div>
             

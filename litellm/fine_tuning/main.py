@@ -321,7 +321,7 @@ def create_fine_tuning_job(
                 response=httpx.Response(
                     status_code=400,
                     content="Unsupported provider",
-                    request=httpx.Request(method="create_thread", url="https://github.com/BerriAI/litellm"),
+                    request=httpx.Request(method="create_thread", url=""),
                 ),
             )
         return response
@@ -473,7 +473,7 @@ def cancel_fine_tuning_job(
                 response=httpx.Response(
                     status_code=400,
                     content="Unsupported provider",
-                    request=httpx.Request(method="create_thread", url="https://github.com/BerriAI/litellm"),
+                    request=httpx.Request(method="create_thread", url=""),
                 ),
             )
         return response
@@ -629,7 +629,7 @@ def list_fine_tuning_jobs(
                 response=httpx.Response(
                     status_code=400,
                     content="Unsupported provider",
-                    request=httpx.Request(method="create_thread", url="https://github.com/BerriAI/litellm"),
+                    request=httpx.Request(method="create_thread", url=""),
                 ),
             )
         return response
@@ -769,7 +769,7 @@ def retrieve_fine_tuning_job(
                     content="Unsupported provider",
                     request=httpx.Request(
                         method="retrieve_fine_tuning_job",
-                        url="https://github.com/BerriAI/litellm",
+                        url="",
                     ),
                 ),
             )

@@ -112,7 +112,7 @@ class SafeAttributeModel:
 
 class LiteLLMCommonStrings(Enum):
     redacted_by_litellm = "redacted by litellm. 'litellm.turn_off_message_logging=True'"
-    llm_provider_not_provided = "Unmapped LLM provider for this endpoint. You passed model={model}, custom_llm_provider={custom_llm_provider}. Check supported provider and route: https://docs.litellm.ai/docs/providers"
+    llm_provider_not_provided ="Unmapped LLM provider for this endpoint. You passed model={model}, custom_llm_provider={custom_llm_provider}. Check supported provider and route"
 
 
 SupportedCacheControls: Final = ["ttl", "s-maxage", "no-cache", "no-store"]
@@ -1035,7 +1035,7 @@ class ChatCompletionTokenLogprob(OpenAIObject):
 
         Some providers return null instead of [] when logprobs=true but
         top_logprobs is unset. The OpenAI spec requires an array.
-        Fixes https://github.com/BerriAI/litellm/issues/21932
+        Fixes
         """
         if v is None:
             return []
@@ -1895,7 +1895,7 @@ class StreamingChoices(OpenAIObject):
         **params,
     ) -> None:
         # Fix Perplexity return both delta and message cause OpenWebUI repect text
-        # https://github.com/BerriAI/litellm/issues/8455
+
         params.pop("message", None)
         super().__init__(**params)
         if finish_reason:

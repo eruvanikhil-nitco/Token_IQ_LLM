@@ -146,8 +146,8 @@ class CustomLLM(BaseLLM):
         model: str,
         prompt: str,
         model_response: ImageResponse,
-        api_key: str | None,  # dynamically set api_key - https://docs.litellm.ai/docs/set_keys#api_key
-        api_base: str | None,  # dynamically set api_base - https://docs.litellm.ai/docs/set_keys#api_base
+        api_key: str | None, # dynamically set api_key
+        api_base: str | None, # dynamically set api_base
         optional_params: dict,
         logging_obj: "LiteLLMLoggingObj",
         timeout: float | httpx.Timeout | None = None,

@@ -589,7 +589,7 @@ class BedrockGuardrail(CustomGuardrail, BaseAWSLLM):
         has no role information, and wrapping it in role="user" mock messages
         makes the latest-user filter degenerate to "latest text of any role",
         leaking tool/assistant content to the INPUT scan
-        (https://github.com/BerriAI/litellm/issues/23476).
+.
         """
         mock_messages: list[AllMessageValues] = [ChatCompletionUserMessage(role="user", content=text) for text in texts]
 

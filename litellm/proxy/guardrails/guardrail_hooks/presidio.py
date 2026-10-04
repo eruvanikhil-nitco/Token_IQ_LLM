@@ -2,7 +2,7 @@
 # |                                               |
 # |               PII Masking                     |
 # |         with Microsoft Presidio               |
-# |   https://github.com/BerriAI/litellm/issues/  |
+# | |
 # +-----------------------------------------------+
 #
 #  Tell us how we can improve! - Krrish & Ishaan

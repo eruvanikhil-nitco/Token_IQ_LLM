@@ -307,7 +307,7 @@ class OpenAIGPT5Config(OpenAIGPTConfig):
 
         ################################################################
         # max_tokens is not supported for gpt-5 models on OpenAI API
-        # Relevant issue: https://github.com/BerriAI/litellm/issues/13381
+        # Relevant issue
         ################################################################
         if "max_tokens" in non_default_params:
             optional_params["max_completion_tokens"] = non_default_params.pop("max_tokens")

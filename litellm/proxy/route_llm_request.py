@@ -68,7 +68,7 @@ def _raise_if_model_fully_blocked(llm_router: LitellmRouter, model_name: object,
             llm_provider="",
             response=httpx.Response(
                 status_code=403,
-                request=httpx.Request(method="POST", url="https://github.com/BerriAI/litellm"),
+                request=httpx.Request(method="POST", url=""),
             ),
         )
 

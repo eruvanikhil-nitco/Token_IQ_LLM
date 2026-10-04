@@ -723,8 +723,8 @@ def _update_litellm_params_for_health_check(model_info: dict, litellm_params: di
       via `model_info.health_check_supports_max_tokens`. Non-chat endpoints
       (image, embedding, audio_*, rerank, video, ocr, search, moderation, ...)
       reject unknown fields with 400 "Unknown parameter: 'max_tokens'".
-    - updates the `model` param with the `health_check_model` if it exists Doc: https://docs.litellm.ai/docs/proxy/health#wildcard-routes
-    - updates the `voice` param with the `health_check_voice` for `audio_speech` mode if it exists Doc: https://docs.litellm.ai/docs/proxy/health#text-to-speech-models
+    - updates the `model` param with the `health_check_model` if it exists Doc
+    - updates the `voice` param with the `health_check_voice` for `audio_speech` mode if it exists Doc
     - for Bedrock models with region routing (bedrock/region/model), strips the litellm routing prefix but preserves the model ID, and pins `custom_llm_provider` to `bedrock` (only when the deployment hasn't already set one, so an explicit `bedrock_converse` survives) so the bare model id still resolves to the provider (e.g. cross-region ids like `us.cohere.embed-v4:0`)
     """
     mode: Final = _resolve_health_check_mode(

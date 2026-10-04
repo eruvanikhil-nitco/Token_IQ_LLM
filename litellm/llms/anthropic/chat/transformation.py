@@ -549,7 +549,7 @@ class AnthropicConfig(AnthropicModelInfo, BaseConfig):
             A new dictionary with unsupported fields removed and descriptions updated
 
         Related issues:
-        - https://github.com/BerriAI/litellm/issues/19444
+
         """
         if not isinstance(schema, dict):
             return schema
@@ -655,7 +655,7 @@ class AnthropicConfig(AnthropicModelInfo, BaseConfig):
     def get_json_schema_from_pydantic_object(self, response_format: Any | dict | None) -> dict | None:
         return type_to_response_format_param(
             response_format, ref_template="/$defs/{model}"
-        )  # Relevant issue: https://github.com/BerriAI/litellm/issues/7755
+        ) # Relevant issue
 
     def get_cache_control_headers(self) -> dict:
         # Anthropic no longer requires the prompt-caching beta header
@@ -1866,7 +1866,7 @@ class AnthropicConfig(AnthropicModelInfo, BaseConfig):
         # IMPORTANT: Only drop thinking if NO assistant messages have thinking_blocks.
         # If any message has thinking_blocks, we must keep thinking enabled, otherwise
         # Anthropic errors with: "When thinking is disabled, an assistant message cannot contain thinking"
-        # Related issue: https://github.com/BerriAI/litellm/issues/18926
+        # Related issue
         if (
             optional_params.get("thinking") is not None
             and messages is not None
@@ -2677,7 +2677,7 @@ class AnthropicConfig(AnthropicModelInfo, BaseConfig):
                     return _message
                 else:
                     # a lot of the times the `values` key is not present in the tool response
-                    # relevant issue: https://github.com/BerriAI/litellm/issues/6741
+                    # relevant issue
                     _message = litellm.Message(content=json.dumps(args))
                     return _message
         except json.JSONDecodeError:

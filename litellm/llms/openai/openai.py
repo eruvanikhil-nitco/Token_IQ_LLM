@@ -834,7 +834,7 @@ class OpenAIChatCompletion(BaseLLM, BaseOpenAILLM):
 
                         return final_response_obj
                 except openai.UnprocessableEntityError as e:
-                    ## check if body contains unprocessable params - related issue https://github.com/BerriAI/litellm/issues/4800
+                    ## check if body contains unprocessable params - related issue
                     if litellm.drop_params is True or drop_params is True:
                         inference_params = drop_params_from_unprocessable_entity_error(e, inference_params)
                     else:
@@ -986,7 +986,7 @@ class OpenAIChatCompletion(BaseLLM, BaseOpenAILLM):
 
                 return final_response_obj
             except openai.UnprocessableEntityError as e:
-                ## check if body contains unprocessable params - related issue https://github.com/BerriAI/litellm/issues/4800
+                ## check if body contains unprocessable params - related issue
                 if litellm.drop_params is True or drop_params is True:
                     data = drop_params_from_unprocessable_entity_error(e, data)
                 else:
@@ -1137,7 +1137,7 @@ class OpenAIChatCompletion(BaseLLM, BaseOpenAILLM):
                 )
                 return streamwrapper
             except openai.UnprocessableEntityError as e:
-                ## check if body contains unprocessable params - related issue https://github.com/BerriAI/litellm/issues/4800
+                ## check if body contains unprocessable params - related issue
                 if litellm.drop_params is True or drop_params is True:
                     data = drop_params_from_unprocessable_entity_error(e, data)
                 else:

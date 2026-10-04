@@ -57,7 +57,7 @@ class BaseLLMException(Exception):
         if request:
             self.request = request
         else:
-            self.request = httpx.Request(method="POST", url="https://docs.litellm.ai/docs")
+            self.request = httpx.Request(method="POST", url="")
         if response:
             self.response = response
         else:

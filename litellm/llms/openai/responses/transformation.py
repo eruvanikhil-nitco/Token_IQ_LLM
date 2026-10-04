@@ -374,7 +374,7 @@ class OpenAIResponsesAPIConfig(BaseResponsesAPIConfig):
     def _handle_reasoning_item(self, item: dict[str, Any]) -> dict[str, Any]:
         """
         Handle reasoning items specifically to filter out status=None using OpenAI's model.
-        Issue: https://github.com/BerriAI/litellm/issues/13484
+        Issue
         OpenAI API does not accept ReasoningItem(status=None), so we need to:
         1. Check if the item is a reasoning type
         2. Create a ResponseReasoningItem object with the item data

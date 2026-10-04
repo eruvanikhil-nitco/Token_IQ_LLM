@@ -459,7 +459,7 @@ class CustomStreamWrapper:
 
     def raise_on_model_repetition(self) -> None:
         """
-        Fixes - https://github.com/BerriAI/litellm/issues/5158
+        Fixes
 
         if the model enters a loop and starts repeating the same chunk again, break out of loop and raise an internalservererror - allows for retries.
 
@@ -478,7 +478,7 @@ class CustomStreamWrapper:
 
         if (
             last_content is None or not isinstance(last_content, str) or len(last_content) <= 2
-        ):  # ignore empty content - https://github.com/BerriAI/litellm/issues/5158#issuecomment-2287156946
+        ): # ignore empty content
             self._repeated_messages_count = 1
             return
 
@@ -870,7 +870,7 @@ class CustomStreamWrapper:
 
         if (
             self.created is not None
-        ):  # maintain same 'created' across all chunks - https://github.com/BerriAI/litellm/issues/11437
+        ): # maintain same'created' across all chunks
             model_response.created = self.created
         else:
             self.created = model_response.created

@@ -206,7 +206,7 @@ class ResponsesIDSecurity(CustomLogger):
                 "Response ID encryption is enabled but no signing key is configured. "
                 "Please set LITELLM_SALT_KEY environment variable or configure a master_key. "
                 "Skipping response ID encryption. "
-                "See: https://docs.litellm.ai/docs/proxy/prod#5-set-litellm-salt-key"
+                "See"
             )
             return response
 

@@ -137,7 +137,7 @@ class AzureOpenAIConfig(BaseConfig):
 
         Deliberately wider than ``AzureOpenAIGPT5Config.is_model_gpt_5_model``: the whole gpt-5
         name family needs the rename, including the ``gpt-5-chat*`` models that are excluded from
-        the reasoning path by https://github.com/BerriAI/litellm/issues/13781.
+        the reasoning path by
         """
         return "gpt-5" in model or "gpt5_series" in model
 

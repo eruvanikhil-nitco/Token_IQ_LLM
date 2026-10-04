@@ -2,7 +2,7 @@
 *New config* for using aiohttp to make the request to the custom OpenAI-like provider
 
 This leads to 10x higher RPS than httpx
-https://github.com/BerriAI/litellm/issues/6592
+
 
 New config to ensure we introduce this without causing breaking changes for users
 """

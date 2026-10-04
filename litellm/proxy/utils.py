@@ -2397,7 +2397,7 @@ class ProxyLogging:
         request_data: dict | None = None,
     ):
         """
-        Alerting based on thresholds: - https://github.com/BerriAI/litellm/issues/1298
+        Alerting based on thresholds:
 
         - Responses taking too long
         - Requests are hanging
@@ -2532,7 +2532,7 @@ class ProxyLogging:
             """
             Just alert on LLM API exceptions. Do not alert on user errors
 
-            Related issue - https://github.com/BerriAI/litellm/issues/3395
+            Related issue
             """
             litellm_debug_info: Final[str | None] = getattr(original_exception, "litellm_debug_info", None)
             exception_str = str(original_exception)
@@ -3833,7 +3833,7 @@ class PrismaClient:
                         missing_views: Final = expected_views_set - ret_view_names_set
 
                         verbose_proxy_logger.warning(
-                            "\n\n\x1b[93mNot all views exist in db, needed for UI 'Usage' tab. Missing=%s.\nRun 'create_views.py' from https://github.com/BerriAI/litellm/tree/main/db_scripts to create missing views.\x1b[0m\n",
+                            "\n\n\x1b[93mNot all views exist in db, needed for UI'Usage' tab. Missing=%s.\nRun'create_views.py' from to create missing views.\x1b[0m\n",
                             missing_views,
                         )
 

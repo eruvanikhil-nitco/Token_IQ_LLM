@@ -139,7 +139,7 @@ class GroqChatConfig(OpenAILikeChatConfig):
     ) -> list[AllMessageValues] | Coroutine[Any, Any, list[AllMessageValues]]:
         for idx, message in enumerate(messages):
             """
-            1. Don't pass 'null' function_call assistant message to groq - https://github.com/BerriAI/litellm/issues/5839
+            1. Don't pass'null' function_call assistant message to groq
             """
             if isinstance(message, BaseModel):
                 _message = message.model_dump()

@@ -251,7 +251,7 @@ ROUTER_SETTINGS_FIELDS: Final[list[RouterSettingsField]] = [
         field_description="Enable tag-based routing to route requests based on tags",
         field_default=False,
         ui_field_name="Enable Tag Filtering",
-        link="https://docs.litellm.ai/docs/proxy/tag_routing",
+        link="",
     ),
     RouterSettingsField(
         field_name="tag_filtering_match_any",

@@ -335,7 +335,7 @@ def _rate_limit_error(limit_label: str, limit: int, current: float) -> litellm.R
             headers={"retry-after": str(RoutingArgsTTL)},
             request=httpx.Request(
                 method="io_token_rate_limit_check",
-                url="https://github.com/BerriAI/litellm",
+                url="",
             ),
         ),
         num_retries=0,

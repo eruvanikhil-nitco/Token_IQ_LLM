@@ -33,7 +33,7 @@ class LiteLLMDatabase:
         """Ensure prisma client is available."""
         if prisma_client is None:
             raise Exception(
-                "Database not connected. Connect a database to your proxy - https://docs.litellm.ai/docs/simple_proxy#managing-auth---virtual-keys"
+                "Database not connected. Connect a database to your proxy"
             )
         return prisma_client
 

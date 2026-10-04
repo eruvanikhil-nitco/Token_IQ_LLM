@@ -372,7 +372,7 @@ def get_azure_ad_token(
             verbose_logger.debug("Azure AD Token Provider could not be used.")
         except Exception as e:
             verbose_logger.error(
-                "Error calling Azure AD token provider: %s. Follow docs - https://docs.litellm.ai/docs/providers/azure/#azure-ad-token-refresh---defaultazurecredential",
+                "Error calling Azure AD token provider: %s. Follow docs",
                 e,
             )
             raise e

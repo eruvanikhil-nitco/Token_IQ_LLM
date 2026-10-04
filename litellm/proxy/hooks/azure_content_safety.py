@@ -16,7 +16,7 @@ from litellm.proxy.guardrails._content_utils import (
 
 class _PROXY_AzureContentSafety(
     CustomLogger
-):  # https://docs.litellm.ai/docs/observability/custom_callback#callback-class
+): #
     # Class variables or attributes
 
     enforces_request_content: bool = True

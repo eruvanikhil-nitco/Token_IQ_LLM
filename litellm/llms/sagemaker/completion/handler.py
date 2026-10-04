@@ -430,7 +430,7 @@ class SagemakerLLM(BaseAWSLLM):
             "messages": messages,
         }
         prepared_request: Final = await asyncified_prepare_request(**prepared_request_args)
-        if model_id is not None:  # Fixes https://github.com/BerriAI/litellm/issues/8889
+        if model_id is not None: # Fixes
             prepared_request.headers.update({"X-Amzn-SageMaker-Inference-Component": model_id})
 
         if not prepared_request.body:

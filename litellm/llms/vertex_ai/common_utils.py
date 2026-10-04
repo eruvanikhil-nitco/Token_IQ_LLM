@@ -221,7 +221,7 @@ def get_supports_system_message(
             supports_system_message = True
     except Exception as e:
         verbose_logger.warning(
-            "Unable to identify if system message supported. Defaulting to 'False'. Received error message - %s\nAdd it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json",
+            "Unable to identify if system message supported. Defaulting to'False'. Received error message - %s\nAdd it in data/pricing/model_prices.json, or ask your administrator",
             e,
         )
         supports_system_message = False
@@ -483,7 +483,7 @@ def _get_gemini_url(
         url = f"https://generativelanguage.googleapis.com/v1beta/{_gemini_model_name}:{endpoint}"
     elif mode == "image_generation":
         raise ValueError(
-            "LiteLLM's `gemini/` route does not support image generation yet. Let us know if you need this feature by opening an issue at https://github.com/BerriAI/litellm/issues"
+            "LiteLLM's `gemini/` route does not support image generation yet. Let us know if you need this feature by opening an issue at"
         )
     else:
         raise ValueError(f"Unsupported mode: {mode}")
@@ -496,7 +496,7 @@ def _check_text_in_content(parts: list[PartType]) -> bool:
     check that user_content has 'text' parameter.
         - Known Vertex Error: Unable to submit request because it must have a text parameter.
         - 'text' param needs to be present (empty strings are valid)
-        - Relevant Issue: https://github.com/BerriAI/litellm/issues/5515
+        - Relevant Issue
     """
     has_text_param = False
     for part in parts:
@@ -653,7 +653,7 @@ def _build_json_schema(parameters: dict) -> dict:
 
 def _filter_anyof_fields(schema_dict: dict[str, object]) -> dict[str, object]:
     """
-    When anyof is present, only keep the anyof field and its contents - otherwise VertexAI will throw an error - https://github.com/BerriAI/litellm/issues/11164
+    When anyof is present, only keep the anyof field and its contents - otherwise VertexAI will throw an error
     Filter out other fields in the same dict.
 
     E.g. {"anyOf": [{"type": "string"}, {"type": "null"}], "default": "test"} -> {"anyOf": [{"type": "string"}, {"type": "null"}]}
@@ -1009,7 +1009,7 @@ def construct_target_url(
 
     If missing, use defaults
 
-    Handle cachedContent scenario - https://github.com/BerriAI/litellm/issues/5460
+    Handle cachedContent scenario
 
     Constructed Url:
     POST https://LOCATION-aiplatform.googleapis.com/{version}/projects/PROJECT_ID/locations/LOCATION/cachedContents

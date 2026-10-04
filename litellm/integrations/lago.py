@@ -1,5 +1,5 @@
 # What is this?
-## On Success events log cost to Lago - https://github.com/BerriAI/litellm/issues/3639
+## On Success events log cost to Lago
 
 import json
 import os

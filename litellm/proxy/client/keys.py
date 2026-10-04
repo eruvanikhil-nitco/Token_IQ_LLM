@@ -125,7 +125,7 @@ class KeysManagementClient:
         """
         Generate an API key based on the provided data.
 
-        Docs: https://docs.litellm.ai/docs/proxy/virtual_keys
+        Docs
 
         Args:
             models (Optional[List[str]]): List of allowed models for this key

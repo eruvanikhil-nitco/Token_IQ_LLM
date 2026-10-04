@@ -61,7 +61,7 @@ _BASE64_INLINE_PATTERN: Final = re.compile(
 )
 
 
-class CustomLogger:  # https://docs.litellm.ai/docs/observability/custom_callback#callback-class
+class CustomLogger: #
     # Class variables or attributes
     server_fulfilled_tool_names: ClassVar[frozenset[str]] = frozenset()
 
@@ -370,7 +370,7 @@ class CustomLogger:  # https://docs.litellm.ai/docs/observability/custom_callbac
     async def log_failure_fallback_event(self, original_model_group: str, kwargs: dict, original_exception: Exception):
         pass
 
-    #### ADAPTERS #### Allow calling 100+ LLMs in custom format - https://github.com/BerriAI/litellm/pulls
+    #### ADAPTERS #### Allow calling 100+ LLMs in custom format
 
     def translate_completion_input_params(self, kwargs) -> ChatCompletionRequest | None:
         """
@@ -508,7 +508,7 @@ class CustomLogger:  # https://docs.litellm.ai/docs/observability/custom_callbac
         async for item in response:
             yield item
 
-    #### SINGLE-USE #### - https://docs.litellm.ai/docs/observability/custom_callback#using-your-custom-callback-function
+    #### SINGLE-USE ####
 
     def log_input_event(self, model, messages, kwargs, print_verbose, callback_func):
         try:

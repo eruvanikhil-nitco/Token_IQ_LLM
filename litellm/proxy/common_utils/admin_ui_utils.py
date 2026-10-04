@@ -87,7 +87,7 @@ def missing_keys_form(missing_key_names: str):
             <div class="container">
             <h1>Need Help? Support</h1>
             <p>Discord: <a href="https://discord.com/invite/wuPM9dRgDw" target="_blank">https://discord.com/invite/wuPM9dRgDw</a></p>
-            <p>Docs: <a href="https://docs.litellm.ai/docs/" target="_blank">https://docs.litellm.ai/docs/</a></p>
+            <p>Docs: <a href="" target="_blank">
             </div>
         </body>
         </html>
@@ -156,7 +156,7 @@ def admin_ui_disabled():
             <div class="container">
             <h1>Need Help? Support</h1>
             <p>Discord: <a href="https://discord.com/invite/wuPM9dRgDw" target="_blank">https://discord.com/invite/wuPM9dRgDw</a></p>
-            <p>Docs: <a href="https://docs.litellm.ai/docs/" target="_blank">https://docs.litellm.ai/docs/</a></p>
+            <p>Docs: <a href="" target="_blank">
             </div>
         </body>
         </html>

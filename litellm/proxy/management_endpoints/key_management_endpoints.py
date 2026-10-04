@@ -373,7 +373,7 @@ def _is_allowed_to_make_key_request(
     """
     Assert user only creates/updates keys for themselves
 
-    Relevant issue: https://github.com/BerriAI/litellm/issues/7336
+    Relevant issue
     """
     ## BASE CASE - PROXY ADMIN
     if user_api_key_dict.user_role is not None and user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value:
@@ -386,7 +386,7 @@ def _is_allowed_to_make_key_request(
 
     if team_id is not None:
         if user_api_key_dict.team_id is not None and user_api_key_dict.team_id == UI_TEAM_ID:
-            return True  # handle https://github.com/BerriAI/litellm/issues/7482
+            return True # handle
 
     return True
 
@@ -3732,7 +3732,7 @@ async def info_key_fn_v2(
     try:
         if prisma_client is None:
             raise Exception(
-                "Database not connected. Connect a database to your proxy - https://docs.litellm.ai/docs/simple_proxy#managing-auth---virtual-keys"
+                "Database not connected. Connect a database to your proxy"
             )
         if data is None:
             raise HTTPException(
@@ -3863,7 +3863,7 @@ async def info_key_fn(
     try:
         if prisma_client is None:
             raise Exception(
-                "Database not connected. Connect a database to your proxy - https://docs.litellm.ai/docs/simple_proxy#managing-auth---virtual-keys"
+                "Database not connected. Connect a database to your proxy"
             )
 
         # default to using Auth token if no key is passed in
@@ -4013,7 +4013,7 @@ async def generate_key_helper_fn(
     from litellm.proxy.proxy_server import premium_user, prisma_client
 
     if prisma_client is None:
-        raise Exception("Connect Proxy to database to generate keys - https://docs.litellm.ai/docs/proxy/virtual_keys ")
+        raise Exception("Connect Proxy to database to generate keys")
 
     if token is None:
         if key is not None:
@@ -7079,5 +7079,5 @@ def validate_model_max_budget(model_max_budget: dict | None) -> None:
                 BudgetConfig(**_info)
     except Exception as e:
         raise ValueError(
-            f"Invalid model_max_budget: {e}. Example of valid model_max_budget: https://docs.litellm.ai/docs/proxy/users"
+            f"Invalid model_max_budget: {e}. Example of valid model_max_budget"
         )

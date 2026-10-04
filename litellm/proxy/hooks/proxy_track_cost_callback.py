@@ -377,7 +377,7 @@ class _ProxyDBLogger(CustomLogger):
                         cost_tracking_failure_debug_info = "standard_logging_object not found"
                     model = kwargs.get("model")
                     raise Exception(
-                        f"Cost tracking failed for model={model}.\nDebug info - {cost_tracking_failure_debug_info}\nAdd custom pricing - https://docs.litellm.ai/docs/proxy/custom_pricing"
+                        f"Cost tracking failed for model={model}.\nDebug info - {cost_tracking_failure_debug_info}\nAdd custom pricing"
                     )
         except Exception as e:
             error_msg = f"Error in tracking cost callback - {e}\n Traceback:{traceback.format_exc()}"

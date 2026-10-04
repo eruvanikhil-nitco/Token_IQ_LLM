@@ -231,10 +231,10 @@ skip_tool_message_in_guardrail: bool = False
 ### end of callbacks #############
 
 email: Optional[str] = (
-    None  # Not used anymore, will be removed in next MAJOR release - https://github.com/BerriAI/litellm/discussions/648
+    None # Not used anymore, will be removed in next MAJOR release
 )
 token: Optional[str] = (
-    None  # Not used anymore, will be removed in next MAJOR release - https://github.com/BerriAI/litellm/discussions/648
+    None # Not used anymore, will be removed in next MAJOR release
 )
 telemetry = True
 max_tokens: int = DEFAULT_MAX_TOKENS  # OpenAI Defaults
@@ -387,9 +387,9 @@ require_managed_files: bool = False  # proxy only - require target_model_names o
 enable_caching_on_provider_specific_optional_params: bool = (
     False  # feature-flag for caching on optional params - e.g. 'top_k'
 )
-caching: bool = False  # Not used anymore, will be removed in next MAJOR release - https://github.com/BerriAI/litellm/discussions/648
-caching_with_models: bool = False  # # Not used anymore, will be removed in next MAJOR release - https://github.com/BerriAI/litellm/discussions/648
-cache: Optional["Cache"] = None  # cache object <- use this - https://docs.litellm.ai/docs/caching
+caching: bool = False # Not used anymore, will be removed in next MAJOR release
+caching_with_models: bool = False # # Not used anymore, will be removed in next MAJOR release
+cache: Optional["Cache"] = None # cache object <- use this
 default_in_memory_ttl: Optional[float] = None
 default_redis_ttl: Optional[float] = None
 default_redis_batch_cache_expiry: Optional[float] = None
@@ -2174,7 +2174,7 @@ _async_client_cleanup_registered = False
 # Eager loading for backwards compatibility with VCR and other HTTP recording tools
 # When LITELLM_DISABLE_LAZY_LOADING is set, lazy-loaded attributes are loaded at import time
 # For now, this only affects encoding (tiktoken) as it was the only reported issue
-# See: https://github.com/BerriAI/litellm/issues/18659
+# See
 # This ensures encoding is initialized before VCR starts recording HTTP requests
 if os.getenv("LITELLM_DISABLE_LAZY_LOADING", "").lower() in ("1", "true", "yes", "on"):
     # Load encoding at import time (pre-#18070 behavior)

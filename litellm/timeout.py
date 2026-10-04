@@ -1,11 +1,3 @@
-# +-----------------------------------------------+
-# |                                               |
-# |           Give Feedback / Get Help            |
-# | https://github.com/BerriAI/litellm/issues/new |
-# |                                               |
-# +-----------------------------------------------+
-#
-#  Thank you users! We ❤️ you! - Krrish & Ishaan
 
 """
 Module containing "timeout" decorator for sync and async callables.

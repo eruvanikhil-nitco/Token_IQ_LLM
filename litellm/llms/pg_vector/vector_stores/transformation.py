@@ -18,7 +18,7 @@ class PGVectorStoreConfig(OpenAIVectorStoreConfig):
 
     LiteLLM Provides an OpenAI Compatible Server to connect to PG Vector.
 
-    https://github.com/BerriAI/litellm-pgvector
+
 
     You just need to connect litellm proxy to this deployed server.
 

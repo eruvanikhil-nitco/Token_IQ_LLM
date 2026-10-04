@@ -117,7 +117,7 @@ def _ensure_extra_body_is_safe(extra_body: dict | None) -> dict | None:
     "Object of type TextPromptClient is not JSON serializable
 
 
-    Relevant Issue: https://github.com/BerriAI/litellm/issues/4140
+    Relevant Issue
     """
     if extra_body is None:
         return None

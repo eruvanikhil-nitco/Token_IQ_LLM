@@ -221,6 +221,6 @@ def format_deprecation_alert_message(
             *deprecated_section,
             *imminent_section,
             "\nPlan migrations to a supported model. See "
-            "https://docs.litellm.ai/docs/proxy/model_management for guidance.",
+            " for guidance.",
         )
     )

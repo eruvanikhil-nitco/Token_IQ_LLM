@@ -44,11 +44,6 @@ class TestNothingFetchesAtRuntime:
 
         assert get_beta_headers_config()
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason="Task 6 rewrites the comment links in litellm/__init__.py. Strict, so this "
-        "fails the moment that lands and the marker has to come off.",
-    )
     def test_no_upstream_url_is_configured_in_the_package_root(self) -> None:
         source: Final = (REPO / "litellm" / "__init__.py").read_text(encoding="utf-8")
         for forbidden in ("raw.githubusercontent.com", "docs.litellm.ai", "BerriAI"):

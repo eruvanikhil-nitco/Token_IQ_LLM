@@ -64,7 +64,7 @@ def handle_any_messages_to_chat_completion_str_messages_conversion(
     """
     Handles any messages to chat completion str messages conversion
 
-    Relevant Issue: https://github.com/BerriAI/litellm/issues/9494
+    Relevant Issue
     """
     import json
 
@@ -1076,7 +1076,7 @@ def unpack_legacy_defs(
 
     Anthropic and Fireworks tool-schema resolvers only recognise ``$defs``;
     legacy / OpenAPI def blocks are otherwise silently dropped and leave
-    dangling pointers. See https://github.com/BerriAI/litellm/issues/26692.
+    dangling pointers.
 
     Mutates ``schema`` in place and returns it. Pass ``copy=True`` to deep-copy
     first (only when there is actually work to do). ``max_inlined_bytes``

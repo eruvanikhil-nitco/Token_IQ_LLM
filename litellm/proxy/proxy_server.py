@@ -5334,7 +5334,7 @@ class ProxyConfig:
                         )
                 elif key == "cache_params":
                     # this is set in the cache branch
-                    # see usage here: https://docs.litellm.ai/docs/proxy/caching
+                    # see usage here
                     pass
                 elif key == "responses":
                     # Initialize global polling via cache settings
@@ -13856,7 +13856,7 @@ async def model_info_v2(
         all_models = copy.deepcopy(llm_router.model_list)
 
         if user_model is not None:
-            # if user does not use a config.yaml, https://github.com/BerriAI/litellm/issues/2061
+            # if user does not use a config.yaml,
             all_models += [user_model]
 
         # Filter here, not further down: _enrich_model_info_with_litellm_data strips the api
@@ -15593,7 +15593,7 @@ async def onboarding(invite_link: str, request: Request):
 
     if master_key is None:
         raise ProxyException(
-            message="Master Key not set for Proxy. Please set Master Key to use Admin UI. Set `LITELLM_MASTER_KEY` in .env or set general_settings:master_key in config.yaml.  https://docs.litellm.ai/docs/proxy/virtual_keys. If set, use `--detailed_debug` to debug issue.",
+            message="Master Key not set for Proxy. Please set Master Key to use Admin UI. Set `LITELLM_MASTER_KEY` in.env or set general_settings:master_key in config.yaml. If set, use `--detailed_debug` to debug issue.",
             type=ProxyErrorTypes.auth_error,
             param="master_key",
             code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -15680,7 +15680,7 @@ def _get_onboarding_claims_from_request(request: Request) -> dict:
 
     if master_key is None:
         raise ProxyException(
-            message="Master Key not set for Proxy. Please set Master Key to use Admin UI. Set `LITELLM_MASTER_KEY` in .env or set general_settings:master_key in config.yaml.  https://docs.litellm.ai/docs/proxy/virtual_keys. If set, use `--detailed_debug` to debug issue.",
+            message="Master Key not set for Proxy. Please set Master Key to use Admin UI. Set `LITELLM_MASTER_KEY` in.env or set general_settings:master_key in config.yaml. If set, use `--detailed_debug` to debug issue.",
             type=ProxyErrorTypes.auth_error,
             param="master_key",
             code=status.HTTP_500_INTERNAL_SERVER_ERROR,

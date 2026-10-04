@@ -41,7 +41,7 @@ def build_ui_login_form(
                 Default Credentials
             </div>
             <p>By default, Username is <code>admin</code> and Password is your set LiteLLM Proxy <code>MASTER_KEY</code>.</p>
-            <p>Need to set UI credentials or SSO? <a href="https://docs.litellm.ai/docs/proxy/ui" target="_blank">Check the documentation</a>.</p>
+            <p>Need to set UI credentials or SSO? <a href="" target="_blank">Check the documentation</a>.</p>
         </div>
         """
     )

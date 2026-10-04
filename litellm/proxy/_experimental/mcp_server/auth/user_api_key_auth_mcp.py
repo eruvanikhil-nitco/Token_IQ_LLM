@@ -1273,7 +1273,7 @@ class MCPRequestHandler:
             1. `LITELLM_MCP_CLIENT_SIDE_AUTH_HEADER_NAME` as an environment variable
             2. `mcp_client_side_auth_header_name` in the general settings on the config.yaml file
 
-        Support this auth: https://docs.litellm.ai/docs/mcp#using-your-mcp-with-client-side-credentials
+        Support this auth
 
         If you want to use a different header name, you can set the `LITELLM_MCP_CLIENT_SIDE_AUTH_HEADER_NAME` in the secret manager or `mcp_client_side_auth_header_name` in the general settings.
 

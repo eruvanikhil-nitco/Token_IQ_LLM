@@ -48,7 +48,7 @@ async def get_global_activity(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={
-                "error": "Database not connected. Connect a database to your proxy - https://docs.litellm.ai/docs/simple_proxy#managing-auth---virtual-keys"
+                "error":"Database not connected. Connect a database to your proxy"
             },
         )
 

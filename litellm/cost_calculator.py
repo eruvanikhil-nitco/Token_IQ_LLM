@@ -1221,7 +1221,7 @@ def completion_cost(
         float: The cost in USD dollars for the completion based on the provided parameters.
 
     Exceptions:
-        Raises exception if model not in the litellm model cost map. Register model, via custom pricing or PR - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json
+        Raises exception if model not in the litellm model cost map. Register model, via custom pricing or PR
 
 
     Note:

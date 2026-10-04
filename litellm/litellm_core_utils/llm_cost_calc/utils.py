@@ -97,7 +97,7 @@ def get_web_search_requests(server_tool_use: Any) -> int | None:
     Returns ``None`` when the value cannot be resolved — callers can
     distinguish "absent" from "zero" using ``is None``.
 
-    See https://github.com/BerriAI/litellm/issues/26153 — ``stream_chunk_builder``
+ — ``stream_chunk_builder``
     historically left this as a plain ``dict``, which broke direct attribute
     access in cost calculation.
     """
@@ -1087,7 +1087,7 @@ def generic_cost_per_token(
     ## EDGE CASE - text tokens not set or includes cached tokens (double-counting)
     ## Some providers (like xAI) report text_tokens = prompt_tokens (including cached)
     ## We detect this when: text_tokens + cached_tokens + other > prompt_tokens
-    ## Ref: https://github.com/BerriAI/litellm/issues/19680, #14874, #14875
+    ## Ref, #14874, #14875
 
     cache_hit: Final = prompt_tokens_details["cache_hit_tokens"]
     text_tokens = prompt_tokens_details["text_tokens"]

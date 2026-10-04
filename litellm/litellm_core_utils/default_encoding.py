@@ -26,7 +26,7 @@ else:
     cache_dir = filename
 
 os.environ["TIKTOKEN_CACHE_DIR"] = (
-    cache_dir  # use local copy of tiktoken b/c of - https://github.com/BerriAI/litellm/issues/1071
+    cache_dir # use local copy of tiktoken b/c of
 )
 
 import random

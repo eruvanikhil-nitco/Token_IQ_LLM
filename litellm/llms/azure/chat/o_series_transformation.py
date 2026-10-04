@@ -80,7 +80,7 @@ class AzureOpenAIO1Config(OpenAIOSeriesConfig):
         if stream is not True:
             return False
 
-        if model and "o3" in model:  # o3 models support streaming - https://github.com/BerriAI/litellm/issues/8274
+        if model and"o3" in model: # o3 models support streaming
             return False
 
         if model is not None:

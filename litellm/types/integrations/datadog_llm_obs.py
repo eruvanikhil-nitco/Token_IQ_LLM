@@ -51,7 +51,7 @@ class Message(TypedDict, total=False):
 class InputMeta(TypedDict):
     messages: Sequence[
         Message | dict[str, Any]  # changed to fit with tool calls
-    ]  # Relevant Issue: https://github.com/BerriAI/litellm/issues/9494
+    ] # Relevant Issue
 
 
 class OutputMeta(TypedDict):

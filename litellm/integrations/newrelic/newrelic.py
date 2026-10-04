@@ -105,7 +105,7 @@ class NewRelicLogger(CustomLogger):
             self.enabled = False
         elif _newrelic_agent is None:
             verbose_logger.error(
-                "New Relic Python agent not installed. Review the New Relic integration documentation at https://docs.litellm.ai/docs/observability/newrelic."
+                "New Relic Python agent not installed. Review the New Relic integration documentation at"
             )
             self.enabled = False
         else:
@@ -809,7 +809,7 @@ class NewRelicLogger(CustomLogger):
                 return IntegrationHealthCheckStatus(
                     status="unhealthy",
                     error_message=(
-                        "New Relic Python agent not installed. Review the New Relic integration documentation at https://docs.litellm.ai/docs/observability/newrelic."
+                        "New Relic Python agent not installed. Review the New Relic integration documentation at"
                     ),
                 )
 

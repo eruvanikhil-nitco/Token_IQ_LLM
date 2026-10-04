@@ -4353,7 +4353,7 @@ async def team_info(
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail={
-                    "error": "Database not connected. Connect a database to your proxy - https://docs.litellm.ai/docs/simple_proxy#managing-auth---virtual-keys"
+                    "error":"Database not connected. Connect a database to your proxy"
                 },
             )
         if team_id is None:
@@ -4508,7 +4508,7 @@ async def team_member_me(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={
-                "error": "Database not connected. Connect a database to your proxy - https://docs.litellm.ai/docs/simple_proxy#managing-auth---virtual-keys"
+                "error":"Database not connected. Connect a database to your proxy"
             },
         )
 

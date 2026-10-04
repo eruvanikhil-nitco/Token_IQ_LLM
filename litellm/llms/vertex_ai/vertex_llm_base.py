@@ -643,7 +643,7 @@ class VertexBase:
         use_psc_endpoint_format: bool = False,
     ) -> tuple[str | None, str]:
         """
-        for cloudflare ai gateway - https://github.com/BerriAI/litellm/issues/4317
+        for cloudflare ai gateway
 
         Handles custom api_base for:
         1. Gemini (Google AI Studio) - constructs /models/{model}:{endpoint}

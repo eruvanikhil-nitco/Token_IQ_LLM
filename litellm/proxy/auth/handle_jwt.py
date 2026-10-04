@@ -278,7 +278,7 @@ class JWTHandler:
         - TEAM: can make requests to routes associated with a team
         - INTERNAL_USER: can make requests to routes associated with a user
 
-        Resolves: https://github.com/BerriAI/litellm/issues/6793
+        Resolves
 
         Returns:
         - PROXY_ADMIN: if token is admin

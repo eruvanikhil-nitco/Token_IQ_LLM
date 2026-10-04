@@ -252,14 +252,6 @@ from litellm.types.utils import (
 
 _CALL_TYPE_ENUM_MAP: Final[dict] = {ct.value: ct for ct in CallTypes}
 
-# +-----------------------------------------------+
-# |                                               |
-# |           Give Feedback / Get Help            |
-# | https://github.com/BerriAI/litellm/issues/new |
-# |                                               |
-# +-----------------------------------------------+
-#
-#  Thank you users! We ❤️ you! - Krrish & Ishaan
 
 
 try:
@@ -507,7 +499,7 @@ last_fetched_at_keys: Final = None
 ######## Model Response #########################
 
 # All liteLLM Model responses will be in this format, Follows the OpenAI Format
-# https://docs.litellm.ai/docs/completion/output
+
 # {
 #   'choices': [
 #      {
@@ -1187,7 +1179,7 @@ async def _client_async_logging_helper(
 ):
     if (
         is_completion_with_fallbacks is False
-    ):  # don't log the parent event litellm.completion_with_fallbacks as a 'log_success_event', this will lead to double logging the same call - https://github.com/BerriAI/litellm/issues/7477
+    ): # don't log the parent event litellm.completion_with_fallbacks as a'log_success_event', this will lead to double logging the same call
         print_verbose(
             f"Async Wrapper: Completed Call, calling async_success_handler: {logging_obj.async_success_handler}"
         )
@@ -3788,7 +3780,7 @@ def _remove_additional_properties(schema):
     """
     clean out 'additionalProperties = False'. Causes vertexai/gemini OpenAI API Schema errors - https://github.com/langchain-ai/langchainjs/issues/5240
 
-    Relevant Issues: https://github.com/BerriAI/litellm/issues/6136, https://github.com/BerriAI/litellm/issues/6088
+    Relevant Issues,
     """
     if isinstance(schema, dict):
         # Remove the 'additionalProperties' key if it exists and is set to False
@@ -3809,7 +3801,7 @@ def _remove_additional_properties(schema):
 
 def _remove_strict_from_schema(schema):
     """
-    Relevant Issues: https://github.com/BerriAI/litellm/issues/6136, https://github.com/BerriAI/litellm/issues/6088
+    Relevant Issues,
     """
     if isinstance(schema, dict):
         # Remove the 'additionalProperties' key if it exists and is set to False
@@ -4013,7 +4005,7 @@ def pre_process_non_default_params(
 
     if "tools" in non_default_params and isinstance(
         non_default_params, list
-    ):  # fixes https://github.com/BerriAI/litellm/issues/4933
+    ): # fixes
         tools: Final = non_default_params["tools"]
         for tool in tools:  # clean out 'additionalProperties = False'. Causes vertexai/gemini OpenAI API Schema errors - https://github.com/langchain-ai/langchainjs/issues/5240
             tool_function = tool.get("function", {})
@@ -4777,7 +4769,7 @@ def _apply_openai_param_overrides(optional_params: dict, non_default_params: dic
     the request, which then reached the provider SDK as a top-level kwarg it
     did not recognize (e.g. openai SDK raising
     `AsyncCompletions.create() got an unexpected keyword argument 'enable_thinking'`).
-    See https://github.com/BerriAI/litellm/issues/25697
+
     """
     if allowed_openai_params:
         for param in allowed_openai_params:
@@ -5177,7 +5169,7 @@ def get_max_tokens(model: str) -> int | None:
         return None
     except Exception:
         raise Exception(
-            f"Model {model} isn't mapped yet. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json"
+            f"Model {model} isn't mapped yet. Add it in data/pricing/model_prices.json, or ask your administrator"
         )
 
 
@@ -5738,7 +5730,7 @@ def _get_model_info_helper(
 
             if _model_info is None or key is None:
                 raise ValueError(
-                    "This model isn't mapped yet. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json"
+                    "This model isn't mapped yet. Add it in data/pricing/model_prices.json, or ask your administrator"
                 )
             _input_cost_per_token: float | None = _model_info.get("input_cost_per_token")
             if _input_cost_per_token is None:
@@ -5948,7 +5940,7 @@ def _get_model_info_helper(
     except Exception as e:
         verbose_logger.debug("Error getting model info: %s", e)
         raise Exception(
-            f"This model isn't mapped yet. model={model}, custom_llm_provider={custom_llm_provider}. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json."
+            f"This model isn't mapped yet. model={model}, custom_llm_provider={custom_llm_provider}. Add it in data/pricing/model_prices.json, or ask your administrator"
         )
 
 
@@ -7196,7 +7188,7 @@ def trim_messages(
                 system_message += "\n" if system_message else ""
                 system_message += message["content"]
 
-        ## Handle Tool Call ## - check if last message is a tool response, return as is - https://github.com/BerriAI/litellm/issues/4931
+        ## Handle Tool Call ## - check if last message is a tool response, return as is
         tool_messages: Final = []
 
         for message in reversed(messages):
@@ -7686,7 +7678,7 @@ def any_assistant_message_has_thinking_blocks(
     when thinking blocks exist causes Anthropic error:
     "When thinking is disabled, an assistant message cannot contain thinking"
 
-    Related issue: https://github.com/BerriAI/litellm/issues/18926
+    Related issue
     """
     for message in messages:
         if message.get("role") == "assistant":
@@ -7712,7 +7704,7 @@ def last_assistant_with_tool_calls_has_no_thinking_blocks(
     any_assistant_message_has_thinking_blocks() to ensure we don't drop thinking
     when other messages in the conversation contain thinking blocks.
 
-    Related issues: https://github.com/BerriAI/litellm/issues/14194, https://github.com/BerriAI/litellm/issues/9020
+    Related issues,
     """
     # Find the last assistant message with tool_calls
     last_assistant_with_tools = None
@@ -7732,7 +7724,7 @@ def add_dummy_tool(custom_llm_provider: str) -> list[ChatCompletionToolParam]:
     """
     Prevent Anthropic from raising error when tool_use block exists but no tools are provided.
 
-    Relevent Issues: https://github.com/BerriAI/litellm/issues/5388, https://github.com/BerriAI/litellm/issues/5747
+    Relevent Issues,
     """
     return [
         ChatCompletionToolParam(
@@ -7902,7 +7894,7 @@ def validate_chat_completion_tool_choice(
     """
     Confirm the tool choice is passed in the OpenAI format.
 
-    Prevents user errors like: https://github.com/BerriAI/litellm/issues/7483
+    Prevents user errors like
     """
     if tool_choice is None or isinstance(tool_choice, str):
         return tool_choice
@@ -9810,7 +9802,7 @@ def return_raw_request(endpoint: CallTypes, kwargs: dict) -> RawRequestTypedDict
 
 def jsonify_tools(tools: Sequence[object]) -> list[dict]:
     """
-    Fixes https://github.com/BerriAI/litellm/issues/9321
+    Fixes
 
     Where user passes in a pydantic base model
     """

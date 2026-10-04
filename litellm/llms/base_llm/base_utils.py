@@ -120,7 +120,7 @@ def _convert_tool_response_to_message(
                 return _message
             else:
                 # a lot of the times the `values` key is not present in the tool response
-                # relevant issue: https://github.com/BerriAI/litellm/issues/6741
+                # relevant issue
                 _message = Message(content=json.dumps(args))
                 return _message
     except json.JSONDecodeError:

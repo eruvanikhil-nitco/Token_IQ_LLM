@@ -179,7 +179,7 @@ class OllamaChatConfig(BaseConfig):
             ### FUNCTION CALLING LOGIC ###
             # Ollama 0.4+ supports native tool calling - pass tools directly
             # and let Ollama handle model capability detection
-            # Fixes: https://github.com/BerriAI/litellm/issues/18922
+            # Fixes
             if param == "tools":
                 optional_params["tools"] = value
 
@@ -248,7 +248,7 @@ class OllamaChatConfig(BaseConfig):
         for m in messages:
             if isinstance(
                 m, BaseModel
-            ):  # avoid message serialization issues - https://github.com/BerriAI/litellm/issues/5319
+            ): # avoid message serialization issues
                 m = m.model_dump(exclude_none=True)
             tool_calls = m.get("tool_calls")
             new_tools: list[OllamaToolCall] | None = None
@@ -383,7 +383,7 @@ class OllamaChatConfig(BaseConfig):
             _message: Final = litellm.Message(**response_json_message)
             model_response.choices[0].message = _message
             # Set finish_reason to "tool_calls" when tool_calls are present
-            # Fixes: https://github.com/BerriAI/litellm/issues/18922
+            # Fixes
             if _message.tool_calls:
                 model_response.choices[0].finish_reason = "tool_calls"
         model_response.created = int(time.time())
@@ -511,8 +511,8 @@ class OllamaChatCompletionResponseIterator(BaseModelResponseIterator):
             if chunk["done"] is True:
                 finish_reason = chunk.get("done_reason") or "stop"
                 # Override finish_reason when tool_calls appeared in any chunk
-                # Fixes: https://github.com/BerriAI/litellm/issues/18922
-                # Fixes: https://github.com/BerriAI/litellm/issues/34692
+                # Fixes
+                # Fixes
                 if self.seen_tool_calls:
                     finish_reason = "tool_calls"
                 choices = [

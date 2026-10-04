@@ -565,16 +565,6 @@ const CustomCodeModal: React.FC<CustomCodeModalProps> = ({ visible, onClose, onS
                     </SelectItem>
                   ))}
                 </SelectGroup>
-                <SelectSeparator />
-                <button
-                  type="button"
-                  onClick={() => window.open("https://models.litellm.ai/guardrails", "_blank")}
-                  className="flex w-full items-center gap-1 rounded-sm px-2 py-1.5 text-xs text-primary hover:bg-accent"
-                >
-                  <Users className="size-3.5" />
-                  <span>Browse Community templates</span>
-                  <ExternalLink className="size-2.5" />
-                </button>
               </SelectContent>
             </Select>
           </div>

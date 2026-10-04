@@ -1,7 +1,7 @@
 """
 If the LLM Obs has any specific attributes to log request or response, we can add them here.
 
-Relevant Issue: https://github.com/BerriAI/litellm/issues/13764
+Relevant Issue
 """
 
 import json

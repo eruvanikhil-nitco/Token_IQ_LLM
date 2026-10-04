@@ -613,7 +613,7 @@ class AllowedFailsPolicy(BaseModel):
     If `AuthenticationErrorAllowedFails = 1000`, then 1000 AuthenticationError will be allowed before cooling down a deployment
 
     Mapping of Exception type to allowed_fails for each exception
-    https://docs.litellm.ai/docs/exception_mapping
+
     """
 
     BadRequestErrorAllowedFails: int | None = None

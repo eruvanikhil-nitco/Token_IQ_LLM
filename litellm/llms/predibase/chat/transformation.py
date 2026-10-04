@@ -285,7 +285,7 @@ class PredibaseConfig(BaseConfig):
         """
         Parse the output text to remove any special characters.
 
-        Initial issue that prompted this - https://github.com/BerriAI/litellm/issues/763
+        Initial issue that prompted this
         """
         chat_template_tokens: Final = [
             "<|assistant|>",

@@ -2133,7 +2133,7 @@ if MCP_AVAILABLE:
         ```
         """
         prisma_client: Final = get_prisma_client_or_throw(
-            "Database not connected. Connect a database to your proxy - https://docs.litellm.ai/docs/simple_proxy#managing-auth---virtual-keys"
+            "Database not connected. Connect a database to your proxy"
         )
 
         # Authz - restrict only admins to delete mcp servers
@@ -2659,7 +2659,7 @@ if MCP_AVAILABLE:
         ```
         """
         prisma_client: Final = get_prisma_client_or_throw(
-            "Database not connected. Connect a database to your proxy - https://docs.litellm.ai/docs/simple_proxy#managing-auth---virtual-keys"
+            "Database not connected. Connect a database to your proxy"
         )
 
         payload_fields_set: Final = set(payload.fields_set())

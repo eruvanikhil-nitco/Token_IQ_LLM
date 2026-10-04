@@ -3590,7 +3590,7 @@ if MCP_AVAILABLE:
             non-existent session).  False if the request should continue
             to the session manager.
 
-        Fixes https://github.com/BerriAI/litellm/issues/20992
+        Fixes
         """
         _mcp_session_header: Final = b"mcp-session-id"
         _headers: Final[Sequence[tuple[bytes | str, bytes | str]]] = scope.get("headers", [])

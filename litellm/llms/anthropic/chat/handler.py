@@ -658,16 +658,16 @@ class ModelResponseIterator:
         self.converted_response_format_tool: bool = False
 
         # For handling partial JSON chunks from fragmentation
-        # See: https://github.com/BerriAI/litellm/issues/17473
+        # See
         self._json_buffer = JSONFragmentAccumulator()
         self.chunk_type: Literal["valid_json", "accumulated_json"] = "valid_json"
 
         # Track current content block type to avoid emitting tool calls for non-tool blocks
-        # See: https://github.com/BerriAI/litellm/issues/17254
+        # See
         self.current_content_block_type: str | None = None
 
         # Accumulate web_search_tool_result blocks for multi-turn reconstruction
-        # See: https://github.com/BerriAI/litellm/issues/17737
+        # See
         self.web_search_results: list[dict[str, object]] = []
 
         # Accumulate compaction blocks for multi-turn reconstruction
@@ -750,7 +750,7 @@ class ModelResponseIterator:
         elif "partial_json" in content_block["delta"]:
             # Only emit tool calls if we're in a tool_use or server_tool_use block
             # web_search_tool_result blocks also have input_json_delta but should not be treated as tool calls
-            # See: https://github.com/BerriAI/litellm/issues/17254
+            # See
             if self.current_content_block_type in ("tool_use", "server_tool_use"):
                 tool_use = cast(
                     ChatCompletionToolCallChunk,
@@ -974,13 +974,13 @@ class ModelResponseIterator:
                     if content_type == "web_search_tool_result":
                         # Capture web_search_tool_result for multi-turn reconstruction
                         # The full content comes in content_block_start, not in deltas
-                        # See: https://github.com/BerriAI/litellm/issues/17737
+                        # See
                         self.web_search_results.append(content_block_start["content_block"])
                         provider_specific_fields["web_search_results"] = self.web_search_results
                     elif content_type == "web_fetch_tool_result":
                         # Capture web_fetch_tool_result for multi-turn reconstruction
                         # The full content comes in content_block_start, not in deltas
-                        # Fixes: https://github.com/BerriAI/litellm/issues/18137
+                        # Fixes
                         self.web_search_results.append(content_block_start["content_block"])
                         provider_specific_fields["web_search_results"] = self.web_search_results
                     elif content_type != "tool_search_tool_result":
@@ -1170,7 +1170,7 @@ class ModelResponseIterator:
         Handle partial JSON chunks by accumulating them until valid JSON is received.
 
         This fixes network fragmentation issues where SSE data chunks may be split
-        across TCP packets. See: https://github.com/BerriAI/litellm/issues/17473
+        across TCP packets. See
 
         Mid-stream, defer parsing until the buffer's last byte can close a value:
         attempting a parse after every fragment of one large object is O(n^2) and

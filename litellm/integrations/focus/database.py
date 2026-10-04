@@ -17,7 +17,7 @@ class FocusLiteLLMDatabase:
         if prisma_client is None:
             raise RuntimeError(
                 "Database not connected. Connect a database to your proxy - "
-                "https://docs.litellm.ai/docs/simple_proxy#managing-auth---virtual-keys"
+                ""
             )
         return prisma_client
 

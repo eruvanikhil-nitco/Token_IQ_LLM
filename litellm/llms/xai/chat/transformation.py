@@ -220,7 +220,7 @@ class XAIChatConfig(OpenAIGPTConfig):
         headers: dict,
     ) -> dict:
         """
-        Handle https://github.com/BerriAI/litellm/issues/9720
+        Handle
 
         Filter out 'name' from messages
         """

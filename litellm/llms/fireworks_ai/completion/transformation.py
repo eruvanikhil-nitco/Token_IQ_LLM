@@ -23,7 +23,7 @@ _TEXT_COMPLETION_STRIP_PARAMS: Final = (
 class FireworksAITextCompletionConfig(FireworksAIMixin, BaseTextCompletionConfig):
     def get_supported_openai_params(self, model: str) -> list:
         """
-        See how LiteLLM supports Provider-specific parameters - https://docs.litellm.ai/docs/completion/provider_specific_params#proxy-usage
+        See how LiteLLM supports Provider-specific parameters
         """
         return [
             "max_tokens",

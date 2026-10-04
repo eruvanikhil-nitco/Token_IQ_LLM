@@ -221,7 +221,7 @@ def get_llm_provider(
             model.split("/", 1)[0] in litellm.provider_list
             and model.split("/", 1)[0] not in litellm.model_list_set
             and len(model.split("/"))
-            > 1  # handle edge case where user passes in `litellm --model mistral` https://github.com/BerriAI/litellm/issues/1351
+            > 1 # handle edge case where user passes in `litellm --model mistral`
         ):
             return _get_openai_compatible_provider_info(
                 model=model,
@@ -507,10 +507,10 @@ def get_llm_provider(
             if litellm.suppress_debug_info is False:
                 print()  # noqa: T201
                 print(  # noqa: T201
-                    "\033[1;31mProvider List: https://docs.litellm.ai/docs/providers\033[0m"
+                    "\033[1;31mProvider List"
                 )
                 print()  # noqa: T201
-            error_str = f"LLM Provider NOT provided. Pass in the LLM provider you are trying to call. You passed model={model}\n Pass model as E.g. For 'Huggingface' inference endpoints pass in `completion(model='huggingface/starcoder',..)` Learn more: https://docs.litellm.ai/docs/providers"
+            error_str = f"LLM Provider NOT provided. Pass in the LLM provider you are trying to call. You passed model={model}\n Pass model as E.g. For'Huggingface' inference endpoints pass in `completion(model='huggingface/starcoder',..)` Learn more"
             # maps to openai.NotFoundError, this is raised when openai does not recognize the llm
             raise litellm.exceptions.BadRequestError(
                 message=error_str,

@@ -1038,7 +1038,7 @@ huggingface_models: Final[set] = set(
         "meta-llama/Llama-2-70b",
         "meta-llama/Llama-2-70b-chat",
     ]
-)  # these have been tested on extensively. But by default all text2text-generation and text-generation models are supported by liteLLM. - https://docs.litellm.ai/docs/providers
+) # these have been tested on extensively. But by default all text2text-generation and text-generation models are supported by liteLLM.
 empower_models: Final = set(
     [
         "empower/empower-functions",

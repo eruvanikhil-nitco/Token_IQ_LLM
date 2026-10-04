@@ -232,7 +232,7 @@ class VertexGeminiConfig(VertexAIBaseConfig, BaseConfig):
         compact. Gemini 2.0+ (responseJsonSchema) natively supports $ref, and
         Gemini 1.5 (responseSchema) handles unpacking via _build_vertex_schema.
 
-        See: https://github.com/BerriAI/litellm/issues/21014
+        See
         """
         from pydantic import BaseModel as _BaseModel
 
@@ -532,7 +532,7 @@ class VertexGeminiConfig(VertexAIBaseConfig, BaseConfig):
         Note: code_execution, computerUse, and googleMaps are NOT search tools
         and CAN coexist with function declarations, so they are preserved.
 
-        Ref: https://github.com/BerriAI/litellm/issues/23337
+        Ref
 
         Returns:
             tuple of (googleSearch, googleSearchRetrieval, enterpriseWebSearch, urlContext)
@@ -619,7 +619,7 @@ class VertexGeminiConfig(VertexAIBaseConfig, BaseConfig):
             ):
                 verbose_logger.info("Gemini: Transforming OpenAI-style '%s' tool to googleSearch", tool["type"])
                 tool = {VertexToolName.GOOGLE_SEARCH.value: {}}
-            # Handle tools with 'type' field (OpenAI spec compliance) Ignore this field -> https://github.com/BerriAI/litellm/issues/14644#issuecomment-3342061838
+            # Handle tools with'type' field (OpenAI spec compliance) Ignore this field ->
             elif "type" in tool:
                 tool = {k: tool[k] for k in tool if k != "type"}
             tool_name = list(tool.keys())[0] if len(tool.keys()) == 1 else None
@@ -992,7 +992,7 @@ class VertexGeminiConfig(VertexAIBaseConfig, BaseConfig):
                 message=(
                     "`parallel_tool_calls=False` is not supported by Gemini when multiple tools are "
                     "provided. Specify a single tool, or set "
-                    "`parallel_tool_calls=True`. If you want to drop this param, set `litellm.drop_params = True` or pass in `(.., drop_params=True)` in the requst - https://docs.litellm.ai/docs/completion/drop_params"
+                    "`parallel_tool_calls=True`. If you want to drop this param, set `litellm.drop_params = True` or pass in `(.., drop_params=True)` in the requst"
                 ),
                 status_code=400,
             )
@@ -1704,7 +1704,7 @@ class VertexGeminiConfig(VertexAIBaseConfig, BaseConfig):
 
         else the candidate token count is exclusive of the thinking token count
 
-        Addresses - https://github.com/BerriAI/litellm/pull/10141#discussion_r2052272035
+        Addresses
         """
         non_thinking_tokens: Final = (
             usage_metadata.get("promptTokenCount", 0)
@@ -1728,7 +1728,7 @@ class VertexGeminiConfig(VertexAIBaseConfig, BaseConfig):
         groundingMetadata (with web groundingChunks but no webSearchQueries), so presence of
         groundingMetadata alone is not a sufficient signal.
         See https://ai.google.dev/gemini-api/docs/pricing and
-        https://github.com/BerriAI/litellm/discussions/33198
+
         """
         if "candidates" not in completion_response:
             return False
@@ -1854,7 +1854,7 @@ class VertexGeminiConfig(VertexAIBaseConfig, BaseConfig):
 
         ## Calculate non-cached tokens by subtracting cached from total (per modality)
         ## This is necessary because promptTokensDetails includes both cached and non-cached tokens
-        ## See: https://github.com/BerriAI/litellm/issues/18750
+        ## See
         if cached_text_tokens is not None and prompt_text_tokens is not None:
             # Explicit caching: subtract cached tokens per modality from cacheTokensDetails
             prompt_text_tokens = prompt_text_tokens - cached_text_tokens
@@ -1866,7 +1866,7 @@ class VertexGeminiConfig(VertexAIBaseConfig, BaseConfig):
         ):
             # Implicit caching: only cachedContentTokenCount is provided (no cacheTokensDetails)
             # Subtract from text tokens since implicit caching is primarily for text content
-            # See: https://github.com/BerriAI/litellm/issues/16341
+            # See
             prompt_text_tokens = prompt_text_tokens - cached_tokens
         if cached_audio_tokens is not None and prompt_audio_tokens is not None:
             prompt_audio_tokens = prompt_audio_tokens - cached_audio_tokens
@@ -2390,7 +2390,7 @@ class VertexGeminiConfig(VertexAIBaseConfig, BaseConfig):
             completion_response: Final = GenerateContentResponseBody(**raw_response.json())
         except Exception as e:
             raise VertexAIError(
-                message=f"Error converting to valid response block={e}. File an issue if litellm error - https://github.com/BerriAI/litellm/issues",
+                message=f"Error converting to valid response block={e}. File an issue if litellm error",
                 status_code=422,
                 headers=raw_response.headers,
             )
@@ -2496,7 +2496,7 @@ class VertexGeminiConfig(VertexAIBaseConfig, BaseConfig):
 
         except Exception as e:
             raise VertexAIError(
-                message=f"Error converting to valid response block={e}. File an issue if litellm error - https://github.com/BerriAI/litellm/issues",
+                message=f"Error converting to valid response block={e}. File an issue if litellm error",
                 status_code=422,
                 headers=raw_response.headers,
             )
@@ -3295,7 +3295,7 @@ class ModelResponseIterator:
         except json.JSONDecodeError:
             # Switch to accumulation mode for partial JSON chunks
             # This can happen at any point due to network fragmentation, not just first chunk
-            # See: https://github.com/BerriAI/litellm/issues/16562
+            # See
             self.chunk_type = "accumulated_json"
             return self.handle_accumulated_json_chunk(chunk=chunk)
 
