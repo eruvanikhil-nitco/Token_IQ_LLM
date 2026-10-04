@@ -1,0 +1,3184 @@
+{
+  "captured_at": "2026-10-04T06:09:19+00:00",
+  "commands": [
+    {
+      "command": "C:\\Users\\NikhilEruva\\litellm\\.venv\\Scripts\\python.exe .github/scripts/assert_ci_coverage.py",
+      "exit_code": 1,
+      "name": "ci_coverage",
+      "summary": "  - tests/deploy: 4 test file(s) invoked by no job: test_image_build.py, test_installation_isolation.py, test_manifest.py, +1 more\n  - tests/test_litellm/attribution: 1 test file(s) invoked by no job: test_gap_owner.py\n  - tests/test_litellm/ledger: 1 test file(s) invoked by no job: test_reconciliation.py\n  - tests/test_litellm/overview: 1 test file(s) invoked by no job: test_totals.py\n  - tests/test_litellm/provider_billing/contract: 6 test file(s) invoked by no job: test_anthropic_contract.py, test_azure_contract.py, test_bedrock_contract.py, +3 more\n  - tests/test_litellm/provider_billing: 15 test file(s) invoked by no job: test_anthropic_connector.py, test_azure_connector.py, test_bedrock_connector.py, +12 more\n  - tests/test_litellm/recommendations: 5 test file(s) invoked by no job: test_escaped_spend.py, test_failed_requests.py, test_provider_concentration.py, +2 more\n  - tests/test_litellm/seats: 1 test file(s) invoked by no job: test_user_cost.py\n  - tests/test_litellm/tool_usage/contract: 3 test file(s) invoked by no job: test_claude_code_contract.py, test_copilot_contract.py, test_cursor_contract.py\n  - tests/test_litellm/tool_usage: 4 test file(s) invoked by no job: test_credential_purpose.py, test_runner.py, test_startup.py, +1 more\n\nAdd each to a job's test path, or list it in .github/ci-coverage-allowlist.yml with a reason."
+    }
+  ],
+  "commit": "c9603947a02ecdeadb7345721e167c68625e2e35",
+  "parallel": false,
+  "platform": "win32",
+  "python": "3.12.10",
+  "suites": [
+    {
+      "name": "deploy",
+      "outcomes": [
+        {
+          "nodeid": "tests/deploy/test_image_build.py::test_an_image_is_named_under_our_own_registry",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/deploy/test_image_build.py::test_an_image_is_tagged_with_the_commit_it_came_from",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/deploy/test_image_build.py::test_a_moving_tag_is_refused",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/deploy/test_image_build.py::test_an_empty_version_is_refused",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/deploy/test_image_build.py::test_a_dirty_working_tree_stops_the_build",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/deploy/test_image_build.py::test_a_developer_can_still_build_a_throwaway_from_a_dirty_tree",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/deploy/test_image_build.py::test_the_build_command_passes_no_shell_string",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/deploy/test_image_build.py::test_the_push_command_names_exactly_what_was_built",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/deploy/test_image_build.py::test_every_image_is_built_at_one_version",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/deploy/test_image_build.py::test_a_failed_build_stops_and_says_which_image",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/deploy/test_image_build.py::test_the_all_in_one_image_builds_from_the_repository_dockerfile",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/deploy/test_installation_isolation.py::test_each_customer_can_read_its_own_data",
+          "outcome": "skipped"
+        },
+        {
+          "nodeid": "tests/deploy/test_installation_isolation.py::test_one_customer_cannot_connect_to_the_other_customers_database",
+          "outcome": "skipped"
+        },
+        {
+          "nodeid": "tests/deploy/test_installation_isolation.py::test_one_customer_cannot_read_the_other_customers_table_through_a_cross_database_reference",
+          "outcome": "skipped"
+        },
+        {
+          "nodeid": "tests/deploy/test_installation_isolation.py::test_a_customer_with_every_privilege_it_legitimately_needs_still_cannot_cross",
+          "outcome": "skipped"
+        },
+        {
+          "nodeid": "tests/deploy/test_installation_isolation.py::test_provisioning_the_same_customer_twice_does_not_reset_its_password",
+          "outcome": "skipped"
+        },
+        {
+          "nodeid": "tests/deploy/test_installation_isolation.py::test_a_role_that_somehow_gets_connect_still_cannot_see_into_the_schema",
+          "outcome": "skipped"
+        },
+        {
+          "nodeid": "tests/deploy/test_manifest.py::test_a_customer_becomes_its_own_database_and_role",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/deploy/test_manifest.py::test_a_size_becomes_a_cpu_and_memory_pair_fargate_accepts",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/deploy/test_manifest.py::test_a_customer_key_that_is_not_a_safe_identifier_is_refused",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/deploy/test_manifest.py::test_a_moving_tag_is_refused_as_a_version",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/deploy/test_manifest.py::test_a_commit_hash_is_accepted_as_a_version",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/deploy/test_manifest.py::test_two_customers_cannot_share_a_hostname",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/deploy/test_manifest.py::test_an_unknown_size_is_refused",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/deploy/test_manifest.py::test_an_empty_manifest_is_refused_rather_than_read_as_no_customers",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/deploy/test_manifest.py::test_a_file_that_is_not_yaml_is_refused_with_its_path",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/deploy/test_manifest.py::test_every_installation_in_the_file_is_returned",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/deploy/test_manifest.py::test_an_installation_is_frozen_so_a_caller_cannot_retarget_it",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/deploy/test_upgrade.py::test_every_installation_moves_to_the_target",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/deploy/test_upgrade.py::test_an_installation_already_on_the_target_is_left_alone",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/deploy/test_upgrade.py::test_a_failure_stops_the_roll_rather_than_carrying_on",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/deploy/test_upgrade.py::test_the_report_names_who_moved_who_failed_and_who_was_never_touched",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/deploy/test_upgrade.py::test_the_failure_carries_the_reason_the_applier_gave",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/deploy/test_upgrade.py::test_a_dry_run_changes_nothing_and_says_what_it_would_do",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/deploy/test_upgrade.py::test_an_upgrade_of_a_fleet_already_current_does_nothing_and_says_so",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/deploy/test_upgrade.py::test_the_summary_names_the_failing_customer",
+          "outcome": "passed"
+        }
+      ]
+    },
+    {
+      "name": "repositories",
+      "outcomes": [
+        {
+          "nodeid": "tests/test_litellm/repositories/test_seat_repository.py::test_a_cadence_we_do_not_know_is_dropped_rather_than_guessed",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_gap_repository.py::test_a_cost_the_driver_decoded_as_a_float_is_refused",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_ledger_repository.py::test_a_currency_whose_total_cannot_be_read_is_left_out_rather_than_zeroed",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_gap_repository.py::test_a_day_the_provider_reported_nothing_for_is_none_not_zero",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_recommendation_state_repository.py::test_a_decision_carries_who_made_it_and_why",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_tool_usage_fact_repository.py::test_a_different_day_is_a_different_row",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_tool_usage_fact_repository.py::test_a_different_model_is_a_different_row_so_a_day_keeps_its_breakdown",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_tool_usage_fact_repository.py::test_a_different_person_is_a_different_row",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_gateway_spend_repository.py::test_a_dimension_cannot_smuggle_sql_because_nothing_formats_the_caller_s_value",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_provider_usage_fact_repository.py::test_a_full_database_page_stays_full_even_when_one_row_is_dropped",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_ledger_repository.py::test_a_full_page_is_decided_from_the_rows_the_database_returned",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_ledger_repository.py::test_a_line_keeps_its_source_evidence_and_currency",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_invoice_repository.py::test_a_new_invoice_is_given_an_id_rather_than_writing_an_empty_one",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_attribution_rule_repository.py::test_a_new_rule_is_given_an_id_rather_than_writing_an_empty_one",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_seat_repository.py::test_a_new_seat_is_given_an_id_rather_than_writing_an_empty_one",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_seat_repository.py::test_a_period_that_is_not_a_date_is_dropped",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_invoice_repository.py::test_a_period_with_no_bill_entered_is_none_rather_than_an_empty_invoice",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_gateway_spend_repository.py::test_a_person_whose_amount_cannot_be_read_is_left_out_rather_than_zeroed",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_gap_repository.py::test_a_provider_day_the_gateway_never_saw_counts_the_gateway_as_zero",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_provider_sync_run_repository.py::test_a_row_failing_any_guard_is_dropped_rather_than_guessed[credential_name-not-a-string]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_provider_sync_run_repository.py::test_a_row_failing_any_guard_is_dropped_rather_than_guessed[finished_at-not-a-datetime]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_provider_sync_run_repository.py::test_a_row_failing_any_guard_is_dropped_rather_than_guessed[outcome-not-in-allowed-set]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_provider_sync_run_repository.py::test_a_row_failing_any_guard_is_dropped_rather_than_guessed[provider-not-a-string]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_provider_sync_run_repository.py::test_a_row_failing_any_guard_is_dropped_rather_than_guessed[started_at-not-a-datetime]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_provider_sync_run_repository.py::test_a_row_failing_any_guard_is_dropped_rather_than_guessed[window_end-not-a-datetime]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_provider_sync_run_repository.py::test_a_row_failing_any_guard_is_dropped_rather_than_guessed[window_start-not-a-datetime]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_attribution_rule_repository.py::test_a_row_missing_its_owner_id_is_dropped",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_tool_usage_fact_repository.py::test_a_row_the_database_returned_without_a_name_is_left_out",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_provider_usage_fact_repository.py::test_a_row_we_cannot_read_is_dropped_rather_than_guessed",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_attribution_rule_repository.py::test_a_row_with_an_unknown_match_type_is_dropped_rather_than_guessed",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_attribution_rule_repository.py::test_a_row_with_an_unknown_owner_type_is_dropped_rather_than_guessed",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_gateway_spend_repository.py::test_a_row_with_an_unreadable_amount_is_dropped_rather_than_zeroed",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_gap_repository.py::test_a_row_with_an_unreadable_cost_is_dropped_rather_than_zeroed",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_gap_repository.py::test_a_row_with_an_unreadable_day_is_dropped",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_provider_usage_fact_repository.py::test_a_row_with_an_unrecognised_evidence_level_is_dropped",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_gateway_spend_repository.py::test_a_row_with_no_owner_is_dropped_rather_than_grouped_under_blank",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_gateway_spend_repository.py::test_a_row_with_no_person_is_left_out_rather_than_grouped_under_blank",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_recommendation_state_repository.py::test_a_row_with_no_rule_is_left_out_rather_than_keyed_on_none",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_attribution_rule_repository.py::test_a_rule_round_trips_with_its_owner_and_match",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_provider_sync_run_repository.py::test_a_run_is_written_with_its_outcome_and_window",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_seat_repository.py::test_a_seat_round_trips_with_its_tool_and_person",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_seat_repository.py::test_a_seat_with_no_person_is_dropped_rather_than_charged_to_nobody",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_ledger_repository.py::test_a_short_page_is_the_end_and_carries_no_cursor",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_gap_repository.py::test_a_spend_log_with_no_provider_is_excluded_from_the_all_providers_query_too",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_gap_repository.py::test_a_spend_log_with_no_provider_recorded_cannot_inflate_a_gap",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_recommendation_state_repository.py::test_a_state_nobody_can_name_hides_no_card",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_provider_usage_fact_repository.py::test_a_string_cost_from_the_driver_becomes_an_exact_decimal",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_invoice_repository.py::test_a_timestamp_returned_as_an_iso_string_is_read_not_rejected",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_ledger_repository.py::test_a_timestamp_returned_as_an_iso_string_is_read_not_rejected",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_seat_repository.py::test_a_timestamp_returned_as_an_iso_string_is_read_not_rejected",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_invoice_repository.py::test_a_timestamp_that_is_neither_a_datetime_nor_a_date_is_dropped",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_tool_usage_fact_repository.py::test_a_tiny_cost_is_not_written_in_scientific_notation",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_tool_usage_fact_repository.py::test_a_total_is_summed_in_sql_and_cast_to_text",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_tool_usage_fact_repository.py::test_a_total_leaves_out_money_already_counted_on_a_provider_bill",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_gateway_spend_repository.py::test_a_window_with_no_spend_totals_zero_rather_than_failing",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_attribution_rule_repository.py::test_a_write_read_back_in_a_shape_we_cannot_interpret_is_none",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_attribution_rule_repository.py::test_a_write_that_returns_nothing_is_none_rather_than_a_guess",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestCountBillableUsers::test_absent_null_and_true_all_count_as_billable",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestTeamRepository::test_add_admin",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestTeamRepository::test_add_member",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestTeamRepository::test_add_member_nonexistent_team",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestTeamRepository::test_add_models",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestUserRepository::test_add_to_team",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestUserRepository::test_add_to_team_nonexistent_user",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestCountBillableUsers::test_all_deactivated_returns_zero",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_provider_usage_fact_repository.py::test_already_fetched_requests_are_reported_so_they_can_be_skipped",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_ledger_repository.py::test_amounts_stay_exact",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_invoice_repository.py::test_an_adjustment_of_an_unknown_kind_is_dropped_rather_than_guessed",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_invoice_repository.py::test_an_adjustment_with_an_unreadable_amount_is_dropped",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_gateway_spend_repository.py::test_an_amount_the_driver_decoded_as_a_float_is_refused",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_invoice_repository.py::test_an_amount_the_driver_decoded_as_a_float_is_refused",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_ledger_repository.py::test_an_amount_the_driver_decoded_as_a_float_is_refused",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_seat_repository.py::test_an_amount_the_driver_decoded_as_a_float_is_refused",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_ledger_repository.py::test_an_evidence_level_we_do_not_know_is_dropped_rather_than_guessed",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_invoice_repository.py::test_an_invoice_round_trips_with_its_adjustments",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_gateway_spend_repository.py::test_an_unknown_dimension_cannot_reach_the_database",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_gateway_spend_repository.py::test_an_unknown_dimension_cannot_reach_the_database_through_the_total_either",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_provider_usage_fact_repository.py::test_asking_about_no_requests_does_not_query",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_gap_repository.py::test_asking_for_one_provider_still_binds_it_as_a_parameter",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestVerificationTokenRepository::test_block_token",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestModelRepository::test_block_unblock_model",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_unit_of_work.py::test_budget_cascade_dependents_and_window_advance_share_one_batch",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_unit_of_work.py::test_budget_cascade_raising_inside_block_skips_commit",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_unit_of_work.py::test_budget_window_advance_tolerates_a_tier_deleted_mid_chunk",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestTeamRepositoryArchiveData::test_build_archive_data_excludes_invalid_columns",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestTeamRepositoryArchiveData::test_build_archive_data_minimal_fields",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestTeamRepositoryArchiveData::test_build_archive_data_with_all_valid_fields",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestBaseRepository::test_count",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_provider_usage_fact_repository.py::test_counts_by_credential_drops_a_row_it_cannot_read",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_provider_usage_fact_repository.py::test_counts_by_credential_reads_the_all_count_prisma_actually_returns",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_tool_usage_fact_repository.py::test_counts_per_account_come_back_keyed_by_account",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestCredentialsRepository::test_create",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestBudgetRepository::test_create_budget",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestBudgetRepository::test_create_budget_all_fields",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestModelRepository::test_create_model_all_fields",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestModelRepository::test_create_model_encrypts_params",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestOrganizationRepository::test_create_organization",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestOrganizationRepository::test_create_organization_all_fields",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestObjectPermissionRepository::test_create_permission",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestObjectPermissionRepository::test_create_permission_all_fields",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestProjectRepository::test_create_project",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestProjectRepository::test_create_project_all_fields",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestTeamRepository::test_create_team",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestTeamRepository::test_create_team_all_fields",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestVerificationTokenRepository::test_create_token",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestVerificationTokenRepository::test_create_token_all_fields",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestUserRepository::test_create_user",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestUserRepository::test_create_user_all_fields",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_recommendation_state_repository.py::test_deciding_twice_changes_the_decision_rather_than_failing",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestConfigRepository::test_decrypt_env_variables_non_string",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestConfigRepository::test_decrypt_env_variables_none_value",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestConfigRepository::test_deep_merge_dicts_db_wins",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestConfigRepository::test_deep_merge_dicts_skips_empty_list",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestConfigRepository::test_deep_merge_dicts_skips_none",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestBudgetRepository::test_delete_budget",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestCredentialsRepository::test_delete_by_name",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestModelRepository::test_delete_model",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestOrganizationRepository::test_delete_organization",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestConfigRepository::test_delete_param",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestConfigRepository::test_delete_param_nonexistent",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestObjectPermissionRepository::test_delete_permission",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestProjectRepository::test_delete_project",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestProjectRepositoryExtended::test_delete_project_simple",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestTeamRepositoryExtended::test_delete_team_nonexistent",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestTeamRepositoryExtended::test_delete_team_with_audit",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestTeamRepositoryExtended::test_delete_team_with_full_data",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestVerificationTokenRepositoryExtended::test_delete_token_archive_serialization",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestVerificationTokenRepositoryExtended::test_delete_token_nonexistent",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestVerificationTokenRepositoryExtended::test_delete_token_with_audit",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestUserRepository::test_delete_user",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestUserRepositoryExtended::test_delete_user_nonexistent",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestUserRepositoryExtended::test_delete_user_simple",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_invoice_repository.py::test_deleting_a_bill_that_existed_reports_true",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_invoice_repository.py::test_deleting_a_bill_that_never_existed_reports_false",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_attribution_rule_repository.py::test_deleting_a_rule_that_existed_reports_true",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_attribution_rule_repository.py::test_deleting_a_rule_that_never_existed_reports_false",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_seat_repository.py::test_deleting_a_seat_that_existed_reports_true",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_seat_repository.py::test_deleting_a_seat_that_never_existed_reports_false",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_gateway_spend_repository.py::test_each_dimension_reads_the_table_that_actually_holds_it",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestPrismaTableRepository::test_each_repository_binds_its_own_table_name",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_unit_of_work.py::test_empty_block_still_commits_the_batch",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestArchiveDataMatchesTheSchemaItWritesTo::test_every_archived_team_key_is_a_real_column",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestArchiveDataMatchesTheSchemaItWritesTo::test_every_archived_verification_token_key_is_a_real_column",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_unit_of_work.py::test_every_cascade_dependent_writes_to_its_own_table_on_the_one_batch",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_gap_repository.py::test_every_provider_comes_back_when_none_is_asked_for",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_invoice_repository.py::test_every_readable_invoice_comes_back",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_attribution_rule_repository.py::test_every_readable_rule_comes_back",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_seat_repository.py::test_every_readable_seat_comes_back",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_gap_repository.py::test_every_row_keeps_the_account_that_produced_it",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestCountBillableUsers::test_excludes_only_scim_deactivated_users",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestBaseRepository::test_exists",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_gap_repository.py::test_facts_of_any_grain_are_summed_into_their_day",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestVerificationTokenRepositoryExtended::test_find_active_tokens",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestModelRepository::test_find_all",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestCredentialsRepository::test_find_all",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestTeamRepository::test_find_by_admin",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestTeamRepository::test_find_by_alias",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestVerificationTokenRepository::test_find_by_alias",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestOrganizationRepository::test_find_by_alias",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestProjectRepository::test_find_by_alias",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestUserRepository::test_find_by_email",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestBudgetRepository::test_find_by_id",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestUserRepositoryExtended::test_find_by_id_decodes_only_the_json_encoded_columns",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestVerificationTokenRepositoryExtended::test_find_by_id_maps_org_and_budget_columns",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestTeamRepository::test_find_by_member",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestModelRepository::test_find_by_name",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestCredentialsRepository::test_find_by_name_missing",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestCredentialsRepository::test_find_by_name_returns_stored_values_without_decryption",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestTeamRepository::test_find_by_organization_id",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestUserRepository::test_find_by_organization_id",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestVerificationTokenRepository::test_find_by_project_id",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestUserRepository::test_find_by_sso_id",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestUserRepository::test_find_by_team_id",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestVerificationTokenRepository::test_find_by_team_id",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestProjectRepository::test_find_by_team_id",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestModelRepositoryExtended::test_find_by_team_id",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestVerificationTokenRepository::test_find_by_user_id",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestBaseRepository::test_find_many",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestBaseRepository::test_find_many_with_all_kwargs",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestBaseRepositoryExtended::test_find_many_with_pagination",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestBaseRepositoryExtended::test_find_many_with_where",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestModelRepository::test_find_unblocked",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestCountBillableUsers::test_floors_at_zero_when_deactivated_exceeds_total",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestDomainModelExtended::test_from_db_record_dict",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestDomainModelExtended::test_from_db_record_model_dump",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestDomainModelExtended::test_from_db_record_none_raises",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_gap_repository.py::test_gap_rows_come_back_as_exact_decimals",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestConfigRepository::test_get_all_params",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestTeamRepository::test_get_members_with_roles_locked[None-expected_ids3]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestTeamRepository::test_get_members_with_roles_locked[[{\"user_id\": \"a\", \"role\": \"user\"}]-expected_ids1]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestTeamRepository::test_get_members_with_roles_locked[raw_value0-expected_ids0]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestTeamRepository::test_get_members_with_roles_locked[raw_value2-expected_ids2]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestTeamRepository::test_get_members_with_roles_locked_missing_row",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestConfigRepository::test_get_param",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_recommendation_state_repository.py::test_it_reads_back_the_decisions_that_were_made",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_tool_usage_fact_repository.py::test_it_reports_how_many_rows_the_database_accepted",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_provider_usage_fact_repository.py::test_next_cursor_is_none_when_the_database_page_is_short",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_ledger_repository.py::test_one_provider_can_be_asked_for_and_is_bound_not_interpolated",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_provider_usage_fact_repository.py::test_paging_asks_only_for_rows_older_than_the_cursor",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestConfigRepository::test_prefetch_params",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestBaseRepository::test_prisma_client_none_raises",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestCredentialsRepository::test_prisma_client_none_raises",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_unit_of_work.py::test_raising_inside_block_skips_commit",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_invoice_repository.py::test_re_entering_a_period_corrects_it_rather_than_storing_two_bills",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_seat_repository.py::test_re_entering_a_persons_seat_corrects_it_rather_than_charging_twice",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_attribution_rule_repository.py::test_reassigning_an_account_keeps_the_rule_id_it_already_had",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_provider_usage_fact_repository.py::test_recent_facts_are_bounded_ordered_newest_first_in_the_database",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_provider_usage_fact_repository.py::test_recent_facts_carry_the_raw_payload_and_exact_cost_unchanged",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_provider_usage_fact_repository.py::test_recent_facts_drops_a_row_it_cannot_read_rather_than_fabricating_it",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_provider_sync_run_repository.py::test_recent_runs_come_back_newest_first_and_bounded",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_provider_sync_run_repository.py::test_recent_without_a_provider_reads_every_provider",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestConfigRepositoryDeepCopy::test_reconcile_config_does_not_mutate_original",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestConfigRepository::test_reconcile_config_none_values_preserved",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestConfigRepositoryDeepCopy::test_reconcile_config_repeated_calls_independent",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestConfigRepository::test_reconcile_config_skips_when_store_model_false",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestConfigRepository::test_reconcile_config_with_db_values",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestConfigRepository::test_reconcile_config_with_environment_variables",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestBaseRepository::test_record_to_dict_branches",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_provider_usage_fact_repository.py::test_refetching_the_same_fact_updates_rather_than_duplicates",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestTeamRepository::test_remove_admin",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestUserRepository::test_remove_from_team",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestTeamRepository::test_remove_member",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestTeamRepository::test_remove_models",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_ledger_repository.py::test_resuming_from_a_cursor_binds_both_halves_as_parameters",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_seat_repository.py::test_seats_for_a_period_bind_both_ends_as_parameters",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestConfigRepository::test_set_param",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_gateway_spend_repository.py::test_spend_comes_back_as_exact_decimals",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_gateway_spend_repository.py::test_spend_comes_back_per_person_and_exact",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_provider_usage_fact_repository.py::test_summary_rows_aggregate_in_sql_and_are_bounded_by_the_window",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_provider_usage_fact_repository.py::test_summary_rows_carry_model_account_cost_and_request_count",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_provider_usage_fact_repository.py::test_summary_sql_casts_the_summed_cost_to_text",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_provider_usage_fact_repository.py::test_summary_sql_orders_by_the_numeric_sum_not_the_text_column",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestPrismaTableRepository::test_table_access_raises_without_db",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestModelRepository::test_table_is_wrapped_for_config_sync",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestCredentialsRepository::test_table_is_wrapped_for_config_sync",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestPrismaTableRepository::test_table_property_returns_named_delegate",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_attribution_rule_repository.py::test_the_account_and_owner_are_bound_as_parameters_never_interpolated",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_invoice_repository.py::test_the_amount_is_exact_to_the_last_digit_the_bill_showed",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_seat_repository.py::test_the_amount_is_exact_to_the_last_digit_the_contract_showed",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_provider_usage_fact_repository.py::test_the_cost_reaches_the_database_as_a_string_not_a_float",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_tool_usage_fact_repository.py::test_the_cost_reaches_the_database_as_exact_digits_not_a_float",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_invoice_repository.py::test_the_currency_the_bill_was_written_in_survives",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_seat_repository.py::test_the_currency_the_contract_was_written_in_survives",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_ledger_repository.py::test_the_cursor_carries_both_halves_so_a_shared_day_cannot_hide_rows",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_gap_repository.py::test_the_day_arrives_as_a_utc_datetime",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_provider_usage_fact_repository.py::test_the_fact_key_tiebreaker_keeps_rows_tied_on_bucket_start_reachable",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_ledger_repository.py::test_the_gateway_is_not_in_the_ledger_at_all",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_gap_repository.py::test_the_gateway_side_is_matched_per_provider_not_smeared_across_them",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_gateway_spend_repository.py::test_the_largest_spender_is_asked_for_first",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_invoice_repository.py::test_the_note_is_bound_as_a_parameter_never_interpolated",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_seat_repository.py::test_the_note_is_bound_as_a_parameter_never_interpolated",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_gateway_spend_repository.py::test_the_per_person_read_uses_the_user_rollup_table",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_gateway_spend_repository.py::test_the_period_is_bound_as_text_because_the_date_column_is_text",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_provider_usage_fact_repository.py::test_the_providers_own_payload_is_written_to_the_raw_column",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_tool_usage_fact_repository.py::test_the_same_person_day_and_model_is_the_same_row",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_gateway_spend_repository.py::test_the_total_counts_rows_the_slices_drop",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_gateway_spend_repository.py::test_the_total_has_no_key_filter_so_unowned_rows_still_count",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_gateway_spend_repository.py::test_the_total_reads_the_same_table_the_slices_came_from",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_gateway_spend_repository.py::test_the_window_compares_text_because_the_date_column_is_text",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_gateway_spend_repository.py::test_the_window_is_bound_as_a_parameter_not_interpolated",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_gap_repository.py::test_the_window_is_bounded_by_the_days_asked_for",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestDomainModelExtended::test_to_db_dict",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestBaseRepositoryExtended::test_to_model_list_with_none",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestVerificationTokenRepositoryExtended::test_to_model_with_json_fields",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestTeamRepositoryExtended::test_to_model_with_json_fields",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_provider_usage_fact_repository.py::test_token_totals_sum_each_token_type_separately",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_provider_usage_fact_repository.py::test_token_totals_survive_the_driver_decoding_bigint_sums_as_float",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_ledger_repository.py::test_two_currencies_total_separately_rather_than_being_summed",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestVerificationTokenRepository::test_unblock_token",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_recommendation_state_repository.py::test_undoing_a_decision_that_exists_reports_success",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_recommendation_state_repository.py::test_undoing_a_decision_that_was_never_made_reports_it_rather_than_claiming_success",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestBudgetRepository::test_update_budget",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestBudgetRepositoryExtended::test_update_budget_all_fields",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestCredentialsRepository::test_update_by_name",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestConfigRepository::test_update_config_fields_new_param",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestConfigRepository::test_update_config_fields_non_dict",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestVerificationTokenRepository::test_update_last_active",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestModelRepository::test_update_model",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestModelRepository::test_update_model_all_fields",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestOrganizationRepository::test_update_organization",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestOrganizationRepository::test_update_organization_all_fields",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestObjectPermissionRepository::test_update_permission",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestObjectPermissionRepository::test_update_permission_all_fields",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestProjectRepository::test_update_project",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestProjectRepository::test_update_project_all_fields",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestTeamRepository::test_update_spend",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestUserRepository::test_update_spend",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestVerificationTokenRepository::test_update_spend",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestOrganizationRepository::test_update_spend",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestProjectRepository::test_update_spend",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestTeamRepository::test_update_team",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestTeamRepository::test_update_team_all_fields",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestVerificationTokenRepository::test_update_token",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestVerificationTokenRepositoryExtended::test_update_token_all_fields",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestUserRepository::test_update_user",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_repositories.py::TestUserRepositoryExtended::test_update_user_all_fields",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_unit_of_work.py::test_updates_across_tables_share_one_batch_and_commit_once",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_provider_usage_fact_repository.py::test_writing_nothing_touches_the_database_not_at_all",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/repositories/test_tool_usage_fact_repository.py::test_writing_the_same_window_twice_overwrites_rather_than_doubling",
+          "outcome": "passed"
+        }
+      ]
+    },
+    {
+      "name": "token_iq",
+      "outcomes": [
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_cloud_rows.py::test_a_bad_amount_is_none_rather_than_zero",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_credential_purpose.py::test_a_bedrock_credential_without_both_aws_keys_is_refused_on_create",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/ledger/test_reconciliation.py::test_a_bill_in_another_currency_is_refused_rather_than_converted",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/ledger/test_reconciliation.py::test_a_bill_larger_than_the_ledger_reports_a_positive_remainder",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/ledger/test_reconciliation.py::test_a_bill_smaller_than_the_ledger_reports_a_negative_remainder",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/ledger/test_reconciliation.py::test_a_bill_that_matches_the_ledger_once_credits_are_applied_is_balanced",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_anthropic_contract.py::test_a_body_of_the_wrong_shape_is_a_failure_not_a_crash",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_openai_contract.py::test_a_body_of_the_wrong_shape_is_a_failure_not_a_crash",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_anthropic_contract.py::test_a_body_that_is_not_json_is_a_failure_not_a_crash",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_azure_contract.py::test_a_body_that_is_not_json_is_a_failure_not_a_crash",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_openai_contract.py::test_a_body_that_is_not_json_is_a_failure_not_a_crash",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_vertex_contract.py::test_a_body_that_is_not_json_is_a_failure_not_a_crash",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_claude_code_contract.py::test_a_body_that_is_not_json_is_a_failure_not_a_crash",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_copilot_contract.py::test_a_body_that_is_not_json_is_a_failure_not_a_crash",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_cursor_contract.py::test_a_body_that_is_not_json_is_a_failure_not_a_crash",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_openrouter_contract.py::test_a_body_that_is_not_json_leaves_the_generation_unpriced_rather_than_crashing",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_stale_budget.py::test_a_budget_being_exceeded_is_reported_differently_from_one_set_too_high",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_stale_budget.py::test_a_budget_comfortably_used_needs_no_card",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_stale_budget.py::test_a_budget_far_above_what_is_spent_is_worth_saying",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_stale_budget.py::test_a_budget_matching_its_spend_needs_no_card",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_stale_budget.py::test_a_budget_of_zero_is_ignored_rather_than_dividing_by_it",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_registry.py::test_a_card_claiming_a_kind_may_not_leave_the_figure_out",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_registry.py::test_a_card_with_no_honest_figure_carries_no_number",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_cursor_contract.py::test_a_charge_in_cents_becomes_dollars_without_rounding",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_credential_purpose.py::test_a_complete_billing_credential_has_no_problem[anthropic-values1]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_credential_purpose.py::test_a_complete_billing_credential_has_no_problem[bedrock-values3]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_credential_purpose.py::test_a_complete_billing_credential_has_no_problem[openai-values0]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_credential_purpose.py::test_a_complete_billing_credential_has_no_problem[openrouter-values2]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_connector.py::test_a_connector_satisfies_the_protocol_without_inheriting_from_it",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_runner.py::test_a_connector_that_raises_anyway_is_contained",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_runner.py::test_a_connector_that_raises_is_still_recorded_as_a_failed_run",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_azure_contract.py::test_a_cost_is_read_by_column_name_not_by_position",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/test_tool_usage_types.py::test_a_cost_keeps_every_digit_the_tool_reported",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_azure_connector.py::test_a_cost_no_float_can_hold_keeps_every_digit_azure_sent",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_failed_requests.py::test_a_cost_that_is_carried_keeps_every_digit",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_anthropic_contract.py::test_a_cost_with_more_digits_than_a_float_can_hold_survives",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_azure_contract.py::test_a_cost_with_more_digits_than_a_float_can_hold_survives",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_openai_contract.py::test_a_cost_with_more_digits_than_a_float_can_hold_survives",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_openrouter_contract.py::test_a_cost_with_more_digits_than_a_float_can_hold_survives",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/test_tool_usage_types.py::test_a_cost_with_no_currency_is_refused_at_construction",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_openai_connector.py::test_a_cost_with_no_line_item_is_still_recorded",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_anthropic_connector.py::test_a_cost_with_no_model_is_still_recorded",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_credential_purpose.py::test_a_credential_is_for_billing_only_when_it_says_so",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/test_credential_purpose.py::test_a_credential_naming_a_tool_we_do_not_have_is_refused",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/test_credential_purpose.py::test_a_credential_naming_no_tool_is_refused_with_the_list_of_tools",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_azure_connector.py::test_a_credential_refused_part_way_through_paging_is_a_failure_not_a_healthy_sync",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_connection_state.py::test_a_credential_the_connector_cannot_use_needs_attention",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_vertex_connector.py::test_a_credential_with_no_billing_export_table_is_not_configured",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_vertex_connector.py::test_a_credential_with_no_billing_project_id_is_not_configured",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_bedrock_contract.py::test_a_credential_with_no_key_is_reported_before_any_call_is_made",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_claude_code_contract.py::test_a_credential_with_no_key_is_reported_before_any_request",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_cursor_contract.py::test_a_credential_with_no_key_is_reported_before_any_request",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/test_credential_purpose.py::test_a_credential_with_no_marker_is_not_a_tool_credential",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_copilot_contract.py::test_a_credential_with_no_organisation_is_refused_rather_than_guessed",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_azure_connector.py::test_a_credential_with_no_subscription_is_not_configured_rather_than_failed",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/attribution/test_gap_owner.py::test_a_day_the_provider_has_not_settled_is_not_reported_as_a_gap",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_anthropic_connector.py::test_a_deployment_can_point_the_connector_at_its_own_host",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_openai_connector.py::test_a_deployment_can_point_the_connector_at_its_own_host",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_openrouter_connector.py::test_a_deployment_can_point_the_connector_at_its_own_host",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_vertex_connector.py::test_a_deployment_can_point_the_connector_at_its_own_host",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_vertex_connector.py::test_a_discounted_account_is_reported_at_what_google_invoiced",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_startup.py::test_a_failed_acquisition_answers_none_instead_of_raising[failure0]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_startup.py::test_a_failed_acquisition_answers_none_instead_of_raising[failure1]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_startup.py::test_a_failed_acquisition_logs_the_cause_without_the_credential_values",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_scheduled_registration.py::test_a_failing_run_does_not_take_the_scheduler_down",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/test_runner.py::test_a_failure_is_recorded_with_the_reason_the_tool_gave",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_runner.py::test_a_failure_writing_the_run_does_not_lose_the_facts",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_registry.py::test_a_figure_always_names_its_currency",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_registry.py::test_a_figure_must_say_what_kind_of_figure_it_is",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_azure_connector.py::test_a_first_page_that_fails_is_still_a_failure_not_an_empty_success",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_cloud_rows.py::test_a_float_amount_goes_through_str",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_openai_connector.py::test_a_float_amount_keeps_its_digits",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_cloud_rows.py::test_a_full_timestamp_is_reduced_to_its_day",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/attribution/test_gap_owner.py::test_a_gap_no_rule_matches_is_unallocated_not_zero",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_openrouter_connector.py::test_a_generation_becomes_a_reconciled_fact",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_openrouter_connector.py::test_a_generation_with_no_cost_yet_is_skipped_rather_than_recorded_as_free",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_bedrock_connector.py::test_a_grouped_cost_becomes_a_day_fact",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_failed_requests.py::test_a_handful_of_failures_in_a_large_month_is_not_worth_a_card",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_failed_requests.py::test_a_high_rate_across_a_tiny_sample_is_noise_not_a_finding",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_credential_purpose.py::test_a_hyphenated_gcp_project_id_is_accepted_in_the_export_table",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_vertex_connector.py::test_a_job_that_has_not_finished_is_a_retryable_failure_not_a_silent_zero",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_vertex_contract.py::test_a_job_that_has_not_finished_is_retryable_rather_than_a_silent_zero",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_cloud_rows.py::test_a_json_number_is_decoded_without_ever_being_a_float",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/ledger/test_reconciliation.py::test_a_ledger_with_nothing_in_it_still_reconciles_against_a_bill",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_cursor_contract.py::test_a_long_period_is_split_into_windows_the_endpoint_accepts",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_credential_purpose.py::test_a_malformed_billing_export_table_is_refused_on_an_update_too",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_credential_purpose.py::test_a_malformed_billing_export_table_is_refused_when_it_is_saved",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_vertex_connector.py::test_a_malformed_export_table_is_refused_before_any_request_is_made[../../etc/passwd]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_vertex_connector.py::test_a_malformed_export_table_is_refused_before_any_request_is_made[a.b.c.d.e]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_vertex_connector.py::test_a_malformed_export_table_is_refused_before_any_request_is_made[bad-dataset.tbl]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_vertex_connector.py::test_a_malformed_export_table_is_refused_before_any_request_is_made[billing.export UNION SELECT * FROM secrets]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_vertex_connector.py::test_a_malformed_export_table_is_refused_before_any_request_is_made[billing.export']",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_vertex_connector.py::test_a_malformed_export_table_is_refused_before_any_request_is_made[billing.export; DROP TABLE x]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_vertex_connector.py::test_a_malformed_export_table_is_refused_before_any_request_is_made[billing.export` SELECT * FROM secrets --]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_vertex_connector.py::test_a_mid_day_window_still_sums_the_whole_day",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_anthropic_connector.py::test_a_missing_credential_is_reported_not_raised",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_bedrock_connector.py::test_a_missing_credential_is_reported_not_raised",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_openai_connector.py::test_a_missing_credential_is_reported_not_raised",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_openrouter_connector.py::test_a_missing_credential_is_reported_not_raised",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_credential_purpose.py::test_a_missing_key_is_refused_on_create",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/test_credential_purpose.py::test_a_missing_key_is_reported_when_keys_are_required",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/attribution/test_gap_owner.py::test_a_naive_datetime_is_read_as_utc_and_not_as_the_machine_s_local_time",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/attribution/test_gap_owner.py::test_a_naive_day_compares_correctly_against_an_aware_cutoff",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/test_tool_usage_types.py::test_a_negative_cost_is_refused_rather_than_quietly_reducing_a_total",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_runner.py::test_a_not_configured_result_is_a_skip_not_a_failure",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_azure_connector.py::test_a_page_that_fails_transiently_keeps_what_the_earlier_pages_returned",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_vertex_connector.py::test_a_pager_that_never_stops_is_cut_off_at_the_page_cap",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/overview/test_totals.py::test_a_period_with_nothing_in_it_reports_nothing_rather_than_zero",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/seats/test_user_cost.py::test_a_person_who_only_holds_a_foreign_currency_seat_does_not_appear_with_a_wrong_total",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/seats/test_user_cost.py::test_a_person_with_a_seat_and_no_gateway_traffic_still_costs_money",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/seats/test_user_cost.py::test_a_person_with_traffic_and_no_seat_is_not_given_one",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_cursor_contract.py::test_a_persons_events_in_one_day_are_summed_into_one_fact",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/seats/test_user_cost.py::test_a_persons_total_is_their_gateway_spend_plus_their_seats",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_connection_state.py::test_a_provider_still_waiting_on_one_account_is_waiting",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_connection_state.py::test_a_provider_that_has_never_stored_a_row_is_not_verified",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_connection_state.py::test_a_provider_whose_accounts_are_all_healthy_is_healthy",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_connection_state.py::test_a_provider_with_no_accounts_is_not_connected",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_runner.py::test_a_provider_with_no_credential_is_skipped_quietly",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_runner.py::test_a_provider_with_no_credential_records_nothing",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_azure_connector.py::test_a_rate_limit_is_retryable",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_vertex_connector.py::test_a_rate_limit_is_retryable",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_anthropic_connector.py::test_a_rate_limit_is_retryable_and_a_bad_key_is_not",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_openai_connector.py::test_a_rate_limit_is_retryable_and_a_bad_key_is_not",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_openrouter_connector.py::test_a_rate_limit_is_retryable_and_a_revoked_key_is_not",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_azure_connector.py::test_a_rate_limited_later_page_still_keeps_what_the_earlier_pages_returned",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_runner.py::test_a_recorded_run_never_finishes_before_it_started",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_vertex_connector.py::test_a_refused_credential_is_a_permanent_failure_not_a_retryable_one",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_bedrock_connector.py::test_a_refused_key_is_a_permanent_failure_and_throttling_is_not",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_runner.py::test_a_refused_key_is_recorded_with_the_reason_the_provider_gave",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_azure_connector.py::test_a_refused_token_is_a_permanent_failure_not_a_retryable_one",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_cloud_rows.py::test_a_reordered_response_still_reads_correctly",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_bedrock_contract.py::test_a_response_of_the_wrong_shape_is_a_failure_not_a_crash",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_azure_connector.py::test_a_response_with_no_currency_column_keeps_the_default",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_vertex_connector.py::test_a_response_with_no_currency_column_keeps_the_default",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/overview/test_totals.py::test_a_rise_and_a_fall_are_signed_so_they_can_be_told_apart",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_azure_connector.py::test_a_row_becomes_a_fact_with_the_exact_cost_azure_reported",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_vertex_connector.py::test_a_row_becomes_a_fact_with_the_exact_cost_google_reported",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_vertex_contract.py::test_a_row_is_read_against_the_schema_google_returned",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_cloud_rows.py::test_a_row_is_read_by_column_name_never_by_position",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_azure_connector.py::test_a_row_shorter_than_its_columns_is_dropped_rather_than_guessed",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_cloud_rows.py::test_a_row_shorter_than_its_columns_is_not_guessed_at",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_vertex_connector.py::test_a_row_shorter_than_its_schema_fields_is_dropped_rather_than_guessed",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/test_tool_usage_types.py::test_a_row_that_does_not_count_is_still_kept",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_usage_summary.py::test_a_row_with_no_model_is_kept_and_labelled_rather_than_dropped",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/attribution/test_gap_owner.py::test_a_rule_for_another_account_on_the_same_provider_never_matches",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/attribution/test_gap_owner.py::test_a_rule_for_another_provider_never_matches",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_registry.py::test_a_rule_with_nothing_to_say_produces_no_card_rather_than_an_empty_one",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/seats/test_user_cost.py::test_a_seat_in_another_currency_is_left_out_rather_than_added_to_dollars",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_copilot_contract.py::test_a_seat_with_no_recorded_activity_is_still_a_seat",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/attribution/test_gap_owner.py::test_a_settled_day_with_a_genuine_zero_provider_cost_is_matched_not_silent",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/attribution/test_gap_owner.py::test_a_settled_day_with_no_provider_data_is_not_claimed_as_matched",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_azure_connector.py::test_a_sovereign_cloud_can_point_the_connector_at_its_own_host",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_bedrock_connector.py::test_a_still_settling_day_is_not_recorded",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_cloud_rows.py::test_a_string_amount_keeps_its_digits",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_runner.py::test_a_successful_fetch_is_recorded_with_what_it_wrote",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_connection_state.py::test_a_successful_run_that_has_produced_nothing_yet_is_still_waiting",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_connection_state.py::test_a_successful_run_with_stored_facts_is_healthy",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_bedrock_contract.py::test_a_throttle_is_retryable_but_a_refused_identity_is_not",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_startup.py::test_a_token_factory_answers_the_token_the_sdk_minted",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_provider_concentration.py::test_a_token_second_provider_does_not_count_as_diversification",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/test_runner.py::test_a_tool_that_raises_does_not_stop_the_others",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/test_runner.py::test_a_tool_that_says_it_is_not_configured_is_skipped_not_failed",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/test_runner.py::test_a_tool_with_no_credential_is_skipped_without_being_called",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_credential_purpose.py::test_a_vertex_billing_credential_needs_its_project_and_export_table",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_registry.py::test_a_well_formed_card_is_accepted",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_cloud_rows.py::test_a_window_in_another_timezone_is_floored_to_its_utc_day",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_cloud_rows.py::test_a_window_is_floored_to_the_day_it_starts_in",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/attribution/test_gap_owner.py::test_a_zero_gap_is_matched_not_owned_even_with_a_matching_rule",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_usage_summary.py::test_accounts_tied_on_cost_break_the_tie_by_name_so_order_is_stable_across_runs",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/attribution/test_gap_owner.py::test_an_account_rule_owns_the_gap_its_account_produced",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_connection_state.py::test_an_account_that_has_never_synced_is_waiting_not_healthy",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_connection_state.py::test_an_account_whose_last_run_failed_needs_attention_and_says_why",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/test_credential_purpose.py::test_an_admin_key_for_claude_code_is_accepted",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/attribution/test_gap_owner.py::test_an_aware_datetime_keeps_the_instant_it_already_named",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/attribution/test_gap_owner.py::test_an_aware_day_compares_correctly_against_a_naive_cutoff",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_credential_purpose.py::test_an_azure_billing_credential_needs_its_subscription_not_an_api_key",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/overview/test_totals.py::test_an_empty_previous_period_is_also_no_change",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_connector.py::test_an_empty_registry_is_an_empty_tuple_not_a_failure",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_anthropic_connector.py::test_an_empty_window_is_a_successful_empty_run",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_usage_summary.py::test_an_empty_window_summarises_to_zero_rather_than_failing",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_bedrock_connector.py::test_an_estimated_day_is_still_recorded_because_it_self_corrects",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_cursor_contract.py::test_an_event_with_nobody_attached_is_left_out_rather_than_guessed_at",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_cloud_rows.py::test_an_exact_amount_is_carried_into_raw_as_its_own_digits",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_cloud_rows.py::test_an_exact_amount_is_handed_back_untouched",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_cloud_rows.py::test_an_exact_amount_nested_anywhere_in_the_row_is_carried_as_its_own_digits_too",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_cloud_rows.py::test_an_iso_day_becomes_a_utc_datetime",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_credential_purpose.py::test_an_ordinary_anthropic_key_is_refused",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/test_credential_purpose.py::test_an_ordinary_anthropic_key_is_refused_before_it_fails_every_sync",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_credential_purpose.py::test_an_ordinary_openai_key_is_refused_because_cost_reports_need_an_admin_key",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_copilot_contract.py::test_an_organisation_github_cannot_see_says_so_and_is_not_retried",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/overview/test_totals.py::test_an_unallocated_share_of_nothing_is_absent_rather_than_zero",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_bedrock_connector.py::test_an_ungrouped_total_is_still_recorded",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_credential_purpose.py::test_an_unknown_provider_is_refused_and_the_message_lists_the_supported_ones",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_azure_connector.py::test_an_unparseable_day_is_dropped_rather_than_filed_under_today",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_vertex_connector.py::test_an_unparseable_day_is_dropped_rather_than_filed_under_today",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/attribution/test_gap_owner.py::test_an_unsettled_day_reports_not_settled_even_when_a_rule_would_otherwise_match",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/attribution/test_gap_owner.py::test_an_unsettled_day_with_no_provider_data_is_still_not_settled",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/test_credential_purpose.py::test_an_update_that_does_not_resend_the_key_is_allowed",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_credential_purpose.py::test_an_update_that_sends_a_wrong_kind_of_key_is_refused",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_credential_purpose.py::test_an_update_that_sends_no_key_keeps_the_stored_one_and_is_accepted",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/attribution/test_gap_owner.py::test_attribute_preserves_row_order_and_handles_multiple_rows",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_fetch_profile.py::test_bedrocks_settling_note_matches_the_constant_that_drives_it",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_cloud_rows.py::test_bigquery_style_schema_fields_are_supported",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_azure_connector.py::test_columns_in_a_different_order_still_read_correctly",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/test_startup.py::test_copilot_is_not_registered_here_because_it_reports_no_spend",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/test_credential_purpose.py::test_copilot_with_an_organisation_is_accepted",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/test_credential_purpose.py::test_copilot_without_an_organisation_is_refused_because_seats_are_per_organisation",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/test_credential_purpose.py::test_cursor_needs_only_a_key_because_its_key_is_scoped_to_one_team",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_cursor_contract.py::test_cursor_spend_is_new_money_because_it_is_on_no_provider_bill_we_read",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_anthropic_connector.py::test_each_fact_keeps_every_anthropic_row_that_fed_it",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_bedrock_connector.py::test_each_fact_keeps_the_cost_explorer_group_it_came_from",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_openrouter_connector.py::test_each_fact_keeps_the_generation_body_openrouter_sent",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_openai_connector.py::test_each_fact_keeps_the_result_openai_sent",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_azure_connector.py::test_each_fact_keeps_the_row_azure_sent",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_vertex_connector.py::test_each_fact_keeps_the_row_google_sent",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_runner.py::test_every_account_for_a_provider_is_fetched_separately",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/test_runner.py::test_every_account_of_one_tool_is_fetched_separately",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/ledger/test_reconciliation.py::test_every_adjustment_counts_toward_what_is_explained",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_fetch_profile.py::test_every_billing_provider_has_a_fetch_profile",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_startup.py::test_every_billing_provider_has_a_registered_connector",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_registry.py::test_every_card_that_comes_back_is_a_recommendation",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/overview/test_totals.py::test_every_figure_keeps_its_exact_digits",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_anthropic_connector.py::test_every_page_is_followed",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_bedrock_connector.py::test_every_page_is_followed",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_openai_connector.py::test_every_page_is_followed",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_fetch_profile.py::test_every_profile_says_whether_its_figures_still_move",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/test_startup.py::test_every_registered_connector_satisfies_the_protocol",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_startup.py::test_every_shipped_connector_is_registered",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/seats/test_user_cost.py::test_every_total_says_tool_usage_is_not_counted_yet",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_usage_summary.py::test_evidence_is_split_so_a_reader_knows_what_the_provider_actually_asserted",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_registry.py::test_evidence_travels_with_the_card",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_runner.py::test_facts_from_every_connector_are_written",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_vertex_contract.py::test_fields_in_a_different_order_still_read_correctly",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_vertex_connector.py::test_fields_in_a_different_order_still_read_correctly",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_azure_contract.py::test_it_asks_for_actual_daily_cost_over_the_window",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_bedrock_contract.py::test_it_asks_for_daily_unblended_cost_over_the_window",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_claude_code_contract.py::test_it_asks_for_one_day_at_a_time_because_that_is_all_the_endpoint_returns",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_anthropic_contract.py::test_it_asks_for_the_path_and_method_anthropic_documents",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_claude_code_contract.py::test_it_asks_for_the_path_and_method_anthropic_documents",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_copilot_contract.py::test_it_asks_for_the_path_and_method_github_documents",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_openai_contract.py::test_it_asks_for_the_path_and_method_openai_documents",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_openrouter_contract.py::test_it_asks_for_the_path_and_method_openrouter_documents",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_anthropic_contract.py::test_it_authenticates_the_way_anthropic_documents",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_claude_code_contract.py::test_it_authenticates_the_way_anthropic_documents",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_openai_contract.py::test_it_authenticates_the_way_openai_documents",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_openrouter_contract.py::test_it_authenticates_the_way_openrouter_documents",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_cursor_contract.py::test_it_authenticates_with_basic_auth_the_way_cursor_documents",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_azure_contract.py::test_it_authenticates_with_the_entra_token_as_a_bearer",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_vertex_contract.py::test_it_authenticates_with_the_google_token_as_a_bearer",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_anthropic_connector.py::test_it_calls_the_host_anthropic_documents",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_azure_connector.py::test_it_calls_the_host_azure_documents",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_vertex_connector.py::test_it_calls_the_host_google_documents",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_openai_connector.py::test_it_calls_the_host_openai_documents",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_openrouter_connector.py::test_it_calls_the_host_openrouter_documents",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_stale_budget.py::test_it_carries_no_figure_because_changing_a_limit_changes_no_spend",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_provider_concentration.py::test_it_carries_no_figure_because_it_is_a_risk_not_a_cost",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_failed_requests.py::test_it_does_not_invent_a_cost_per_failed_request",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_vertex_contract.py::test_it_fetches_the_next_page_from_the_results_path",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_cursor_contract.py::test_it_follows_pagination_to_the_end",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_anthropic_contract.py::test_it_follows_the_cursor_to_the_end",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_openai_contract.py::test_it_follows_the_cursor_to_the_end",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_claude_code_contract.py::test_it_follows_the_cursor_to_the_end",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_azure_contract.py::test_it_follows_the_next_link_to_the_end",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_bedrock_contract.py::test_it_follows_the_page_token_to_the_end",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_bedrock_contract.py::test_it_groups_by_usage_type_so_a_day_is_not_one_opaque_number",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_escaped_spend.py::test_it_is_a_business_card_not_a_technical_one",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_failed_requests.py::test_it_is_a_technical_card_not_a_business_one",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_stale_budget.py::test_it_keeps_every_digit_of_the_limit_and_the_spend",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_escaped_spend.py::test_it_keeps_every_digit_rather_than_rounding_the_evidence",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_claude_code_contract.py::test_it_keeps_the_person_the_tool_named",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_copilot_contract.py::test_it_keeps_when_a_seat_was_assigned_and_last_used",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_escaped_spend.py::test_it_names_the_account_even_when_none_was_recorded",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_azure_contract.py::test_it_names_the_api_version_azure_requires",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_openrouter_contract.py::test_it_names_the_generation_in_the_parameter_openrouter_documents",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_provider_concentration.py::test_it_names_the_provider_and_the_share",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_bedrock_contract.py::test_it_narrows_to_the_service_rather_than_billing_the_whole_account",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_escaped_spend.py::test_it_never_calls_this_a_saving",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_provider_concentration.py::test_it_never_promises_a_saving",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_stale_budget.py::test_it_never_promises_a_saving_in_either_direction",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_failed_requests.py::test_it_never_promises_a_saving_when_it_has_no_figure_to_back_one",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_copilot_contract.py::test_it_pages_until_a_short_page_arrives",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_vertex_contract.py::test_it_posts_a_query_to_the_path_google_documents",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_azure_contract.py::test_it_posts_to_the_path_azure_documents_for_the_subscription",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_cursor_contract.py::test_it_posts_to_the_path_cursor_documents",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_openrouter_contract.py::test_it_prices_every_generation_it_was_given",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_bedrock_contract.py::test_it_reads_the_amount_aws_reports_as_a_string_without_losing_digits",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_anthropic_contract.py::test_it_reads_the_amount_out_of_anthropics_own_example",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_openrouter_contract.py::test_it_reads_the_cost_out_of_openrouters_own_example",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/test_startup.py::test_it_registers_the_connectors_that_report_spend",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_copilot_contract.py::test_it_reports_no_cost_at_all_because_github_publishes_none",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_failed_requests.py::test_it_reports_the_rate_as_evidence_a_reader_can_check",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_escaped_spend.py::test_it_reports_what_bypassed_the_gateway_with_the_accounts_it_came_from",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_copilot_contract.py::test_it_reports_who_holds_a_licence_and_on_what_plan",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_escaped_spend.py::test_it_says_in_words_that_the_money_is_already_being_spent",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_provider_concentration.py::test_it_says_in_words_that_this_is_a_risk_rather_than_a_cost",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_escaped_spend.py::test_it_says_nothing_when_every_difference_is_claimed_or_settled",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_provider_concentration.py::test_it_says_nothing_when_no_provider_has_spent_anything",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_failed_requests.py::test_it_says_nothing_when_nothing_failed",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_provider_concentration.py::test_it_says_nothing_when_spend_is_spread",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_escaped_spend.py::test_it_says_nothing_when_the_gateway_recorded_more_than_the_provider_billed",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_failed_requests.py::test_it_says_nothing_when_there_were_no_requests_at_all",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_escaped_spend.py::test_it_says_who_should_act",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_failed_requests.py::test_it_says_who_should_act",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_provider_concentration.py::test_it_says_who_should_act",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_failed_requests.py::test_it_says_why_no_figure_is_shown_rather_than_leaving_a_blank",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_vertex_contract.py::test_it_sends_standard_sql_with_the_window_as_bound_parameters",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_copilot_contract.py::test_it_sends_the_headers_github_requires",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_anthropic_contract.py::test_it_sends_the_window_and_granularity_anthropic_documents",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_cursor_contract.py::test_it_sends_the_window_as_epoch_milliseconds_in_the_body",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_openai_contract.py::test_it_sends_the_window_as_unix_seconds_the_way_openai_documents",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_anthropic_contract.py::test_it_stays_inside_the_page_size_anthropic_allows",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_claude_code_contract.py::test_it_stays_inside_the_page_size_anthropic_allows",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_cursor_contract.py::test_it_stays_inside_the_page_size_cursor_allows",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_copilot_contract.py::test_it_stays_inside_the_page_size_github_allows",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_openai_contract.py::test_it_stays_inside_the_page_size_openai_allows",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_anthropic_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[401-False]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_azure_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[401-False]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_openai_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[401-False]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_openrouter_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[401-False]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_vertex_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[401-False]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_claude_code_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[401-False]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_copilot_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[401-False]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_cursor_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[401-False]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_anthropic_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[403-False]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_azure_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[403-False]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_openai_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[403-False]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_openrouter_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[403-False]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_vertex_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[403-False]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_claude_code_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[403-False]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_copilot_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[403-False]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_cursor_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[403-False]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_anthropic_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[429-True]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_azure_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[429-True]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_openai_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[429-True]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_openrouter_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[429-True]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_vertex_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[429-True]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_claude_code_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[429-True]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_copilot_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[429-True]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_cursor_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[429-True]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_anthropic_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[500-True]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_azure_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[500-True]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_openai_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[500-True]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_openrouter_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[500-True]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_vertex_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[500-True]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_claude_code_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[500-True]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_copilot_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[500-True]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_cursor_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[500-True]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_anthropic_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[503-True]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_azure_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[503-True]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_openai_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[503-True]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_openrouter_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[503-True]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_vertex_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[503-True]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_claude_code_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[503-True]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_copilot_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[503-True]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_cursor_contract.py::test_it_turns_an_error_into_a_reason_rather_than_raising[503-True]",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_openai_connector.py::test_line_items_are_kept_separate_within_a_day",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/test_runner.py::test_losing_the_history_row_does_not_lose_the_data",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_failed_requests.py::test_many_failures_that_are_still_a_small_share_are_not_worth_a_card",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_usage_summary.py::test_models_tied_on_cost_break_the_tie_by_name_so_order_is_stable_across_runs",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/ledger/test_reconciliation.py::test_money_never_passes_through_a_float",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/attribution/test_gap_owner.py::test_money_never_passes_through_a_float",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/seats/test_user_cost.py::test_money_never_passes_through_a_float",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_credential_purpose.py::test_neither_cloud_provider_is_asked_for_an_api_key_it_does_not_use",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_stale_budget.py::test_no_budgets_at_all_produces_nothing",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/ledger/test_reconciliation.py::test_no_invoice_says_so_rather_than_reporting_the_whole_ledger_as_unexplained",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_scheduled_registration.py::test_no_lock_manager_at_all_still_ingests",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_azure_connector.py::test_no_token_is_not_configured_rather_than_failed",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_vertex_connector.py::test_no_token_is_not_configured_rather_than_failed",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_cloud_rows.py::test_nonsense_is_none_rather_than_today",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_openrouter_connector.py::test_nothing_to_price_is_a_successful_empty_run",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_runner.py::test_one_account_failing_does_not_stop_the_others_on_the_same_provider",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_connection_state.py::test_one_account_with_real_rows_verifies_the_provider",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_connection_state.py::test_one_broken_account_puts_the_whole_provider_in_needs_attention",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_anthropic_connector.py::test_one_fact_per_model_per_day_summing_the_token_types",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/seats/test_user_cost.py::test_one_persons_seat_never_lands_on_another",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_runner.py::test_one_provider_failing_does_not_stop_the_others",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_openrouter_connector.py::test_one_run_is_capped_so_it_cannot_exhaust_the_rate_limit",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_scheduled_registration.py::test_only_one_replica_polls_the_provider",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_azure_connector.py::test_paging_follows_next_link_until_it_is_absent",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_vertex_connector.py::test_paging_follows_page_token_until_it_is_absent",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/seats/test_user_cost.py::test_people_come_back_in_a_stable_order_so_a_screen_does_not_jump",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_fetch_profile.py::test_providers_without_a_verified_window_say_so_rather_than_inventing_one",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_startup.py::test_registering_twice_is_harmless",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/test_startup.py::test_registering_twice_is_harmless_because_a_reloader_will_do_it",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_connector.py::test_registering_twice_under_one_provider_is_refused",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_credential_purpose.py::test_require_keys_false_still_accepts_an_incomplete_cloud_credential",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/test_tool_usage_types.py::test_spend_already_on_a_provider_bill_never_counts_toward_the_total",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_usage_summary.py::test_spend_by_account_is_summed_across_models",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_usage_summary.py::test_spend_by_model_is_summed_across_accounts_and_ordered_by_cost",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/test_tool_usage_types.py::test_spend_on_a_subscription_plan_counts_toward_the_total",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_openai_connector.py::test_the_admin_key_goes_in_a_bearer_header",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_anthropic_connector.py::test_the_admin_key_goes_in_the_anthropic_header_not_a_bearer_token",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_openai_connector.py::test_the_amount_is_already_dollars_and_is_not_scaled",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_anthropic_connector.py::test_the_amount_is_cents_and_must_reach_the_table_as_dollars",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_openai_contract.py::test_the_amount_openai_reports_is_already_dollars",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_bedrock_connector.py::test_the_amount_string_keeps_its_precision",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_credential_purpose.py::test_the_billing_providers_are_the_ones_this_build_has_connectors_for",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_anthropic_connector.py::test_the_bucket_start_is_the_day_the_cost_belongs_to",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_stale_budget.py::test_the_budget_furthest_from_its_spend_is_the_one_reported",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_claude_code_contract.py::test_the_cost_is_minor_units_so_186_is_one_dollar_eighty_six",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_openrouter_connector.py::test_the_cost_survives_as_a_decimal_from_the_json",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_azure_connector.py::test_the_currency_azure_billed_in_is_kept",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_vertex_connector.py::test_the_currency_google_billed_in_is_kept",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_cloud_rows.py::test_the_currency_the_provider_named_wins_over_the_default",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_azure_connector.py::test_the_fact_key_carries_the_account_so_two_subscriptions_cannot_collide",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_vertex_connector.py::test_the_fact_key_carries_the_credential_name_so_two_projects_cannot_collide",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_anthropic_connector.py::test_the_fact_key_is_stable_so_a_refetch_overwrites",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_openai_connector.py::test_the_fact_key_is_stable_so_a_refetch_overwrites",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/overview/test_totals.py::test_the_gateway_figure_is_never_added_to_the_total",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/overview/test_totals.py::test_the_gateway_figure_is_reported_as_attribution_rather_than_dropped",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/attribution/test_gap_owner.py::test_the_gateway_recording_more_than_the_provider_billed_is_never_a_negative_gap",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_scheduled_registration.py::test_the_holder_of_the_lock_does_the_work",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_openrouter_connector.py::test_the_key_is_sent_as_a_bearer_token",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/ledger/test_reconciliation.py::test_the_ledger_total_for_the_bill_s_own_currency_is_the_one_used",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_scheduled_registration.py::test_the_lock_is_released_even_when_the_run_fails",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_scheduled_registration.py::test_the_lookup_returns_every_matching_credential_not_just_the_first",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_scheduled_registration.py::test_the_lookup_returns_only_the_credential_marked_for_that_providers_bill",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_openrouter_connector.py::test_the_native_token_counts_are_preferred_over_the_normalised_ones",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_openrouter_connector.py::test_the_normalised_counts_are_used_when_no_native_ones_are_given",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/seats/test_user_cost.py::test_the_parts_stay_visible_so_nobody_has_to_trust_one_blended_number",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_azure_contract.py::test_the_query_body_is_something_json_can_actually_serialise",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/contract/test_vertex_contract.py::test_the_query_body_is_something_json_can_actually_serialise",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_bedrock_connector.py::test_the_query_is_filtered_to_the_model_service_and_grouped_daily",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_vertex_connector.py::test_the_query_nets_off_credits_and_sums_in_numeric",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_connector.py::test_the_registry_reports_what_was_registered",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_azure_connector.py::test_the_runners_own_window_still_reports_a_whole_day",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_vertex_connector.py::test_the_runners_own_window_still_reports_a_whole_day",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_failed_requests.py::test_the_same_count_at_a_high_enough_share_does_earn_a_card",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_bedrock_connector.py::test_the_service_name_can_be_overridden_because_a_wrong_one_reports_zero",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_cloud_rows.py::test_the_settling_cutoff_excludes_days_the_cloud_has_not_finished_billing",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_usage_summary.py::test_the_total_equals_the_sum_of_the_parts",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/overview/test_totals.py::test_the_total_is_what_the_providers_billed_plus_money_on_no_provider_bill",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/overview/test_totals.py::test_the_unallocated_share_is_a_share_of_what_the_providers_billed",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_openai_connector.py::test_the_unix_bucket_becomes_the_day_the_cost_belongs_to",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_runner.py::test_the_window_asked_for_overlaps_the_last_one",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_azure_connector.py::test_the_window_asked_for_starts_at_a_utc_midnight",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_openai_connector.py::test_the_window_is_sent_as_unix_seconds",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/test_runner.py::test_the_window_looks_back_far_enough_to_catch_a_revised_day",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_vertex_connector.py::test_two_currencies_on_one_day_stay_two_facts_rather_than_one_mislabelled_sum",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_cursor_contract.py::test_two_days_stay_two_facts_so_a_day_can_still_be_read_on_its_own",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_cursor_contract.py::test_two_models_in_one_day_stay_separate_rather_than_becoming_one_number",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_openai_connector.py::test_two_openai_accounts_do_not_share_a_fact_key",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/seats/test_user_cost.py::test_two_seats_for_one_person_both_count",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_claude_code_contract.py::test_usage_billed_to_an_api_account_is_marked_as_already_counted",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_claude_code_contract.py::test_usage_by_an_api_key_is_kept_under_the_key_rather_than_dropped",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/contract/test_claude_code_contract.py::test_usage_on_a_subscription_plan_is_new_money",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/test_tool_usage_types.py::test_usage_with_nobody_to_attribute_it_to_is_refused",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_connection_state.py::test_verification_does_not_depend_on_the_last_run_succeeding",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/tool_usage/test_runner.py::test_what_a_tool_returned_is_written_against_the_account_it_came_from",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/ledger/test_reconciliation.py::test_whatever_no_adjustment_explains_is_reported_not_absorbed",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/recommendations/test_failed_requests.py::test_when_the_data_does_carry_the_cost_it_is_money_that_could_stop",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/overview/test_totals.py::test_with_no_previous_period_there_is_no_change_rather_than_a_rise_from_zero",
+          "outcome": "passed"
+        },
+        {
+          "nodeid": "tests/test_litellm/provider_billing/test_scheduled_registration.py::test_without_redis_a_single_process_still_ingests",
+          "outcome": "passed"
+        }
+      ]
+    }
+  ]
+}

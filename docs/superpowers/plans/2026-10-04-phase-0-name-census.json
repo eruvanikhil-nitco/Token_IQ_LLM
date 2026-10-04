@@ -1,0 +1,16 @@
+{
+  "allowlisted": 3458,
+  "categories": {
+    "commands": 8,
+    "config_keys": 18592,
+    "env_vars": 3072,
+    "headers": 1315,
+    "metrics": 17049,
+    "occurrences": 183380,
+    "prisma_models": 271,
+    "python": 136015,
+    "ui": 6060
+  },
+  "files": 6591,
+  "scanned": 9496
+}
