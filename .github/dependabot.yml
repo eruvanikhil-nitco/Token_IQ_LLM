@@ -1,0 +1,126 @@
+# Upstream used to bump these. Nothing does now unless this file says so.
+#
+# Dependabot fails silently: a config with a typo, a wrong ecosystem name or a directory
+# that does not exist produces no pull requests and no error anyone sees. That is why
+# tests/code_coverage_tests/test_dependabot_config.py checks every directory here exists
+# and every manifest it claims to watch is really there.
+#
+# Security updates are a repository setting rather than a key in this file. They must be
+# switched on under Settings, Code security, Dependabot security updates. Nothing in the
+# repository can assert that, so it is recorded in docs/status.md as an owner action.
+
+version: 2
+
+updates:
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      # One pull request a week for the routine moves. Separate ones for every patch bump
+      # is how a dependency queue stops being read.
+      python-minor-and-patch:
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: npm
+    directory: /ui/litellm-dashboard
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      dashboard-minor-and-patch:
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: npm
+    directory: /tests/e2e/ui
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      e2e-minor-and-patch:
+        update-types:
+          - minor
+          - patch
+
+  # Three more node projects, found by the test rather than by looking: the repository
+  # root, and two test harnesses with lockfiles of their own.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      root-minor-and-patch:
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: npm
+    directory: /tests/proxy_admin_ui_tests/ui_unit_tests
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      admin-ui-tests-minor-and-patch:
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: npm
+    directory: /tests/pass_through_tests
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      pass-through-tests-minor-and-patch:
+        update-types:
+          - minor
+          - patch
+
+  # Base images are pinned by digest through ARG defaults rather than on the FROM line,
+  # so Dependabot may not see all of them. Whatever it does catch is worth having; the
+  # image-scan workflow is what actually fails a stale base.
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore(deps)"
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      actions:
+        patterns:
+          - "*"

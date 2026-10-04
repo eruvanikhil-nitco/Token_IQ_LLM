@@ -346,3 +346,36 @@ which is now the only source the code reads.
 
 The upstream-reference search is clean apart from `cookbook/`, which phase 5 deletes, and
 the documents that describe this removal.
+
+## Phase 2 Task 8: dependency updates, and what is still a manual setting
+
+`.github/dependabot.yml` covers six node projects, the Python workspace through `uv`, the
+Dockerfile and the GitHub Actions. Minor and patch updates are grouped into one pull
+request a week per project, because a separate pull request per patch bump is how a
+dependency queue stops being read.
+
+Six node projects, not the two that were obvious. The dashboard and the e2e harness were
+the ones anybody would list; the repository root, `tests/proxy_admin_ui_tests/ui_unit_tests`
+and `tests/pass_through_tests` each have their own lockfile and were found by the test
+rather than by looking.
+
+`tests/code_coverage_tests/test_dependabot_config.py` exists because Dependabot fails
+silently. A wrong ecosystem name, a renamed directory or a moved manifest produces no pull
+requests and no error: the updates simply stop, and the first anyone knows is a dependency
+years out of date. The test checks every watched directory exists, holds a manifest that
+ecosystem can read, and that no lockfile in the repository is unwatched.
+
+### Two things this file cannot do
+
+**Security updates are a repository setting, not a key in this file.** They must be turned
+on under Settings, Code security, Dependabot security updates. Nothing in the repository
+can assert that, so it is an owner action and it is recorded here rather than assumed.
+
+**Base images are pinned by digest through `ARG` defaults rather than on the `FROM` line**,
+so Dependabot may not see all four. Whatever it catches is worth having, and `image-scan`
+is what actually fails a stale base.
+
+### Owners
+
+Named on 4 Oct 2026, recorded above with what each costs: prices, security advisories and
+provider API changes are all Nikhil Eruva, with provider API changes the first to delegate.
