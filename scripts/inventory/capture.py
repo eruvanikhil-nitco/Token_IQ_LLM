@@ -60,7 +60,22 @@ COMMANDS: Final[Mapping[str, tuple[str, ...]]] = {
     # The portable substitute, named differently so the two are never confused.
     "ruff": (sys.executable, "-m", "ruff", "check", "litellm", "scripts", "--output-format=concise"),
     "ui_build": ("npm", "run", "build"),
-    "ui_tests": ("npx", "vitest", "run"),
+    # Deliberately not the whole vitest suite. `npx vitest run` with no path is 380 files and
+    # the dashboard's own CLAUDE.md forbids it: it saturates the machine and CI runs it anyway.
+    # Run bare here it died on an IPC channel closure, which is a resource failure dressed up
+    # as a test failure. These are the paths phases 3 and 9 actually move.
+    "ui_tests": (
+        "npx",
+        "vitest",
+        "run",
+        "src/lib/money.test.ts",
+        "src/app/(dashboard)/overview",
+        "src/app/(dashboard)/usage/_components/combined",
+        "src/app/(dashboard)/ledger",
+        "src/app/(dashboard)/recommendations",
+        "src/app/(dashboard)/provider-apis",
+        "src/app/(dashboard)/user-tools",
+    ),
     "docker": ("docker", "build", "-t", "token-iq-baseline", "."),
 }
 
@@ -96,10 +111,10 @@ def _write(baseline: Baseline) -> None:
     ARTIFACT.write_text(json.dumps(dataclasses.asdict(baseline), indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
-def capture(section: str, reports: pathlib.Path) -> None:
+def capture(section: str, reports: pathlib.Path, workers: int = 0) -> None:
     current: Final = _load()
     if section in SUITES:
-        run: Final = capture_suite(section, SUITES[section], REPO, reports)
+        run: Final = capture_suite(section, SUITES[section], REPO, reports, workers)
         failed: Final = sum(1 for o in run.outcomes if o.outcome in ("failed", "error"))
         print(f"{section}: {len(run.outcomes)} tests, {failed} failing")
         _write(dataclasses.replace(current, suites=_replacing(current.suites, run)))
@@ -117,13 +132,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--section", action="append", choices=known, default=[])
     parser.add_argument("--all", action="store_true")
     parser.add_argument("--reports", default=None, help="where junit xml is written")
+    parser.add_argument("--workers", type=int, default=0, help="pytest-xdist workers; 0 runs serially")
     args: Final = parser.parse_args(argv)
 
     reports: Final = pathlib.Path(args.reports) if args.reports else REPO / ".git" / "phase0-reports"
     reports.mkdir(parents=True, exist_ok=True)
 
     for section in known if args.all else args.section:
-        capture(section, reports)
+        capture(section, reports, args.workers)
     return 0
 
 

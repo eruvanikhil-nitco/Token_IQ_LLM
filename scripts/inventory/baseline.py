@@ -37,6 +37,9 @@ class CaseOutcome:
 class SuiteRun:
     name: str
     outcomes: tuple[CaseOutcome, ...]
+    workers: int = 0
+    """xdist workers used, 0 for serial. Per suite, because suites are captured one at a
+    time and resumed across sessions, so one artifact can legitimately hold both."""
 
 
 @dataclasses.dataclass(frozen=True, slots=True)
@@ -134,7 +137,12 @@ def from_json(text: str) -> Baseline:
         captured_at=raw["captured_at"],
         parallel=raw["parallel"],
         suites=tuple(
-            SuiteRun(name=s["name"], outcomes=tuple(CaseOutcome(**o) for o in s["outcomes"])) for s in raw["suites"]
+            SuiteRun(
+                name=s["name"],
+                outcomes=tuple(CaseOutcome(**o) for o in s["outcomes"]),
+                workers=s.get("workers", 0),
+            )
+            for s in raw["suites"]
         ),
         commands=tuple(CommandRun(**c) for c in raw["commands"]),
     )
@@ -158,14 +166,21 @@ def _run(command: tuple[str, ...], cwd: pathlib.Path) -> tuple[int, str]:
     return finished.returncode, "\n".join(tail[-12:])
 
 
-def capture_suite(name: str, paths: Iterable[str], repo: pathlib.Path, reports: pathlib.Path) -> SuiteRun:
+def capture_suite(
+    name: str, paths: Iterable[str], repo: pathlib.Path, reports: pathlib.Path, workers: int = 0
+) -> SuiteRun:
     report: Final = reports / f"{name}.xml"
-    _run((sys.executable, "-m", "pytest", *paths, "-q", f"--junitxml={report}", "-p", "no:randomly"), repo)
+    # Workers cut the proxy suite from an hour to minutes and produced identical outcomes when
+    # checked against a serial run, so the recorded result is the same either way. `parallel`
+    # on the artifact says which was used, since a baseline that does not say how it was
+    # produced cannot be reproduced.
+    parallel: Final = ("-n", str(workers)) if workers > 0 else ()
+    _run((sys.executable, "-m", "pytest", *paths, "-q", f"--junitxml={report}", "-p", "no:randomly", *parallel), repo)
     if not report.exists():
         # Collection died before pytest could write anything. An empty suite would later read
         # as every test in it having vanished, so say so instead.
         raise RuntimeError(f"suite {name!r} produced no junit report; its collection failed")
-    return SuiteRun(name=name, outcomes=parse_junit(report.read_text(encoding="utf-8")))
+    return SuiteRun(name=name, outcomes=parse_junit(report.read_text(encoding="utf-8")), workers=workers)
 
 
 def capture_command(name: str, command: tuple[str, ...], repo: pathlib.Path) -> CommandRun:

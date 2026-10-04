@@ -6,7 +6,7 @@ from typing import Final
 
 import pytest
 
-from scripts.inventory.baseline import Baseline, SuiteRun, CaseOutcome, compare, parse_junit
+from scripts.inventory.baseline import Baseline, SuiteRun, CaseOutcome, as_json, compare, from_json, parse_junit
 
 
 def _baseline(*outcomes: tuple[str, str]) -> Baseline:
@@ -140,3 +140,41 @@ class TestParseJunit:
         """An empty parse would look like a suite where every test vanished."""
         with pytest.raises(ValueError):
             parse_junit("not xml at all")
+
+
+class TestWorkersAreRecordedPerSuite:
+    """How a suite was run belongs on the suite, not on the whole baseline.
+
+    Suites are captured one at a time and resumed across sessions, so some can be serial and
+    others parallel in the same artifact. One global flag then misstates most of them, and a
+    baseline that cannot say how it was produced cannot be reproduced, which is its only job.
+    """
+
+    def test_a_suite_carries_its_own_worker_count(self) -> None:
+        serial: Final = SuiteRun(name="a", outcomes=(), workers=0)
+        parallel: Final = SuiteRun(name="b", outcomes=(), workers=4)
+        assert (serial.workers, parallel.workers) == (0, 4)
+
+    def test_a_baseline_can_hold_suites_run_differently(self) -> None:
+        baseline: Final = Baseline(
+            commit="x",
+            python="3.12.0",
+            platform="win32",
+            captured_at="t",
+            parallel=False,
+            suites=(SuiteRun(name="a", outcomes=(), workers=0), SuiteRun(name="b", outcomes=(), workers=4)),
+            commands=(),
+        )
+        assert {s.name: s.workers for s in baseline.suites} == {"a": 0, "b": 4}
+
+    def test_a_round_trip_through_json_keeps_the_worker_count(self) -> None:
+        baseline: Final = Baseline(
+            commit="x",
+            python="3.12.0",
+            platform="win32",
+            captured_at="t",
+            parallel=False,
+            suites=(SuiteRun(name="b", outcomes=(), workers=4),),
+            commands=(),
+        )
+        assert from_json(as_json(baseline)).suites[0].workers == 4
