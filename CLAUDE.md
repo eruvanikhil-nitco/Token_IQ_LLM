@@ -1,3 +1,57 @@
+# Working on Token IQ
+
+## What Token IQ is
+
+An observer-only gateway that tells a company what it spends on AI, who spent it, whether the
+bill is right, and what to change. Observer-only is a hard constraint, not a description: the
+provider and model are the ones the caller named, the answer is the one that provider
+produced, and nothing is served from a cache or retried somewhere else. Anything that changes
+which endpoint serves a call, what the response contains, or whether the provider is reached
+at all is out of bounds. Decisions 0001 to 0005 and 0012 removed or neutralised each of
+those; do not reintroduce one.
+
+## The counting rule
+
+**A provider figure says how much was spent. A gateway figure says who spent it. They are
+never added together.**
+
+The headline total is provider-billed cost, plus tool spend that is on no provider bill, plus
+seats. The gateway's own figure is attribution and never enters the total.
+
+Breaking this is silent: every screen keeps working and the one number a customer repeats to
+their finance team is roughly double what they actually spent. Claude Code usage billed to an
+API organisation is already inside the provider total, which is why tool usage contributes
+only its `new_money` rows.
+
+## Where things are
+
+`litellm/` is the engine inherited from the fork and becomes `token_iq/gateway/` in phase 6.
+Token IQ's own code is being gathered into `token_iq/` by phase 3. Documentation is in
+`docs/`: `status.md` for where work left off, `decisions/` for why things are the way they
+are, `plans/` for work in progress, `product/` for what it should become.
+
+The programme turning this into an independent codebase is
+`docs/plans/2026-10-04-independent-codebase.md`, specified in
+`docs/specs/2026-10-04-token-iq-independent-codebase.md`.
+
+## Naming
+
+Product name is **Token IQ**, two words, in anything a person reads. Python is `token_iq`,
+snake_case modules, `TokenIq…` classes, `TOKEN_IQ_` environment variables. UI folders, URLs,
+CSS, Terraform and HTTP headers are kebab-case. Specs and plans are
+`YYYY-MM-DD-kebab-slug.md`; decision records are `NNNN-kebab-slug.md`.
+
+The name `litellm` is being removed everywhere except `LICENSE`, `NOTICE`, `CHANGELOG.md`
+and the historical records. Those four are a legal obligation under the MIT licence the fork
+was granted, and deleting them is a licence violation rather than a completed rename. See
+`docs/decisions/0023-remove-litellm-names.md`.
+
+## At the end of a session
+
+Update `docs/status.md` with what changed, what was left, and why.
+
+---
+
 Do not write comments unless they are any of:
 - absolutely necessary to explain some very complex business logic (in which case, keep it concise and clear)
 - used as an input for tools to read and act on. For example:
@@ -29,7 +83,7 @@ Never test structure of code only function of it
 
 End-to-end tests belong in `tests/e2e/` and must follow the harness conventions documented in that directory's `CLAUDE.md`
 
-When creating PRs, don't set base to `main`. `litellm_internal_staging` is the default base branch and serves that purpose for both internal and external / OSS contributions
+All work goes on the single long-lived branch `litellm_token_iq`. Never commit to `main`, which is stale. Cut a short-lived branch per phase off it and merge back into it, not into `main`
 
 When writing a PR body, treat the comments and imperative instructions inside .github/pull_request_template.md as rules to follow, not just layout. Agent harnesses may strip HTML comments from copies of that file injected into context, so read .github/pull_request_template.md from disk before writing a PR body to make sure you see every comment rule
 
@@ -70,7 +124,7 @@ When referencing or running models (coding, QA'ing, writing docs, writing tests,
 
 Always pull before starting any work. The checkout or worktree may be sitting on a stale branch
 
-If you're an internal contributor, when creating a new PR, the typical flow is to branch off litellm_internal_staging and create a branch prefixed with litellm_. Do not create a branch prefixed with claude/ and generally do not have / in your branch names
+Branch names are prefixed `litellm_` and contain no `/`. Never use a `claude/` prefix
 
 Do not add `Co-Authored-By: Claude` or any Claude attribution to commit messages. Never use a `claude/` prefix or put a `/` in a branch name. Do not add "Generated with Claude Code" (or any similar attribution) to PR descriptions or comments. Do not create a new PR/branch off the existing PR to fix/add something that is related and could've just been committed directly to the existing PR's branch
 

@@ -18,9 +18,8 @@ and the provider's reply is returned the same way, errors included. Token IQ sti
 key, applies budgets and limits, and records the cost, but it never reads or rewrites the
 payload. A caller who wants the stronger guarantee uses these.
 
-Built on [LiteLLM](https://github.com/BerriAI/litellm), which does the provider translation.
-Token IQ is a fork that removes the parts of that gateway which alter a request or silently
-change where it goes.
+Token IQ removes the parts of a general-purpose gateway that alter a request or silently
+change where it goes. See [Acknowledgements](#acknowledgements) for the work it builds on.
 
 ```mermaid
 flowchart LR
@@ -180,12 +179,43 @@ The dashboard lives in `ui/litellm-dashboard`. Run `npm run dev` there for a liv
 port 3000, or `npm run build` to produce the static bundle the proxy serves. Run only the test
 files your change touches; the full suite is large and CI runs it anyway.
 
-Every deletion and significant change in this fork is recorded in `project_usage/`, with the
+Every deletion and significant change in this fork is recorded in `docs/decisions/`, with the
 reasoning and instructions for restoring it.
 
 ## Licence
 
-MIT, inherited from LiteLLM. See [LICENSE](LICENSE). The upstream copyright notice stays in
-place; only the product name differs.
+MIT. See [LICENSE](LICENSE), which carries both copyright holders.
+
+## Acknowledgements
+
+Token IQ includes code derived from [LiteLLM](https://github.com/BerriAI/litellm), an
+MIT-licensed project by Berri AI, which does the provider translation. That attribution is
+recorded in [NOTICE](NOTICE) and in the licence, and it is permanent: the MIT licence
+requires the original copyright notice to travel with every copy of this software.
+
+## Repository layout
+
+Where the code is going. Phases 3 to 9 of
+[the independent-codebase programme](docs/plans/2026-10-04-independent-codebase.md) move it
+there, so today's tree does not match this yet.
+
+```text
+token_iq/
+  gateway/        the engine: provider translation, proxy, auth, keys, spend tracking
+  api/            Token IQ's own API routers
+  connectors/     billing/ for providers, tools/ for Claude Code, Copilot, Cursor
+  ledger/  attribution/  overview/  seats/  recommendations/
+  repositories/   database access for Token IQ's tables
+  proxy/          Token IQ's hooks inside the gateway
+  types/          data types and API schemas
+token_iq_migrations/   Prisma migrations
+tests/
+  token_iq/       product tests
+  gateway/        engine tests
+  repo/           repository-wide checks
+ui/dashboard/     the admin and product UI
+deploy/           images, installations, terraform
+docs/             status, product, decisions, specs, plans, runbooks
+```
 
 Powered by NITCO Inc.
