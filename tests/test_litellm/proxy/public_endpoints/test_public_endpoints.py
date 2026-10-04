@@ -1121,98 +1121,6 @@ def test_get_autorouter_presets_local_mode_serves_bundled_catalog(
 
 
 @pytest.mark.asyncio
-async def test_get_autorouter_presets_fetches_once_per_process(
-    monkeypatch, reset_autorouter_presets_cache
-):
-    from litellm.proxy.public_endpoints.public_endpoints import (
-        _AUTOROUTER_PRESETS_ADAPTER,
-        get_autorouter_presets,
-    )
-
-    monkeypatch.delenv("LITELLM_LOCAL_AUTOROUTER_PRESETS", raising=False)
-    remote = _AUTOROUTER_PRESETS_ADAPTER.validate_python(
-        {
-            "remote_only": {
-                "label": "Remote Only",
-                "description": "from the remote catalog",
-                "complexity_router_config": {"tiers": {"SIMPLE": ["m1"], "MEDIUM": ["m2"], "COMPLEX": ["m3"], "REASONING": ["m4"]}},
-            }
-        }
-    )
-    calls = []
-
-    async def fake_fetch(url):
-        calls.append(url)
-        return remote
-
-    first = await get_autorouter_presets(url="https://example.test/presets.json", fetch=fake_fetch)
-    second = await get_autorouter_presets(url="https://example.test/presets.json", fetch=fake_fetch)
-
-    assert first == remote
-    assert second == remote
-    assert calls == ["https://example.test/presets.json"]
-
-
-@pytest.mark.asyncio
-async def test_get_autorouter_presets_single_flight_on_concurrent_cold_start(
-    monkeypatch, reset_autorouter_presets_cache
-):
-    import asyncio
-
-    from litellm.proxy.public_endpoints.public_endpoints import (
-        _AUTOROUTER_PRESETS_ADAPTER,
-        get_autorouter_presets,
-    )
-
-    monkeypatch.delenv("LITELLM_LOCAL_AUTOROUTER_PRESETS", raising=False)
-    remote = _AUTOROUTER_PRESETS_ADAPTER.validate_python(
-        {
-            "remote_only": {
-                "label": "Remote Only",
-                "description": "from the remote catalog",
-                "complexity_router_config": {"tiers": {"SIMPLE": ["m1"], "MEDIUM": ["m2"], "COMPLEX": ["m3"], "REASONING": ["m4"]}},
-            }
-        }
-    )
-    calls = []
-
-    async def slow_fetch(url):
-        calls.append(url)
-        await asyncio.sleep(0.05)
-        return remote
-
-    results = await asyncio.gather(
-        get_autorouter_presets(url="https://example.test/presets.json", fetch=slow_fetch),
-        get_autorouter_presets(url="https://example.test/presets.json", fetch=slow_fetch),
-        get_autorouter_presets(url="https://example.test/presets.json", fetch=slow_fetch),
-    )
-
-    assert all(result == remote for result in results)
-    assert len(calls) == 1
-
-
-@pytest.mark.asyncio
-async def test_get_autorouter_presets_caches_bundled_fallback_on_remote_failure(
-    monkeypatch, reset_autorouter_presets_cache
-):
-    from litellm.proxy.public_endpoints.public_endpoints import get_autorouter_presets
-
-    monkeypatch.delenv("LITELLM_LOCAL_AUTOROUTER_PRESETS", raising=False)
-    calls = []
-
-    async def broken_fetch(url):
-        calls.append(url)
-        raise ValueError("remote catalog unavailable")
-
-    first = await get_autorouter_presets(url="https://example.test/presets.json", fetch=broken_fetch)
-    second = await get_autorouter_presets(url="https://example.test/presets.json", fetch=broken_fetch)
-
-    assert "anthropic_family" in first
-    assert second == first
-    assert len(calls) == 1
-
-
-@pytest.mark.asyncio
 async def test_autorouter_presets_adapter_rejects_wrong_shapes():
     from pydantic import ValidationError
 
@@ -1301,29 +1209,30 @@ def test_get_autorouter_presets_passes_unknown_catalog_fields_through(
     assert served["complexity_router_config"]["tiers"]["SIMPLE"] == ["m1"]
 
 
+
 @pytest.mark.asyncio
-async def test_fetch_remote_autorouter_presets_parses_and_rejects_empty(monkeypatch):
-    import litellm.llms.custom_httpx.http_handler as http_handler_module
-    from litellm.proxy.public_endpoints.public_endpoints import _fetch_remote_autorouter_presets
+async def test_autorouter_presets_are_read_from_the_bundle_once_per_process(
+    monkeypatch, reset_autorouter_presets_cache
+):
+    """The cache outlived the fetch it was built for, and still earns its place.
 
-    catalog = {
-        "remote_only": {
-            "label": "Remote Only",
-            "description": "from the remote catalog",
-            "complexity_router_config": {"tiers": {"SIMPLE": ["m1"], "MEDIUM": ["m2"], "COMPLEX": ["m3"], "REASONING": ["m4"]}},
-        }
-    }
-    response = MagicMock()
-    response.raise_for_status = MagicMock()
-    response.json = MagicMock(return_value=catalog)
-    client = MagicMock()
-    client.get = AsyncMock(return_value=response)
-    monkeypatch.setattr(http_handler_module, "get_async_httpx_client", lambda llm_provider: client)
+    There is no remote catalog any more, so the thing being avoided is re-reading and
+    re-validating the bundled file on every request rather than a network round trip.
+    """
+    from litellm.proxy.public_endpoints import public_endpoints as module
 
-    presets = await _fetch_remote_autorouter_presets("https://example.test/presets.json")
-    assert presets["remote_only"].label == "Remote Only"
-    response.raise_for_status.assert_called_once()
+    calls = 0
+    real = module._load_bundled_autorouter_presets
 
-    response.json = MagicMock(return_value={})
-    with pytest.raises(ValueError, match="empty"):
-        await _fetch_remote_autorouter_presets("https://example.test/presets.json")
+    def counting_load():
+        nonlocal calls
+        calls += 1
+        return real()
+
+    monkeypatch.setattr(module, "_load_bundled_autorouter_presets", counting_load)
+
+    first = await module.get_autorouter_presets()
+    second = await module.get_autorouter_presets()
+
+    assert first == second
+    assert calls == 1, "the bundled catalog should be read once and cached"

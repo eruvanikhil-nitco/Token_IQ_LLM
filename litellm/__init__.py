@@ -412,18 +412,6 @@ add_function_to_prompt: bool = (
 client_session: Optional[httpx.Client] = None
 aclient_session: Optional[httpx.AsyncClient] = None
 model_fallbacks: Optional[List] = None  # Deprecated for 'litellm.fallbacks'
-blog_posts_url: str = os.getenv(
-    "LITELLM_BLOG_POSTS_URL",
-    "https://docs.litellm.ai/blog/rss.xml",
-)
-anthropic_beta_headers_url: str = os.getenv(
-    "LITELLM_ANTHROPIC_BETA_HEADERS_URL",
-    "https://raw.githubusercontent.com/BerriAI/litellm/main/litellm/anthropic_beta_headers_config.json",
-)
-autorouter_presets_url: str = os.getenv(
-    "LITELLM_AUTOROUTER_PRESETS_URL",
-    "https://raw.githubusercontent.com/BerriAI/litellm/main/litellm/proxy/public_endpoints/autorouter_presets.json",
-)
 suppress_debug_info: bool = False
 dynamodb_table_name: Optional[str] = None
 s3_callback_params: Optional[Dict] = None

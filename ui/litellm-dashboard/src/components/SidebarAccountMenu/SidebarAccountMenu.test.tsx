@@ -37,9 +37,6 @@ vi.mock("@/app/(dashboard)/hooks/useDisableShowPrompts", () => ({
   useDisableShowPrompts: () => mockUseDisableShowPromptsImpl(),
 }));
 
-vi.mock("@/app/(dashboard)/hooks/useDisableBlogPosts", () => ({
-  useDisableBlogPosts: () => false,
-}));
 
 vi.mock("@/app/(dashboard)/hooks/useDisableBouncingIcon", () => ({
   useDisableBouncingIcon: () => mockUseDisableBouncingIconImpl(),

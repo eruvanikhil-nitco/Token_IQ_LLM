@@ -2,7 +2,7 @@ import asyncio
 import json
 import os
 import re
-from collections.abc import Awaitable, Callable, Mapping, Sequence
+from collections.abc import Awaitable, Mapping, Sequence
 from importlib.resources import files
 from typing import TYPE_CHECKING, Final, Protocol
 
@@ -11,13 +11,6 @@ from pydantic import TypeAdapter
 from typing_extensions import ReadOnly, TypedDict
 
 import litellm
-from litellm._logging import verbose_logger
-from litellm.litellm_core_utils.get_blog_posts import (
-    BlogPost,
-    BlogPostsResponse,
-    GetBlogPosts,
-    get_blog_posts,
-)
 from litellm.proxy._types import (
     CommonProxyErrors,
 )
@@ -214,7 +207,6 @@ def _load_endpoints() -> list[_EndpointEntry]:
     response_model=list[ModelGroupInfoProxy],
 )
 async def public_model_hub():
-    import litellm
     from litellm.proxy.health_endpoints._health_endpoints import (
         _convert_health_check_to_dict,
     )
@@ -266,7 +258,6 @@ async def public_model_hub():
     response_model=list[AgentCard],
 )
 async def get_agents(request: Request):
-    import litellm
     from litellm.proxy.agent_endpoints.agent_registry import global_agent_registry
 
     agents: Final = global_agent_registry.get_public_agent_list()
@@ -348,7 +339,6 @@ async def public_skill_hub():
     response_model=PublicModelHubInfo,
 )
 async def public_model_hub_info():
-    import litellm
     from litellm.proxy.proxy_server import _title, version
 
     try:
@@ -434,7 +424,6 @@ async def get_litellm_model_cost_map():
     Public endpoint to get the Token IQ model cost map.
     Returns pricing information for all supported models.
     """
-    import litellm
 
     try:
         _model_cost_map: Final = litellm.model_cost
@@ -444,29 +433,6 @@ async def get_litellm_model_cost_map():
             status_code=500,
             detail=f"Internal Server Error ({e})",
         )
-
-
-@router.get(
-    "/public/litellm_blog_posts",
-    tags=["public"],
-    summary="Get the latest blog posts",
-    response_model=BlogPostsResponse,
-)
-async def get_litellm_blog_posts():
-    """
-    Public endpoint to get the latest Token IQ blog posts.
-
-    Fetches from GitHub with a 1-hour in-process cache.
-    Falls back to the bundled local backup on any failure.
-    """
-    try:
-        posts_data = get_blog_posts(url=litellm.blog_posts_url)
-    except Exception as e:
-        verbose_logger.warning("LiteLLM: get_litellm_blog_posts endpoint fallback triggered: %s", str(e))
-        posts_data = GetBlogPosts.load_local_blog_posts()
-
-    posts: Final = [BlogPost(**p) for p in posts_data[:5]]
-    return BlogPostsResponse(posts=posts)
 
 
 _AUTOROUTER_PRESETS_ADAPTER: Final = TypeAdapter(dict[str, AutoRouterPresetRecord])
@@ -479,45 +445,12 @@ def _load_bundled_autorouter_presets() -> Mapping[str, AutoRouterPresetRecord]:
     return _AUTOROUTER_PRESETS_ADAPTER.validate_python(raw)
 
 
-async def _fetch_remote_autorouter_presets(url: str) -> Mapping[str, AutoRouterPresetRecord]:
-    from litellm.llms.custom_httpx.http_handler import get_async_httpx_client
-    from litellm.types.llms.custom_http import httpxSpecialProvider
-
-    client: Final = get_async_httpx_client(llm_provider=httpxSpecialProvider.UI)
-    response: Final = await client.get(url, timeout=5.0)
-    response.raise_for_status()
-    presets: Final = _AUTOROUTER_PRESETS_ADAPTER.validate_python(response.json())
-    if not presets:
-        raise ValueError("remote auto-router preset catalog is empty")
-    return presets
-
-
-async def _resolve_autorouter_presets(
-    url: str,
-    fetch: Callable[[str], Awaitable[Mapping[str, AutoRouterPresetRecord]]],
-) -> Mapping[str, AutoRouterPresetRecord]:
-    if os.getenv("LITELLM_LOCAL_AUTOROUTER_PRESETS", "").lower() == "true":
-        return _load_bundled_autorouter_presets()
-    try:
-        return await fetch(url)
-    except Exception as e:
-        verbose_logger.warning(
-            "LiteLLM: failed to fetch auto-router presets from %s: %s. Serving the bundled catalog for the life of this process.",
-            url,
-            str(e),
-        )
-        return _load_bundled_autorouter_presets()
-
-
 class _AutoRouterPresetsCache:
     presets: Mapping[str, AutoRouterPresetRecord] | None = None
     lock: asyncio.Lock | None = None
 
 
-async def get_autorouter_presets(
-    url: str,
-    fetch: Callable[[str], Awaitable[Mapping[str, AutoRouterPresetRecord]]] = _fetch_remote_autorouter_presets,
-) -> Mapping[str, AutoRouterPresetRecord]:
+async def get_autorouter_presets() -> Mapping[str, AutoRouterPresetRecord]:
     cached: Final = _AutoRouterPresetsCache.presets
     if cached is not None:
         return cached
@@ -527,7 +460,7 @@ async def get_autorouter_presets(
         held: Final = _AutoRouterPresetsCache.presets
         if held is not None:
             return held
-        resolved: Final = await _resolve_autorouter_presets(url=url, fetch=fetch)
+        resolved: Final = _load_bundled_autorouter_presets()
         _AutoRouterPresetsCache.presets = resolved
         return resolved
 
@@ -546,7 +479,7 @@ async def get_public_autorouter_presets() -> Mapping[str, AutoRouterPresetRecord
     catalog bundled with the package on any failure. Set ``LITELLM_LOCAL_AUTOROUTER_PRESETS=True``
     to serve the bundled catalog only. A restart picks up a newly published catalog.
     """
-    return await get_autorouter_presets(url=litellm.autorouter_presets_url)
+    return await get_autorouter_presets()
 
 
 @router.get(

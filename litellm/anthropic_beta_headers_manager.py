@@ -15,19 +15,15 @@ Design:
 
 Configuration can be loaded from:
 - Remote URL (default): Fetches from GitHub repository
-- Local file: Set LITELLM_LOCAL_ANTHROPIC_BETA_HEADERS=True to use bundled config only
+- Read from the file bundled with this package; nothing is fetched at runtime
 
 Environment Variables:
-- LITELLM_LOCAL_ANTHROPIC_BETA_HEADERS: Set to "True" to disable remote fetching
 - LITELLM_ANTHROPIC_BETA_HEADERS_URL: Custom URL for remote config (optional)
 """
 
 import json
-import os
 from importlib.resources import files
 from typing import Final
-
-import httpx
 
 from litellm.litellm_core_utils.litellm_logging import verbose_logger
 
@@ -106,57 +102,14 @@ class GetAnthropicBetaHeadersConfig:
         """
         return cls._check_is_valid_dict(fetched_config)
 
-    @staticmethod
-    def fetch_remote_beta_headers_config(url: str, timeout: int = 5) -> dict:
-        """
-        Fetch the beta headers config from a remote URL.
 
-        Returns the parsed JSON dict. Raises on network/parse errors
-        (caller is expected to handle).
-        """
-        response: Final = httpx.get(url, timeout=timeout)
-        response.raise_for_status()
-        return response.json()
+def get_beta_headers_config() -> dict:
+    """Which beta headers each provider accepts, from the file bundled with this package.
 
-
-def get_beta_headers_config(url: str) -> dict:
+    Refreshed by the same reviewed job that refreshes prices, never by a running process:
+    an installation behind a firewall must send the same headers as one with open egress.
     """
-    Public entry point — returns the beta headers config dict.
-
-    1. If ``LITELLM_LOCAL_ANTHROPIC_BETA_HEADERS`` is set, uses the local backup only.
-    2. Otherwise fetches from ``url``, validates integrity, and falls back
-       to the local backup on any failure.
-
-    Args:
-        url: URL to fetch the remote beta headers configuration from
-
-    Returns:
-        Dict containing the beta headers configuration
-    """
-    # Check if local-only mode is enabled
-    if os.getenv("LITELLM_LOCAL_ANTHROPIC_BETA_HEADERS", "").lower() == "true":
-        # verbose_logger.debug("Using local Anthropic beta headers config (LITELLM_LOCAL_ANTHROPIC_BETA_HEADERS=True)")
-        return GetAnthropicBetaHeadersConfig.load_local_beta_headers_config()
-
-    try:
-        content: Final = GetAnthropicBetaHeadersConfig.fetch_remote_beta_headers_config(url)
-    except Exception as e:
-        verbose_logger.warning(
-            "LiteLLM: Failed to fetch remote beta headers config from %s: %s. Falling back to local backup.",
-            url,
-            str(e),
-        )
-        return GetAnthropicBetaHeadersConfig.load_local_beta_headers_config()
-
-    # Validate the fetched config
-    if not GetAnthropicBetaHeadersConfig.validate_beta_headers_config(fetched_config=content):
-        verbose_logger.warning(
-            "LiteLLM: Fetched beta headers config failed integrity check. Using local backup instead. url=%s",
-            url,
-        )
-        return GetAnthropicBetaHeadersConfig.load_local_beta_headers_config()
-
-    return content
+    return GetAnthropicBetaHeadersConfig.load_local_beta_headers_config()
 
 
 def _load_beta_headers_config() -> dict:
@@ -174,10 +127,7 @@ def _load_beta_headers_config() -> dict:
     if _BETA_HEADERS_CONFIG is not None:
         return _BETA_HEADERS_CONFIG
 
-    # Get the URL from environment or use default
-    from litellm import anthropic_beta_headers_url
-
-    _BETA_HEADERS_CONFIG = get_beta_headers_config(url=anthropic_beta_headers_url)
+    _BETA_HEADERS_CONFIG = get_beta_headers_config()
     verbose_logger.debug("Loaded and cached beta headers config")
 
     return _BETA_HEADERS_CONFIG
@@ -185,8 +135,7 @@ def _load_beta_headers_config() -> dict:
 
 def reload_beta_headers_config() -> dict:
     """
-    Force reload the beta headers configuration from source (remote or local).
-    Clears the cache and fetches fresh configuration.
+    Drop the cache and re-read the bundled file, for a deploy that swapped it.
 
     Returns:
         Dict containing the newly loaded beta headers configuration

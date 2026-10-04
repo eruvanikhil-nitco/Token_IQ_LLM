@@ -599,9 +599,6 @@ async def test_policy_matching(
     )
 
 
-POLICY_TEMPLATES_GITHUB_URL: Final = "https://raw.githubusercontent.com/BerriAI/litellm/main/policy_templates.json"
-
-
 def _load_policy_templates_from_local_backup() -> list:
     """Load policy templates from local backup file (litellm/policy_templates_backup.json)."""
     backup_path: Final = os.path.join(
@@ -628,34 +625,12 @@ async def get_policy_templates(
     request: Request,
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ) -> list:
+    """Policy templates for the UI, from the file bundled with this package.
+
+    This used to fetch from upstream with a local fallback, which meant an installation
+    behind a firewall quietly served a different set of templates from one with open
+    egress. It is the same bundled file either way now.
     """
-    Get policy templates for the UI (pre-configured guardrail combinations).
-
-    Fetches from GitHub with automatic fallback to local backup on failure.
-    Set LITELLM_LOCAL_POLICY_TEMPLATES=true to skip GitHub and use local backup only.
-    """
-    use_local: Final = os.getenv("LITELLM_LOCAL_POLICY_TEMPLATES", "").strip().lower() in (
-        "true",
-        "1",
-        "yes",
-    )
-    if use_local:
-        return _load_policy_templates_from_local_backup()
-
-    try:
-        from litellm.llms.custom_httpx.http_handler import get_async_httpx_client
-        from litellm.types.llms.custom_http import httpxSpecialProvider
-
-        async_client: Final = get_async_httpx_client(
-            llm_provider=httpxSpecialProvider.UI,
-            params={"timeout": 10.0},
-        )
-        response: Final = await async_client.get(POLICY_TEMPLATES_GITHUB_URL)
-        if response.status_code == 200:
-            return response.json()
-    except Exception as e:
-        verbose_proxy_logger.debug("Failed to fetch policy templates from GitHub, using local backup: %s", e)
-
     return _load_policy_templates_from_local_backup()
 
 

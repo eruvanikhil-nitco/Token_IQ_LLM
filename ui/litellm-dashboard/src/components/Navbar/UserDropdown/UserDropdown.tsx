@@ -1,5 +1,4 @@
 import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
-import { useDisableBlogPosts } from "@/app/(dashboard)/hooks/useDisableBlogPosts";
 import { useDisableBouncingIcon } from "@/app/(dashboard)/hooks/useDisableBouncingIcon";
 import { useDisableShowPrompts } from "@/app/(dashboard)/hooks/useDisableShowPrompts";
 import {
@@ -64,7 +63,6 @@ interface UserDropdownProps {
 const UserDropdown: React.FC<UserDropdownProps> = ({ onLogout, variant = "navbar", collapsed = false }) => {
   const { userId, userEmail, userRoleLabel: userRole } = useAuthorized();
   const disableShowPrompts = useDisableShowPrompts();
-  const disableBlogPosts = useDisableBlogPosts();
   const disableBouncingIcon = useDisableBouncingIcon();
   const [disableShowNewBadge, setDisableShowNewBadge] = useState(false);
 
@@ -135,23 +133,6 @@ const UserDropdown: React.FC<UserDropdownProps> = ({ onLogout, variant = "navbar
             }
           }}
           aria-label="Toggle hide all prompts"
-        />
-      </div>
-      <div className="flex w-full items-center justify-between gap-2">
-        <span className="text-muted-foreground">Hide Blog Posts</span>
-        <Switch
-          size="sm"
-          checked={disableBlogPosts}
-          onCheckedChange={(checked) => {
-            if (checked) {
-              setLocalStorageItem("disableBlogPosts", "true");
-              emitLocalStorageChange("disableBlogPosts");
-            } else {
-              removeLocalStorageItem("disableBlogPosts");
-              emitLocalStorageChange("disableBlogPosts");
-            }
-          }}
-          aria-label="Toggle hide blog posts"
         />
       </div>
       <div className="flex w-full items-center justify-between gap-2">
