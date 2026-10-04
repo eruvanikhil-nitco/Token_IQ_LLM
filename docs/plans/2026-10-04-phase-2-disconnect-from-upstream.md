@@ -245,12 +245,20 @@ release and publishing. Keep the test, lint, security-scan and image-build workf
 `.github/ci-coverage-allowlist.yml` and check whether `.circleci/` still has a purpose before
 deleting it.
 
-- [ ] **Step 2: Images and packages (I1, I2)**
+- [ ] **Step 2: Delete Helm, and update the package metadata (I1, I2)**
 
-The Helm chart pulls `ghcr.io/berriai/litellm` in 18 places. **Ask the owner first whether
-Helm survives at all**, given the 30 September decision to deploy on AWS ECS with Terraform.
-Repointing a chart nobody deploys is wasted work. `pyproject.toml` metadata becomes Token
-IQ's; the licence stays MIT with the notice.
+**Decided 4 Oct 2026: Helm is deleted, not repointed.** The deployment path is
+`deploy/images`, `deploy/installations` and `terraform/tokeniq/installation`, and none of
+them references Helm. The only things that do are `terraform/litellm/aws` and
+`terraform/litellm/gcp`, which are upstream's own Terraform and are already on phase 5's
+deletion list. So the chart is 70 files held alive by 218 that are themselves going.
+
+Carrying it would mean maintaining a Kubernetes path nobody has used through phases 7 to 9,
+where every environment variable and config key it sets changes underneath it. If a customer
+later needs Kubernetes, a fresh chart written against the final image and the final settings
+names is less work than a renamed upstream one.
+
+`pyproject.toml` metadata becomes Token IQ's. The licence stays MIT with the notice.
 
 - [ ] **Step 3: Delete the install and upstream-maintenance scripts (I3, I4)**
 
@@ -280,9 +288,17 @@ immediately.
 
 - [ ] **Step 2: Name the owners**
 
-The price owner, the security-advisory owner and the provider-API owner, by name, in
-`docs/status.md`. **This needs the owner to tell you three names.** A process with nobody's
-name on it is not a process, and writing "the team" here would be pretending.
+**Decided 4 Oct 2026: Nikhil Eruva owns all three**, recorded in `docs/status.md`. There is
+one named person on this project, and inventing a team would make the process look owned
+while nobody did it.
+
+They are not equal work, and the record says so. The **price owner** is the one that cannot
+lapse: a daily pull request where additions merge themselves and only changes need an eye,
+with the 2% reconciliation check from Task 4 as the backstop for what gets waved through. The
+**security-advisory owner** is mostly Dependabot once it is on, and shrinks further after
+phase 5 deletes the features most advisories will land on. The **provider-API owner** is the
+real monthly work, six changelogs, and is the first to hand off when there is someone to hand
+it to.
 
 - [ ] **Step 3: Commit**
 

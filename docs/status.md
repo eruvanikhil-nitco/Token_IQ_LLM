@@ -260,3 +260,29 @@ Committing that would make the proxy serve a UI whose every stylesheet and scrip
 Not fixed here because phase 1 changes no behaviour. It belongs with the other defects in
 phase 11. Until then, check `git status` for changes under `_experimental/out/` after running
 the Python suite, and restore with `git checkout -- litellm/proxy/_experimental/out/`.
+
+## Two decisions taken 4 Oct 2026, before phase 2
+
+**Helm is deleted rather than repointed.** The deployment path is `deploy/images`,
+`deploy/installations` and `terraform/tokeniq/installation`, and none of them references
+Helm. The chart's only dependents are `terraform/litellm/aws` and `terraform/litellm/gcp`,
+upstream's own Terraform, already on phase 5's deletion list. Keeping it would mean carrying
+70 files of a Kubernetes path nobody has used through phases 7 to 9, where every setting it
+writes gets renamed underneath it. If Kubernetes is needed later, a fresh chart against the
+final image and the final names will be less work than a renamed upstream one.
+
+**Nikhil Eruva owns prices, security advisories and provider API changes.** One person is
+named rather than a team, because there is one person, and a fictional owner makes a process
+look covered while nobody does it.
+
+The three are not equal and should not be treated as such:
+
+| Owner | What it costs | Backstop |
+|---|---|---|
+| Prices | A daily pull request. Additions merge themselves; only changes need reading | The 2% reconciliation variance rule catches a wrong price that review waved through |
+| Security advisories | Mostly Dependabot. Shrinks again once phase 5 deletes the features most advisories land on | The scanners already in CI |
+| Provider API changes | The real work: six provider changelogs, monthly | The per-provider contract tests fail when a payload shape moves |
+
+Provider API changes is the first of the three to hand off when there is somebody to hand it
+to. Prices is the one that must never quietly lapse, because a stale price breaks every
+figure in the product without failing anything.
