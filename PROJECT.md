@@ -184,6 +184,27 @@ list, so 7,356 lines of CLI looked dead. Entry points now come from `pyproject.t
 - The two connector defects, OpenAI line items and Bedrock static keys, are untouched. They
   are phase 11
 
+### The baseline is incomplete, and here is exactly how
+
+788 tests are recorded across `token_iq`, `repositories` and `deploy`, all passing, plus the
+`ci_coverage`, `lint` and `ruff` commands.
+
+Five sections are missing because the machine ran out of memory and the runs were stopped:
+the `token_iq_proxy` and `unit` suites, and the `ui_build`, `ui_tests` and `docker` commands.
+Nothing failed; they were killed while still working. The capture is resumable by section, so
+finishing it is one command per section and nothing already captured is lost:
+
+```bash
+python -m scripts.inventory.capture --section token_iq_proxy
+python -m scripts.inventory.capture --section unit
+python -m scripts.inventory.capture --section ui_build --section ui_tests
+python -m scripts.inventory.capture --section docker
+```
+
+Run them one at a time rather than together; running several at once is what exhausted the
+memory. **The baseline is not fit to compare phase 3 against until those five are in it**, so
+this is the first thing to finish before any code moves.
+
 ### The gate
 
 **Phase 5 does not start until the owner approves the inventory.** That approval is the whole
