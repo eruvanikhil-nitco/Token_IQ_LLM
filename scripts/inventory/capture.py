@@ -53,7 +53,12 @@ UI: Final = REPO / "ui" / "litellm-dashboard"
 
 COMMANDS: Final[Mapping[str, tuple[str, ...]]] = {
     "ci_coverage": (sys.executable, ".github/scripts/assert_ci_coverage.py"),
+    # `make lint` needs make and the gate slot lock, which imports fcntl, so neither runs on
+    # Windows. Recorded anyway: a baseline that silently omits a check is worse than one that
+    # says where it came up short. CI supplies the real figure.
     "lint": ("make", "lint"),
+    # The portable substitute, named differently so the two are never confused.
+    "ruff": (sys.executable, "-m", "ruff", "check", "litellm", "scripts", "--output-format=concise"),
     "ui_build": ("npm", "run", "build"),
     "ui_tests": ("npx", "vitest", "run"),
     "docker": ("docker", "build", "-t", "token-iq-baseline", "."),

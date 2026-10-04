@@ -12,6 +12,12 @@
       "exit_code": -1,
       "name": "lint",
       "summary": "make not installed"
+    },
+    {
+      "command": "C:\\Users\\NikhilEruva\\litellm\\.venv\\Scripts\\python.exe -m ruff check litellm scripts --output-format=concise",
+      "exit_code": 1,
+      "name": "ruff",
+      "summary": "scripts\\verify_adaptive_router.py:166:9: T201 `print` found\nscripts\\verify_adaptive_router.py:172:9: T201 `print` found\nscripts\\verify_adaptive_router.py:174:17: UP006 [*] Use `list` instead of `List` for type annotation\nscripts\\verify_adaptive_router.py:180:13: T201 `print` found\nscripts\\verify_adaptive_router.py:182:13: T201 `print` found\nscripts\\verify_adaptive_router.py:189:9: T201 `print` found\nscripts\\verify_adaptive_router.py:190:20: UP006 [*] Use `list` instead of `List` for type annotation\nscripts\\verify_adaptive_router.py:199:9: T201 `print` found\nscripts\\verify_adaptive_router.py:203:13: T201 `print` found\nscripts\\verify_adaptive_router.py:208:9: T201 `print` found\nFound 544 errors.\n[*] 153 fixable with the `--fix` option (373 hidden fixes can be enabled with the `--unsafe-fixes` option)."
     }
   ],
   "commit": "c9603947a02ecdeadb7345721e167c68625e2e35",

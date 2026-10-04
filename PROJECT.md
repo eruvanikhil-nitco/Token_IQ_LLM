@@ -133,3 +133,58 @@ deployment pipeline needs one decision from you; and everything else waits on an
 - The hierarchy is teams, projects and users. Never "employees"
 - A provider figure says how much was spent, a gateway figure says who spent it. They are
   never added together
+
+## Phase 0 of the independent-codebase programme, 4 Oct 2026
+
+Spec: `docs/superpowers/specs/2026-10-04-token-iq-independent-codebase.md`
+Plan: `docs/superpowers/plans/2026-10-04-phase-0-baseline-and-inventory.md`
+
+No product code changed. Three artifacts, all re-runnable:
+
+| Artifact | Re-run with |
+|---|---|
+| `2026-10-04-phase-0-baseline.json` | `python -m scripts.inventory.capture --all` |
+| `2026-10-04-phase-0-name-census.json` | `python -m scripts.inventory.census` |
+| `2026-10-04-phase-0-reachability.json` | `python -m scripts.inventory.run_reachability` |
+| `2026-10-04-feature-usage-inventory.md` | `python -m scripts.inventory.inventory && python -m scripts.inventory.write_inventory` |
+
+### What the measurements say
+
+The rename is 183,380 occurrences across 6,591 files, plus 3,458 more in history and legal
+text that phase 10 permits to stay. The source document's 521,641 counted `node_modules`.
+Counted per category so each rename phase can show its own line falling: 136,015 in Python,
+18,592 config keys, 17,049 metrics, 6,060 in UI source, 3,072 environment variables, 1,315
+headers, 271 Prisma model references, 8 console scripts.
+
+The inventory is 143 rows, and 26 of them are wholly unproven, holding 13,118 lines. 18 are
+proposed for deletion, 6 are unsure and 2 are keeps that look unproven only because they are
+loaded by configuration or by path rather than imported.
+
+### Two false negatives the tooling found on itself
+
+Both would have proposed deleting live code, and both were caught by reading the analyser's
+own output rather than trusting its summary.
+
+`litellm/_lazy_imports_registry.py` holds 269 module paths as plain strings, which a
+different file hands to `import_module`. Reading only the call site left 162 live modules
+looking dead, most of them provider transformations, which is exactly what phase 5 decides
+about. Registries are now named explicitly as literal sources.
+
+`litellm.proxy.client.cli` is a declared console script. It was not in the hand-written seed
+list, so 7,356 lines of CLI looked dead. Entry points now come from `pyproject.toml`.
+
+### What phase 0 found and deliberately did not fix
+
+- `assert_ci_coverage.py` still fails with 41 Token IQ test files in no CI job. Phase 4 fixes it
+- 13 dynamic imports remain unresolvable, listed in the reachability artifact. They are the
+  remaining hole in the evidence and the inventory says so rather than implying confidence
+- `make lint` cannot run on this machine: `make` is absent and the gate slot lock imports
+  `fcntl`. Recorded as unavailable, with `ruff check` captured separately as a named
+  substitute. **CI has to supply the real lint baseline before phase 6**
+- The two connector defects, OpenAI line items and Bedrock static keys, are untouched. They
+  are phase 11
+
+### The gate
+
+**Phase 5 does not start until the owner approves the inventory.** That approval is the whole
+point of this phase.
