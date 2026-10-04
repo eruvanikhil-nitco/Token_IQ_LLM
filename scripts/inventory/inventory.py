@@ -16,8 +16,8 @@ from collections.abc import Mapping, Sequence
 from typing import Final
 
 REPO: Final = pathlib.Path(__file__).resolve().parents[2]
-GRAPH: Final = REPO / "docs" / "superpowers" / "plans" / "2026-10-04-phase-0-reachability.json"
-OUT: Final = REPO / "docs" / "superpowers" / "plans" / "2026-10-04-phase-0-inventory-data.json"
+GRAPH: Final = REPO / "docs" / "plans" / "2026-10-04-phase-0-reachability.json"
+OUT: Final = REPO / "docs" / "plans" / "2026-10-04-phase-0-inventory-data.json"
 
 
 def _module_of(path: pathlib.Path) -> str:

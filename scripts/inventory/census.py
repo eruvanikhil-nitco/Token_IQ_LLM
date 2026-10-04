@@ -28,8 +28,6 @@ EXCLUDED_PREFIXES: Final[tuple[str, ...]] = ("litellm/proxy/_experimental/out/",
 ALLOWLISTED_PREFIXES: Final[tuple[str, ...]] = (
     "docs/decisions/",
     "docs/plans/",
-    "docs/superpowers/plans/",
-    "docs/superpowers/specs/",
     ".superpowers/",
 )
 ALLOWLISTED_FILES: Final[frozenset[str]] = frozenset({"LICENSE", "NOTICE", "CHANGELOG.md"})
@@ -145,7 +143,7 @@ def count_tree(root: pathlib.Path) -> Census:
 
 def main() -> int:
     repo: Final = pathlib.Path(__file__).resolve().parents[2]
-    artifact: Final = repo / "docs" / "superpowers" / "plans" / "2026-10-04-phase-0-name-census.json"
+    artifact: Final = repo / "docs" / "plans" / "2026-10-04-phase-0-name-census.json"
     counted: Final = count_tree(repo)
     artifact.write_text(json.dumps(dataclasses.asdict(counted), indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(f"{counted.categories['occurrences']} occurrences in {counted.files} files ({counted.scanned} scanned)")

@@ -14,9 +14,9 @@ from collections.abc import Mapping, Sequence
 from typing import Final
 
 REPO: Final = pathlib.Path(__file__).resolve().parents[2]
-DATA: Final = REPO / "docs" / "superpowers" / "plans" / "2026-10-04-phase-0-inventory-data.json"
-GRAPH: Final = REPO / "docs" / "superpowers" / "plans" / "2026-10-04-phase-0-reachability.json"
-OUT: Final = REPO / "docs" / "superpowers" / "plans" / "2026-10-04-feature-usage-inventory.md"
+DATA: Final = REPO / "docs" / "plans" / "2026-10-04-phase-0-inventory-data.json"
+GRAPH: Final = REPO / "docs" / "plans" / "2026-10-04-phase-0-reachability.json"
+OUT: Final = REPO / "docs" / "plans" / "2026-10-04-feature-usage-inventory.md"
 
 # Written by hand after reading the folder. Only rows where the docstring is absent or
 # misleading need an entry; everything else falls back to the module's own docstring.
@@ -167,7 +167,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     lines.append("# Feature usage inventory\n")
     lines.append(
-        "Phase 0 of `docs/superpowers/specs/2026-10-04-token-iq-independent-codebase.md`. "
+        "Phase 0 of `docs/specs/2026-10-04-token-iq-independent-codebase.md`. "
         "One row per top-level folder in `litellm/` and `litellm/proxy/`, plus the loose Python "
         "files at those two levels, which a folder-only inventory would have missed\n"
     )

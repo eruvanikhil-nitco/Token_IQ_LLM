@@ -16,7 +16,7 @@ from typing import Final
 from scripts.inventory.reachability import Graph, analyse
 
 REPO: Final = pathlib.Path(__file__).resolve().parents[2]
-ARTIFACT: Final = REPO / "docs" / "superpowers" / "plans" / "2026-10-04-phase-0-reachability.json"
+ARTIFACT: Final = REPO / "docs" / "plans" / "2026-10-04-phase-0-reachability.json"
 
 # Build output, vendored code and test trees. Tests import product code, so including them
 # would mark a module "used" because something tests it, which is not the question being

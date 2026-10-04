@@ -30,7 +30,7 @@ from scripts.inventory.baseline import (
 )
 
 REPO: Final = pathlib.Path(__file__).resolve().parents[2]
-ARTIFACT: Final = REPO / "docs" / "superpowers" / "plans" / "2026-10-04-phase-0-baseline.json"
+ARTIFACT: Final = REPO / "docs" / "plans" / "2026-10-04-phase-0-baseline.json"
 
 TOKEN_IQ: Final[tuple[str, ...]] = tuple(
     f"tests/test_litellm/{name}"
