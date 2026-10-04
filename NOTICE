@@ -1,0 +1,12 @@
+Token IQ
+Copyright (c) 2026 NITCO Inc.
+
+This product includes software developed by Berri AI.
+
+Token IQ includes code derived from LiteLLM (https://github.com/BerriAI/litellm),
+licensed under the MIT License, Copyright (c) 2023 Berri AI.
+
+The full text of the MIT License, including the copyright notice above, is in the
+LICENSE file in this repository. That notice is required by the licence under which
+the derived code was granted and is retained permanently, in every copy and every
+distribution of this software.
