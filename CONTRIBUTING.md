@@ -55,7 +55,7 @@ That's it! Your local development environment is ready.
 
 ## Commit and Branch Conventions
 
-Commits follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) and branches follow [Conventional Branches](https://conventional-branch.github.io/). Run `make install-hooks` once per clone to enable the local git hooks that enforce these — see the [contributor docs](https://docs.litellm.ai/docs/extras/contributing_code#commit-and-branch-conventions) for the full type list, examples, the protected-branch bypass list, and how to opt out.
+Commits follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) and branches follow [Conventional Branches](https://conventional-branch.github.io/). Run `make install-hooks` once per clone to enable the local git hooks that enforce these. The hooks themselves document the accepted types and the bypass list.
 
 ### 2. Development Workflow
 
@@ -329,8 +329,6 @@ npm run build
 If you need help:
 
 - 💬 [Join our Discord](https://discord.gg/wuPM9dRgDw)
-- 💬 [Join our Slack](https://www.litellm.ai/support)
-- 📧 Email us: ishaan@berri.ai / krrish@berri.ai
 - 🐛 [Create an issue](https://github.com/BerriAI/litellm/issues/new)
 
 ## What to Contribute

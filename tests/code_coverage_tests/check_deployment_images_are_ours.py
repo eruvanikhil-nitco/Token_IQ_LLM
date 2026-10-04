@@ -46,7 +46,6 @@ ALLOWED: Final[Mapping[str, str]] = MappingProxyType(
         # notes telling a reader to verify it with the upstream signing key. It deploys
         # nothing, so it is outside what this check polices, but it does not belong in a
         # Token IQ release either and is recorded as an open item in the deployment plan.
-        ".github/workflows/create-release.yml": "upstream release-notes generator, deploys nothing",
     }
 )
 

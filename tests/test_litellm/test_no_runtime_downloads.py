@@ -51,11 +51,6 @@ class TestNothingFetchesAtRuntime:
 
 
 class TestOnlyTheUpdateJobNamesUpstream:
-    @pytest.mark.xfail(
-        strict=True,
-        reason="Task 7 deletes the curl install hint in the autoroute CLI. Strict, so this "
-        "fails the moment that lands and the marker has to come off.",
-    )
     def test_no_module_under_litellm_fetches_from_upstream(self) -> None:
         """A grep is the right test here: the failure is a URL existing at all, and a
         behavioural test can only prove the paths it happens to walk."""

@@ -3,13 +3,13 @@
 
 .PHONY: help test test-unit test-unit-llms test-unit-proxy-guardrails test-unit-proxy-core test-unit-proxy-misc \
 	test-unit-integrations test-unit-core-utils test-unit-other test-unit-root \
-	test-proxy-unit-a test-proxy-unit-b test-integration test-unit-helm \
+	test-proxy-unit-a test-proxy-unit-b test-integration \
 	info lint lint-inner lint-dev lint-checks format \
 	lint-basedpyright lint-e2e-basedpyright lint-basedpyright-budget-update lint-type-discipline lint-type-discipline-budget-update \
 	lint-ruff-budget lint-ruff-budget-update lint-budget-update lint-gate \
 	lint-test-quality lint-test-quality-budget-update \
 	install-dev install-proxy-dev install-test-deps install-hooks \
-	install-helm-unittest check-circular-imports check-import-safety check check-inner pre-commit \
+	check-circular-imports check-import-safety check check-inner pre-commit \
 	lint-install lint-fetch-base bootstrap
 
 # Default target
@@ -21,7 +21,6 @@ help:
 	@echo "  make install-dev-ci     - Install dev dependencies (CI-compatible, pins OpenAI)"
 	@echo "  make install-proxy-dev-ci - Install proxy dev dependencies (CI-compatible)"
 	@echo "  make install-test-deps  - Install the full local test environment"
-	@echo "  make install-helm-unittest - Install helm unittest plugin"
 	@echo "  make install-hooks      - Install git hooks (Conventional Commits + Branches)"
 	@echo "  make check              - Run CI-equivalent lint on staged files, or on the diff vs the base branch when nothing is staged"
 	@echo "  make pre-commit         - Legacy alias for make check"
@@ -53,7 +52,6 @@ help:
 	@echo "  make test-proxy-unit-a  - Run proxy_unit_tests (a-o, ~20 files)"
 	@echo "  make test-proxy-unit-b  - Run proxy_unit_tests (p-z, ~28 files)"
 	@echo "  make test-integration   - Run integration tests"
-	@echo "  make test-unit-helm     - Run helm unit tests"
 	@echo ""
 	@echo "Heavy targets (check, lint) queue for LITELLM_GATE_SLOTS machine-wide"
 	@echo "slots (default 2; 0 disables) so parallel sessions don't thrash one machine."
@@ -109,12 +107,6 @@ install-proxy-dev-ci:
 install-test-deps: install-proxy-dev
 	$(UV) sync --frozen --all-groups --all-extras
 	$(UV_RUN) prisma generate --schema litellm/proxy/schema.prisma
-
-install-helm-unittest:
-	@helm plugin list | grep -qE '^unittest[[:space:]]+0\.8\.2([[:space:]]|$$)' || { \
-		helm plugin uninstall unittest >/dev/null 2>&1 || true; \
-		helm plugin install https://github.com/helm-unittest/helm-unittest --version v0.8.2; \
-	}
 
 # Install git hooks that enforce Conventional Commits and Conventional Branches.
 # Opt-in: not chained into install-dev.
@@ -321,9 +313,6 @@ test-proxy-unit-b: install-test-deps
 
 test-integration: install-test-deps
 	$(UV_RUN) pytest tests/ -k "not test_litellm"
-
-test-unit-helm: install-helm-unittest
-	helm unittest -f 'tests/*.yaml' helm/litellm-helm
 
 # LLM Translation testing targets
 test-llm-translation: install-test-deps

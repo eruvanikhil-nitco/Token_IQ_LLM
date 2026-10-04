@@ -317,3 +317,32 @@ Where a component carried explanation as well as a link, the explanation stays:
 anchor around it, so no help text was lost to remove a dead link. Four tests whose only
 subject was a link were deleted with it; the rest kept everything except the href
 assertion.
+
+## Phase 2 Task 7: workflows, Helm, scripts and data files
+
+17 workflows deleted, leaving 34. They served BerriAI's public project: issue triage and
+labelling, duplicate-closing, stale-marking, daily branch creation, the Together AI model
+sync, release and publishing. Deleting them orphaned seven scripts under `.github/scripts/`
+and three test files, which went with them.
+
+Helm is gone, 70 files plus its workflow and its two Makefile targets, per the decision
+recorded above. Nothing in `deploy/` or `terraform/tokeniq/` referenced it.
+
+The install scripts are gone, along with the curl hint in the autoroute CLI that pointed at
+one of them. That hint was also the last thing keeping the second strict xfail alive in
+`test_no_runtime_downloads.py`, so the marker came off.
+
+Package metadata now names NITCO rather than BerriAI, in both `pyproject.toml` and the
+migrations package. The `[project.urls]` sections are removed rather than repointed, because
+Token IQ has no public site and a link to one that does not exist is worse than none. The
+distribution is still named `litellm`; phase 6 renames it.
+
+Data files: `cost.json` and the root `policy_templates.json` deleted after confirming
+nothing reads either. Kept, with reasons: `provider_endpoints_support.json` until phase 5
+decides on public endpoints, `mcp_servers.json` and `router_plugins.json` until phase 5
+deletes MCP and routing, `whitelisted_bedrock_models.txt` owned by the Bedrock connector,
+`license_cache.json` refreshed by the dependency job, and `policy_templates_backup.json`
+which is now the only source the code reads.
+
+The upstream-reference search is clean apart from `cookbook/`, which phase 5 deletes, and
+the documents that describe this removal.

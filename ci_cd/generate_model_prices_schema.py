@@ -193,7 +193,7 @@ def string_key_schemas(modes: tuple) -> dict[str, JsonSchema]:
     return {
         "litellm_provider": {
             "type": "string",
-            "description": "LiteLLM provider slug; one of https://docs.litellm.ai/docs/providers.",
+            "description": "Provider slug, as used in the gateway's provider registry.",
         },
         "mode": {
             "type": "string",
