@@ -1,89 +1,342 @@
-# What established cost platforms do with AI provider data
+# Token IQ product design
 
-Reference research for Phase 2 (Data Sources and Usage / APIs), gathered on 2026-09-15 from the public documentation of three established cloud cost platforms that already read OpenAI and Anthropic cost data. The platforms are not named here, following the repository rule against naming companies. The findings are summarised in our own words, and nothing below changes the agreed tab plan in `2026-09-14-token-iq-product-design.md`
+Agreed in planning on 2026-09-14. Nothing has been built from this document yet, and every build step starts only when the product owner says go
 
-## Patterns all three share
+## What Token IQ is
 
-### Connections
+Token IQ tells a company what it spends on AI, who spent it, whether the bill is right, and what to change. It reads three sources, shows each one on its own, merges them without counting anything twice, and turns the result into business and technical recommendations
 
-Each provider is connected once, from an integrations area, with a read-only admin key. None of them can take an action that costs money, and they say so on the connection page
+The **gateway** is the proxy that application traffic passes through. **Provider APIs** are the usage and cost reports that OpenAI, Anthropic, Azure OpenAI, AWS Bedrock, Google Vertex and OpenRouter publish about a company's own accounts. **User tools** are the admin reports that Claude Code, ChatGPT and Codex, GitHub Copilot and Cursor publish about the people using them
 
-A single vendor often needs two separate connections, each with its own key type. One covers the developer platform (costs by project or workspace, model, token type and key). The other covers the vendor's business product, such as a chat workspace or coding assistant, with costs by user. The two are set up, refreshed and shown separately
+## Where the product stands on 2026-09-14
 
-The setup form checks the key's type before saving. A platform admin key and an analytics key look different, and pasting the wrong one produces a clear message instead of a failed sync later
-
-A connection moves through visible states: waiting for its first data, healthy, and failing with a reason such as a rejected key or missing permission
-
-### Freshness and history
-
-Data refreshes once a day. The documentation states the typical delay, which ranges from a few hours to a day
-
-On first connection each platform backfills history, usually up to twelve months, and states the earliest date the provider can return. Some newer analytics endpoints only have data from a fixed start date
-
-Recent figures can still change. One platform notes that enterprise billing keeps adjusting for up to 30 days, so the current month moves after the fact
-
-### Labelling every row
-
-Every cost row records which data source it came from, so developer platform spend and business product spend from the same vendor can be filtered apart
-
-On top of each provider's own fields, the platforms apply one provider-independent set of dimensions automatically, so a report can group across vendors without custom mapping. The common set is:
-
-| Dimension | Meaning |
+| Area | State |
 |---|---|
-| Model | cleaned model name |
-| Raw model | model name exactly as the provider reported it, with version |
-| Model maker | who built the model, which differs from the seller on cloud marketplaces |
-| Token type | input, output, cache read, cache write |
-| Service tier | default, priority, batch, flex |
-| Region | where the request ran |
-| API key | which key was charged |
-| User | email, display name and the provider's user id, where the provider gives them |
-| Account scope | the provider's organisation, project or workspace |
+| Gateway data | Works and is mature, inherited from LiteLLM along with its usage screens |
+| Provider API ingestion | The engine is built: provider facts are stored idempotently, compared against gateway spend per request and per day, and fetched on a schedule from one replica. OpenRouter is proven against real traffic. OpenAI, Anthropic and Bedrock connectors are built but have never run against a real account. Azure and Vertex are planned in `docs/plans/2026-09-13-cloud-billing-connectors.md`. Raw provider payloads are not stored yet, and there is no UI |
+| Teams | Complete |
+| Projects | Backend complete. Project spend is written and project budgets enforce since commits `c4e48c0543` and `93fb14c698`. The UI exists but is hidden behind a Beta switch and limited to admins |
+| Users | Exist as internal users, with no per-user tool data |
+| User tools | Nothing built and not yet researched |
+| Ledger, bill reconciliation, recommendations | Nothing yet, apart from the existing Cost Optimization page |
+| Per-team courier and translator mode | Done |
 
-### Allocation
+## How Token IQ is sold and delivered
 
-Costs are assigned to teams, products and customers by rules that map existing metadata (keys, workspaces, projects, account names) to owners, without re-tagging anything at the provider. One platform proposes these rules automatically from metadata, and an admin approves, edits or rejects them in bulk. The stated goal is that every dollar has an owner, with anything unmatched listed separately
+Token IQ is a product sold to many companies. **Each customer company gets its own separate installation** with its own proxy, database and settings, and we host every installation in our own cloud. Installing into a customer's own cloud may come later
 
-One platform publishes a record format for request-level logs: an event id for de-duplication, timestamp, provider, model, token counts by type, account, region, tier, key and free-form allocation tags. Provider cost is then split across the logged requests in proportion to their tokens
+A shared platform was rejected because the codebase has no tenant boundary to build on. Of roughly 80 tables, only about 10 record an owning organisation. Provider credentials, models, prompts, policies, audit logs, SSO settings, UI settings, general config, budgets and provider billing facts have no owner column at all. Credential names are unique across the whole installation, and models, general settings and logging callbacks are held once in process memory. Fencing companies apart inside one installation would mean rewriting most of the data layer and would cut the fork off from upstream fixes, while a single mistaken query could show one company another company's spend or billing credentials
 
-### Views and actions
+Inside an installation the company is the top of the hierarchy, which is why the Organizations page stays hidden
 
-AI spend sits in the same reports, budgets and dashboards as the rest of a company's spend. Alerts fire on sudden jumps, for example an agent stuck in a loop, and go to chat, email or paging tools. Two platforms emphasise cost per customer, per feature or per transaction by combining spend with the company's own product metrics
+Delivering this way needs working Docker images, a deployment pipeline, automated provisioning of a new customer installation, and one-step upgrades across all installations. Database migrations already apply automatically at boot. A staff-only console showing each installation's version, health and subscription comes later
 
-## What Token IQ takes, by agreed tab
+## Licensing rules
 
-### Data Sources / Provider APIs and User Tools
+The repository carries two licences. Everything outside `enterprise/` is MIT, which allows commercial use, modification and hosting as long as the copyright notice and licence text are kept. The `enterprise/` folder was under the BerriAI Enterprise licence, which allows production use only with a paid subscription, forbids selling or distributing the code, and assigns ownership of any modification to BerriAI. Commit `728daee2d8` removed that folder on 2026-09-03 and the proxy runs without it
 
-- **Connection** shows one of four states: Not connected, Waiting for first data, Healthy, Needs attention (with the reason and what to fix). It shows a Read-only badge and checks the key type before saving
-- Where a vendor needs two connections, the developer platform connection lives under Provider APIs and the business product connection lives under User Tools. This matches the agreed split, for example Anthropic under Provider APIs and Claude Code under User Tools
-- **What We Fetch** lists, per endpoint, the refresh cadence, the typical delay, how much history the first connection loads, and the earliest date the provider can return
-- **Sync History** shows the first backfill's progress as well as each daily fetch
+These rules follow from that, and every phase must respect them:
 
-### Usage / APIs
+1. A rebuilt feature is written from our own design. Nothing is copied or adapted from LiteLLM enterprise code, including this repository's history before `728daee2d8` and the enterprise folder in upstream LiteLLM
+2. LiteLLM licence key checks are replaced by Token IQ's own plan system, which Token IQ needs anyway to sell tiers
+3. LiteLLM's copyright notice and MIT text stay in `LICENSE`
+4. The LiteLLM name and logo do not appear anywhere a customer can see. The dashboard is mostly rebranded, but 18 backend error messages and 9 email templates still mention LiteLLM
+5. A dependency scan on 2026-09-14 covered 216 Python and 741 JavaScript packages and found no AGPL, SSPL or BUSL licences. The LGPL packages (the psycopg Postgres driver at runtime, sharp at build time only) and MPL packages (certifi, tqdm, orjson, lightningcss, axe-core) create no obligations while unmodified and hosted by us. The scan is repeated before any installation in a customer's cloud
+6. A lawyer reviews this position before the first customer
 
-- **Summary** adds breakdowns by token type, service tier and key or workspace next to spend by model, and by user where the provider supplies it
-- The existing note on detail level and delay also says how many recent days may still change, per provider
-- **Raw Data** keeps every provider field and adds the normalised dimensions and the data source as extra columns
+### Features behind LiteLLM's licence key
 
-### Usage / Combined
+Some features are MIT code switched off by a licence check, and Token IQ's plan system replaces the check:
 
-- **Cost Explorer** groups by the normalised dimensions above, so a model or token type means the same thing whichever source it came from
-- Every row carries its source: gateway, provider API, user tool or seat fee. This is already how the counting rule colours spend
+| Feature | Why Token IQ needs it |
+|---|---|
+| Assigning team admins | The team, project and user permission model depends on it |
+| SSO for more than 5 users | Every company customer expects single sign-on |
+| SCIM user sync | Data Sources / User Directory |
+| JWT and OAuth2 token auth | How larger companies connect their identity systems |
+| Models limited to one team | Teams bringing their own provider keys |
+| Tags on keys | Cost attribution |
+| Per-model budgets on keys | Budget control |
+| Enforced request parameters | Company guardrails |
+| Route restrictions, request and file size limits | Security |
+| Google Secret Manager | Credential storage |
+| Spend report, fine-tuning endpoints, priority rate limit reservation | Gateway features |
 
-### Attribution Rules (Phase 3)
+Other features lived only in the deleted enterprise folder, so they must be rebuilt from scratch if Token IQ wants them: email alerts over SMTP, SendGrid and Resend, PagerDuty alerts, secret detection and hiding, Llama Guard, LLM Guard, banned keywords, blocked user lists, OpenAI and Google moderation, Aporia, callback controls, managed file and batch access checks, the original audit log endpoints, and a custom SSO handler
 
-- Suggested rules built from key names, workspace names and project names, approved, edited or rejected in bulk. Unmatched stays its own tab, and the aim is that every dollar has an owner
+The audit trail itself survives. Admin Settings / Audit Log already works, because it reads `/audit/list`, a fresh implementation added on 2026-09-10 that is not based on enterprise code. The Logs page's Audit Logs tab still calls the deleted `/audit` route and shows nothing, and `/audit/list` checks no role, so organisation admins can read the whole installation's trail. Phase 0 fixes both
 
-### Ledger (Phase 3)
+## The counting rule
 
-- Each provider's settling window, such as up to 30 days for enterprise billing, decides how long its figures show "not settled yet"
+A request that goes through the gateway to a provider appears twice: once in the gateway's own records and once in the provider's cost report. The separate Gateway and APIs views each show their source exactly as it is. The Combined view never adds the two together
 
-### Reports and alerts (Phase 6)
+For each provider and day, **the provider's figure says how much was spent** and **the gateway's figure says who spent it**. Whatever the provider charged beyond what the gateway recorded is spend that bypassed the gateway. It gets its own line, assigned to a team, project or user through attribution rules, or shown as unallocated when no rule matches
 
-- Alerts on sudden spend jumps, sent to chat or email, as Phase 6 already plans
+Every figure carries its source and an evidence level (`reconciled`, `priced` or `allocated`, already implemented in `litellm/types/proxy/provider_billing.py`) and a freshness marker. Provider data arrives hours to days late, so a day that has not settled is labelled "not settled yet" rather than being shown as a gap
 
-## Ideas that need a decision before they are planned
+## Data sources
 
-- **Cost per customer or per feature.** This needs the customer's own product metrics joined to spend. It is not in the agreed plan
-- **Accepting request-level logs from outside the gateway** in a published record format, so traffic that bypasses the gateway can still be attributed per request
-- **Spend beyond AI** (cloud infrastructure and other software subscriptions) in the same reports. It is not in the agreed plan, and it would change what Token IQ is
+### Gateway
+
+Today's spend logs and daily rollups, including the per-project rollup added on 2026-09-13
+
+### Provider APIs
+
+| Provider | What we read | Detail level | Status |
+|---|---|---|---|
+| OpenRouter | Generation API | Per request | Built, proven on real traffic |
+| OpenAI | Organization Costs API | Per day | Built, never run on a real account |
+| Anthropic | Admin Cost Report | Per day | Built, never run on a real account |
+| AWS Bedrock | Cost Explorer | Per day | Built, never run on a real account |
+| Azure OpenAI | Cost Management query | Per day | Planned. One connector covers Azure and Azure OpenAI |
+| Google Vertex | BigQuery billing export | Per day | Planned |
+
+Request-level forensics is only possible for OpenRouter. For every other provider the finest comparison is per model per day, and the UI says so
+
+Token IQ cannot embed a provider's real dashboard, because those pages need the provider's own login and block embedding. The Summary view rebuilds the same figures from the provider's API instead
+
+The inside of these pages borrows from established cloud cost platforms, researched in `docs/product/2026-09-15-cost-platform-reference.md`. Within the agreed tabs that means four connection states (Not connected, Waiting for first data, Healthy, Needs attention), a key type check before saving, the stated refresh delay and history on What We Fetch, a data source label and one provider-independent set of dimensions on every row, and a per-provider window for how long figures may still change. Three ideas from that research need a decision before they are planned: cost per customer or feature, accepting request-level logs from outside the gateway, and spend beyond AI
+
+### User tools
+
+What each tool exposes is researched in `docs/specs/2026-09-14-user-tools-data-research.md`. Per-user cost is documented for Claude and Cursor, available for GitHub Copilot as seat fees plus billed AI credits with a caveat for enterprise-owned organizations, and unverified for ChatGPT and Codex until a real Enterprise admin account confirms OpenAI's Cost API. Every tool requires a business or enterprise plan, and personal subscriptions paid through expenses are invisible to every API
+
+Claude Code and GitHub Copilot were chosen first. The research recommends building Claude first, then Cursor, then Copilot once its billing caveat is checked, then ChatGPT and Codex
+
+### Credentials
+
+All credentials are entered in one place, Data Sources. The existing LLM Credentials page is renamed **LLM Provider Credentials**. Each credential is labelled by purpose, either **model access** (used to serve models) or **billing access** (used to read costs), because OpenAI and Anthropic cost reports need an admin key that is different from the key that calls models. Billing credentials are read-only, stored encrypted and never shown back
+
+## Hierarchy and who sees what
+
+Inside a company's installation the hierarchy is **teams**, then **projects** and **users** within each team. The product uses the words teams, projects and users throughout
+
+A proxy admin sees the whole company. A team admin sees their own team, its projects and its users. A user sees only their own cost. Team admins are currently behind LiteLLM's licence key, so Phase 0 moves them onto Token IQ's plan system before Phase 1 relies on them
+
+Budgets behave differently by source. A team or project budget blocks further gateway requests, but it cannot stop someone's Claude Code or Copilot usage, so for user tools and direct provider spend a budget only alerts. The UI states which of the two applies
+
+Attribution rules map provider keys, workspaces, cloud accounts and tool logins to a team, project or user. Anything unmatched stays visible as unallocated spend with an owner, and is never spread silently across teams. Every change to a rule is recorded
+
+## Navigation
+
+### Tab rules
+
+These rules apply to every page:
+
+1. The sidebar chooses a thing, and tabs show views of that thing. A feature's settings sit in a Settings tab at the end of its own page
+2. Detail pages share one shape: a header with name, copyable ID, status and key figures, followed by tabs
+3. Overview comes first and Settings comes last
+4. Each kind of thing has one home: credentials in Data Sources, cost adjustments in Ledger, budgets under Organisation
+5. The chosen tab is in the URL so a shared link opens the same view
+6. Every data screen has a freshness badge, a source label and an export button
+
+**No existing page or tab is removed or merged.** Pages and tabs may move or be renamed, and every old address redirects to the new one. Ten merge and removal suggestions were rejected on 2026-09-14 and are not reintroduced without fresh approval. The eight pages that have routes but no sidebar entry (Organizations, Agents, Workflows, Memory, Caching, Vector Stores, Search Tools, Tool Policies) stay out of the sidebar
+
+To keep future upstream merges manageable, the reorganisation is done mostly in the sidebar definition (`ui/litellm-dashboard/src/components/leftnav.tsx`) and the redirect map (`ui/litellm-dashboard/src/utils/migratedPages.ts`) rather than by moving page folders
+
+### Full sidebar
+
+Status: NEW is a Token IQ addition, SAME is unchanged, MOVED and RENAMED keep all content
+
+```
+HOME
+  Overview ............................ NEW
+      total spend across all sources, change against last period, bill match per
+      provider, share unallocated, top recommendations, data freshness
+
+ANALYTICS
+  Usage ............................... Gateway tab SAME, APIs and Combined tabs NEW
+      Gateway    Cost | Models | Keys | MCP | Endpoints   (view picker gains Project)
+      APIs       Provider accounts: All | OpenAI | Anthropic | Azure OpenAI | Bedrock | Vertex | OpenRouter
+                 User tools: All | Claude Code | ChatGPT & Codex | Copilot | Cursor
+                 each provider and tool: Summary | Raw Data
+      Combined   Cost Explorer | Source Comparison | Unallocated   (opens by default)
+  Classic Usage ....................... MOVED from Experimental, RENAMED from Old Usage
+      All Up | Team Based | Customer | Tag Based | Cost | Activity
+  Ledger .............................. NEW
+      Cost Ledger | Bill Reconciliation | Invoices | Seats & Commitments | Pricing Adjustments
+      (Pricing Adjustments holds all of Cost Tracking: Provider Discounts, Fee/Price Margin,
+       Block Unpriced Models, Pricing Calculator)
+  Recommendations ..................... NEW
+      All | Business | Technical | Done & Dismissed
+  Cost Optimization ................... MOVED from Observability
+      Caching | Compression | Auto-Router Usage | Shadow Evals
+  Logs ................................ MOVED from Observability
+      Request Logs | Audit Logs | Deleted Keys | Deleted Teams
+  Reports ............................. NEW (Phase 6)
+      Scheduled | Team Statements | Exports
+
+ORGANISATION
+  Teams ............................... SAME, two NEW detail tabs
+      list:   Your Teams | Available Teams | Default Team Settings
+      detail: Overview | My User | Virtual Keys | Members | Member Permissions
+              | Projects (NEW) | Budget (NEW) | Settings
+  Projects ............................ Beta label removed, on by default, team admins allowed
+      list shows spend and budget columns
+      detail: Overview | Keys | Provider Accounts (NEW) | Budget | Settings
+  Users ............................... RENAMED from Internal Users
+      list:   Users | Default Settings
+      detail: Overview | Details | Tools (NEW) | Seats (NEW)
+  Access Groups ....................... SAME
+      Models | MCP | Agents
+  Budgets ............................. MOVED from Access Control
+      Budgets | Assign Budget | Examples | Model Access Group Budgets (MOVED from Models)
+  Attribution Rules ................... NEW
+      Provider Keys | Cloud Accounts | Tool Logins | Unmatched
+
+DATA SOURCES .......................... NEW group
+  Provider APIs ....................... NEW
+      one tab per provider: Connection | What We Fetch | Sync History
+  User Tools .......................... NEW
+      one tab per tool: Connection | What We Fetch | Sync History
+  LLM Provider Credentials ............ MOVED from Models, RENAMED from LLM Credentials
+  User Directory ...................... NEW
+      SSO Sync | SCIM (MOVED from Admin Settings) | Import
+
+GATEWAY
+  Virtual Keys ........................ SAME
+      detail: Overview | Savings | Settings
+  Providers ........................... SAME
+      Overview | Models
+  Models + Endpoints .................. SAME apart from two tabs moved out
+      All Models | Add Model | Pass-Through Endpoints | Health Status | Model Retry Settings
+      | Model Limits | Model Pricing | Model Group Alias | Price Data Reload
+  Playground .......................... SAME
+  API Playground ...................... MOVED from Experimental
+
+SAFETY
+  Guardrails .......................... MOVED from AI Gateway
+      Guardrails | Garden | Playground | Submitted
+      detail: Overview | Settings
+  Guardrails Monitor .................. MOVED from Observability
+  Policies ............................ MOVED from AI Gateway
+      Policies | Templates | Attachments | Simulator
+
+BUILD
+  MCP Servers ......................... MOVED from AI Gateway
+      Servers | Toolsets | Connect | Tool Search | Semantic Filter | Network Settings | Submitted
+  Skills .............................. MOVED from AI Gateway
+  Prompts ............................. MOVED from Experimental
+  Tag Management ...................... MOVED from Experimental
+  AI Hub .............................. MOVED from Developer Tools
+      Models | Agents | MCP | Skills
+  API Reference ....................... MOVED from Developer Tools
+      OpenAI | LangChain | LlamaIndex
+
+SETTINGS
+  Admin Settings ...................... SAME apart from SCIM moved out
+      SSO Settings | Security Settings | UI Settings | Logging Settings | Audit Log
+      | Hashicorp Vault | CyberArk Conjur | Plugins
+  Router Settings ..................... SAME
+      General | Loadbalancing | Fallbacks | Routing Groups | Prompt Caching
+  Logging & Alerts .................... SAME
+      Logging Callbacks | CloudZero Cost Tracking | Alerting Types | Alerting Settings
+      | Email Alerts | MS Teams Alerts
+  UI Theme ............................ SAME
+```
+
+The Experimental, Observability, AI Gateway, Access Control and Developer Tools group labels go away because every page in them has a new home. No page inside them is lost
+
+## Key screens
+
+### Usage
+
+A filter bar shared by all three tabs holds the date range, team, project and user filters, an export button and a freshness badge. A filter chosen on one tab stays applied when switching to another
+
+**Gateway** is today's usage page, unchanged except that its view picker gains Project
+
+**APIs** has one tab per provider account and one per user tool, grouped separately. Each has a **Summary** tab (headline totals, spend over time, spend by model, spend by whatever the provider can break down by, and a note on detail level and delay) and a **Raw Data** tab (the rows exactly as the provider sent them, searchable, with column choice, the original response per row, and CSV or JSON export). A source that is not connected shows a prompt to connect it in Data Sources instead of an empty chart
+
+**Combined** opens by default. **Cost Explorer** groups spend by team, project, user, provider, model or source, coloured by where the money went: through the gateway, outside the gateway, user tools and seat fees. **Source Comparison** shows, per provider per day, the gateway figure, the provider figure, the gap and a status of Matched, Gap or Not settled yet. **Unallocated** lists spend with no owner and links to the attribution rule that would assign it
+
+### Data Sources
+
+Each provider and tool has a card with **Connection** (state, credential, required permission and a Test button backed by the existing `/provider/billing/probe`), **What We Fetch** (the endpoints read, in plain words, and how often) and **Sync History** (every fetch, its row count and any failure). Sync history lives only here and is not repeated in Usage
+
+### Ledger
+
+**Cost Ledger** lists every cost line with its source, evidence level and owner. **Bill Reconciliation** compares the ledger total with the provider's bill for a week, month or year and breaks the gap into credits, discounts, tax, commitments and the unexplained remainder. **Invoices** accepts uploaded or entered invoices, since few providers expose invoices through an API. **Seats & Commitments** holds flat per-person subscriptions and prepaid or reserved capacity. **Pricing Adjustments** holds the existing Cost Tracking settings
+
+### Users
+
+A user's detail page shows their total cost across gateway usage, user tools and seat fees. **Tools** breaks that down per tool, and **Seats** lists the subscriptions assigned to them. The same user tool also appears company-wide in Usage / APIs
+
+## Add Model uses saved credentials only
+
+Add Model stops offering a field for typing a key and offers only a choice of saved credential. Four conditions come with that:
+
+1. The credential picker has a **New credential** button that opens the credential form in place, saves the credential to the shared list and selects it
+2. Team admins can create credentials that belong to their own team and see only those, since the LLM Provider Credentials page is admin-only today
+3. A credential can hold connection details without a secret, for providers that use no key, such as a local Ollama or Bedrock and Vertex running on cloud permissions
+4. Models already created with a typed key keep working, and admins get a one-click action to move that key into a saved credential. Nothing is converted automatically
+
+The change covers the UI first. Models added through the API or the config file may still carry a key, and whether to enforce the same rule there is decided later from real usage. Add Model gains a "Manage LLM Provider Credentials" link beside the picker
+
+## Recommendations
+
+Recommendations start as rules evaluated over the combined data rather than as a model's guesses. Each card states what was noticed, the evidence behind it, the estimated monthly saving and who should act, and it can be marked done or dismissed
+
+Business recommendations cover unused seats to reclaim, spend escaping the gateway, teams that would pay less on committed pricing, budgets that no longer match spend, and concentration on a single provider. Technical recommendations cover a cheaper model that performs well enough, caching that is available but unused, money spent on failed retries and oversized context. The existing Cost Optimization tabs remain the technical deep dives behind those cards
+
+## What the product must handle
+
+| Concern | How Token IQ handles it |
+|---|---|
+| Seat and subscription costs | Seats & Commitments, included in each user's total, since tool plans are mostly flat per-person fees |
+| Bills that differ from usage reports | Invoices and Bill Reconciliation account for credits, discounts, tax and commitments |
+| Double counting | The counting rule |
+| Spend with no owner | Unallocated, visible and owned |
+| Late data | Freshness badges and a "not settled yet" state |
+| Budgets that cannot block a source | The UI says whether a budget blocks or only alerts |
+| One person with different logins per tool | User Directory links identities |
+| Privacy of per-person cost | Users see only their own cost and team admins see their team |
+| Personal AI subscriptions | Stated as a known blind spot |
+| Admin key safety | Read-only, encrypted, never displayed |
+| Currency | Every cost keeps its original currency alongside a converted figure |
+| Changes to attribution | Every rule change is recorded |
+| Growth of raw provider data | A retention period per installation |
+
+## Phases
+
+**Phase 0, product readiness.** Token IQ's own plan system replacing LiteLLM licence checks, starting with team admins. Docker images that build from a clean checkout and a deployment pipeline for customer installations. The Logs page Audit Logs tab moved onto the working audit trail, with the audit endpoint limited to admins. Rebranding of the remaining customer-visible LiteLLM text. Done when a fresh installation builds, deploys and lets a team admin be assigned without a LiteLLM licence. The work is planned in `docs/plans/2026-09-14-token-iq-plan-system.md` and `docs/plans/2026-09-14-release-readiness.md`, and deployment waits on the choice of cloud provider
+
+**Phase 1, organisation and navigation.** Projects switched on, without the Beta label and open to team admins, with spend and budget columns and the daily report connected. New Projects and Budget tabs on teams. Users renamed. The full sidebar reorganisation with redirects. Project added to the Gateway view picker. Done when every existing page and tab is reachable in its new place and every old address redirects
+
+**Phase 2, data sources and provider accounts.** Azure and Vertex connectors, storage of raw provider responses, verification of the OpenAI, Anthropic and Bedrock connectors on real read-only accounts, the Data Sources pages, the LLM Provider Credentials move with purpose labels, the Add Model change, and Usage / APIs with Summary and Raw Data. Done when each connected provider shows real Summary and Raw Data for a customer
+
+**Phase 3, combined view and ledger.** Attribution rules, unallocated spend, Usage / Combined, Cost Ledger, Invoices and Bill Reconciliation. Done when a month's provider bill can be reconciled against the ledger with every gap explained or marked unexplained
+
+**Phase 4, users and user tools.** The research report on user tool APIs comes first. Then User Directory, seats, the Claude Code and Copilot connectors, and the Tools and Seats tabs on users. Done when a user's total cost includes their tool usage and seats
+
+**Phase 5, recommendations.** The first business and technical rules with evidence and savings. Done when recommendations show real savings figures from a customer's own data
+
+**Phase 6, reports, alerts and forecasts.** Scheduled reports, team statements, exports, anomaly alerts and forecasts
+
+## Decisions
+
+| Date | Decision |
+|---|---|
+| 2026-09-14 | Three sources, shown separately and then combined under the counting rule |
+| 2026-09-14 | The hierarchy uses teams, projects and users, never "employees" |
+| 2026-09-14 | Usage has Gateway, APIs and Combined tabs, and Combined opens by default |
+| 2026-09-14 | Project is added to the Gateway view picker |
+| 2026-09-14 | No existing page or tab is removed or merged, and all ten merge suggestions are rejected |
+| 2026-09-14 | The eight pages without sidebar entries stay hidden |
+| 2026-09-14 | LLM Credentials is renamed LLM Provider Credentials and moves to Data Sources |
+| 2026-09-14 | Add Model offers saved credentials only, under the four conditions |
+| 2026-09-14 | Claude Code and GitHub Copilot are the first user tools |
+| 2026-09-14 | Invoices may be uploaded or entered by finance |
+| 2026-09-14 | Users see their own cost, and team admins see their team |
+| 2026-09-14 | The navigation reorganisation happens in Phase 1 |
+| 2026-09-14 | One separate installation per customer company, hosted in our cloud |
+| 2026-09-14 | Features behind LiteLLM's licence key are built by Token IQ under the licensing rules |
+
+## Open questions
+
+1. The four questions only a real account can answer, listed at the end of the user tools research
+2. The outcome of the legal review of the licensing position
+3. The tiers of Token IQ's plan system and which features each includes
+4. Which invoice formats finance will upload
+5. The currency conversion source and how often rates refresh
+6. How long raw provider data is retained by default
+7. Whether the saved-credential rule for Add Model is also enforced for the API and config file

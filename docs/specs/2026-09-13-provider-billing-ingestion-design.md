@@ -139,7 +139,7 @@ own and is worth reviewing separately.
 1. **Ingestion spine and OpenRouter reconciliation.** The fact table, the connector
    contract, the scheduled runner, the OpenRouter connector, and a reconciliation read.
    Ends with real deltas for real requests.
-   Plan: `docs/superpowers/plans/2026-09-13-provider-billing-ingestion.md`
+   Plan: `docs/plans/2026-09-13-provider-billing-ingestion.md`
 2. **Anthropic and OpenAI connectors.** Same family, day-grain joins, admin credentials, and
    the first real test of attributing a provider's aggregate back to a team.
 3. **Cloud billing family.** Bedrock, Azure and Vertex. A different ingestion shape

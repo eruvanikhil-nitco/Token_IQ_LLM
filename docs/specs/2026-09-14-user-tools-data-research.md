@@ -1,6 +1,6 @@
 # What user tools reveal about the people using them
 
-Research for Phase 4 of `docs/superpowers/specs/2026-09-14-token-iq-product-design.md`, done on 2026-09-14 from each vendor's own documentation. It answers that design's first open question: what per-user usage and cost data Claude Code, GitHub Copilot, ChatGPT and Codex, and Cursor actually expose
+Research for Phase 4 of `docs/product/2026-09-14-token-iq-product-design.md`, done on 2026-09-14 from each vendor's own documentation. It answers that design's first open question: what per-user usage and cost data Claude Code, GitHub Copilot, ChatGPT and Codex, and Cursor actually expose
 
 Nothing here has been tried against a real account. Where a vendor's page could not be read directly, the finding says so and is marked unverified
 

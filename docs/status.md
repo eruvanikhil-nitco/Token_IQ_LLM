@@ -7,7 +7,7 @@ current at the end of every session rather than rediscovering the answer from gi
 
 **The Overview landing page is built**, which was the last thing standing between six phases
 of backend work and a customer being able to see it. Plan:
-`docs/superpowers/plans/2026-09-30-overview-home-page.md`, all five tasks.
+`docs/plans/2026-09-30-overview-home-page.md`, all five tasks.
 
 It shows total spend and the change on the period before, how much the gateway can attribute,
 how much nobody owns and what share that is, whether each provider's bill matched, the top
@@ -136,8 +136,8 @@ deployment pipeline needs one decision from you; and everything else waits on an
 
 ## Phase 0 of the independent-codebase programme, 4 Oct 2026
 
-Spec: `docs/superpowers/specs/2026-10-04-token-iq-independent-codebase.md`
-Plan: `docs/superpowers/plans/2026-10-04-phase-0-baseline-and-inventory.md`
+Spec: `docs/specs/2026-10-04-token-iq-independent-codebase.md`
+Plan: `docs/plans/2026-10-04-phase-0-baseline-and-inventory.md`
 
 No product code changed. Three artifacts, all re-runnable:
 

@@ -34,7 +34,7 @@ unassigned. Section 5.7 gives it a phase
 Decided by the project owner on 4 Oct 2026. Phase 1 writes them as decision records
 
 1. **Token IQ becomes an independent codebase.** The fork is disconnected and upstream is
-   never merged again. This reverses `project_usage/21-client-facing-rebrand.md`, which kept
+   never merged again. This reverses `docs/decisions/0021-client-facing-rebrand.md`, which kept
    `litellm` identifiers specifically so upstream merges stayed possible
 2. **No `litellm` name anywhere in the product**, covering package, module, class and
    function names, commands, environment variables, config keys, HTTP headers, metric names,
@@ -114,7 +114,7 @@ corrections, eleven are additions
 ### 4.1 Corrections
 
 **C1. The rename is a third of the stated size.** The source document says 521,641
-occurrences across 5,513 files, taken from `project_usage/21`. Measured today it is 143,494
+occurrences across 5,513 files, taken from `docs/decisions/21`. Measured today it is 143,494
 across 6,153 files. The larger figure almost certainly counted `node_modules`. This matters
 because a plan sized against a 3.6x overestimate schedules the wrong amount of time and
 tempts whoever runs it into shortcuts
@@ -231,7 +231,7 @@ The glossary covers observer-only, pass-through mode, virtual key, provider usag
 evidence level, attribution and seat, because every one of those appears in the UI and none
 is self-explanatory
 
-Acceptance: `rg -n "project_usage/|docs/superpowers|PROJECT\.md"` outside `docs/plans/` and
+Acceptance: `rg -n "docs/decisions/|docs|PROJECT\.md"` outside `docs/plans/` and
 `docs/decisions/` returns nothing, and no path in the repository contains a space or a
 parenthesis
 
