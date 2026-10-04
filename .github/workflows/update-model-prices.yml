@@ -1,0 +1,74 @@
+name: Update model prices
+
+# The only job that reaches upstream. A running installation reads the bundled file and
+# never fetches, so this is where price freshness is handled: as a reviewed pull request
+# rather than a decision a live proxy makes on its own.
+#
+# A stale price does not fail. Nothing crashes, no test goes red, and every figure the
+# product reports is wrong for any model whose price moved. That is why this runs daily and
+# why a change nobody reads is a change that does not land.
+
+on:
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+    inputs:
+      model:
+        description: "Only consider this model (leave blank for all)"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  propose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install httpx==0.28.1
+
+      - name: Classify what upstream changed
+        id: classify
+        run: |
+          python -m scripts.update_model_prices \
+            ${{ inputs.model && format('--model {0}', inputs.model) || '' }} \
+            --write --approved-by "price-update-job" | tee price-report.txt
+          if git diff --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+          if grep -q "auto-merge: yes" price-report.txt; then
+            echo "auto_merge=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "auto_merge=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check the prices still load
+        if: steps.classify.outputs.changed == 'true'
+        run: |
+          pip install -e .
+          python -m pytest tests/test_litellm/pricing tests/test_litellm/test_model_prices_schema.py -q
+
+      - name: Open the pull request
+        if: steps.classify.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: litellm_price_update
+          base: litellm_token_iq
+          title: "chore(pricing): upstream price changes"
+          # The report is the review. It names every price that moved, by how much, and why
+          # each one was flagged, so a reviewer never has to read a 2MB diff to find them.
+          body-path: price-report.txt
+          commit-message: "chore(pricing): upstream price changes"
+          labels: ${{ steps.classify.outputs.auto_merge == 'true' && 'prices,auto-merge' || 'prices,needs-review' }}
+          delete-branch: true

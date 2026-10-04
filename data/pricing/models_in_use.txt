@@ -1,0 +1,8 @@
+# Models seen in a production installation's traffic in the last 30 days, one per line.
+#
+# Any price change touching a model listed here is held for review however small it is: a
+# 1% move on a model nobody calls can merge itself, while the same move on this list changes
+# a bill somebody will question.
+#
+# Exported from a running installation. Empty is safe: it only means no change gets the
+# in_use flag, and the large-change and to-zero rules still apply.
