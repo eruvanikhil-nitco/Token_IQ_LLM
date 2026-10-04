@@ -210,7 +210,7 @@ class LLMCachingHandler:
         # provider, so the response was never generated for this request. Refuse to
         # read from the cache no matter how `litellm.cache` came to be set, which
         # keeps this guarantee independent of config validation elsewhere.
-        # See project_usage/05-response-caching.md
+        # See docs/decisions/0005-response-caching.md
         return None
 
         # Check if caching should be performed BEFORE doing expensive operations
@@ -336,7 +336,7 @@ class LLMCachingHandler:
 
         # Observer-only build: see `_async_get_cache`. An empty response here means
         # "no hit", so the caller proceeds to the provider as if the cache were cold.
-        # See project_usage/05-response-caching.md
+        # See docs/decisions/0005-response-caching.md
         return CachingHandlerResponse(cached_result=None)
 
         # Check if caching should be performed BEFORE doing expensive kwargs copy

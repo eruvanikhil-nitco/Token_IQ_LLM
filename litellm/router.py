@@ -297,7 +297,7 @@ else:
     PreRoutingHookResponse = Any
 
 # Observer-only build: the scored routing strategies were removed, so no
-# selector type remains. See project_usage/01-weighted-latency-cost-routing.md
+# selector type remains. See docs/decisions/0001-weighted-latency-cost-routing.md
 RouterStrategySelector: TypeAlias = Any
 
 
@@ -804,7 +804,7 @@ class Router:
                 "cache_responses=True was set, but response caching is disabled in this build. "
                 "A cache hit answers the caller without reaching the provider, so the response "
                 "was never generated for that request. "
-                "See project_usage/05-response-caching.md"
+                "See docs/decisions/0005-response-caching.md"
             )
         self.cache = DualCache(
             redis_cache=redis_cache, in_memory_cache=InMemoryCache()
@@ -895,7 +895,7 @@ class Router:
         # `_should_run_cooldown_logic` reads this and is the single gate in front
         # of `_set_cooldown_deployments`, the only writer into the cooldown cache,
         # so nothing can ever enter cooldown and every reader sees an empty list.
-        # See project_usage/04-retries-cooldowns-circuit-breakers.md
+        # See docs/decisions/0004-retries-cooldowns-circuit-breakers.md
         self.disable_cooldowns = True
         self.enable_health_check_routing = enable_health_check_routing
         self.enable_weighted_failover = enable_weighted_failover
@@ -1177,7 +1177,7 @@ class Router:
     # Removed from this observer-only build. Naming one is a hard config error
     # rather than a silent downgrade to simple-shuffle, because a config asking
     # for latency-based routing and quietly getting something else is worse than
-    # a failed startup. See project_usage/01-weighted-latency-cost-routing.md
+    # a failed startup. See docs/decisions/0001-weighted-latency-cost-routing.md
     _REMOVED_ROUTING_STRATEGIES: Final = (
         "least-busy",
         "latency-based-routing",
@@ -1210,7 +1210,7 @@ class Router:
                 "disable_cooldowns=False was set, but cooldowns cannot be enabled in this build. "
                 "A cooldown makes the proxy refuse to call a provider the client named, so the "
                 "caller gets a proxy error instead of the provider's answer. "
-                "See project_usage/04-retries-cooldowns-circuit-breakers.md"
+                "See docs/decisions/0004-retries-cooldowns-circuit-breakers.md"
             )
         configured: Final = tuple(
             name
@@ -1226,7 +1226,7 @@ class Router:
         raise ValueError(
             f"{', '.join(configured)} configured, but cooldowns are disabled in this build, so the "
             f"setting would have no effect. Remove it. "
-            f"See project_usage/04-retries-cooldowns-circuit-breakers.md"
+            f"See docs/decisions/0004-retries-cooldowns-circuit-breakers.md"
         )
 
     def _reject_configured_fallbacks(
@@ -1243,7 +1243,7 @@ class Router:
         A fallback answers the client from a model it did not ask for, and the
         swap is invisible in the response body. This proxy returns what the
         provider the client named returned, or it returns that provider's error.
-        See project_usage/03-automatic-fallbacks.md
+        See docs/decisions/0003-automatic-fallbacks.md
         """
         configured: Final = tuple(
             name
@@ -1261,7 +1261,7 @@ class Router:
             f"{', '.join(configured)} configured, but fallbacks are disabled in this build. "
             f"A fallback answers the client from a model it never asked for, which changes the "
             f"response. Remove the setting, or let the caller retry against another model itself. "
-            f"See project_usage/03-automatic-fallbacks.md"
+            f"See docs/decisions/0003-automatic-fallbacks.md"
         )
 
     def _reject_duplicate_deployments(self) -> None:
@@ -1272,7 +1272,7 @@ class Router:
         more importantly, a retry re-enters deployment selection and can only
         resolve to the same provider and model it just used. That is what keeps
         a retry a retry rather than a silent provider swap.
-        See project_usage/02-load-balancing.md
+        See docs/decisions/0002-load-balancing.md
         """
         duplicated: Final = tuple(
             (name, len(indices))
@@ -1287,7 +1287,7 @@ class Router:
             f"Several deployments behind one name means the proxy picks which provider serves a "
             f"call, and a retry can land on a different one than the first attempt. "
             f"Give each deployment its own model_name. "
-            f"See project_usage/02-load-balancing.md"
+            f"See docs/decisions/0002-load-balancing.md"
         )
 
     def _validate_routing_strategy(self, routing_strategy: RoutingStrategy | str | None) -> None:
@@ -1301,7 +1301,7 @@ class Router:
                 f"routing_strategy '{normalized}' was removed from this build. "
                 f"This proxy forwards each request to the endpoint the client named and "
                 f"does not choose between deployments. Valid options: {valid_strategy_strings}. "
-                f"See project_usage/01-weighted-latency-cost-routing.md to restore it."
+                f"See docs/decisions/0001-weighted-latency-cost-routing.md to restore it."
             )
         if normalized not in valid_strategy_strings:
             raise ValueError(
@@ -1326,7 +1326,7 @@ class Router:
         # latency-based, cost-based) was removed, so there is never a selector to
         # build. `_validate_routing_strategy` rejects those names up front, so
         # reaching here means the strategy needs no selector.
-        # See project_usage/01-weighted-latency-cost-routing.md
+        # See docs/decisions/0001-weighted-latency-cost-routing.md
         return None
 
     def _unregister_router_selectors(self, selectors: Sequence[object]) -> None:
@@ -1630,7 +1630,7 @@ class Router:
         if selector is None:
             return None
         # Observer-only build: no scored strategy survives, so there is no
-        # deployment to select. See project_usage/01-weighted-latency-cost-routing.md
+        # deployment to select. See docs/decisions/0001-weighted-latency-cost-routing.md
         return None
 
     def _select_deployment_sync(
@@ -8703,7 +8703,7 @@ class Router:
         registers by, so a strategy kind added upstream is refused by default
         rather than silently admitted.
 
-        See project_usage/12-pre-routing-model-substitution.md
+        See docs/decisions/0012-pre-routing-model-substitution.md
         """
         kind: Final = classify_strategy_router_model(deployment.litellm_params.model)
         if kind is None:
@@ -8713,7 +8713,7 @@ class Router:
             f"Deployment '{deployment.model_name}' is {label}, which is disabled in this "
             f"build. It picks the model from the request, so the caller would be answered by "
             f"a model it never asked for. Point this model_name at a provider model instead. "
-            f"See project_usage/12-pre-routing-model-substitution.md"
+            f"See docs/decisions/0012-pre-routing-model-substitution.md"
         )
 
     def _is_auto_router_deployment(self, litellm_params: LiteLLM_Params) -> bool:

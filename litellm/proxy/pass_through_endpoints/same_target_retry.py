@@ -6,7 +6,7 @@ gateway re-sends the identical bytes to the same endpoint. It never changes the
 URL, the body, the headers, the model or the provider, so a retry is invisible in
 the response except for having taken longer.
 
-See project_usage/13-same-target-passthrough-retry.md
+See docs/decisions/0013-same-target-passthrough-retry.md
 """
 
 from __future__ import annotations

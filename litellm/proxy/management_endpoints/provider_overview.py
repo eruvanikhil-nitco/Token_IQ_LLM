@@ -14,7 +14,7 @@ Usage comes from `LiteLLM_DailyUserSpend`, which already carries `custom_llm_pro
 `api_requests` and `spend`, so a provider rollup is a group-by rather than a scan of raw
 spend logs.
 
-See project_usage/16-providers-tab.md
+See docs/decisions/0016-providers-tab.md
 """
 
 from __future__ import annotations

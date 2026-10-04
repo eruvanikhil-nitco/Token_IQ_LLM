@@ -15,7 +15,7 @@ local pricing row exists. Whether the *provider* will report a cost is unknowabl
 request is actually made, so a model with no local row is reported as exactly that rather
 than as "free". Recording what actually happened belongs on the spend log, not here.
 
-See project_usage/15-provider-model-discovery.md
+See docs/decisions/0015-provider-model-discovery.md
 """
 
 from __future__ import annotations

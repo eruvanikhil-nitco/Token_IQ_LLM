@@ -5087,7 +5087,7 @@ class ProxyConfig:
                         "this build. A cache hit answers the caller without reaching the provider, "
                         "so the response was never generated for that request and the spend log "
                         "would describe a call that never happened. Remove the setting. "
-                        "See project_usage/05-response-caching.md"
+                        "See docs/decisions/0005-response-caching.md"
                     )
                     print(f"{blue_color_code}\nSetting Cache on Proxy")  # noqa: T201
                     from litellm.caching.caching import Cache

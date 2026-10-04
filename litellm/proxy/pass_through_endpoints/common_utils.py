@@ -34,7 +34,7 @@ def assert_passthrough_body_fidelity(managed_files_hook: CustomLogger | None) ->
     both directions, so this build refuses to run with it registered rather than
     relying on the hook happening to be unavailable.
 
-    See project_usage/09-passthrough-body-fidelity.md
+    See docs/decisions/0009-passthrough-body-fidelity.md
     """
     if managed_files_hook is None:
         return
@@ -43,5 +43,5 @@ def assert_passthrough_body_fidelity(managed_files_hook: CustomLogger | None) ->
         "request and response bodies unchanged. That hook enables the managed-id "
         "rewriter, which swaps provider IDs out of response bodies on files, batches "
         "and responses routes, and rejects inbound IDs it did not mint. "
-        "Remove the hook. See project_usage/09-passthrough-body-fidelity.md"
+        "Remove the hook. See docs/decisions/0009-passthrough-body-fidelity.md"
     )
