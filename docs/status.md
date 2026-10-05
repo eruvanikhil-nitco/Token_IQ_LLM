@@ -379,3 +379,50 @@ is what actually fails a stale base.
 
 Named on 4 Oct 2026, recorded above with what each costs: prices, security advisories and
 provider API changes are all Nikhil Eruva, with provider API changes the first to delegate.
+
+## Phase 2 Task 9: the proof, and what it found
+
+### The network proof
+
+With every outbound socket blocked, the package imports and 3,559 models price, the
+Anthropic beta headers load, the auto-router presets and provider endpoint support load,
+and the price history loads. **Zero outbound connections attempted.** Phase 2's central
+claim holds: an installation behind a firewall behaves exactly as one with open egress.
+
+The container run with restricted networking is still outstanding, because the Docker
+daemon does not run on this machine. The socket-level proof is the stronger of the two for
+the question being asked, but it is not the same as the container check the plan asked for.
+
+### The search
+
+Clean across product code, deployment files and documentation. What remains is `cookbook/`
+(phase 5 deletes it), test fixtures that deliberately contain the patterns, the attribution
+in `README.md` and `NOTICE` that the licence requires, and the documents describing this
+removal.
+
+### Three defects the proof found
+
+**The price file would not have shipped.** `data/pricing/model_prices.json` sits outside the
+Python package, and nothing added it to the wheel's include list. Every test passed from a
+source checkout because the file is right there; an installed wheel would have had no price
+list at all and every cost the product reports would have been missing. Fixed, with a test
+that reads `pyproject.toml` and fails if `data/` stops being packaged.
+
+**`provider_endpoints_support.json` had already diverged.** Two copies, and the proxy served
+the smaller one: 149 providers against the maintained 176, so customers saw a list 27
+providers stale. The same two-copy pattern the price consolidation was meant to end, caught
+here only because the search counted its upstream URLs. Now one file, inside the package the
+loader reads, with 209 upstream links stripped from it.
+
+**Task 6's rewriter left dangling connector words.** Removing `: <url>` from a message left
+the label behind, so thirteen places raised `"No DB Connected. See"` and others ended in
+`Learn more` or `Docs` with nothing following. The file still parsed and the message still
+rendered, which is why nothing failed. All repaired.
+
+### A flaky test, not a regression
+
+The baseline comparison reported one newly failing test on each of two runs, and a
+*different* test each time. Both pass repeatedly in isolation. The proxy suite has tests
+that fail intermittently under `-n 4`, so a single newly-failing result from a parallel run
+needs re-running before it is believed. Nothing disappeared on either run, which is the
+check that matters most.

@@ -275,6 +275,10 @@ editable-profile = "dev"
 include = [
     "litellm/proxy/_experimental/out/**",
     "litellm/router_strategy/complexity_router/artifacts/*.json",
+    # Prices and their history live outside the Python package, so they ship only because
+    # they are named here. Without this the wheel installs with no price list and every
+    # cost the product reports is missing.
+    "data/pricing/**",
 ]
 exclude = [
     "**/__pycache__",

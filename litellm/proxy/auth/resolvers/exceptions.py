@@ -11,7 +11,7 @@ class IdentityResolutionError(Exception):
 
 class NoDatabaseConnectionError(IdentityResolutionError):
     def __init__(self) -> None:
-        super().__init__("No DB Connected. See")
+        super().__init__("No database connected")
 
 
 class KeyNotInCacheError(IdentityResolutionError):

@@ -41,7 +41,6 @@ class TestCustomAuthCommonChecksWarning:
         )
         assert warning is not None
         assert "custom_auth_run_common_checks: true" in warning
-        assert "https://docs.litellm.ai/docs/proxy/custom_auth" in warning
 
     def test_no_warning_when_common_checks_enabled(self):
         assert (

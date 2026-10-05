@@ -39,7 +39,7 @@ class CredentialsRepository:
     @property
     def prisma_client(self) -> _PrismaClientView:
         if self._prisma_client is None:
-            raise RuntimeError("No DB Connected. See")
+            raise RuntimeError("No database connected")
         client: Final[_PrismaClientView] = self._prisma_client
         return client
 

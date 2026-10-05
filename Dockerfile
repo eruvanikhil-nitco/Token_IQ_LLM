@@ -105,7 +105,6 @@ USER root
 # The base image only configures Chainguard's authenticated apk repo, which
 # requires an enterprise subscription. Add the public Wolfi repo so `apk add`
 # also works for anyone installing extra packages into a running container.
-# https://github.com/BerriAI/litellm/issues/33518
 RUN echo "https://packages.wolfi.dev/os" >> /etc/apk/repositories
 
 # node (without npm) is required by the prisma CLI at runtime

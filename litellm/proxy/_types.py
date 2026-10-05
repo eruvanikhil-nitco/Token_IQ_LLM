@@ -2461,7 +2461,7 @@ class ConfigGeneralSettings(LiteLLMPydanticObjectBase):
         description=(
             "Prisma `socket_timeout` URL param (seconds). When set, an in-flight "
             "operation that has not produced data within this window is aborted. "
-            "For capping how long idle pooled connections are kept, see "
+            "For capping how long idle pooled connections are kept, "
             "`database_max_idle_connection_lifetime`."
         ),
     )
@@ -2624,7 +2624,7 @@ class ConfigGeneralSettings(LiteLLMPydanticObjectBase):
     )
     pass_through_endpoints: list[PassThroughGenericEndpoint] | None = Field(
         default=None,
-        description="Set-up pass-through endpoints for provider-specific endpoints. Docs",
+        description="Set-up pass-through endpoints for provider-specific endpoints.",
     )
     user_header_name: str | None = Field(
         None,

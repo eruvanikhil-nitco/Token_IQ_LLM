@@ -180,3 +180,32 @@ class TestPriceAsOf:
 
         got = price_as_of("not-a-real-model", "input_cost_per_token", date(2026, 5, 1), history=PriceHistory(()))
         assert got is None
+
+
+class TestTheBundledFilesAreActuallyPackaged:
+    """A data file outside the Python package does not ship unless packaging says so.
+
+    The price file moved to data/pricing/ and nothing added it to the wheel's include list,
+    so an installed package would have had no prices at all. Everything passes from a source
+    checkout, because the file is right there.
+    """
+
+    def test_the_pricing_directory_is_in_the_wheel(self) -> None:
+        import tomllib
+        import pathlib as _pathlib
+
+        repo = _pathlib.Path(__file__).resolve().parents[3]
+        config = tomllib.loads((repo / "pyproject.toml").read_text(encoding="utf-8"))
+        include = config.get("tool", {}).get("maturin", {}).get("include", [])
+        assert any(
+            entry.startswith("data/") for entry in include
+        ), f"data/ is not packaged; the wheel would ship without prices. include = {include}"
+
+    def test_the_price_path_resolves_relative_to_the_package_root(self) -> None:
+        """It must land beside the installed package, not at a path only a checkout has."""
+        from litellm.litellm_core_utils.get_model_cost_map import PRICES_PATH
+        import litellm as _litellm
+        import pathlib as _pathlib
+
+        package_root = _pathlib.Path(_litellm.__file__).resolve().parent.parent
+        assert PRICES_PATH.is_relative_to(package_root), f"{PRICES_PATH} is outside {package_root}"

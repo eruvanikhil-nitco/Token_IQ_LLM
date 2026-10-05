@@ -339,7 +339,7 @@ def _map_openai_exception(
             "     enable_pre_call_checks: true\n"
             "     optional_pre_call_checks:\n"
             "       - encrypted_content_affinity\n\n"
-            " Learn more"
+            ""
         )
         raise BadRequestError(
             message=helpful_message,
@@ -1980,7 +1980,7 @@ def _map_azure_exception(
             "     enable_pre_call_checks: true\n"
             "     optional_pre_call_checks:\n"
             "       - encrypted_content_affinity\n\n"
-            " Learn more"
+            ""
         )
         raise BadRequestError(
             message=helpful_message,

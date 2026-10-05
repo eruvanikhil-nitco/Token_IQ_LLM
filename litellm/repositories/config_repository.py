@@ -69,7 +69,7 @@ class ConfigRepository:
     @property
     def prisma_client(self) -> _PrismaHandle:
         if self._prisma_client is None:
-            raise RuntimeError("No DB Connected. See")
+            raise RuntimeError("No database connected")
         return self._prisma_client
 
     @property

@@ -24,7 +24,7 @@ Here are the core requirements for any PR submitted to LiteLLM:
 
 ## **Contributor License Agreement (CLA)**
 
-Before contributing code to LiteLLM, you must sign our [Contributor License Agreement (CLA)](https://cla-assistant.io/BerriAI/litellm). This is a legal requirement for all contributions to be merged into the main repository.
+Token IQ has no contributor licence agreement. Contributions are made under the repository's MIT licence.
 
 **Important:** We strongly recommend reviewing and signing the CLA before starting work on your contribution to avoid any delays in the PR process.
 
@@ -33,9 +33,8 @@ Before contributing code to LiteLLM, you must sign our [Contributor License Agre
 ### 1. Setup Your Local Development Environment
 
 ```bash
-# Fork the repository on GitHub (click the Fork button at https://github.com/BerriAI/litellm)
-# Then clone your fork locally
-git clone https://github.com/YOUR_USERNAME/litellm.git
+# Clone the repository
+git clone <your Token IQ remote>
 cd litellm
 
 # Create a new branch for your feature (see "Commit and Branch Conventions" below)
@@ -88,7 +87,7 @@ git push origin feature/your-feature
 
 ### Where to Add Tests
 
-Add your tests to the [`tests/test_litellm/` directory](https://github.com/BerriAI/litellm/tree/main/tests/test_litellm).
+Add your tests under `tests/test_litellm/`, mirroring the module you changed.
 
 - This directory mirrors the structure of the `litellm/` directory
 - **Only add mocked tests** - no real LLM API calls in this directory
@@ -318,7 +317,7 @@ npm run build
 ## Submitting Your PR
 
 1. **Push your branch**: `git push origin your-feature-branch`
-2. **Create a PR**: Go to GitHub and open a pull request against [`litellm_internal_staging`](https://github.com/BerriAI/litellm/tree/litellm_internal_staging), which is the default base branch. Do not target `main`.
+2. **Create a PR**: open it against `litellm_token_iq`, which is the long-lived branch. Never target `main`, which is stale.
 3. **Fill out the PR template**: Provide clear description of changes
 4. **Wait for review**: Maintainers will review and provide feedback
 5. **Address feedback**: Make requested changes and push updates
@@ -329,14 +328,11 @@ npm run build
 If you need help:
 
 - 💬 [Join our Discord](https://discord.gg/wuPM9dRgDw)
-- 🐛 [Create an issue](https://github.com/BerriAI/litellm/issues/new)
 
 ## What to Contribute
 
 Looking for ideas? Check out:
 
-- 🐛 [Good first issues](https://github.com/BerriAI/litellm/labels/good%20first%20issue)
-- 🚀 [Feature requests](https://github.com/BerriAI/litellm/labels/enhancement)
 - 📚 Documentation improvements
 - 🧪 Test coverage improvements
 - 🔌 New LLM provider integrations

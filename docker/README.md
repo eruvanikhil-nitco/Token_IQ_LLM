@@ -81,7 +81,7 @@ This setup:
 You should also verify offline Prisma behaviour with:
 
 ```bash
-docker run --rm --network none --entrypoint prisma ghcr.io/berriai/litellm:main-stable --version
+docker run --rm --network none --entrypoint prisma <your Token IQ image> --version
 ```
 
 This command should succeed (showing engine versions) even with `--network none`, confirming that Prisma binaries are available without network access.
