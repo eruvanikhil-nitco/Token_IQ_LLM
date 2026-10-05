@@ -40,6 +40,10 @@ class SuiteRun:
     workers: int = 0
     """xdist workers used, 0 for serial. Per suite, because suites are captured one at a
     time and resumed across sessions, so one artifact can legitimately hold both."""
+    collection_errors: int = 0
+    """Files pytest could not import. Recorded because the cases they hold are absent from
+    the report rather than failing in it, so a file that stops collecting looks exactly like
+    a file that was deleted on purpose."""
 
 
 @dataclasses.dataclass(frozen=True, slots=True)
@@ -70,6 +74,7 @@ class Drift:
     still_failing: tuple[str, ...]
     disappeared: tuple[str, ...]
     appeared: tuple[str, ...]
+    newly_uncollectable: tuple[str, ...]
 
 
 def _keyed(baseline: Baseline) -> Mapping[str, Outcome]:
@@ -87,6 +92,21 @@ def compare(before: Baseline, after: Baseline) -> Drift:
         still_failing=tuple(sorted(k for k in shared if old[k] in FAILING and new[k] in FAILING)),
         disappeared=tuple(sorted(frozenset(old) - frozenset(new))),
         appeared=tuple(sorted(frozenset(new) - frozenset(old))),
+        newly_uncollectable=_more_uncollectable(before, after),
+    )
+
+
+def _more_uncollectable(before: Baseline, after: Baseline) -> tuple[str, ...]:
+    """Suites where more files stopped collecting than before.
+
+    Counted rather than named, because junit reports a collection error against the file and
+    the comparison is about whether coverage shrank, not about which file it was.
+    """
+    was: Final = {suite.name: suite.collection_errors for suite in before.suites}
+    return tuple(
+        f"{suite.name}: {was[suite.name]} to {suite.collection_errors}"
+        for suite in after.suites
+        if suite.name in was and suite.collection_errors > was[suite.name]
     )
 
 
@@ -97,11 +117,35 @@ def _nodeid(classname: str, name: str) -> str:
     segment is a class when it starts with an upper-case letter, which is the convention
     pytest collection already relies on.
     """
+    if not classname:
+        # A collection error: pytest leaves classname empty and puts the dotted module path of
+        # the file it could not import in `name`. Splitting the empty classname would give the
+        # nodeid ".py::<name>", which is what the phase 0 baseline recorded 31 times.
+        return f"{name.replace('.', '/')}.py"
     parts: Final = classname.split(".")
     has_class: Final = len(parts) > 1 and parts[-1][:1].isupper()
     module: Final = "/".join(parts[:-1] if has_class else parts)
     suffix: Final = f"::{parts[-1]}::{name}" if has_class else f"::{name}"
     return f"{module}.py{suffix}"
+
+
+def count_collection_errors(xml_text: str) -> int:
+    """How many files pytest could not import.
+
+    pytest writes a collection error as a testcase with an empty `classname`, the dotted module
+    path as its `name`, and an `error` child. A test that errors inside a fixture also gets an
+    `error` child but keeps its classname, so the empty classname is what separates "this file
+    did not load" from "this test went wrong".
+    """
+    try:
+        root: Final = ElementTree.fromstring(xml_text)
+    except ElementTree.ParseError:
+        return 0
+    return sum(
+        1
+        for case in root.iter("testcase")
+        if not case.get("classname") and case.find("error") is not None
+    )
 
 
 def parse_junit(xml_text: str) -> tuple[CaseOutcome, ...]:
@@ -141,6 +185,7 @@ def from_json(text: str) -> Baseline:
                 name=s["name"],
                 outcomes=tuple(CaseOutcome(**o) for o in s["outcomes"]),
                 workers=s.get("workers", 0),
+                collection_errors=s.get("collection_errors", 0),
             )
             for s in raw["suites"]
         ),
@@ -175,12 +220,36 @@ def capture_suite(
     # on the artifact says which was used, since a baseline that does not say how it was
     # produced cannot be reproduced.
     parallel: Final = ("-n", str(workers)) if workers > 0 else ()
-    _run((sys.executable, "-m", "pytest", *paths, "-q", f"--junitxml={report}", "-p", "no:randomly", *parallel), repo)
+    # --continue-on-collection-errors: without it one unimportable file interrupts collection
+    # and every case after it is simply absent from the report, which later reads as those
+    # tests having been deleted. With it, the file is recorded as an error and the rest are
+    # still collected.
+    _run(
+        (
+            sys.executable,
+            "-m",
+            "pytest",
+            *paths,
+            "-q",
+            f"--junitxml={report}",
+            "-p",
+            "no:randomly",
+            "--continue-on-collection-errors",
+            *parallel,
+        ),
+        repo,
+    )
     if not report.exists():
         # Collection died before pytest could write anything. An empty suite would later read
         # as every test in it having vanished, so say so instead.
         raise RuntimeError(f"suite {name!r} produced no junit report; its collection failed")
-    return SuiteRun(name=name, outcomes=parse_junit(report.read_text(encoding="utf-8")), workers=workers)
+    text: Final = report.read_text(encoding="utf-8")
+    return SuiteRun(
+        name=name,
+        outcomes=parse_junit(text),
+        workers=workers,
+        collection_errors=count_collection_errors(text),
+    )
 
 
 def capture_command(name: str, command: tuple[str, ...], repo: pathlib.Path) -> CommandRun:

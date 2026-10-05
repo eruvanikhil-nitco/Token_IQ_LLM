@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
+import dataclasses
+import json
+import pathlib
 from typing import Final
 
 import pytest
 
-from scripts.inventory.baseline import Baseline, SuiteRun, CaseOutcome, as_json, compare, from_json, parse_junit
+from scripts.inventory.baseline import Baseline, SuiteRun, CaseOutcome, as_json, compare, count_collection_errors, from_json, parse_junit
+
+REPO: Final = pathlib.Path(__file__).resolve().parents[2]
 
 
 def _baseline(*outcomes: tuple[str, str]) -> Baseline:
@@ -178,3 +183,110 @@ class TestWorkersAreRecordedPerSuite:
             commands=(),
         )
         assert from_json(as_json(baseline)).suites[0].workers == 4
+
+
+class TestCollectionErrorsAreRecorded:
+    """A suite whose collection was interrupted writes a smaller report, not no report.
+
+    This is what went wrong in phase 0. `capture_suite` guards against collection dying
+    outright, because then pytest writes nothing at all. It did not guard against pytest
+    stopping partway: an unimportable file interrupts collection, the report is written with
+    the cases gathered so far, and the rest are simply absent. The phase 0 baseline recorded
+    372 cases under the Token IQ directories where a direct run collects 468, and nothing
+    said so. Later that reads as 96 tests having vanished in whatever phase next compares.
+    """
+
+    def test_the_capture_tolerates_a_file_it_cannot_import(self) -> None:
+        """Otherwise one bad file silently truncates everything collected after it."""
+        # The quoted form, not the bare word: the comment explaining the flag also contains it,
+        # so searching for the text passes whether or not the argument is actually passed.
+        source: Final = (REPO / "scripts" / "inventory" / "baseline.py").read_text(encoding="utf-8")
+        assert '"--continue-on-collection-errors"' in source, (
+            "capture_suite stops at the first collection error, so every case after it is "
+            "recorded as absent rather than as a problem with that file"
+        )
+
+    def test_a_suite_records_how_many_files_failed_to_collect(self) -> None:
+        run: Final = SuiteRun(name="s", outcomes=(), collection_errors=3)
+        assert run.collection_errors == 3
+
+    def test_collection_errors_default_to_zero_so_old_artifacts_still_load(self) -> None:
+        """The committed phase 0 baseline predates the field."""
+        restored: Final = from_json(
+            json.dumps(
+                {
+                    "commit": "c",
+                    "python": "3.12",
+                    "platform": "p",
+                    "captured_at": "t",
+                    "parallel": False,
+                    "suites": [{"name": "s", "outcomes": []}],
+                    "commands": [],
+                }
+            )
+        )
+        assert restored.suites[0].collection_errors == 0
+
+    def test_more_files_failing_to_collect_is_reported_as_drift(self) -> None:
+        """Without this a suite can lose a whole file and read as unchanged, because the
+        cases it held are absent from both sides of the comparison rather than failing."""
+        before: Final = Baseline(
+            commit="a", python="3.12", platform="p", captured_at="t", parallel=False,
+            suites=(SuiteRun(name="s", outcomes=(CaseOutcome("t.py::one", "passed"),), collection_errors=0),),
+            commands=(),
+        )
+        after: Final = dataclasses.replace(
+            before,
+            suites=(SuiteRun(name="s", outcomes=(CaseOutcome("t.py::one", "passed"),), collection_errors=2),),
+        )
+        assert compare(before, after).newly_uncollectable == ("s: 0 to 2",)
+
+    def test_the_same_number_failing_to_collect_is_not_drift(self) -> None:
+        before: Final = Baseline(
+            commit="a", python="3.12", platform="p", captured_at="t", parallel=False,
+            suites=(SuiteRun(name="s", outcomes=(), collection_errors=2),),
+            commands=(),
+        )
+        assert compare(before, before).newly_uncollectable == ()
+
+
+class TestCountingCollectionErrors:
+    """Taken from a real junit report, not from how junit is assumed to look."""
+
+    COLLECTION_ERROR: Final = """<?xml version="1.0" encoding="utf-8"?>
+    <testsuites><testsuite name="pytest" errors="1" failures="0" skipped="0" tests="11">
+      <testcase classname="" name="tests.test_litellm.test_broken" time="0.0">
+        <error message="collection failure">FileNotFoundError</error>
+      </testcase>
+      <testcase classname="tests.test_litellm.ledger.test_reconciliation" name="test_one" time="0.0"/>
+    </testsuite></testsuites>"""
+
+    FIXTURE_ERROR: Final = """<?xml version="1.0" encoding="utf-8"?>
+    <testsuites><testsuite name="pytest" errors="1" failures="0" skipped="0" tests="1">
+      <testcase classname="tests.test_litellm.test_a" name="test_one" time="0.0">
+        <error message="fixture blew up">RuntimeError</error>
+      </testcase>
+    </testsuite></testsuites>"""
+
+    def test_a_file_that_would_not_import_is_counted(self) -> None:
+        assert count_collection_errors(self.COLLECTION_ERROR) == 1
+
+    def test_a_test_erroring_in_a_fixture_is_not_counted(self) -> None:
+        """It is a failing test, not a lost file, and the comparison already reports it."""
+        assert count_collection_errors(self.FIXTURE_ERROR) == 0
+
+    def test_a_report_it_cannot_parse_counts_nothing_rather_than_raising(self) -> None:
+        assert count_collection_errors("not xml") == 0
+
+    def test_the_collectable_cases_are_still_parsed_alongside_the_error(self) -> None:
+        """The point of tolerating the error is keeping everything collected after it."""
+        assert parse_junit(self.COLLECTION_ERROR) == (
+            CaseOutcome("tests/test_litellm/test_broken.py", "error"),
+            CaseOutcome("tests/test_litellm/ledger/test_reconciliation.py::test_one", "passed"),
+        )
+
+    def test_a_collection_error_is_named_after_the_file_not_turned_into_a_py_nodeid(self) -> None:
+        """The committed phase 0 baseline holds 31 cases whose nodeid is `.py::<module>`, which
+        names no file and matches nothing on either side of a comparison."""
+        nodeids: Final = tuple(case.nodeid for case in parse_junit(self.COLLECTION_ERROR))
+        assert not any(n.startswith(".py") for n in nodeids), nodeids
