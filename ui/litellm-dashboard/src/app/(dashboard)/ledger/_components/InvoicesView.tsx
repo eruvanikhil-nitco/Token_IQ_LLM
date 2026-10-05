@@ -108,7 +108,8 @@ export default function InvoicesView({ provider, periodStart, periodEnd }: Invoi
 
       {!isLoading && (data?.invoices.length ?? 0) === 0 && (
         <p className="text-sm text-muted-foreground">
-          No bills entered yet, so nothing can be reconciled against the ledger.
+          No bills entered yet, so nothing can be reconciled against the ledger. Enter the first one in the form
+          above, as the provider wrote it.
         </p>
       )}
 

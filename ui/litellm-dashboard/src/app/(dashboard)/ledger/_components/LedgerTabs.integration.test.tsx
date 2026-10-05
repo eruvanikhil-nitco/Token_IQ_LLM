@@ -50,10 +50,23 @@ const SAVED_INVOICE = {
   note: null,
 } as const;
 
+const NOTHING_TO_COMPARE = {
+  provider: "openrouter",
+  outcome: "no_invoice",
+  note: "No bill entered for this period yet, so there is nothing to compare the ledger against.",
+  currency: "USD",
+  invoice_total: null,
+  ledger_total: null,
+  unexplained: "0",
+  explained: [],
+  explained_total: "0",
+} as const;
+
 const linesCall = vi.fn();
 const invoicesCall = vi.fn();
 const upsertCall = vi.fn();
 const deleteCall = vi.fn();
+const reconciliationCall = vi.fn();
 
 vi.mock("@/components/networking", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/components/networking")>()),
@@ -61,6 +74,7 @@ vi.mock("@/components/networking", async (importOriginal) => ({
   invoicesCall: (...args: unknown[]) => invoicesCall(...args),
   upsertInvoiceCall: (...args: unknown[]) => upsertCall(...args),
   deleteInvoiceCall: (...args: unknown[]) => deleteCall(...args),
+  reconciliationCall: (...args: unknown[]) => reconciliationCall(...args),
 }));
 
 vi.mock("@/app/(dashboard)/hooks/useAuthorized", () => ({
@@ -82,6 +96,7 @@ describe("LedgerTabs", () => {
     linesCall.mockResolvedValue(LINES);
     invoicesCall.mockResolvedValue(NO_INVOICES);
     upsertCall.mockResolvedValue(SAVED_INVOICE);
+    reconciliationCall.mockResolvedValue(NOTHING_TO_COMPARE);
   });
 
   it("shows a ledger line with its amount, evidence and owner", async () => {
@@ -173,5 +188,17 @@ describe("LedgerTabs", () => {
     await user.click(await screen.findByRole("option", { name: "Anthropic" }));
     await screen.findByText("$0.00774700");
     expect(linesCall).toHaveBeenLastCalledWith("sk-test", "anthropic", expect.any(String), expect.any(String));
+  });
+
+  it("takes the reader from the reconciliation dead end to the form that fills it", async () => {
+    // The empty state used to say "No bill entered" and stop. The form sits in another tab, so the
+    // way out has to move the reader there rather than naming a place for them to go and find.
+    const user = userEvent.setup();
+    renderTabs();
+
+    await user.click(screen.getByRole("tab", { name: "Bill Reconciliation" }));
+    await user.click(await screen.findByRole("button", { name: "Enter this bill" }));
+
+    expect(await screen.findByRole("tab", { name: "Invoices", selected: true })).toBeInTheDocument();
   });
 });

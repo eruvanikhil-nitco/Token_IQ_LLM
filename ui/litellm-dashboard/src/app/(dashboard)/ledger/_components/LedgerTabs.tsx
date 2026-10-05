@@ -22,6 +22,8 @@ const defaultPeriod = (): { start: string; end: string } => {
 export default function LedgerTabs() {
   const period = defaultPeriod();
   const [provider, setProvider] = useState<string>(BILLING_PROVIDERS[0].value);
+  // Controlled, so an empty state can move the reader to the tab that fills it.
+  const [tab, setTab] = useState("ledger");
   const [periodStart, setPeriodStart] = useState(period.start);
   const [periodEnd, setPeriodEnd] = useState(period.end);
 
@@ -69,7 +71,7 @@ export default function LedgerTabs() {
         </label>
       </div>
 
-      <Tabs defaultValue="ledger">
+      <Tabs value={tab} onValueChange={(next) => next !== null && setTab(next)}>
         <TabsList>
           <TabsTrigger value="ledger">Cost Ledger</TabsTrigger>
           <TabsTrigger value="reconciliation">Bill Reconciliation</TabsTrigger>
@@ -81,7 +83,12 @@ export default function LedgerTabs() {
           <CostLedgerView provider={provider} periodStart={periodStart} periodEnd={periodEnd} />
         </TabsContent>
         <TabsContent value="reconciliation" className="pt-6" keepMounted>
-          <BillReconciliationView provider={provider} periodStart={periodStart} periodEnd={periodEnd} />
+          <BillReconciliationView
+            provider={provider}
+            periodStart={periodStart}
+            periodEnd={periodEnd}
+            onEnterBill={() => setTab("invoices")}
+          />
         </TabsContent>
         <TabsContent value="invoices" className="pt-6" keepMounted>
           <InvoicesView provider={provider} periodStart={periodStart} periodEnd={periodEnd} />

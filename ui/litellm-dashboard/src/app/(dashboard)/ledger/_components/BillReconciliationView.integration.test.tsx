@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import BillReconciliationView from "./BillReconciliationView";
@@ -72,11 +73,16 @@ vi.mock("@/app/(dashboard)/hooks/useAuthorized", () => ({
   default: () => ({ accessToken: "sk-test", userRole: "proxy_admin" }),
 }));
 
-const renderView = () => {
+const renderView = (extra: { onEnterBill?: () => void } = {}) => {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={client}>
-      <BillReconciliationView provider="openrouter" periodStart="2026-09-01" periodEnd="2026-09-30" />
+      <BillReconciliationView
+        provider="openrouter"
+        periodStart="2026-09-01"
+        periodEnd="2026-09-30"
+        {...extra}
+      />
     </QueryClientProvider>,
   );
 };
@@ -171,5 +177,25 @@ describe("BillReconciliationView", () => {
     for (const digits of [2, 4, 6, 8]) {
       expect(screen.queryByText(new RegExp(sum.toFixed(digits).replace(".", "\.")))).not.toBeInTheDocument();
     }
+  });
+
+  it("offers the way out when no bill has been entered", async () => {
+    // "No bill entered" used to be the whole message, with the form that fixes it in another tab.
+    // A dead end that names no way out is worse than an error, because nothing is obviously broken.
+    const onEnterBill = vi.fn();
+    reconciliationCall.mockResolvedValue(NO_INVOICE);
+    renderView({ onEnterBill });
+
+    const action = await screen.findByRole("button", { name: "Enter this bill" });
+    await userEvent.click(action);
+    expect(onEnterBill).toHaveBeenCalledOnce();
+  });
+
+  it("offers no such action when a bill is already there", async () => {
+    reconciliationCall.mockResolvedValue(BALANCED);
+    renderView({ onEnterBill: vi.fn() });
+    await screen.findByText("The bill says");
+
+    expect(screen.queryByRole("button", { name: "Enter this bill" })).not.toBeInTheDocument();
   });
 });

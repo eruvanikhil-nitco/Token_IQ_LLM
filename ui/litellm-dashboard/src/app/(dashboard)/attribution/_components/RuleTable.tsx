@@ -98,7 +98,8 @@ export default function RuleTable({ provider }: RuleTableProps) {
 
       {!isLoading && rules.length === 0 && (
         <p className="text-sm text-muted-foreground">
-          No rules for this provider yet, so all of its unmatched spend is unassigned.
+          No rules for this provider yet, so all of its unmatched spend is unassigned. Add the first rule in the
+          form above to start assigning it.
         </p>
       )}
 
