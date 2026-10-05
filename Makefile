@@ -118,9 +118,11 @@ install-hooks:
 # formatter and the import sorter so there's no 88-vs-120 split to reconcile.
 format: install-dev
 	cd litellm && $(UV_RUN) ruff format --exclude '/enterprise/' . && cd ..
+	@if [ -d token_iq ]; then $(UV_RUN) ruff format token_iq; fi
 
 format-check: install-dev
 	cd litellm && $(UV_RUN) ruff format --check --exclude '/enterprise/' . && cd ..
+	@if [ -d token_iq ]; then $(UV_RUN) ruff format --check token_iq; fi
 
 # Single fetch of the PR base so the delta-based gates below share one network round
 # trip instead of each re-fetching when chained from `lint`.
@@ -152,6 +154,7 @@ lint-format-check-changed: $(LINT_DEP_INSTALL) $(LINT_DEP_BASE)
 # Linting targets
 lint-ruff: $(LINT_DEP_INSTALL)
 	cd litellm && $(UV_RUN) ruff check . && cd ..
+	@if [ -d token_iq ]; then $(UV_RUN) ruff check token_iq; fi
 	$(UV_RUN) ruff check --config ruff-tests.toml tests
 
 # faster linter for developing ...

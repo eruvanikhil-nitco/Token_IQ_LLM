@@ -43,7 +43,8 @@ from typing import Final, NamedTuple
 REPO_ROOT = Path(__file__).resolve().parent.parent
 CHECKER = REPO_ROOT / "scripts" / "check_type_discipline.py"
 BUDGET_PATH = REPO_ROOT / "type-discipline-budget.json"
-TARGET = "litellm"
+# Both paths. See the note in ruff_strict_gate.py.
+TARGETS = ("litellm", "token_iq")
 DEFAULT_BASE = "origin/main"
 
 _HUNK = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@")
@@ -94,7 +95,7 @@ def _check(root: Path, checker: Path) -> list:
     # Resolve root first: on macOS tempfile dirs (/var/...) resolve to /private/var/...,
     # and the checker prints already-resolved absolute paths, so relative_to would fail.
     root = root.resolve()
-    out = _run([sys.executable, str(checker), str(root / TARGET)], cwd=root)
+    out = _run([sys.executable, str(checker), *(str(root / name) for name in TARGETS if (root / name).exists())], cwd=root)
     found = []
     for line in out.splitlines():
         m = _LINE.match(line)
@@ -189,7 +190,7 @@ def cmd_check(base: str) -> None:
     new = introduced(
         head,
         parse_changed_lines(
-            _run(["git", "diff", base_point, "--unified=0", "--no-color", "--", TARGET])
+            _run(["git", "diff", base_point, "--unified=0", "--no-color", "--", *TARGETS])
         ),
     )
     print(f"FAIL: LIT-rule totals exceed their limit (base {base}):")

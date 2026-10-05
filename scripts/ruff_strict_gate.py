@@ -23,7 +23,9 @@ from typing import Final, NamedTuple
 REPO_ROOT = Path(__file__).resolve().parent.parent
 STRICT_CONFIG = REPO_ROOT / "ruff-strict.toml"
 BUDGET_PATH = REPO_ROOT / "ruff-strict-budget.json"
-TARGET = "litellm"
+# Both paths, because Token IQ's code moved out of litellm/ in phase 3 and a gate
+# that scans one of them reports an improvement when violations move to the other.
+TARGETS = ("litellm", "token_iq")
 DEFAULT_BASE = "origin/main"
 
 _HUNK = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@")
@@ -71,7 +73,7 @@ def resolve_base_point(base_ref: str, cwd: Path = REPO_ROOT) -> str:
 
 def _ruff_json(cwd: Path, config: Path) -> list:
     raw = _run(
-        ["ruff", "check", TARGET, "--config", str(config), "--output-format", "json"],
+        ["ruff", "check", *TARGETS, "--config", str(config), "--output-format", "json"],
         cwd=cwd,
     )
     return json.loads(raw or "[]")
@@ -162,7 +164,7 @@ def cmd_check(base: str) -> None:
     new = introduced(
         head,
         parse_changed_lines(
-            _run(["git", "diff", base_point, "--unified=0", "--no-color", "--", TARGET])
+            _run(["git", "diff", base_point, "--unified=0", "--no-color", "--", *TARGETS])
         ),
     )
     print(f"FAIL: strict-rule totals exceed their limit (base {base}):")
