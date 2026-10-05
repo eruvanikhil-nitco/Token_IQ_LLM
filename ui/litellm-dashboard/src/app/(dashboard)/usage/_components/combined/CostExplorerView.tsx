@@ -28,16 +28,20 @@ export default function CostExplorerView({ days }: CostExplorerViewProps) {
           Here the two columns are one group&apos;s spend split by route, so they do add up, and
           saying otherwise would be as wrong as saying it the other way round. */}
       <p className="text-sm text-muted-foreground">
-        Who the spend belongs to, split by how it reached the provider: through this gateway, or outside it
-        and matched back by an attribution rule. For each row those two <strong>do</strong> add up to that
-        group&apos;s spend. Anything that could not be matched to a group is listed separately rather than shared
-        out, so no figure here is an estimate.
+        Who the spend belongs to, split by how it reached the provider: through this gateway, or outside it and matched
+        back by an attribution rule. For each row those two <strong>do</strong> add up to that group&apos;s spend.
+        Anything that could not be matched to a group is listed separately rather than shared out, so no figure here is
+        an estimate.
       </p>
       <div className="flex flex-wrap items-center gap-2">
         <Label htmlFor="explorer-group-by" className="text-muted-foreground">
           Group by
         </Label>
-        <Select items={DIMENSIONS} value={dimension} onValueChange={(next) => next !== null && setDimension(next as ExplorerDimension)}>
+        <Select
+          items={DIMENSIONS}
+          value={dimension}
+          onValueChange={(next) => next !== null && setDimension(next as ExplorerDimension)}
+        >
           <SelectTrigger id="explorer-group-by" aria-label="Group by" className="w-[160px]">
             <SelectValue />
           </SelectTrigger>
@@ -82,7 +86,15 @@ export default function CostExplorerView({ days }: CostExplorerViewProps) {
               {data.slices.map((slice, index) => (
                 <div key={slice.key} className="flex flex-col gap-1.5">
                   <div className="flex items-baseline justify-between gap-4 text-sm">
-                    <span className="truncate font-medium">{slice.key}</span>
+                    <span className="flex min-w-0 items-baseline gap-2">
+                      <span className="truncate font-medium">{slice.name}</span>
+                      {/* The identifier stays on the page: it is what an attribution rule, a
+                          filter or a support question is written against. It is only repeated
+                          when it differs from the name, so an unnamed row does not read twice. */}
+                      {slice.name !== slice.key && (
+                        <span className="truncate text-xs text-muted-foreground">{slice.key}</span>
+                      )}
+                    </span>
                     <span className="whitespace-nowrap text-muted-foreground tabular-nums">
                       {formatTotal(slice.through_gateway)} through, {formatTotal(slice.outside_gateway)} outside
                     </span>
@@ -91,7 +103,7 @@ export default function CostExplorerView({ days }: CostExplorerViewProps) {
                       the provider charged BEYOND what the gateway recorded, so the bar's length is a
                       real total. Stacking the provider figure on the gateway figure would be the
                       double count the counting rule forbids; stacking the excess on it is not. */}
-                  <div className="flex h-3 w-full items-stretch" role="img" aria-label={`${slice.key} spend`}>
+                  <div className="flex h-3 w-full items-stretch" role="img" aria-label={`${slice.name} spend`}>
                     <span
                       className="rounded-l-sm"
                       style={{ width: `${widths[index]?.gateway ?? 0}%`, background: GATEWAY_COLOR }}

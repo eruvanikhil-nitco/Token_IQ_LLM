@@ -8605,6 +8605,7 @@ export interface ComparisonResponse {
 
 export interface ExplorerSlice {
   key: string;
+  name: string;
   through_gateway: string;
   outside_gateway: string;
 }

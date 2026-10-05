@@ -5,6 +5,7 @@ import type { ExplorerSlice } from "@/components/networking";
 
 const slice = (through: string, outside: string, key = "t-1"): ExplorerSlice => ({
   key,
+  name: key,
   through_gateway: through,
   outside_gateway: outside,
 });

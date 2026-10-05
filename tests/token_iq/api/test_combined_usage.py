@@ -178,3 +178,40 @@ def test_every_explorer_amount_crosses_as_a_string() -> None:
     assert isinstance(body.total_through_gateway, str)
     assert isinstance(body.slices[0].outside_gateway, str)
     assert isinstance(body.unallocated_to_a_slice, str)
+
+
+def test_a_slice_crosses_with_the_name_a_person_would_recognise() -> None:
+    named: Final = SpendSlice(key="t-1", gateway_cost=Decimal("4"), label="Platform")
+    body: Final = _explorer("team", (named,), (GAP_10_MINUS_4,), (ACCT_RULE,))
+    assert body.slices[0].name == "Platform"
+
+
+def test_a_slice_keeps_its_identifier_alongside_the_name() -> None:
+    """The name is for reading. The identifier is what a rule, a filter or a link is written
+    against, so replacing one with the other would make the row unusable."""
+    named: Final = SpendSlice(key="t-1", gateway_cost=Decimal("4"), label="Platform")
+    body: Final = _explorer("team", (named,), (GAP_10_MINUS_4,), (ACCT_RULE,))
+    assert body.slices[0].key == "t-1"
+
+
+def test_a_spender_with_no_name_shows_its_identifier_rather_than_vanishing() -> None:
+    body: Final = _explorer("team", (TEAM_SLICE,), (GAP_10_MINUS_4,), (ACCT_RULE,))
+    assert body.slices[0].name == "t-1"
+
+
+def test_naming_a_slice_does_not_move_the_money_that_lands_on_it() -> None:
+    """Outside-gateway spend is matched to a slice by identifier. Matching on the name instead
+    would put a rule's money on the wrong row, or on no row, the moment a team is renamed."""
+    named: Final = SpendSlice(key="t-1", gateway_cost=Decimal("4"), label="Platform")
+    assert _explorer("team", (named,), (GAP_10_MINUS_4,), (ACCT_RULE,)).slices[0].outside_gateway == "6"
+
+
+@pytest.mark.asyncio
+async def test_a_non_admin_cannot_read_the_explorer_and_so_cannot_learn_other_teams_names() -> None:
+    """The explorer now carries team and user names, not only identifiers, so the guard on this
+    route is what stops a member reading the names of teams they are not in."""
+    from token_iq.api.combined_usage import combined_explorer
+
+    with pytest.raises(HTTPException) as caught:
+        await combined_explorer(dimension="team", days=7, user_api_key_dict=MEMBER)
+    assert caught.value.status_code == 403

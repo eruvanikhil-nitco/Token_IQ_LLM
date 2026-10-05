@@ -26035,7 +26035,7 @@ export interface components {
             database_max_idle_connection_lifetime: number | null;
             /**
              * Database Socket Timeout
-             * @description Prisma `socket_timeout` URL param (seconds). When set, an in-flight operation that has not produced data within this window is aborted. For capping how long idle pooled connections are kept, see `database_max_idle_connection_lifetime`.
+             * @description Prisma `socket_timeout` URL param (seconds). When set, an in-flight operation that has not produced data within this window is aborted. For capping how long idle pooled connections are kept, `database_max_idle_connection_lifetime`.
              */
             database_socket_timeout?: number | null;
             /**
@@ -26210,7 +26210,7 @@ export interface components {
             otel?: boolean | null;
             /**
              * Pass Through Endpoints
-             * @description Set-up pass-through endpoints for provider-specific endpoints. Docs
+             * @description Set-up pass-through endpoints for provider-specific endpoints.
              */
             pass_through_endpoints?: components["schemas"]["PassThroughGenericEndpoint"][] | null;
             /**
@@ -27528,6 +27528,8 @@ export interface components {
         ExplorerSlice: {
             /** Key */
             key: string;
+            /** Name */
+            name: string;
             /** Outside Gateway */
             outside_gateway: string;
             /** Through Gateway */
@@ -40262,34 +40264,6 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
-        /** ReconciliationResponse */
-        litellm__types__proxy__management_endpoints__ledger_endpoints__ReconciliationResponse: {
-            /** Currency */
-            currency: string | null;
-            /** Explained */
-            explained: components["schemas"]["AdjustmentBody"][];
-            /** Explained Total */
-            explained_total: string;
-            /** Invoice Total */
-            invoice_total: string | null;
-            /** Ledger Total */
-            ledger_total: string | null;
-            /** Note */
-            note: string;
-            /**
-             * Outcome
-             * @enum {string}
-             */
-            outcome: "balanced" | "unexplained_difference" | "currency_mismatch" | "no_invoice";
-            /** Period End */
-            period_end: string;
-            /** Period Start */
-            period_start: string;
-            /** Provider */
-            provider: string;
-            /** Unexplained */
-            unexplained: string;
-        };
         /**
          * ReconciliationResponse
          * @description What we recorded against what the provider charged, over a window
@@ -40367,6 +40341,34 @@ export interface components {
             updated_by?: string | null;
         } & {
             [key: string]: unknown;
+        };
+        /** ReconciliationResponse */
+        token_iq__api__types__ledger__ReconciliationResponse: {
+            /** Currency */
+            currency: string | null;
+            /** Explained */
+            explained: components["schemas"]["AdjustmentBody"][];
+            /** Explained Total */
+            explained_total: string;
+            /** Invoice Total */
+            invoice_total: string | null;
+            /** Ledger Total */
+            ledger_total: string | null;
+            /** Note */
+            note: string;
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "balanced" | "unexplained_difference" | "currency_mismatch" | "no_invoice";
+            /** Period End */
+            period_end: string;
+            /** Period Start */
+            period_start: string;
+            /** Provider */
+            provider: string;
+            /** Unexplained */
+            unexplained: string;
         };
         /** updateDeployment */
         updateDeployment: {
@@ -51518,7 +51520,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["litellm__types__proxy__management_endpoints__ledger_endpoints__ReconciliationResponse"];
+                    "application/json": components["schemas"]["token_iq__api__types__ledger__ReconciliationResponse"];
                 };
             };
             /** @description Validation Error */

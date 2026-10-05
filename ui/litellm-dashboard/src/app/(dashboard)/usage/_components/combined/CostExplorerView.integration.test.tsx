@@ -10,8 +10,8 @@ const TEAM: ExplorerResponse = {
   dimension: "team",
   days: 30,
   slices: [
-    { key: "t-1", through_gateway: "0.0052126", outside_gateway: "0" },
-    { key: "t-2", through_gateway: "0.0013208", outside_gateway: "0" },
+    { key: "t-1", name: "Platform", through_gateway: "0.0052126", outside_gateway: "0" },
+    { key: "t-2", name: "t-2", through_gateway: "0.0013208", outside_gateway: "0" },
   ],
   total_through_gateway: "0.00797225",
   total_outside_gateway: "0.00774700",
@@ -102,5 +102,24 @@ describe("CostExplorerView", () => {
     await choose(user, "Group by", "Model");
     await screen.findByText("$0.008");
     expect(explorerCall).toHaveBeenLastCalledWith("sk-test", "model", 30);
+  });
+
+  it("calls a team by its name rather than by the uuid in the database", async () => {
+    // The explorer grouped by team_id and printed that id, so a reader looking for what their
+    // own team spent had nothing on the page to recognise.
+    renderView();
+    expect(await screen.findByText("Platform")).toBeInTheDocument();
+  });
+
+  it("still shows the identifier, because that is what a rule is written against", async () => {
+    renderView();
+    expect(await screen.findByText("t-1")).toBeInTheDocument();
+  });
+
+  it("does not print the identifier twice for a spender that has no name", async () => {
+    // t-2 has no name, so the server sends the id as the name. Printing both would read as
+    // "t-2 t-2".
+    renderView();
+    expect(await screen.findAllByText("t-2")).toHaveLength(1);
   });
 });

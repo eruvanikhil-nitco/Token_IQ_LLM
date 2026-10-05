@@ -186,3 +186,71 @@ async def test_the_per_person_read_uses_the_user_rollup_table() -> None:
     repo, db = _repo([{"key": "u-1", "gateway_cost": "1"}])
     await repo.by_user_for_period(period_start=START, period_end=END)
     assert "LiteLLM_DailyUserSpend" in db.last_sql
+
+
+@pytest.mark.asyncio
+async def test_a_team_is_named_rather_than_shown_as_a_uuid() -> None:
+    repo, _ = _repo([{"key": "t-1", "label": "Platform", "gateway_cost": "4"}])
+    slices: Final = await repo.by_dimension(dimension="team", days=7)
+    assert slices[0].label == "Platform"
+    assert slices[0].key == "t-1"
+
+
+@pytest.mark.asyncio
+async def test_the_name_is_read_from_the_table_that_holds_it() -> None:
+    for dimension, table, column in (
+        ("team", "LiteLLM_TeamTable", "team_alias"),
+        ("user", "LiteLLM_UserTable", "user_alias"),
+    ):
+        repo, db = _repo([{"key": "k", "label": "Name", "gateway_cost": "1"}])
+        await repo.by_dimension(dimension=dimension, days=7)  # pyright: ignore[reportArgumentType]  # looping the literal
+        assert table in db.last_sql
+        assert column in db.last_sql
+
+
+@pytest.mark.asyncio
+async def test_a_spender_whose_name_row_is_gone_still_appears() -> None:
+    """A team deleted from the team table still has spend on the rollup, and that spend has to be
+    reported. An inner join would drop the row, which would quietly lower the page's own total."""
+    repo, db = _repo([{"key": "t-gone", "label": None, "gateway_cost": "4"}])
+    slices: Final = await repo.by_dimension(dimension="team", days=7)
+    assert slices[0].key == "t-gone"
+    assert slices[0].label is None
+    assert "LEFT JOIN" in db.last_sql
+
+
+@pytest.mark.asyncio
+async def test_a_blank_name_is_treated_as_no_name_rather_than_shown() -> None:
+    repo, db = _repo([{"key": "t-1", "label": "", "gateway_cost": "4"}])
+    slices: Final = await repo.by_dimension(dimension="team", days=7)
+    assert slices[0].label is None
+    assert "NULLIF" in db.last_sql
+
+
+@pytest.mark.asyncio
+async def test_a_person_falls_back_to_their_email_when_they_have_no_alias() -> None:
+    repo, db = _repo([{"key": "u-1", "label": "someone@example.com", "gateway_cost": "4"}])
+    slices: Final = await repo.by_dimension(dimension="user", days=7)
+    assert slices[0].label == "someone@example.com"
+    assert "user_email" in db.last_sql
+    assert db.last_sql.index("user_alias") < db.last_sql.index("user_email")
+
+
+@pytest.mark.asyncio
+async def test_a_dimension_that_is_already_a_name_asks_for_no_second_table() -> None:
+    """Provider and model group by a column that already reads as a name, so there is nothing to
+    join to. Joining anyway would add a table scan to draw the same words."""
+    for dimension in ("provider", "model", "project"):
+        repo, db = _repo([{"key": "gpt-4o", "label": None, "gateway_cost": "1"}])
+        slices: Final = await repo.by_dimension(dimension=dimension, days=7)  # pyright: ignore[reportArgumentType]  # looping the literal
+        assert "JOIN" not in db.last_sql
+        assert slices[0].label is None
+
+
+@pytest.mark.asyncio
+async def test_the_name_does_not_change_which_rows_are_grouped_together() -> None:
+    """The join is on a primary key, so each key has one name and the grouping is unchanged. A
+    name column left out of GROUP BY makes Postgres refuse the statement outright."""
+    repo, db = _repo([{"key": "t-1", "label": "Platform", "gateway_cost": "4"}])
+    await repo.by_dimension(dimension="team", days=7)
+    assert "GROUP BY 1, 2" in db.last_sql

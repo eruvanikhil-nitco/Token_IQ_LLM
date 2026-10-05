@@ -33,35 +33,68 @@ ExplorerDimension = Literal["team", "project", "user", "provider", "model"]
 class SpendSlice:
     key: str
     gateway_cost: Decimal
+    label: str | None = None
+    """What a person calls this spender, when anything in the database knows. `None` means the
+    caller shows the key, because a row with no name still has spend that has to be reported."""
 
 
-def _statement(table: str, column: str) -> str:
+@dataclass(frozen=True, slots=True)
+class _Named:
+    """Where the name of a grouping key lives, for the dimensions whose key is an identifier.
+
+    `columns` is tried in order, so a person with an alias is called that and one without falls
+    back to their email rather than to a uuid.
+    """
+
+    table: str
+    id_column: str
+    columns: tuple[str, ...]
+
+
+def _statement(table: str, column: str, named: _Named | None = None) -> str:
     """Built once, at import, from this module's own literals. Never from a caller's value."""
     window: Final = "to_char(NOW() - ($1 || ' days')::interval, 'YYYY-MM-DD')"
+    # LEFT JOIN, not JOIN: a team deleted from the team table still has spend on the rollup, and
+    # dropping that row would quietly lower the page's own total.
+    join: Final = "" if named is None else f'LEFT JOIN "{named.table}" n ON n."{named.id_column}" = d."{column}" '
+    label: Final = (
+        "NULL::text"
+        if named is None
+        else "COALESCE(" + ", ".join(f"NULLIF(n.\"{name}\", '')" for name in named.columns) + ")"
+    )
     return (
         f'SELECT d."{column}"                AS key, '
+        f"{label} AS label, "
         f"SUM(d.spend)::numeric::text AS gateway_cost "
         f'FROM "{table}" d '
+        f"{join}"
         f"WHERE d.date >= {window} "
         f'AND d."{column}" IS NOT NULL '
         f"AND d.\"{column}\" <> '' "
-        f"GROUP BY 1 "
+        # The join is on a primary key, so the name is one value per key and the grouping is
+        # unchanged. Postgres refuses the statement outright if a selected column is left out.
+        f"GROUP BY 1, 2 "
         f"ORDER BY SUM(d.spend)::numeric DESC"
     )
 
 
 _STATEMENTS: Final[Mapping[str, str]] = MappingProxyType(
     {
-        "team": _statement("LiteLLM_DailyTeamSpend", "team_id"),
+        "team": _statement(
+            "LiteLLM_DailyTeamSpend", "team_id", _Named("LiteLLM_TeamTable", "team_id", ("team_alias",))
+        ),
         "project": _statement("LiteLLM_DailyProjectSpend", "project_id"),
-        "user": _statement("LiteLLM_DailyUserSpend", "user_id"),
+        "user": _statement(
+            "LiteLLM_DailyUserSpend", "user_id", _Named("LiteLLM_UserTable", "user_id", ("user_alias", "user_email"))
+        ),
         "provider": _statement("LiteLLM_DailyTeamSpend", "custom_llm_provider"),
         "model": _statement("LiteLLM_DailyTeamSpend", "model"),
     }
 )
 """Provider and model read the team table because it carries both columns and has rows on every
 installation. Reading them from their own tables would double count a request that appears in
-the team, user and project rollups alike."""
+the team, user and project rollups alike. They also need no name lookup: the column they group
+by already reads as a name. Project has no name anywhere in the schema, so it keeps its id."""
 
 
 def _total_statement(table: str) -> str:
@@ -112,7 +145,8 @@ def _slice_or_none(row: object) -> SpendSlice | None:
     cost: Final = _decimal_or_none(_read(row, "gateway_cost"))
     if cost is None:
         return None
-    return SpendSlice(key=key, gateway_cost=cost)
+    label: Final = _read(row, "label")
+    return SpendSlice(key=key, gateway_cost=cost, label=label if isinstance(label, str) and label != "" else None)
 
 
 _BY_USER_FOR_PERIOD_SQL: Final = (

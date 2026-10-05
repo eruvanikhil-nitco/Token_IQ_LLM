@@ -45,6 +45,9 @@ class ComparisonResponse(BaseModel):
 
 class ExplorerSlice(BaseModel):
     key: str
+    """The identifier a rule, a filter or a link is written against. Never shown on its own when
+    a name exists, and never dropped, because the name is not what anything is keyed by."""
+    name: str
     through_gateway: str
     outside_gateway: str
 

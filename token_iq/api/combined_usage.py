@@ -199,6 +199,9 @@ def explorer_response(
         slices=tuple(
             ExplorerSlice(
                 key=s.key,
+                # A row with no name shows its identifier. Hiding it would lose its spend from a
+                # page that still counts it in the total underneath.
+                name=s.label if s.label is not None else s.key,
                 through_gateway=_plain(s.gateway_cost),
                 outside_gateway=_plain(per_owner.get(s.key, Decimal(0))),
             )
