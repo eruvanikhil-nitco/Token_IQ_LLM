@@ -322,11 +322,78 @@ def test_listing_credentials_never_returns_any_part_of_a_billing_key():
 
     assert listed.status_code == 200, listed.text
     rows = {row["credential_name"]: row for row in listed.json()["credentials"]}
-    assert rows["anthropic-billing"]["credential_values"] == {}
+    # The row is now absent entirely, not merely emptied: this list feeds the pages that attach a
+    # credential to a deployment, and a billing key must never be offered there.
+    assert "anthropic-billing" not in rows
     assert rows["openai-models"]["credential_values"] != {}
     assert by_name.status_code == 200, by_name.text
     assert by_name.json()["credential_values"] == {}
     assert "sk-ant-admin" not in listed.text + by_name.text
+
+
+def _billing_and_model_credentials():
+    return (
+        CredentialItem(
+            credential_name="openai-billing",
+            credential_values={"api_key": "sk-admin-test-not-real"},
+            credential_info={"purpose": "billing_ingestion", "provider": "openai"},
+        ),
+        CredentialItem(
+            credential_name="openai-models",
+            credential_values={"api_key": "sk-proj-test-not-real"},
+            credential_info={"custom_llm_provider": "openai"},
+        ),
+    )
+
+
+def test_the_credential_list_leaves_out_billing_credentials_altogether():
+    """`/credentials` feeds the pages that attach a credential to a model deployment.
+
+    A billing credential is an organisation admin key that reads a whole account's costs. It is
+    never used to serve models, and listing it there invites someone to attach it to a deployment,
+    which is the thing the purpose marker exists to prevent. The billing pages read
+    `/provider/connections`, which enumerates them, so nothing needs this list to carry them.
+    """
+    import litellm
+
+    billing, model_access = _billing_and_model_credentials()
+    with patch.object(litellm, "credential_list", [billing, model_access]):
+        listed = _as_admin_request("GET", "/credentials")
+
+    assert listed.status_code == 200, listed.text
+    names = {row["credential_name"] for row in listed.json()["credentials"]}
+    assert names == {"openai-models"}, names
+
+
+def test_a_billing_credential_is_still_readable_by_name():
+    """Excluding them from the list must not hide them from the connect flow, which reads one
+    back by name to show its state. A filter that hides them from everything is not a tidy-up."""
+    import litellm
+
+    billing, model_access = _billing_and_model_credentials()
+    with patch.object(litellm, "credential_list", [billing, model_access]):
+        found = _as_admin_request("GET", "/credentials/by_name/openai-billing")
+
+    assert found.status_code == 200, found.text
+    assert found.json()["credential_name"] == "openai-billing"
+    assert found.json()["credential_info"]["purpose"] == "billing_ingestion"
+
+
+def test_the_credential_list_still_carries_an_ordinary_credential_with_no_purpose_at_all():
+    """Most stored credentials have no `purpose` key. Reading a missing key as "billing" would
+    empty the list the model pages depend on."""
+    import litellm
+
+    plain = CredentialItem(
+        credential_name="plain",
+        credential_values={"api_key": "sk-plain-not-real"},
+        credential_info={},
+    )
+    with patch.object(litellm, "credential_list", [plain]):
+        listed = _as_admin_request("GET", "/credentials")
+
+    assert listed.status_code == 200, listed.text
+    assert [row["credential_name"] for row in listed.json()["credentials"]] == ["plain"]
 
 
 TEAM_ADMIN = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-lead", user_id="lead")

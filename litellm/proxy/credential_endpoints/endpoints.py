@@ -202,13 +202,16 @@ async def get_credentials(
         masked_credentials: Final = [
             {
                 "credential_name": credential.credential_name,
-                "credential_values": _NO_CREDENTIAL_VALUES
-                if is_billing_credential(credential.credential_info)
-                else _get_masked_values(credential.credential_values),
+                "credential_values": _get_masked_values(credential.credential_values),
                 "credential_info": credential.credential_info,
             }
             for credential in litellm.credential_list
-            if may_read_credential(
+            # Billing credentials are left out rather than emptied. This list feeds the pages that
+            # attach a credential to a model deployment, and an organisation admin key that reads a
+            # whole account's costs must never be offered there. The billing pages read
+            # `/provider/connections`, which enumerates them, and one is still readable by name.
+            if not is_billing_credential(credential.credential_info)
+            and may_read_credential(
                 credential.credential_info, is_admin=is_admin, administered_teams=administered_teams
             )
         ]
