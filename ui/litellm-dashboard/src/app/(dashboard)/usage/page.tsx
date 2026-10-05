@@ -14,9 +14,16 @@ export default function UsagePage() {
   const { data: organizations } = useOrganizations();
   return (
     <UsageTabs
-      gateway={<NewUsagePage teams={teams ?? []} organizations={organizations ?? []} />}
+      gateway={(period) => (
+        <NewUsagePage
+          teams={teams ?? []}
+          organizations={organizations ?? []}
+          period={period}
+          onPeriodChange={() => undefined}
+        />
+      )}
       apis={<ProviderUsagePanel />}
-      combined={<CombinedTabs />}
+      combined={(period) => <CombinedTabs period={period} />}
     />
   );
 }

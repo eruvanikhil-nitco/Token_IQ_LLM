@@ -6,12 +6,39 @@ import useIsOrgAdmin from "@/app/(dashboard)/hooks/useIsOrgAdmin";
 import { useCurrentUser } from "@/app/(dashboard)/hooks/users/useCurrentUser";
 import { useInfiniteUsers } from "@/app/(dashboard)/hooks/users/useUsers";
 import { act, fireEvent, screen, waitFor } from "@testing-library/react";
+import { useState, type ComponentProps } from "react";
 import userEvent from "@testing-library/user-event";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "@/../tests/test-utils";
 import type { Organization } from "@/components/networking";
 import * as networking from "@/components/networking";
 import UsagePage from "./UsagePageView";
+
+const PERIOD = {
+  from: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+  to: new Date(),
+};
+
+/** Stands in for `UsageTabs`, which owns the period since it governs all three tabs.
+ *
+ * The button carries the testid the mocked date picker used to, so a case that changes the
+ * range and asserts a refetch is unchanged apart from where the range lives. */
+const UsagePageWithPeriod = (props: Omit<ComponentProps<typeof UsagePage>, "period" | "onPeriodChange">) => {
+  const [period, setPeriod] = useState(PERIOD);
+  return (
+    <>
+      <button
+        data-testid="pick-a-different-range"
+        onClick={() =>
+          setPeriod({ from: new Date("2024-01-01T00:00:00Z"), to: new Date("2024-01-08T00:00:00Z") })
+        }
+      >
+        pick
+      </button>
+      <UsagePage {...props} period={period} onPeriodChange={setPeriod} />
+    </>
+  );
+};
 
 // Polyfill ResizeObserver for test environment
 beforeAll(() => {
@@ -429,7 +456,7 @@ describe("UsagePage", () => {
   });
 
   it("should render and fetch usage data on mount", async () => {
-    renderWithProviders(<UsagePage {...defaultProps} />);
+    renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
 
     // Wait for data to be fetched
     await waitFor(() => {
@@ -467,7 +494,7 @@ describe("UsagePage", () => {
         }),
     );
 
-    renderWithProviders(<UsagePage {...defaultProps} />);
+    renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
     await waitFor(() => {
       expect(screen.getAllByText("1,500").length).toBeGreaterThan(0);
     });
@@ -492,7 +519,7 @@ describe("UsagePage", () => {
   it("should fall back to the spend-derived count when the gateway endpoint is unavailable", async () => {
     mockGatewayDailyActivityCall.mockRejectedValue(new Error("gateway activity unavailable"));
 
-    renderWithProviders(<UsagePage {...defaultProps} />);
+    renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
 
     await waitFor(() => {
       expect(mockGatewayDailyActivityCall).toHaveBeenCalled();
@@ -508,7 +535,7 @@ describe("UsagePage", () => {
   it("should not request deployment-wide gateway counts for a non-admin", async () => {
     mockUseAuthorized.mockReturnValue(nonAdminSession);
 
-    renderWithProviders(<UsagePage {...defaultProps} />);
+    renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
 
     await waitFor(() => {
       expect(mockUserDailyActivityAggregatedCall).toHaveBeenCalled();
@@ -519,7 +546,7 @@ describe("UsagePage", () => {
   });
 
   it("should display usage metrics and charts", async () => {
-    renderWithProviders(<UsagePage {...defaultProps} />);
+    renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
 
     await waitFor(() => {
       expect(mockUserDailyActivityAggregatedCall).toHaveBeenCalled();
@@ -541,7 +568,7 @@ describe("UsagePage", () => {
   });
 
   it("should render the daily spend and top models charts with cyan bars", async () => {
-    const { container } = renderWithProviders(<UsagePage {...defaultProps} />);
+    const { container } = renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
 
     await waitFor(() => {
       expect(mockUserDailyActivityAggregatedCall).toHaveBeenCalled();
@@ -568,7 +595,7 @@ describe("UsagePage", () => {
   });
 
   it("should switch between usage views correctly", async () => {
-    renderWithProviders(<UsagePage {...defaultProps} />);
+    renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
 
     await waitFor(() => {
       expect(mockUserDailyActivityAggregatedCall).toHaveBeenCalled();
@@ -609,7 +636,7 @@ describe("UsagePage", () => {
       }) as ReturnType<typeof networking.tagListCall>,
     );
 
-    renderWithProviders(<UsagePage {...defaultProps} />);
+    renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
 
     act(() => {
       fireEvent.change(screen.getByTestId("usage-view-select"), { target: { value: "tag" } });
@@ -628,7 +655,7 @@ describe("UsagePage", () => {
   it("should drop the previous range's tags as soon as the range changes", async () => {
     mockTagListCall.mockResolvedValue({ "old-range-tag": { name: "old-range-tag" } } as never);
 
-    renderWithProviders(<UsagePage {...defaultProps} />);
+    renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
 
     act(() => {
       fireEvent.change(screen.getByTestId("usage-view-select"), { target: { value: "tag" } });
@@ -662,7 +689,7 @@ describe("UsagePage", () => {
   });
 
   it("shows project usage with the caller's projects to filter by", async () => {
-    renderWithProviders(<UsagePage {...defaultProps} />);
+    renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
 
     act(() => {
       fireEvent.change(screen.getByTestId("usage-view-select"), { target: { value: "project" } });
@@ -693,7 +720,7 @@ describe("UsagePage", () => {
       showSSOBanner: false,
     });
 
-    renderWithProviders(<UsagePage {...defaultProps} />);
+    renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
 
     await waitFor(() => {
       expect(mockUserDailyActivityAggregatedCall).toHaveBeenCalled();
@@ -703,7 +730,7 @@ describe("UsagePage", () => {
   });
 
   it("should show organization usage banner and view for admins", async () => {
-    renderWithProviders(<UsagePage {...defaultProps} organizations={mockOrganizations} />);
+    renderWithProviders(<UsagePageWithPeriod {...defaultProps} organizations={mockOrganizations} />);
 
     await waitFor(() => {
       expect(mockUserDailyActivityAggregatedCall).toHaveBeenCalled();
@@ -742,7 +769,7 @@ describe("UsagePage", () => {
       showSSOBanner: false,
     } as any);
 
-    const { rerender } = renderWithProviders(<UsagePage {...defaultProps} organizations={mockOrganizations} />);
+    const { rerender } = renderWithProviders(<UsagePageWithPeriod {...defaultProps} organizations={mockOrganizations} />);
 
     const usageSelect = screen.getByTestId("usage-view-select");
     act(() => {
@@ -755,7 +782,7 @@ describe("UsagePage", () => {
 
     mockUseIsOrgAdmin.mockReturnValue(false);
     act(() => {
-      rerender(<UsagePage {...defaultProps} organizations={mockOrganizations} />);
+      rerender(<UsagePageWithPeriod {...defaultProps} organizations={mockOrganizations} />);
     });
 
     await waitFor(() => {
@@ -770,7 +797,7 @@ describe("UsagePage", () => {
       error: null,
     } as any);
 
-    renderWithProviders(<UsagePage {...defaultProps} />);
+    renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
 
     await waitFor(() => {
       expect(mockUserDailyActivityAggregatedCall).toHaveBeenCalled();
@@ -790,7 +817,7 @@ describe("UsagePage", () => {
   it("should withhold the customer list while it is still loading", async () => {
     mockUseCustomers.mockReturnValue({ data: undefined, isLoading: true, error: null } as any);
 
-    renderWithProviders(<UsagePage {...defaultProps} />);
+    renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
 
     act(() => {
       fireEvent.change(screen.getByTestId("usage-view-select"), { target: { value: "customer" } });
@@ -803,7 +830,7 @@ describe("UsagePage", () => {
   it("should withhold the project list while it is still loading", async () => {
     mockUseProjects.mockReturnValue({ data: undefined, isLoading: true, error: null } as any);
 
-    renderWithProviders(<UsagePage {...defaultProps} />);
+    renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
 
     act(() => {
       fireEvent.change(screen.getByTestId("usage-view-select"), { target: { value: "project" } });
@@ -820,7 +847,7 @@ describe("UsagePage", () => {
       error: null,
     } as any);
 
-    renderWithProviders(<UsagePage {...defaultProps} />);
+    renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
 
     await waitFor(() => {
       expect(mockUserDailyActivityAggregatedCall).toHaveBeenCalled();
@@ -840,7 +867,7 @@ describe("UsagePage", () => {
   it.each(["organization", "agent"])("should not render the %s usage view for an internal user", async (usageView) => {
     mockUseAuthorized.mockReturnValue(nonAdminSession);
 
-    renderWithProviders(<UsagePage {...defaultProps} organizations={mockOrganizations} />);
+    renderWithProviders(<UsagePageWithPeriod {...defaultProps} organizations={mockOrganizations} />);
 
     await waitFor(() => {
       expect(mockUserDailyActivityAggregatedCall).toHaveBeenCalled();
@@ -880,7 +907,7 @@ describe("UsagePage", () => {
       screen.queryAllByText(text).length + screen.queryAllByPlaceholderText(text).length > 0;
 
     it("should render user selector for admin users in global view", async () => {
-      renderWithProviders(<UsagePage {...defaultProps} />);
+      renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
 
       await waitFor(() => {
         expect(mockUserDailyActivityAggregatedCall).toHaveBeenCalled();
@@ -891,7 +918,7 @@ describe("UsagePage", () => {
     });
 
     it("should format user options with alias when available", async () => {
-      renderWithProviders(<UsagePage {...defaultProps} />);
+      renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
 
       await waitFor(() => {
         expect(mockUserDailyActivityAggregatedCall).toHaveBeenCalled();
@@ -908,7 +935,7 @@ describe("UsagePage", () => {
     });
 
     it("should call useInfiniteUsers with debounced search", async () => {
-      renderWithProviders(<UsagePage {...defaultProps} />);
+      renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
 
       await waitFor(() => {
         expect(mockUserDailyActivityAggregatedCall).toHaveBeenCalled();
@@ -946,7 +973,7 @@ describe("UsagePage", () => {
         isLoading: false,
       } as any);
 
-      renderWithProviders(<UsagePage {...defaultProps} />);
+      renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
 
       await waitFor(() => {
         expect(mockUserDailyActivityAggregatedCall).toHaveBeenCalled();
@@ -962,7 +989,7 @@ describe("UsagePage", () => {
     });
 
     it("should pass selected userId to aggregated call", async () => {
-      renderWithProviders(<UsagePage {...defaultProps} />);
+      renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
 
       await waitFor(() => {
         expect(mockUserDailyActivityAggregatedCall).toHaveBeenCalled();
@@ -1002,7 +1029,7 @@ describe("UsagePage", () => {
         isLoading: false,
       } as unknown as ReturnType<typeof useInfiniteUsers>);
 
-      renderWithProviders(<UsagePage {...defaultProps} />);
+      renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
 
       await waitFor(() => {
         expect(mockUserDailyActivityAggregatedCall).toHaveBeenCalled();
@@ -1033,7 +1060,7 @@ describe("UsagePage", () => {
         showSSOBanner: false,
       });
 
-      renderWithProviders(<UsagePage {...defaultProps} />);
+      renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
 
       await waitFor(() => {
         expect(mockUserDailyActivityAggregatedCall).toHaveBeenCalled();
@@ -1058,7 +1085,7 @@ describe("UsagePage", () => {
         showSSOBanner: false,
       });
 
-      renderWithProviders(<UsagePage {...defaultProps} />);
+      renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
 
       await waitFor(() => {
         expect(mockUserDailyActivityAggregatedCall).toHaveBeenCalledWith(
@@ -1083,7 +1110,7 @@ describe("UsagePage", () => {
         },
       });
 
-      renderWithProviders(<UsagePage {...defaultProps} />);
+      renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
 
       await waitFor(() => {
         expect(mockUserDailyActivityAggregatedCall).toHaveBeenCalled();
@@ -1113,7 +1140,7 @@ describe("UsagePage", () => {
         metadata: { ...mockSpendData.metadata, total_pages: 1, page: 1 },
       });
 
-      renderWithProviders(<UsagePage {...defaultProps} />);
+      renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
       await waitFor(() => {
         expect(screen.getAllByText("1,500").length).toBeGreaterThan(0);
       });
@@ -1171,7 +1198,7 @@ describe("UsagePage", () => {
 
       mockUserDailyActivityCall.mockResolvedValueOnce(page1Data).mockResolvedValueOnce(page2Data);
 
-      renderWithProviders(<UsagePage {...defaultProps} />);
+      renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
 
       await waitFor(() => {
         // Both pages should have been fetched
@@ -1188,7 +1215,7 @@ describe("UsagePage", () => {
 
   describe("MCP Server Activity tab", () => {
     it("should render MCP Server Activity tab", async () => {
-      renderWithProviders(<UsagePage {...defaultProps} />);
+      renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
 
       await waitFor(() => {
         expect(mockUserDailyActivityAggregatedCall).toHaveBeenCalled();
@@ -1201,7 +1228,7 @@ describe("UsagePage", () => {
 
   describe("User Agent Activity view", () => {
     it("should render User Agent Activity component when view is selected", async () => {
-      renderWithProviders(<UsagePage {...defaultProps} />);
+      renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
 
       await waitFor(() => {
         expect(mockUserDailyActivityAggregatedCall).toHaveBeenCalled();
@@ -1222,7 +1249,7 @@ describe("UsagePage", () => {
 
   describe("Export Data button", () => {
     it("should render Export Data button in global view for admin", async () => {
-      renderWithProviders(<UsagePage {...defaultProps} />);
+      renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
 
       await waitFor(() => {
         expect(mockUserDailyActivityAggregatedCall).toHaveBeenCalled();
@@ -1234,7 +1261,7 @@ describe("UsagePage", () => {
 
   describe("Ask AI button", () => {
     it("should render Ask AI button in global view", async () => {
-      renderWithProviders(<UsagePage {...defaultProps} />);
+      renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
 
       await waitFor(() => {
         expect(mockUserDailyActivityAggregatedCall).toHaveBeenCalled();
@@ -1244,7 +1271,7 @@ describe("UsagePage", () => {
     });
 
     it("should render AI chat panel component", async () => {
-      renderWithProviders(<UsagePage {...defaultProps} />);
+      renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
 
       await waitFor(() => {
         expect(mockUserDailyActivityAggregatedCall).toHaveBeenCalled();
@@ -1256,7 +1283,7 @@ describe("UsagePage", () => {
 
   describe("model view toggle", () => {
     it("should show Public Model Name view by default", async () => {
-      renderWithProviders(<UsagePage {...defaultProps} />);
+      renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
 
       await waitFor(() => {
         expect(mockUserDailyActivityAggregatedCall).toHaveBeenCalled();
@@ -1269,7 +1296,7 @@ describe("UsagePage", () => {
     });
 
     it("should switch to Litellm Model Name view on toggle click", async () => {
-      renderWithProviders(<UsagePage {...defaultProps} />);
+      renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
 
       await waitFor(() => {
         expect(mockUserDailyActivityAggregatedCall).toHaveBeenCalled();
@@ -1288,7 +1315,7 @@ describe("UsagePage", () => {
     });
 
     it("should switch back to Public Model Name view", async () => {
-      renderWithProviders(<UsagePage {...defaultProps} />);
+      renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
 
       await waitFor(() => {
         expect(mockUserDailyActivityAggregatedCall).toHaveBeenCalled();
@@ -1316,7 +1343,7 @@ describe("UsagePage", () => {
     });
 
     it("should feed the Model Activity tab from the model_groups breakdown by default", async () => {
-      renderWithProviders(<UsagePage {...defaultProps} />);
+      renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
 
       await waitFor(() => {
         expect(mockUserDailyActivityAggregatedCall).toHaveBeenCalled();
@@ -1327,7 +1354,7 @@ describe("UsagePage", () => {
     });
 
     it("should switch the Model Activity tab to the litellm models breakdown on toggle click", async () => {
-      renderWithProviders(<UsagePage {...defaultProps} />);
+      renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
 
       await waitFor(() => {
         expect(mockUserDailyActivityAggregatedCall).toHaveBeenCalled();
@@ -1352,7 +1379,7 @@ describe("UsagePage", () => {
         error: null,
       } as any);
 
-      renderWithProviders(<UsagePage {...defaultProps} />);
+      renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
 
       await waitFor(() => {
         expect(mockUserDailyActivityAggregatedCall).toHaveBeenCalled();
@@ -1378,7 +1405,7 @@ describe("UsagePage", () => {
         error: null,
       } as any);
 
-      renderWithProviders(<UsagePage {...defaultProps} />);
+      renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
 
       await waitFor(() => {
         expect(mockUserDailyActivityAggregatedCall).toHaveBeenCalled();
@@ -1398,7 +1425,7 @@ describe("UsagePage", () => {
 
   describe("tab navigation in global view", () => {
     it("should render all expected tabs", async () => {
-      renderWithProviders(<UsagePage {...defaultProps} />);
+      renderWithProviders(<UsagePageWithPeriod {...defaultProps} />);
 
       await waitFor(() => {
         expect(mockUserDailyActivityAggregatedCall).toHaveBeenCalled();

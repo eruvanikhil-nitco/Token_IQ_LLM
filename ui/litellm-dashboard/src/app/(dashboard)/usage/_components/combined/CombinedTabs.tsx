@@ -1,62 +1,49 @@
 "use client";
 
-import { useState } from "react";
+import { Info } from "lucide-react";
 
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import type { DateRangePickerValue } from "@/components/shared/date_picker_types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { combinedCoverage } from "../usagePeriod";
 import CostExplorerView from "./CostExplorerView";
 import SourceComparisonView from "./SourceComparisonView";
 import UnallocatedView from "./UnallocatedView";
 
-const RANGES = [
-  { value: "7", label: "Last 7 days" },
-  { value: "30", label: "Last 30 days" },
-  { value: "90", label: "Last 90 days" },
-] as const;
+interface CombinedTabsProps {
+  period: DateRangePickerValue;
+}
 
-export default function CombinedTabs() {
-  const [days, setDays] = useState<string>("30");
+export default function CombinedTabs({ period }: CombinedTabsProps) {
+  // The period comes from the page, so switching tab cannot change it. These endpoints take a
+  // number of days capped at 90 and always mean "the last N days", so they cannot serve every
+  // period the picker offers. When they cannot, the reader is told, because showing a different
+  // window that looks like the one they chose is the failure this replaced.
+  const coverage = combinedCoverage(period);
 
   return (
     <Tabs defaultValue="explorer" className="flex flex-col gap-6">
-      {/* The view and the period it covers read as one control, so they share a row rather than
-          stacking into two bands of chrome above the figures. */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <TabsList>
-          <TabsTrigger value="explorer">Cost Explorer</TabsTrigger>
-          <TabsTrigger value="comparison">Source Comparison</TabsTrigger>
-          <TabsTrigger value="unallocated">Unallocated</TabsTrigger>
-        </TabsList>
-        <div className="flex items-center gap-2">
-          <Label htmlFor="combined-date-range" className="text-muted-foreground">
-            Date range
-          </Label>
-          <Select items={RANGES} value={days} onValueChange={(next) => next !== null && setDays(next)}>
-            <SelectTrigger id="combined-date-range" aria-label="Date range" className="w-[160px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {RANGES.map((range) => (
-                <SelectItem key={range.value} value={range.value}>
-                  {range.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      <TabsList>
+        <TabsTrigger value="explorer">Cost Explorer</TabsTrigger>
+        <TabsTrigger value="comparison">Source Comparison</TabsTrigger>
+        <TabsTrigger value="unallocated">Unallocated</TabsTrigger>
+      </TabsList>
 
-      {/* keepMounted: switching views must not reset the grouping or the date range */}
+      {!coverage.exact && (
+        <p role="status" className="flex items-start gap-2 text-sm text-muted-foreground">
+          <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+          <span>{coverage.note}</span>
+        </p>
+      )}
+
+      {/* keepMounted: switching views must not reset the grouping the reader chose */}
       <TabsContent value="explorer" keepMounted>
-        <CostExplorerView days={Number(days)} />
+        <CostExplorerView days={coverage.days} />
       </TabsContent>
-      {/* keepMounted: switching views must not reset the date range the reader chose */}
       <TabsContent value="comparison" keepMounted>
-        <SourceComparisonView days={Number(days)} />
+        <SourceComparisonView days={coverage.days} />
       </TabsContent>
       <TabsContent value="unallocated" keepMounted>
-        <UnallocatedView days={Number(days)} />
+        <UnallocatedView days={coverage.days} />
       </TabsContent>
     </Tabs>
   );

@@ -6,6 +6,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import CombinedTabs from "./CombinedTabs";
 import type { ComparisonResponse } from "@/components/networking";
 
+const PERIOD = {
+  from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+  to: new Date(),
+};
+
 const COMPARISON: ComparisonResponse = {
   days: 30,
   total_gateway: "0.00005815",
@@ -62,11 +67,11 @@ vi.mock("@/app/(dashboard)/hooks/useAuthorized", () => ({
   default: () => ({ accessToken: "sk-test", userRole: "proxy_admin" }),
 }));
 
-const renderTabs = () => {
+const renderTabs = (period: { from: Date; to: Date } = PERIOD) => {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={client}>
-      <CombinedTabs />
+      <CombinedTabs period={period} />
     </QueryClientProvider>,
   );
 };
@@ -106,25 +111,43 @@ describe("CombinedTabs", () => {
     expect(await screen.findByText("Provider reported nothing")).toBeInTheDocument();
   });
 
-  it("keeps the chosen date range when moving between the views", async () => {
-    const user = userEvent.setup();
+  it("has no date control of its own, because the page owns the period", async () => {
+    // It used to hold a 7/30/90 dropdown while Gateway held a separate picker, and both panels
+    // stay mounted, so switching tab moved the window with nothing on screen saying so.
     renderTabs();
     await screen.findByText("Providers billed");
 
-    await choose(user, "Date range", "Last 7 days");
-    await user.click(screen.getByRole("tab", { name: "Unallocated" }));
-    await user.click(screen.getByRole("tab", { name: "Source Comparison" }));
-
-    expect(screen.getByRole("combobox", { name: "Date range" })).toHaveTextContent("Last 7 days");
+    expect(screen.queryByRole("combobox", { name: "Date range" })).not.toBeInTheDocument();
   });
 
-  it("asks the server for the range the reader chose", async () => {
+  it("asks the server for the period the page gave it", async () => {
+    renderTabs();
+    await screen.findByText("Providers billed");
+
+    expect(comparisonCall).toHaveBeenLastCalledWith("sk-test", 30);
+  });
+
+  it("keeps the period when moving between the views", async () => {
     const user = userEvent.setup();
     renderTabs();
     await screen.findByText("Providers billed");
-    await choose(user, "Date range", "Last 7 days");
+
+    await user.click(screen.getByRole("tab", { name: "Unallocated" }));
+    await user.click(screen.getByRole("tab", { name: "Source Comparison" }));
     await screen.findByText("Providers billed");
-    expect(comparisonCall).toHaveBeenLastCalledWith("sk-test", 7);
+
+    expect(comparisonCall).toHaveBeenLastCalledWith("sk-test", 30);
+  });
+
+  it("says so rather than silently showing a different window it can serve", async () => {
+    // These endpoints take a number of days capped at 90 and always mean "the last N days", so a
+    // year to date cannot be served. Reporting that silently is the failure this replaced.
+    renderTabs({
+      from: new Date("2026-01-01T12:00:00.000Z"),
+      to: new Date("2026-10-08T12:00:00.000Z"),
+    });
+
+    expect(await screen.findByRole("status")).toHaveTextContent("90 days");
   });
 
   it("links an unclaimed difference to the page that would assign it", async () => {

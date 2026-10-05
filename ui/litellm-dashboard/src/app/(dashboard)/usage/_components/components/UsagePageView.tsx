@@ -39,7 +39,6 @@ import {
   userDailyActivityAggregatedCall,
   userDailyActivityCall,
 } from "@/components/networking";
-import AdvancedDatePicker from "@/components/shared/advanced_date_picker";
 import { ChartLoader } from "@/components/shared/chart_loader";
 import { Tag } from "@/components/tag_management/types";
 import UserAgentActivity from "@/components/user_agent_activity";
@@ -68,9 +67,15 @@ import { UsageOption, UsageViewSelect } from "./UsageViewSelect/UsageViewSelect"
 interface UsagePageProps {
   teams: Team[];
   organizations: Organization[];
+  /** The period the whole Usage page is looking at, owned by `UsageTabs`.
+   *
+   * This view used to hold its own, defaulting to 7 days while Combined defaulted to 30, and
+   * both panels stay mounted, so switching tab changed the window silently. */
+  period: DateRangePickerValue;
+  onPeriodChange: (next: DateRangePickerValue) => void;
 }
 
-const UsagePage: React.FC<UsagePageProps> = ({ teams, organizations }) => {
+const UsagePage: React.FC<UsagePageProps> = ({ teams, organizations, period, onPeriodChange }) => {
   const { accessToken, userRole, userId: userID, premiumUser } = useAuthorized();
   // Aggregated endpoint: try first, fall back to paginated if unavailable
   const [aggregatedData, setAggregatedData] = useState<FetchedForRange<{
@@ -87,15 +92,9 @@ const UsagePage: React.FC<UsagePageProps> = ({ teams, organizations }) => {
   // Separate loading states for better UX
   const [isDateChanging, setIsDateChanging] = useState(false);
 
-  // Create initial dates outside of state to prevent recreation
-  const initialFromDate = useMemo(() => new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), []);
-  const initialToDate = useMemo(() => new Date(), []);
-
-  // Single date state that directly triggers data fetching
-  const [dateValue, setDateValue] = useState<DateRangePickerValue>({
-    from: initialFromDate,
-    to: initialToDate,
-  });
+  // The period belongs to the page, so every tab shows the same window.
+  const dateValue = period;
+  const setDateValue = onPeriodChange;
 
   const [fetchedTags, setFetchedTags] = useState<FetchedForRange<EntityList[]> | null>(null);
   // No [] default: an unresolved query must stay undefined so the customer
@@ -483,7 +482,6 @@ const UsagePage: React.FC<UsagePageProps> = ({ teams, organizations }) => {
               canViewTagUsage={canViewTagUsage}
               isOrgAdmin={isOrgAdmin}
             />
-            <AdvancedDatePicker value={dateValue} onValueChange={handleDateChange} />
           </div>
           <PaginationStatusAlerts
             isFetchingMore={paginatedResult.isFetchingMore}
