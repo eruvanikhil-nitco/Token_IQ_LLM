@@ -16,7 +16,7 @@ from typing import Final
 
 import pytest
 
-from tests.test_litellm.provider_billing.contract.conftest import Reply, Vendor
+from tests.token_iq.connectors.billing.contract.conftest import Reply, Vendor
 
 AS_OF: Final = datetime(2026, 9, 29, tzinfo=timezone.utc)
 CREDENTIAL: Final = {"api_key": "ghp_not_a_real_token", "organization": "acme-eng"}

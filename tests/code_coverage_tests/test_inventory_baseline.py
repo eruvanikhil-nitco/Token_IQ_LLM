@@ -258,7 +258,7 @@ class TestCountingCollectionErrors:
       <testcase classname="" name="tests.test_litellm.test_broken" time="0.0">
         <error message="collection failure">FileNotFoundError</error>
       </testcase>
-      <testcase classname="tests.test_litellm.ledger.test_reconciliation" name="test_one" time="0.0"/>
+      <testcase classname="tests.token_iq.ledger.test_reconciliation" name="test_one" time="0.0"/>
     </testsuite></testsuites>"""
 
     FIXTURE_ERROR: Final = """<?xml version="1.0" encoding="utf-8"?>
@@ -282,7 +282,7 @@ class TestCountingCollectionErrors:
         """The point of tolerating the error is keeping everything collected after it."""
         assert parse_junit(self.COLLECTION_ERROR) == (
             CaseOutcome("tests/test_litellm/test_broken.py", "error"),
-            CaseOutcome("tests/test_litellm/ledger/test_reconciliation.py::test_one", "passed"),
+            CaseOutcome("tests/token_iq/ledger/test_reconciliation.py::test_one", "passed"),
         )
 
     def test_a_collection_error_is_named_after_the_file_not_turned_into_a_py_nodeid(self) -> None:
@@ -360,7 +360,7 @@ class TestCaptureSuiteEndToEnd:
         reports: Final = tmp_path_factory.mktemp("reports")
         # A generator, not a tuple: a second use of an exhausted one means pytest with no paths,
         # which collects the entire repository rather than this one directory.
-        paths = (p for p in ("tests/test_litellm/ledger",))
+        paths = (p for p in ("tests/token_iq/ledger",))
         return capture_suite("one_directory", paths, REPO, reports, workers=0)
 
     def test_it_collected_and_reported_the_same_number(self, run: SuiteRun) -> None:
@@ -371,7 +371,7 @@ class TestCaptureSuiteEndToEnd:
     def test_it_stayed_inside_the_directory_it_was_given(self, run: SuiteRun) -> None:
         """An exhausted generator would run the whole repository and still look like a pass."""
         outside: Final = tuple(
-            case.nodeid for case in run.outcomes if not case.nodeid.startswith("tests/test_litellm/ledger/")
+            case.nodeid for case in run.outcomes if not case.nodeid.startswith("tests/token_iq/ledger/")
         )
         assert not outside, f"ran {len(outside)} cases outside the given path, e.g. {outside[:2]}"
 

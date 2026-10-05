@@ -57,7 +57,7 @@ jobs:
         if: steps.classify.outputs.changed == 'true'
         run: |
           pip install -e .
-          python -m pytest tests/test_litellm/pricing tests/test_litellm/test_model_prices_schema.py -q
+          python -m pytest tests/token_iq/pricing tests/test_litellm/test_model_prices_schema.py -q
 
       - name: Open the pull request
         if: steps.classify.outputs.changed == 'true'

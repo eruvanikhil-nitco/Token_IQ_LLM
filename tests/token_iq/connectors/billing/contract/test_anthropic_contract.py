@@ -17,7 +17,7 @@ from typing import Final
 
 import pytest
 
-from tests.test_litellm.provider_billing.contract.conftest import Reply, Vendor
+from tests.token_iq.connectors.billing.contract.conftest import Reply, Vendor
 
 SINCE: Final = datetime(2026, 9, 1, tzinfo=timezone.utc)
 UNTIL: Final = datetime(2026, 9, 3, tzinfo=timezone.utc)

@@ -158,6 +158,7 @@ jobs:
           ./tests/code_coverage_tests/test_patch_targets_resolve.py
           ./tests/code_coverage_tests/test_remove_ui_doc_links.py
           ./tests/code_coverage_tests/test_token_iq_test_isolation.py
+          ./tests/deploy
           ./tests/code_coverage_tests/test_rewrite_upstream_links.py
 
       - name: documentation_test_env_keys

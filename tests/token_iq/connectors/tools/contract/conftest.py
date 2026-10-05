@@ -4,7 +4,7 @@ Re-exported rather than copied: one harness means one place to fix when a connec
 assert something new about the request it sent.
 """
 
-from tests.test_litellm.provider_billing.contract.conftest import (  # noqa: F401  # re-exported fixture and helpers
+from tests.token_iq.connectors.billing.contract.conftest import (  # noqa: F401  # re-exported fixture and helpers
     Recorded,
     Reply,
     Vendor,
