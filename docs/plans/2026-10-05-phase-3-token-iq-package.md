@@ -300,20 +300,77 @@ different check. The tell was the number: 2218 fixes where the move had touched 
 
 **Files:** `pyproject.toml`, `docs/status.md`
 
-- [ ] **Step 1: Package `token_iq`**
+- [x] **Step 1: Package `token_iq`**
 
 Add it under `[tool.maturin]`, and confirm `import token_iq` works in a non-editable install,
 not only from the checkout. Phase 2 shipped a wheel with no price file for exactly this
 reason: everything passes from a source tree because the files are right there.
 
-- [ ] **Step 2: Compare against the phase 0 baseline**
+- [ ] **Step 2: Compare against the phase 0 baseline** — OUTSTANDING
+
+The three suites each task touched (`token_iq`, `repositories`, `token_iq_proxy`) were compared
+after tasks 2, 3 and 4 and were clean every time: nothing newly failing, nothing disappeared,
+nothing appeared. The phase-level run over `unit` as well, 30,369 cases, was killed partway by
+the harness because the machine was low on memory. That is not a failure of the comparison and
+says nothing about the code; it simply did not finish, so it has not been done.
+
+Task 5 changed no Python module, only `pyproject.toml`, two workflows, two new files and the
+documentation, so nothing in this task needs that run. It is the phase-level check, and it should
+be run before phase 4 starts, which re-cuts the baseline anyway.
 
 Nothing newly failing, nothing disappeared. Re-run a parallel failure before believing it;
 the proxy suite is flaky under `-n 4`.
 
-- [ ] **Step 3: Record what moved, what stayed and why**
+- [x] **Step 3: Record what moved, what stayed and why**
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
+
+### `token_iq` would not have shipped
+
+`tool.maturin.include` now names `token_iq/**/*.py`. maturin builds the one Python package
+`module-name` points at, which is `litellm`, so a second top-level package reaches an installed
+copy only because it is listed. Nothing in a checkout notices, because the directory is right
+there on `sys.path`, which is the same shape as the price file phase 2 found.
+
+### The real build cannot be proved on this machine, so a job proves it
+
+There is no Rust toolchain here, and maturin needs `cargo metadata` even for an sdist, so no
+wheel can be built locally. `.github/scripts/verify_wheel_contents.py` runs in `test-rust.yml`,
+in the job that already builds a release wheel. It opens the wheel and checks one file from
+every subpackage plus both price files, then installs it `--no-deps` into a throwaway
+environment and imports twelve modules with the working directory outside the checkout, so a
+module that only resolves because the repository is on `sys.path` fails.
+
+The import list is the twelve stdlib-only modules, one per subpackage. A `--no-deps` install has
+no FastAPI, so importing a router would fail for a reason that has nothing to do with packaging.
+The zip half covers the routers instead.
+
+What was provable locally was proved: the script was run against three wheels built by hand, one
+with no `token_iq` at all, one with `token_iq` files but no `__init__.py`, and one laid out
+exactly as the include globs would produce from the real tree. The first two fail with different
+messages, and the third installs and imports all twelve modules. What remains for CI is the one
+step needing a compiler: whether maturin's glob puts those files at the wheel root.
+
+`tests/code_coverage_tests/test_packaging.py` is the cheap half that runs anywhere. It checks the
+include list names both trees, that `module-name` still points at the engine, and that a workflow
+really does run the verifier **in a job that builds a wheel**, because a verifier nothing invokes
+is the same as no verifier. Each of those was proved by breaking it.
+
+### Where phase 3 leaves the two trees
+
+| | |
+|---|---|
+| Modules in `token_iq/` | 100, across 15 subpackages |
+| Left in `litellm/repositories/` | 16, the engine's |
+| Left in `litellm/proxy/management_endpoints/` | 33 |
+| Left in `litellm/types/proxy/` | 13, all engine types |
+| `litellm` modules importing `token_iq` | 13 |
+| Engine modules `token_iq` imports | 23, at 93 sites |
+
+The coupling runs mostly through three: `litellm.proxy.proxy_server` at 31 sites, which is where
+routers reach for `prisma_client`, `litellm.proxy._types` at 15, and
+`litellm.proxy.auth.user_api_key_auth` at 12. Phase 6 turns `litellm/` into `token_iq/gateway/`,
+at which point those stop crossing a package boundary at all.
 
 ---
 

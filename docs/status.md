@@ -583,3 +583,82 @@ command printed "All checks passed".
 Thirteen modules under `litellm/` import from `token_iq/`, which is the coupling phase 6 resolves
 when `litellm/` becomes `token_iq/gateway/`. Nothing under `token_iq/` imports a router or an
 endpoint from the gateway; what it does import is `litellm.proxy._types` and one auth helper.
+
+## Phase 3, task 5: packaging, and where phase 3 leaves things
+
+`token_iq` would not have shipped. `tool.maturin.include` now names `token_iq/**/*.py`, because
+maturin builds the one Python package `module-name` points at and that is `litellm`. A second
+top-level package reaches an installed copy only by being listed. Nothing in a checkout notices,
+since the directory sits on `sys.path` either way, which is exactly how phase 2's missing price
+list went unseen while every test passed.
+
+### The build proof runs in CI, because it cannot run here
+
+There is no Rust toolchain on this machine, and maturin needs `cargo metadata` even to make an
+sdist, so no wheel can be built locally at all.
+`.github/scripts/verify_wheel_contents.py` runs in `test-rust.yml`, in the job that already
+builds a release wheel. It opens the wheel, checks one file from every subpackage and both price
+files, then installs it `--no-deps` into a throwaway environment and imports twelve modules with
+the working directory outside the checkout, so anything that only resolves because the repository
+is on `sys.path` fails there.
+
+What could be proved locally was. The script ran against three wheels assembled by hand: one with
+no `token_iq`, one with `token_iq` files but no `__init__.py`, and one laid out exactly as the
+include globs would produce it from the real tree. The first two fail with different messages,
+and the third installs and imports all twelve. The single step left for CI is the one needing a
+compiler: whether maturin's glob actually places those files at the wheel root.
+
+`tests/code_coverage_tests/test_packaging.py` is the half that runs anywhere. It also checks that
+a workflow runs the verifier **in a job that builds a wheel**, because a verifier nothing invokes
+is the same as no verifier. Both halves were proved by breaking what they guard.
+
+### Phase 3, in numbers
+
+| | |
+|---|---|
+| Modules now in `token_iq/` | 100, across 15 subpackages |
+| References repointed | 227 modules, 139 routers, 13 router types, 225 types and policy |
+| Quoted module paths found and fixed | 11, all in the router move |
+| Routes before, and after every task | 589, byte-identical |
+| Files type-checked before, and after | 2396 either way, nothing escaped |
+| Left in `litellm/repositories/` | 16, the engine's |
+| Left in `litellm/proxy/management_endpoints/` | 33 |
+| Left in `litellm/types/proxy/` | 13, all engine types |
+
+### Where the two trees still touch
+
+Thirteen modules under `litellm/` import from `token_iq/`. In the other direction `token_iq`
+imports 23 engine modules at 93 sites, and three of them account for most of it:
+`litellm.proxy.proxy_server` at 31, which is where routers reach for `prisma_client`,
+`litellm.proxy._types` at 15, and `litellm.proxy.auth.user_api_key_auth` at 12. Phase 6 turns
+`litellm/` into `token_iq/gateway/`, at which point none of those crosses a package boundary.
+
+### One check phase 3 did not finish
+
+The three suites each task touched, `token_iq`, `repositories` and `token_iq_proxy`, were compared
+against the phase 0 baseline after tasks 2, 3 and 4. All three were clean every time: nothing newly
+failing, nothing disappeared, nothing appeared, with the same 20 pre-existing failures throughout.
+
+The phase-level run that also covers `unit`, 30,369 cases, was killed partway through because the
+machine ran low on memory. It did not fail and it says nothing about the code, but it did not
+finish either, so **that comparison is outstanding**. Phase 4 re-cuts the baseline, so it should be
+run before phase 4 starts rather than after.
+
+### What phase 3 did not do, and who picks it up
+
+`tests/test_litellm/` did not move. **Phase 4** moves the Token IQ tests to `tests/token_iq/`
+mirroring the package, and has to re-cut the phase 0 baseline to do it, since that baseline is
+keyed on the old nodeids. Phase 4's own acceptance is `assert_ci_coverage.py` exiting 0, which it
+still does not: 42 test files are invoked by no job, down from 50 now that the quality guard tests
+have one.
+
+Nothing populates `model_price_variances`, so the price-drift rule is still armed and never
+loaded. That is unchanged by this phase and belongs with the provider sync work.
+
+### Two mistakes from this phase, both caught by looking at a number
+
+The codemod, run over `scripts/`, rewrote its own map into an identity map and then reported a
+clean "0 files rewritten". And `ruff --select I001 --fix` against `tests/`, whose config omits
+that rule, replaced the config's rules instead of narrowing them and reordered 2218 import blocks
+across 1537 files. Neither was caught by a test. Both were caught by a count that did not match
+the size of the change: 0 where something was expected, 2218 where 50 was.

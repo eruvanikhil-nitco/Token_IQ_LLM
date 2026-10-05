@@ -279,6 +279,16 @@ include = [
     # they are named here. Without this the wheel installs with no price list and every
     # cost the product reports is missing.
     "data/pricing/**",
+    # Token IQ's own package. maturin builds the one package `module-name` points at, which
+    # is `litellm`, so a second top-level package ships only because it is named here. Every
+    # test passes from a checkout either way, because the directory is right there.
+    #
+    # Bare `**`, like the two entries above, rather than `**/*.py`: whether `**` can match zero
+    # path components decides whether `token_iq/__init__.py` is caught, and a wheel that ships
+    # every module except the one that makes it a package is not worth the ambiguity. The
+    # `exclude` list below keeps the caches out.
+    # .github/scripts/verify_wheel_contents.py checks the built wheel rather than this list.
+    "token_iq/**",
 ]
 exclude = [
     "**/__pycache__",

@@ -111,6 +111,12 @@ jobs:
       - name: Build release wheel
         run: uv build --wheel --out-dir dist
 
+      # maturin builds the one package `module-name` points at, so `token_iq` and `data/`
+      # ship only because `tool.maturin.include` names them. Nothing in a source checkout
+      # notices if that stops being true, because the directories are right there.
+      - name: Verify the wheel carries both packages and the price data
+        run: python .github/scripts/verify_wheel_contents.py dist/*.whl
+
       - name: Build panic contract wheel
         run: >-
           uv build --wheel --out-dir panic-dist
