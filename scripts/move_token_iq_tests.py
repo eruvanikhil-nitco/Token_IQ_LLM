@@ -97,7 +97,15 @@ POLICY: Final[Mapping[str, str]] = MappingProxyType(
     }
 )
 
-# The eleven Token IQ repositories' tests, out of a directory that keeps the engine's sixteen.
+# Ten of the eleven Token IQ repositories have a test file, out of a directory that keeps the
+# engine's sixteen.
+#
+# `overview_repository` has none, which this found by looking for one. Nothing exercises it
+# directly: `tests/test_litellm/proxy/management_endpoints/test_overview.py` injects a fake and
+# tests the router's composition instead. Its methods are `provider_billed`, `tool_new_money`,
+# `seats` and `gateway_recorded`, which are the four figures the counting rule governs, so a
+# wrong one there is the silent failure the rule exists to prevent. Recorded here rather than
+# listed as a move, because writing that test is work in its own right and not this phase's.
 REPOSITORIES: Final[Mapping[str, str]] = MappingProxyType(
     {
         f"{OLD}/repositories/test_{name}_repository.py": f"{NEW}/repositories/test_{name}_repository.py"
@@ -107,7 +115,6 @@ REPOSITORIES: Final[Mapping[str, str]] = MappingProxyType(
             "gateway_spend",
             "invoice",
             "ledger",
-            "overview",
             "provider_sync_run",
             "provider_usage_fact",
             "recommendation_state",
