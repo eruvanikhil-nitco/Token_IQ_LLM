@@ -838,7 +838,7 @@ async def test_new_user_license_over_limit(mocker):
         mock_check_duplicate_user_id,
     )
 
-    from litellm.proxy.auth.token_iq_plan import TokenIqPlan
+    from token_iq.policy.plan import TokenIqPlan
 
     mocker.patch("litellm.proxy.proxy_server.prisma_client", mock_prisma_client)
     mocker.patch(
@@ -871,7 +871,7 @@ async def test_new_user_license_gate_counts_only_billable_users(mocker):
     SCIM-deactivated rows). Deactivated users that push the raw total over
     max_users must not block creation, while active users over the limit must.
     """
-    from litellm.proxy.auth.token_iq_plan import TokenIqPlan
+    from token_iq.policy.plan import TokenIqPlan
 
     async def _noop(*args, **kwargs):
         return None

@@ -12,7 +12,7 @@ from logging import Logger
 from typing import Any, Final
 
 from litellm._logging import verbose_proxy_logger
-from litellm.types.proxy.provider_billing import BillingTokenFactory
+from token_iq.types.provider_billing import BillingTokenFactory
 
 AZURE_MANAGEMENT_SCOPE: Final = "https://management.azure.com/.default"
 

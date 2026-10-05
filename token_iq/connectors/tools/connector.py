@@ -12,7 +12,7 @@ from collections.abc import Mapping
 from datetime import datetime
 from typing import Final, Protocol, runtime_checkable
 
-from litellm.types.proxy.tool_usage import ToolFetchResult, ToolName, ToolSeatResult
+from token_iq.types.tool_usage import ToolFetchResult, ToolName, ToolSeatResult
 
 
 @runtime_checkable

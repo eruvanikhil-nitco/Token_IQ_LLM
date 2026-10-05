@@ -60,7 +60,6 @@ from litellm.proxy.common_utils.encrypt_decrypt_utils import (
     encrypt_value_helper,
 )
 from litellm.proxy.common_utils.user_api_key_cache import UserApiKeyCache
-from litellm.proxy.credential_endpoints.credential_access import credential_team
 from litellm.proxy.management_endpoints.common_utils import _is_user_team_admin
 from litellm.proxy.management_endpoints.team_endpoints import (
     _refresh_cached_team,
@@ -127,6 +126,7 @@ from token_iq.api.provider_overview import (
     usage_range_start,
 )
 from token_iq.connectors.billing.credential_purpose import is_billing_credential
+from token_iq.policy.credential_access import credential_team
 
 if TYPE_CHECKING:
     from prisma import models as prisma_models

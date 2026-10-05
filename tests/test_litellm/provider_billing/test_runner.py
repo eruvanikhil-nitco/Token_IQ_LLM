@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from litellm.types.proxy.provider_billing import (
+from token_iq.types.provider_billing import (
     BillingCredential,
     Fetched,
     FetchFailed,

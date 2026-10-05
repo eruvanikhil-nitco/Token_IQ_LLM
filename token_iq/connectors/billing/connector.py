@@ -10,7 +10,7 @@ from collections.abc import Mapping
 from datetime import datetime
 from typing import Final, Protocol, runtime_checkable
 
-from litellm.types.proxy.provider_billing import FetchResult
+from token_iq.types.provider_billing import FetchResult
 
 
 @runtime_checkable

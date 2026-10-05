@@ -4,7 +4,7 @@ from decimal import Decimal
 from typing import Final
 
 from token_iq.seats.user_cost import user_costs
-from litellm.types.proxy.seat import Seat
+from token_iq.types.seat import Seat
 
 START: Final = datetime(2026, 9, 1, tzinfo=timezone.utc)
 END: Final = datetime(2026, 9, 30, tzinfo=timezone.utc)

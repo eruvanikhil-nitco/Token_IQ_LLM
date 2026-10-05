@@ -23,7 +23,8 @@ from decimal import Decimal
 from types import MappingProxyType
 from typing import Any, Final
 
-from litellm.types.proxy.tool_usage import (
+from token_iq.connectors.billing.cloud_rows import decimal_or_none, decoded_object, utc_day_start
+from token_iq.types.tool_usage import (
     CostBasis,
     ToolFetched,
     ToolFetchFailed,
@@ -32,7 +33,6 @@ from litellm.types.proxy.tool_usage import (
     ToolNotConfigured,
     ToolUsageFact,
 )
-from token_iq.connectors.billing.cloud_rows import decimal_or_none, decoded_object, utc_day_start
 
 DEFAULT_BASE_URL: Final = "https://api.anthropic.com"
 

@@ -6,7 +6,7 @@ from typing import Final
 import pytest
 
 from token_iq.repositories.seat_repository import SeatRepository
-from litellm.types.proxy.seat import Seat
+from token_iq.types.seat import Seat
 
 START: Final = datetime(2026, 9, 1, tzinfo=timezone.utc)
 END: Final = datetime(2026, 9, 30, tzinfo=timezone.utc)

@@ -16,7 +16,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Final
 
-from litellm.types.proxy.seat import Seat
+from token_iq.types.seat import Seat
 
 
 @dataclass(frozen=True, slots=True)

@@ -21,7 +21,6 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from litellm.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
 from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-from litellm.types.proxy.recommendation import Recommendation
 from token_iq.api.types.recommendations import (
     DecisionBody,
     DecisionResponse,
@@ -38,6 +37,7 @@ from token_iq.repositories.recommendation_state_repository import (
     DecisionState,
     RecommendationStateRepository,
 )
+from token_iq.types.recommendation import Recommendation
 
 router: Final = APIRouter(
     tags=["recommendations"],  # mutable-ok: fixed single-element tag list, never grown after this line

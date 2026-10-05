@@ -14,7 +14,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from litellm.models.object_permission import LiteLLM_ObjectPermissionTable
 from litellm.types.llms.base import LiteLLMPydanticObjectBase
-from litellm.types.proxy.team_api_access import DEFAULT_API_ACCESS_MODE, TeamApiAccessMode
+from token_iq.types.team_api_access import DEFAULT_API_ACCESS_MODE, TeamApiAccessMode
 
 
 class MemberBase(LiteLLMPydanticObjectBase):

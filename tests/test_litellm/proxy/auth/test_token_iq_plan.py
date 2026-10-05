@@ -1,6 +1,6 @@
 import pytest
 
-from litellm.proxy.auth.token_iq_plan import (
+from token_iq.policy.plan import (
     PLAN_ENV,
     PLANS,
     KnownPlan,

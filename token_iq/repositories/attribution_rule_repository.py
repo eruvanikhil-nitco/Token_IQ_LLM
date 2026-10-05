@@ -17,7 +17,7 @@ from collections.abc import Mapping, Sequence
 from typing import Any, Final, get_args
 from uuid import uuid4
 
-from litellm.types.proxy.attribution import AttributionRule, MatchType, OwnerType
+from token_iq.types.attribution import AttributionRule, MatchType, OwnerType
 
 _MATCH_TYPES: Final[frozenset[str]] = frozenset(get_args(MatchType))
 _OWNER_TYPES: Final[frozenset[str]] = frozenset(get_args(OwnerType))

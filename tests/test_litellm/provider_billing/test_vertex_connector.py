@@ -19,7 +19,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from litellm.types.proxy.provider_billing import BillingCredential
+from token_iq.types.provider_billing import BillingCredential
 
 NOW = datetime(2026, 9, 18, 12, 0, tzinfo=timezone.utc)
 CREDENTIAL = {
@@ -411,7 +411,7 @@ async def test_a_job_that_has_not_finished_is_a_retryable_failure_not_a_silent_z
     instead of a page of rows. Reading that as zero rows would file the customer's bill as
     zero while BigQuery is still computing it, which is worse than reporting nothing at all;
     treating it as a retryable failure means the next run gets a real number instead."""
-    from litellm.types.proxy.provider_billing import FetchFailed
+    from token_iq.types.provider_billing import FetchFailed
 
     client = _http_single_page(_body(_cost_row(), job_complete=False))
 
@@ -423,7 +423,7 @@ async def test_a_job_that_has_not_finished_is_a_retryable_failure_not_a_silent_z
 
 @pytest.mark.asyncio
 async def test_a_credential_with_no_billing_project_id_is_not_configured():
-    from litellm.types.proxy.provider_billing import NotConfigured
+    from token_iq.types.provider_billing import NotConfigured
 
     result = await _fetch(
         _http_single_page(_body()), values={"billing_export_table": "proj.ds.export"}
@@ -434,7 +434,7 @@ async def test_a_credential_with_no_billing_project_id_is_not_configured():
 
 @pytest.mark.asyncio
 async def test_a_credential_with_no_billing_export_table_is_not_configured():
-    from litellm.types.proxy.provider_billing import NotConfigured
+    from token_iq.types.provider_billing import NotConfigured
 
     result = await _fetch(
         _http_single_page(_body()), values={"billing_project_id": "billing-proj"}
@@ -466,7 +466,7 @@ async def test_a_malformed_export_table_is_refused_before_any_request_is_made(ta
     reference pattern must be refused before the http client is even built, let alone called,
     or this is a live SQL injection surface into the customer's own billing data."""
     from token_iq.connectors.billing.vertex import VertexBillingConnector
-    from litellm.types.proxy.provider_billing import NotConfigured
+    from token_iq.types.provider_billing import NotConfigured
 
     http_client_factory = MagicMock()
 
@@ -489,7 +489,7 @@ async def test_a_malformed_export_table_is_refused_before_any_request_is_made(ta
 
 @pytest.mark.asyncio
 async def test_no_token_is_not_configured_rather_than_failed():
-    from litellm.types.proxy.provider_billing import NotConfigured
+    from token_iq.types.provider_billing import NotConfigured
 
     result = await _fetch(_http_single_page(_body()), token=None)
 
@@ -501,7 +501,7 @@ async def test_a_refused_credential_is_a_permanent_failure_not_a_retryable_one()
     """A 403 means the identity lacks BigQuery Data Viewer / Job User on that billing export.
     Retrying that every five minutes spends quota on a request that cannot start working
     until a human grants the role."""
-    from litellm.types.proxy.provider_billing import FetchFailed
+    from token_iq.types.provider_billing import FetchFailed
 
     result = await _fetch(_http_single_page({}, status=403))
 
@@ -511,7 +511,7 @@ async def test_a_refused_credential_is_a_permanent_failure_not_a_retryable_one()
 
 @pytest.mark.asyncio
 async def test_a_rate_limit_is_retryable():
-    from litellm.types.proxy.provider_billing import FetchFailed
+    from token_iq.types.provider_billing import FetchFailed
 
     result = await _fetch(_http_single_page({}, status=429))
 

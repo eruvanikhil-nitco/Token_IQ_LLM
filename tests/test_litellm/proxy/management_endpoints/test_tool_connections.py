@@ -7,7 +7,7 @@ from typing import Final
 import pytest
 
 from token_iq.api.tool_connections import build_tool_connection, build_tool_connections
-from litellm.types.proxy.provider_billing import BillingCredential, ProviderSyncRun
+from token_iq.types.provider_billing import BillingCredential, ProviderSyncRun
 
 NOW: Final = datetime(2026, 9, 29, 12, 0, tzinfo=timezone.utc)
 

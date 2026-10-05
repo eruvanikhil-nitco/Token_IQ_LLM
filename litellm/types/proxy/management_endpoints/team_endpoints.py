@@ -10,8 +10,8 @@ from litellm.proxy._types import (
     LiteLLM_TeamTable,
     Member,
 )
-from litellm.types.proxy.provider_billing import ConnectionState, EvidenceLevel, SyncOutcome, UsageGrain
-from litellm.types.proxy.team_api_access import TeamApiAccessMode
+from token_iq.types.provider_billing import ConnectionState, EvidenceLevel, SyncOutcome, UsageGrain
+from token_iq.types.team_api_access import TeamApiAccessMode
 
 TeamIdSearchMatch = Literal["exact", "prefix"]
 

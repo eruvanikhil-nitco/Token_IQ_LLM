@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-from litellm.types.proxy.provider_billing import BillingCredential, ProviderSyncRun
+from token_iq.types.provider_billing import BillingCredential, ProviderSyncRun
 
 NOW = datetime(2026, 9, 16, 9, 0, tzinfo=timezone.utc)
 

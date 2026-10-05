@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-from litellm.types.proxy.provider_billing import SummaryRow, TokenTotals
+from token_iq.types.provider_billing import SummaryRow, TokenTotals
 
 TOKENS = TokenTotals(input_tokens=100, output_tokens=20, cached_input_tokens=5, cache_write_tokens=2)
 

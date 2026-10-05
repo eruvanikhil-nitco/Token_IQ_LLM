@@ -17,14 +17,14 @@ from collections.abc import Callable, Mapping, Sequence
 from datetime import datetime
 from typing import Any, Final
 
-from litellm.types.proxy.provider_billing import (
+from token_iq.connectors.billing.cloud_rows import day_from_iso, decimal_or_none, settling_cutoff
+from token_iq.types.provider_billing import (
     Fetched,
     FetchFailed,
     FetchResult,
     NotConfigured,
     ProviderUsageFact,
 )
-from token_iq.connectors.billing.cloud_rows import day_from_iso, decimal_or_none, settling_cutoff
 
 COST_EXPLORER_REGION: Final = "us-east-1"
 """Cost Explorer is only served here, whatever region the models run in."""

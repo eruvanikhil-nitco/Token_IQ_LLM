@@ -537,3 +537,49 @@ stayed.
 `audit_log_endpoints.py` became `audit_logs.py`, where the plan wrote `audit_log.py`. The spec's
 rule is "plural resource name, no `_endpoints` suffix" with `projects.py` as its example, and
 dropping the suffix without the plural follows half of it.
+
+
+## Phase 3, task 4: the types and the policy modules
+
+Seven type modules moved from `litellm/types/proxy/` to `token_iq/types/`, and seven policy
+modules the request path calls into moved to `token_iq/policy/`. 225 references repointed, none
+of them inside a string.
+
+### The cycle the spec predicted does not exist
+
+Spec 5.3 says to leave `team_api_access` types where they are if importing `litellm.proxy._types`
+creates a cycle. The dependency runs the other way: the types module imports nothing at all, and
+it is `litellm/proxy/_types.py` that imports `TeamApiAccessMode` from it. The policy module beside
+it imports both. Types, then `_types`, then policy, in a straight line.
+
+Checked by importing each of the 16 moved modules **first, in a fresh interpreter**. A cycle that
+only bites when a module is imported before anything else disappears the moment something has
+already pulled the graph in, so importing them inside a session that has loaded the proxy would
+have proved nothing. All 16 are clean, and the route list is still the same 589.
+
+### They are called `policy/`, not `hooks/`
+
+The plan calls them "the seven proxy hooks", but a hook in the gateway's vocabulary is a
+`CustomLogger` subclass and none of these is one. They decide which way a team may reach the
+models, what the plan allows, what is kept in the spend log, how long bodies are retained, who
+may read a credential, which model names a courier request uses, and whether a pass-through retry
+may go anywhere but the endpoint the client named. That last one is the observer-only constraint
+expressed as code.
+
+### A mistake worth recording
+
+`ruff check --select I001 --fix` was run against `tests/` to tidy the import order the rewrite
+disturbed. The tests config does not enable `I001`, so `--select` replaced the config's rules
+rather than narrowing them, and 2218 import blocks were reordered across 1537 test files,
+collapsing multi-line imports and removing 358 lines net. Reverted, and the path rewrites
+reapplied to leave the intended 50 files.
+
+The tell was the number. The move had touched 50 test files and the fix reported 2218. A count
+that large from a tidy-up is the thing to stop at, not the thing to accept because the next
+command printed "All checks passed".
+
+### Where the two trees still touch
+
+Thirteen modules under `litellm/` import from `token_iq/`, which is the coupling phase 6 resolves
+when `litellm/` becomes `token_iq/gateway/`. Nothing under `token_iq/` imports a router or an
+endpoint from the gateway; what it does import is `litellm.proxy._types` and one auth helper.

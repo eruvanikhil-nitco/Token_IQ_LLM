@@ -43,6 +43,35 @@ MOVES: Final[Mapping[str, str]] = MappingProxyType(
         _OLD + "seats": "token_iq.seats",
         _OLD + "recommendations": "token_iq.recommendations",
         _OLD + "pricing": "token_iq.pricing",
+        # Phase 3 task 4: the domain types, and the policy modules the gateway calls into.
+        #
+        # Three lose a prefix that only made sense outside the package: `token_iq_plan` becomes
+        # `plan` and `capture_policy` becomes `capture`, because `token_iq.policy.token_iq_plan`
+        # and `token_iq.policy.capture_policy` both stutter.
+        **{
+            _OLD + f"types.proxy.{name}": f"token_iq.types.{name}"
+            for name in (
+                "attribution",
+                "invoice",
+                "provider_billing",
+                "recommendation",
+                "seat",
+                "team_api_access",
+                "tool_usage",
+            )
+        },
+        **{
+            _OLD + f"proxy.{old}": f"token_iq.policy.{new}"
+            for old, new in (
+                ("auth.team_api_access", "team_api_access"),
+                ("auth.token_iq_plan", "plan"),
+                ("auth.courier_model_names", "courier_model_names"),
+                ("spend_tracking.capture_policy", "capture"),
+                ("db.spend_log_retention", "spend_log_retention"),
+                ("credential_endpoints.credential_access", "credential_access"),
+                ("pass_through_endpoints.same_target_retry", "same_target_retry"),
+            )
+        },
         # Phase 3 task 3: the API routers, and the wire types each one serves.
         #
         # `audit_logs` and `projects` are renamed on the way: the spec's rule for routers is a

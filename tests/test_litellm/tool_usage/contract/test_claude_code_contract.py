@@ -112,7 +112,7 @@ async def test_it_stays_inside_the_page_size_anthropic_allows(vendor):
 async def test_the_cost_is_minor_units_so_186_is_one_dollar_eighty_six(vendor):
     """Anthropic states the estimated cost in the lowest currency unit. Storing it verbatim
     would overstate a customer's Claude Code spend a hundredfold."""
-    from litellm.types.proxy.tool_usage import ToolFetched
+    from token_iq.types.tool_usage import ToolFetched
 
     stand_in: Final = vendor(Reply(json=DOCUMENTED_PAGE))
 
@@ -127,7 +127,7 @@ async def test_usage_billed_to_an_api_account_is_marked_as_already_counted(vendo
     """The documented example is an api customer, so these dollars are already on the Anthropic
     bill the provider connector reads. Counting them again would double a customer's largest
     Anthropic figure."""
-    from litellm.types.proxy.tool_usage import ToolFetched
+    from token_iq.types.tool_usage import ToolFetched
 
     stand_in: Final = vendor(Reply(json=DOCUMENTED_PAGE))
 
@@ -140,7 +140,7 @@ async def test_usage_billed_to_an_api_account_is_marked_as_already_counted(vendo
 
 @pytest.mark.asyncio
 async def test_usage_on_a_subscription_plan_is_new_money(vendor):
-    from litellm.types.proxy.tool_usage import ToolFetched
+    from token_iq.types.tool_usage import ToolFetched
 
     record: Final = {**DOCUMENTED_RECORD, "customer_type": "subscription"}
     stand_in: Final = vendor(Reply(json={"data": [record], "has_more": False, "next_page": None}))
@@ -154,7 +154,7 @@ async def test_usage_on_a_subscription_plan_is_new_money(vendor):
 
 @pytest.mark.asyncio
 async def test_it_keeps_the_person_the_tool_named(vendor):
-    from litellm.types.proxy.tool_usage import ToolFetched
+    from token_iq.types.tool_usage import ToolFetched
 
     stand_in: Final = vendor(Reply(json=DOCUMENTED_PAGE))
 
@@ -168,7 +168,7 @@ async def test_it_keeps_the_person_the_tool_named(vendor):
 async def test_usage_by_an_api_key_is_kept_under_the_key_rather_than_dropped(vendor):
     """It is real spend with no human attached. Dropping it would lose money; attributing it to
     a person would invent one."""
-    from litellm.types.proxy.tool_usage import ToolFetched
+    from token_iq.types.tool_usage import ToolFetched
 
     record: Final = {**DOCUMENTED_RECORD, "actor": {"api_key_name": "ci-runner", "type": "api_actor"}}
     stand_in: Final = vendor(Reply(json={"data": [record], "has_more": False, "next_page": None}))
@@ -181,7 +181,7 @@ async def test_usage_by_an_api_key_is_kept_under_the_key_rather_than_dropped(ven
 
 @pytest.mark.asyncio
 async def test_it_follows_the_cursor_to_the_end(vendor):
-    from litellm.types.proxy.tool_usage import ToolFetched
+    from token_iq.types.tool_usage import ToolFetched
 
     first: Final = {"data": [DOCUMENTED_RECORD], "has_more": True, "next_page": "page_abc"}
     second: Final = {
@@ -205,7 +205,7 @@ async def test_it_follows_the_cursor_to_the_end(vendor):
 )
 @pytest.mark.asyncio
 async def test_it_turns_an_error_into_a_reason_rather_than_raising(vendor, status: int, retryable: bool):
-    from litellm.types.proxy.tool_usage import ToolFetchFailed
+    from token_iq.types.tool_usage import ToolFetchFailed
 
     stand_in: Final = vendor(Reply(json={"error": "nope"}, status=status))
 
@@ -218,7 +218,7 @@ async def test_it_turns_an_error_into_a_reason_rather_than_raising(vendor, statu
 
 @pytest.mark.asyncio
 async def test_a_body_that_is_not_json_is_a_failure_not_a_crash(vendor):
-    from litellm.types.proxy.tool_usage import ToolFetchFailed
+    from token_iq.types.tool_usage import ToolFetchFailed
 
     stand_in: Final = vendor(Reply(text="<html>maintenance</html>"))
 
@@ -227,7 +227,7 @@ async def test_a_body_that_is_not_json_is_a_failure_not_a_crash(vendor):
 
 @pytest.mark.asyncio
 async def test_a_credential_with_no_key_is_reported_before_any_request(vendor):
-    from litellm.types.proxy.tool_usage import ToolNotConfigured
+    from token_iq.types.tool_usage import ToolNotConfigured
     from token_iq.connectors.tools.claude_code import ClaudeCodeConnector
 
     stand_in: Final = vendor(Reply(json=DOCUMENTED_PAGE))

@@ -241,13 +241,58 @@ routes are `/audit/list` and `/project/*`, so both resources are countable.
 
 **Files:** the seven proxy hooks and the Token IQ type modules named in the spec
 
-- [ ] **Step 1: Move them**
+- [x] **Step 1: Move them**
 
-- [ ] **Step 2: If `team_api_access` creates a cycle, leave it and record it**
+- [x] **Step 2: If `team_api_access` creates a cycle, leave it and record it**
 
 The spec predicts this one. A cycle is resolved by phase 6, not by a local import here.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
+
+### The cycle the spec predicted is not there, and it named the wrong file
+
+Spec 5.3 says to leave `token_iq/types/team_api_access.py` where it is if importing
+`litellm.proxy._types` creates a cycle. That file imports nothing from the gateway at all. None
+of the seven type modules do: they are pure shapes, and they are leaves of the import graph.
+
+The module that imports `litellm.proxy._types` is the policy module beside it, and the
+dependency runs in a straight line. `token_iq/types/team_api_access.py` imports nothing;
+`litellm/proxy/_types.py` imports `TeamApiAccessMode` from it; `token_iq/policy/team_api_access.py`
+imports both. The gateway imports the Token IQ type, not the other way round, so there is no
+cycle to leave in place.
+
+Proved rather than reasoned: each of the 16 moved modules was imported **first, in a fresh
+interpreter**, because a cycle that only bites when a module is imported before anything else is
+invisible once something has already pulled the graph in. All 16 import clean.
+
+### Not hooks, and so not called `hooks/`
+
+The seven are policy, not hooks in the gateway's sense of the word, which means `CustomLogger`
+subclasses. Which way a team may reach the models, what the plan allows, what is kept in the
+spend log, how long bodies are retained, who may read a credential, which model names a courier
+request uses, and whether a pass-through retry may go anywhere but the endpoint the client
+named. Each is a function the request path calls. They are in `token_iq/policy/`, so that nobody
+goes looking for logger subclasses.
+
+Three lost a prefix that only made sense outside the package: `token_iq_plan` to `plan` and
+`capture_policy` to `capture`, because `token_iq.policy.token_iq_plan` and
+`token_iq.policy.capture_policy` both stutter.
+
+### No quoted paths in this move
+
+225 references, 203 to the types and 22 to the policy modules, and not one inside a string.
+Searched before anything moved, as in task 3.
+
+### A mistake worth recording
+
+Fixing the import order the rewrite disturbed, `ruff check --select I001 --fix` was run against
+`tests/` as well. The tests config does not enable `I001`, so `--select` did not narrow the
+config's rules, it replaced them: 2218 import blocks were reordered across **1537 test files**,
+collapsing multi-line imports and removing 358 lines net. Reverted with `git checkout -- tests/`
+and the path rewrites reapplied, leaving the intended 50 files and 159 symmetric lines.
+
+`--select` against a tree whose config deliberately omits that rule is not a narrowing, it is a
+different check. The tell was the number: 2218 fixes where the move had touched 50 files.
 
 ---
 

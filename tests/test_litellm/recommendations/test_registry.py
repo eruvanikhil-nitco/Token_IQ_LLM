@@ -5,7 +5,7 @@ import pytest
 
 from token_iq.recommendations.inputs import RuleInput
 from token_iq.recommendations.registry import evaluate
-from litellm.types.proxy.recommendation import Evidence, Recommendation
+from token_iq.types.recommendation import Evidence, Recommendation
 
 EMPTY_INPUT: Final = RuleInput()
 

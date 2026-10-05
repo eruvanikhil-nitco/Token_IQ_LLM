@@ -36,14 +36,6 @@ from collections.abc import Callable, Mapping, Sequence
 from datetime import datetime, timezone
 from typing import Any, Final
 
-from litellm.types.proxy.provider_billing import (
-    BillingTokenFactory,
-    Fetched,
-    FetchFailed,
-    FetchResult,
-    NotConfigured,
-    ProviderUsageFact,
-)
 from token_iq.connectors.billing.cloud_rows import (
     by_column_name,
     currency_or_default,
@@ -52,6 +44,14 @@ from token_iq.connectors.billing.cloud_rows import (
     decoded_object,
     json_safe_row,
     utc_day_start,
+)
+from token_iq.types.provider_billing import (
+    BillingTokenFactory,
+    Fetched,
+    FetchFailed,
+    FetchResult,
+    NotConfigured,
+    ProviderUsageFact,
 )
 
 DEFAULT_BASE_URL: Final = "https://management.azure.com"

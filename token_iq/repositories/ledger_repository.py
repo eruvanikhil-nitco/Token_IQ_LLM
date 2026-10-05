@@ -22,7 +22,7 @@ from decimal import Decimal, InvalidOperation
 from types import MappingProxyType
 from typing import Any, Final, get_args
 
-from litellm.types.proxy.provider_billing import EvidenceLevel
+from token_iq.types.provider_billing import EvidenceLevel
 
 _EVIDENCE_LEVELS: Final[frozenset[str]] = frozenset(get_args(EvidenceLevel))
 

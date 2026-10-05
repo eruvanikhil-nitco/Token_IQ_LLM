@@ -137,7 +137,7 @@ async def test_it_stays_inside_the_page_size_anthropic_allows(vendor):
 async def test_it_reads_the_amount_out_of_anthropics_own_example(vendor):
     """Anthropic states amount in the lowest currency unit, so their documented "123.78912"
     is one dollar twenty-three, not a hundred and twenty-three dollars."""
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     stand_in: Final = vendor(Reply(json=DOCUMENTED_PAGE))
 
@@ -152,7 +152,7 @@ async def test_it_reads_the_amount_out_of_anthropics_own_example(vendor):
 async def test_it_follows_the_cursor_to_the_end(vendor):
     """A connector that stops at page one looks healthy and under-reports spend forever,
     which is the worst thing this product can do."""
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     stand_in: Final = vendor(Reply(json=_first_of_two()), Reply(json=_second_page()))
 
@@ -170,7 +170,7 @@ async def test_it_follows_the_cursor_to_the_end(vendor):
 )
 @pytest.mark.asyncio
 async def test_it_turns_an_error_into_a_reason_rather_than_raising(vendor, status: int, retryable: bool):
-    from litellm.types.proxy.provider_billing import FetchFailed
+    from token_iq.types.provider_billing import FetchFailed
 
     stand_in: Final = vendor(Reply(json={"error": "nope"}, status=status))
 
@@ -183,7 +183,7 @@ async def test_it_turns_an_error_into_a_reason_rather_than_raising(vendor, statu
 
 @pytest.mark.asyncio
 async def test_a_body_that_is_not_json_is_a_failure_not_a_crash(vendor):
-    from litellm.types.proxy.provider_billing import FetchFailed
+    from token_iq.types.provider_billing import FetchFailed
 
     stand_in: Final = vendor(Reply(text="<html>maintenance</html>"))
 
@@ -194,7 +194,7 @@ async def test_a_body_that_is_not_json_is_a_failure_not_a_crash(vendor):
 
 @pytest.mark.asyncio
 async def test_a_body_of_the_wrong_shape_is_a_failure_not_a_crash(vendor):
-    from litellm.types.proxy.provider_billing import FetchFailed
+    from token_iq.types.provider_billing import FetchFailed
 
     stand_in: Final = vendor(Reply(json=["not", "an", "object"]))
 
@@ -209,7 +209,7 @@ async def test_a_cost_with_more_digits_than_a_float_can_hold_survives(vendor):
     through one silently rounds it. Anthropic states amounts as strings, but this connector
     shares its decoder with the ones whose vendors send JSON numbers, and that decoder is the
     only thing standing between a customer's bill and a rounded figure."""
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     exact: Final = "12345678901234567890.12345"
     page: Final = {

@@ -13,7 +13,7 @@ from typing import Literal
 
 from pydantic import BaseModel
 
-from litellm.types.proxy.attribution import OwnerType
+from token_iq.types.attribution import OwnerType
 
 ComparisonStatus = Literal["matched", "gap", "not_settled", "no_provider_data"]
 """matched: the gateway recorded at least what the provider billed.

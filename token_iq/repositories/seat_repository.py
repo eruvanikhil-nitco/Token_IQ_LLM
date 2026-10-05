@@ -14,7 +14,7 @@ from decimal import Decimal, InvalidOperation
 from typing import Any, Final, get_args
 from uuid import uuid4
 
-from litellm.types.proxy.seat import Seat, SeatCadence
+from token_iq.types.seat import Seat, SeatCadence
 
 _CADENCES: Final[frozenset[str]] = frozenset(get_args(SeatCadence))
 

@@ -147,7 +147,7 @@ class TestCourierModelNamesResolveToPermittedDeployments:
         provider's model, because the body is the provider's own. Without translating
         between them the permission stops matching the moment a team switches, and every
         call is refused for a model the admin can see granted."""
-        from litellm.proxy.auth.courier_model_names import permitted_provider_models
+        from token_iq.policy.courier_model_names import permitted_provider_models
 
         deployments = [
             {
@@ -165,7 +165,7 @@ class TestCourierModelNamesResolveToPermittedDeployments:
         assert "openai/gpt-4o-mini" in permitted
 
     def test_a_model_the_team_was_not_granted_is_absent(self):
-        from litellm.proxy.auth.courier_model_names import permitted_provider_models
+        from token_iq.policy.courier_model_names import permitted_provider_models
 
         deployments = [
             {"model_name": "anthropic-haiku-4-5", "litellm_params": {"model": "anthropic/claude-haiku-4-5"}},
@@ -179,11 +179,11 @@ class TestCourierModelNamesResolveToPermittedDeployments:
         assert "claude-haiku-4-5" not in permitted
 
     def test_a_wildcard_grant_stays_a_wildcard(self):
-        from litellm.proxy.auth.courier_model_names import permitted_provider_models
+        from token_iq.policy.courier_model_names import permitted_provider_models
 
         assert "*" in permitted_provider_models(permitted_deployments=["*"], deployments=[])
 
     def test_no_grants_permits_nothing(self):
-        from litellm.proxy.auth.courier_model_names import permitted_provider_models
+        from token_iq.policy.courier_model_names import permitted_provider_models
 
         assert permitted_provider_models(permitted_deployments=[], deployments=[]) == frozenset()

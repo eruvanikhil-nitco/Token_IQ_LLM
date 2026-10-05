@@ -9,7 +9,7 @@ import pytest
 
 from token_iq.connectors.billing.fetch_profile import FETCH_PROFILES
 from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-from litellm.types.proxy.provider_billing import ProviderUsageFact, RecentFactsPage, SummaryRow, TokenTotals
+from token_iq.types.provider_billing import ProviderUsageFact, RecentFactsPage, SummaryRow, TokenTotals
 
 ADMIN = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin")
 NON_ADMIN = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-u", user_id="u")

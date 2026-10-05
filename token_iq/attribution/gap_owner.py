@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Final, Literal, TypeAlias
 
-from litellm.types.proxy.attribution import AttributionRule, OwnerType
+from token_iq.types.attribution import AttributionRule, OwnerType
 
 GapState: TypeAlias = Literal["owned", "unallocated", "matched", "not_settled", "no_provider_data"]
 """owned: a rule maps this account to a team, project or user, and the gap is theirs.

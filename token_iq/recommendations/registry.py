@@ -10,13 +10,13 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import Final, Protocol
 
-from litellm.types.proxy.recommendation import Recommendation
 from token_iq.recommendations.inputs import RuleInput
 from token_iq.recommendations.rules.escaped_spend import escaped_spend
 from token_iq.recommendations.rules.failed_requests import failed_requests
 from token_iq.recommendations.rules.price_drift import price_drift
 from token_iq.recommendations.rules.provider_concentration import provider_concentration
 from token_iq.recommendations.rules.stale_budget import stale_budget
+from token_iq.types.recommendation import Recommendation
 
 
 class Rule(Protocol):

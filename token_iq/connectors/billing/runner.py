@@ -13,16 +13,16 @@ from datetime import datetime, timedelta, timezone
 from typing import Final
 
 from litellm._logging import verbose_proxy_logger
-from litellm.types.proxy.provider_billing import (
+from token_iq.connectors.billing.connector import BillingConnector
+from token_iq.repositories.provider_sync_run_repository import ProviderSyncRunRepository
+from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+from token_iq.types.provider_billing import (
     BillingCredential,
     Fetched,
     FetchFailed,
     NotConfigured,
     ProviderSyncRun,
 )
-from token_iq.connectors.billing.connector import BillingConnector
-from token_iq.repositories.provider_sync_run_repository import ProviderSyncRunRepository
-from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
 
 LOOKBACK: Final = timedelta(days=1)
 """Each run re-reads the last day. A watermark with no overlap loses anything a provider

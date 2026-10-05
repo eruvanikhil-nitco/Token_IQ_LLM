@@ -16,11 +16,11 @@ from datetime import datetime, timedelta, timezone
 from typing import Final
 
 from litellm._logging import verbose_proxy_logger
-from litellm.types.proxy.provider_billing import BillingCredential, ProviderSyncRun
-from litellm.types.proxy.tool_usage import ToolFetched, ToolFetchFailed, ToolNotConfigured
 from token_iq.connectors.tools.connector import ToolConnector
 from token_iq.repositories.provider_sync_run_repository import ProviderSyncRunRepository
 from token_iq.repositories.tool_usage_fact_repository import ToolUsageFactRepository
+from token_iq.types.provider_billing import BillingCredential, ProviderSyncRun
+from token_iq.types.tool_usage import ToolFetched, ToolFetchFailed, ToolNotConfigured
 
 LOOKBACK: Final = timedelta(days=2)
 """Each run re-reads the last two days. Tools revise a day after it ends, more than providers

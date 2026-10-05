@@ -84,10 +84,6 @@ from litellm.proxy.litellm_pre_call_utils import (
     LiteLLMProxyRequestSetup,
     _get_dynamic_logging_metadata,  # pyright: ignore[reportPrivateUsage]  # shared proxy helper, same import style as _read_request_body above
 )
-from litellm.proxy.pass_through_endpoints.same_target_retry import (
-    passthrough_retry_policy,
-    send_with_same_target_retry,
-)
 from litellm.proxy.utils import normalize_route_for_root_path
 from litellm.repositories.team_repository import TeamRepository
 from litellm.secret_managers.main import get_secret_str
@@ -100,6 +96,10 @@ from litellm.types.passthrough_endpoints.pass_through_endpoints import (
     PassthroughStandardLoggingPayload,
 )
 from litellm.types.utils import TRUSTED_CALLBACK_VARS_FIELD, Usage
+from token_iq.policy.same_target_retry import (
+    passthrough_retry_policy,
+    send_with_same_target_retry,
+)
 
 from .streaming_handler import PassThroughStreamingHandler
 from .success_handler import PassThroughEndpointLogging

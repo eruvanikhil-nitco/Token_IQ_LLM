@@ -24,11 +24,11 @@ from litellm.types.proxy.management_endpoints.team_endpoints import (
     ProviderUsageRawResponse,
     ProviderUsageSummaryResponse,
 )
-from litellm.types.proxy.provider_billing import ProviderUsageFact
 from token_iq.connectors.billing.credential_purpose import BILLING_PROVIDERS
 from token_iq.connectors.billing.fetch_profile import FETCH_PROFILES
 from token_iq.connectors.billing.usage_summary import UsageSummary, build_usage_summary
 from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+from token_iq.types.provider_billing import ProviderUsageFact
 
 router: Final = APIRouter(
     tags=["provider billing"],  # mutable-ok: fixed single-element tag list, never grown after this line

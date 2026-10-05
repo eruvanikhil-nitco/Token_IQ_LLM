@@ -71,7 +71,6 @@ from litellm.proxy.auth.budget_throttle import (
     should_throttle_budget_exceeded,
 )
 from litellm.proxy.auth.route_checks import RouteChecks
-from litellm.proxy.auth.team_api_access import DEFAULT_API_ACCESS_MODE, assert_route_allowed
 from litellm.proxy.common_utils.auth_cache_invalidation_pubsub import publish_auth_cache_invalidation
 from litellm.proxy.common_utils.http_parsing_utils import (
     _safe_get_request_headers,
@@ -122,6 +121,7 @@ from litellm.repositories.user_repository import UserRepository
 from litellm.router import Router
 from litellm.types.proxy.model_access_group_budget import ModelAccessGroupBudget
 from litellm.utils import get_utc_datetime
+from token_iq.policy.team_api_access import DEFAULT_API_ACCESS_MODE, assert_route_allowed
 
 from .auth_checks_organization import (
     add_team_org_context_to_request_body,

@@ -9,8 +9,8 @@ from typing import Final
 import pytest
 
 from token_iq.connectors.tools.runner import run_tool_ingestion
-from litellm.types.proxy.provider_billing import BillingCredential, ProviderSyncRun
-from litellm.types.proxy.tool_usage import (
+from token_iq.types.provider_billing import BillingCredential, ProviderSyncRun
+from token_iq.types.tool_usage import (
     ToolFetched,
     ToolFetchFailed,
     ToolFetchResult,

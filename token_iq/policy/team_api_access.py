@@ -32,8 +32,8 @@ from typing import Final
 from fastapi import status
 
 from litellm.proxy._types import LiteLLMRoutes, ProxyErrorTypes, ProxyException
-from litellm.types.proxy.team_api_access import DEFAULT_API_ACCESS_MODE as DEFAULT_API_ACCESS_MODE
-from litellm.types.proxy.team_api_access import TeamApiAccessMode as TeamApiAccessMode
+from token_iq.types.team_api_access import DEFAULT_API_ACCESS_MODE as DEFAULT_API_ACCESS_MODE
+from token_iq.types.team_api_access import TeamApiAccessMode as TeamApiAccessMode
 
 _COURIER_REFUSAL: Final = (
     "This team is set to courier mode, where request bodies reach the provider unread. "

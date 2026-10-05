@@ -9,8 +9,8 @@ from __future__ import annotations
 
 from pydantic import BaseModel
 
-from litellm.types.proxy.recommendation import FigureKind, RecommendationKind
 from token_iq.repositories.recommendation_state_repository import DecisionState
+from token_iq.types.recommendation import FigureKind, RecommendationKind
 
 
 class EvidenceResponse(BaseModel):

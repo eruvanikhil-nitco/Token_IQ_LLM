@@ -16,8 +16,8 @@ from __future__ import annotations
 from decimal import Decimal
 from typing import Final
 
-from litellm.types.proxy.recommendation import Evidence, Recommendation
 from token_iq.recommendations.inputs import RuleInput
+from token_iq.types.recommendation import Evidence, Recommendation
 
 RULE_ID: Final = "failed_requests"
 

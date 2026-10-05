@@ -17,7 +17,7 @@ from decimal import Decimal, InvalidOperation
 from types import MappingProxyType
 from typing import Final
 
-from litellm.types.proxy.provider_billing import DEFAULT_CURRENCY
+from token_iq.types.provider_billing import DEFAULT_CURRENCY
 
 TABLE_PATTERN: Final = re.compile(r"^(?:[A-Za-z0-9_-]+\.)?[A-Za-z0-9_]+\.[A-Za-z0-9_]+$")
 """A BigQuery table reference is `dataset.table` or `project.dataset.table`. GCP project ids

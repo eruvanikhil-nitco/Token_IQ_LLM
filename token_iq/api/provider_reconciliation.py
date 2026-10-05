@@ -25,10 +25,10 @@ from litellm.types.proxy.management_endpoints.team_endpoints import (
     ReconciliationResponse,
     ReconciliationRow,
 )
-from litellm.types.proxy.provider_billing import BillingCredential, Fetched, FetchFailed, NotConfigured
 from token_iq.connectors.billing.connector import BillingConnector, registered_connectors
 from token_iq.connectors.billing.runner import LOOKBACK
 from token_iq.connectors.billing.scheduled import build_billing_credentials_lookup
+from token_iq.types.provider_billing import BillingCredential, Fetched, FetchFailed, NotConfigured
 
 router: Final = APIRouter()
 

@@ -20,7 +20,7 @@ from decimal import Decimal, InvalidOperation
 from typing import Any, Final, get_args
 from uuid import uuid4
 
-from litellm.types.proxy.invoice import AdjustmentKind, InvoiceAdjustment, ProviderInvoice
+from token_iq.types.invoice import AdjustmentKind, InvoiceAdjustment, ProviderInvoice
 
 _ADJUSTMENT_KINDS: Final[frozenset[str]] = frozenset(get_args(AdjustmentKind))
 

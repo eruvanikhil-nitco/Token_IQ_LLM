@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from litellm.types.proxy.provider_billing import ProviderSyncRun
+from token_iq.types.provider_billing import ProviderSyncRun
 
 STARTED = datetime(2026, 9, 16, 9, 0, tzinfo=timezone.utc)
 FINISHED = datetime(2026, 9, 16, 9, 0, 4, tzinfo=timezone.utc)

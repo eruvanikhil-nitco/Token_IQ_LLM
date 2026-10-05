@@ -1,4 +1,4 @@
-from litellm.proxy.spend_tracking.capture_policy import should_capture
+from token_iq.policy.capture import should_capture
 
 
 def test_off_when_nothing_is_configured() -> None:

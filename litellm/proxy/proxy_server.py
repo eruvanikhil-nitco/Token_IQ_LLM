@@ -279,7 +279,6 @@ from litellm.proxy.auth.model_checks import (
     get_team_models,
 )
 from litellm.proxy.auth.password_policy import validate_password_policy
-from litellm.proxy.auth.token_iq_plan import PLAN_ENV, TokenIqPlan, require_plan
 from litellm.proxy.auth.user_api_key_auth import (
     _fetch_global_spend_with_event_coordination,
     user_api_key_auth,
@@ -702,6 +701,7 @@ from token_iq.api.tool_connections import (
 from token_iq.connectors.billing.scheduled import INTERVAL_SECONDS as PROVIDER_BILLING_INTERVAL_SECONDS
 from token_iq.connectors.billing.scheduled import build_provider_billing_job
 from token_iq.connectors.billing.startup import register_billing_connectors
+from token_iq.policy.plan import PLAN_ENV, TokenIqPlan, require_plan
 
 try:
     from litellm._version import version
@@ -9334,10 +9334,10 @@ class ProxyStartupEvent:
         ### AGE OUT SPEND LOG BODIES ###
         # Bodies are the whole size of the spend log table and hold what people actually
         # typed. The accounting stays forever; only the request and response go.
-        from litellm.proxy.db.spend_log_retention import (
+        from token_iq.policy.spend_log_retention import (
             clear_expired_bodies,
         )
-        from litellm.proxy.db.spend_log_retention import (
+        from token_iq.policy.spend_log_retention import (
             is_enabled as spend_log_retention_enabled,
         )
 

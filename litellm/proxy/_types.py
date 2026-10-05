@@ -40,7 +40,6 @@ from litellm.types.mcp import (
 )
 from litellm.types.mcp_server.mcp_server_manager import MCPInfo
 from litellm.types.proxy.control_plane_endpoints import WorkerRegistryEntry
-from litellm.types.proxy.team_api_access import TeamApiAccessMode
 from litellm.types.router import RouterErrors, UpdateRouterConfig
 from litellm.types.secret_managers.main import KeyManagementSystem
 from litellm.types.utils import (
@@ -65,6 +64,7 @@ from litellm.types.utils import (
     TextCompletionResponse,
 )
 from litellm.types.videos.main import VideoObject
+from token_iq.types.team_api_access import TeamApiAccessMode
 
 from .types_utils.utils import get_instance_fn, validate_custom_validate_return_type
 

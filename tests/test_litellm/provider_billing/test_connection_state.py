@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from litellm.types.proxy.provider_billing import ProviderSyncRun
+from token_iq.types.provider_billing import ProviderSyncRun
 
 NOW = datetime(2026, 9, 16, 9, 0, tzinfo=timezone.utc)
 

@@ -1,7 +1,7 @@
 import httpx
 import pytest
 
-from litellm.proxy.pass_through_endpoints.same_target_retry import (
+from token_iq.policy.same_target_retry import (
     SameTargetRetryPolicy,
     passthrough_retry_policy,
     send_with_same_target_retry,

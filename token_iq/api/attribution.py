@@ -18,7 +18,6 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from litellm.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
 from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-from litellm.types.proxy.attribution import AttributionRule
 from token_iq.api.types.attribution import (
     AttributionRuleBody,
     AttributionRuleDeletedResponse,
@@ -31,6 +30,7 @@ from token_iq.attribution.gap_owner import AttributedGap, attribute
 from token_iq.connectors.billing.credential_purpose import BILLING_PROVIDERS
 from token_iq.repositories.attribution_rule_repository import AttributionRuleRepository
 from token_iq.repositories.gap_repository import GapRepository
+from token_iq.types.attribution import AttributionRule
 
 router: Final = APIRouter(
     tags=["attribution"],  # mutable-ok: fixed single-element tag list, never grown after this line

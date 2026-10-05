@@ -116,7 +116,7 @@ async def test_it_groups_by_usage_type_so_a_day_is_not_one_opaque_number():
 async def test_it_reads_the_amount_aws_reports_as_a_string_without_losing_digits():
     """Cost Explorer sends Amount as a decimal string, which is the one wire format that cannot
     lose precision. Parsing it through a float would throw that away."""
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     client: Final = FakeCostExplorer(
         pages=({"ResultsByTime": [_period("2026-09-01", _group(amount="0.10000000000000000555"))]},)
@@ -130,7 +130,7 @@ async def test_it_reads_the_amount_aws_reports_as_a_string_without_losing_digits
 
 @pytest.mark.asyncio
 async def test_it_follows_the_page_token_to_the_end():
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     client: Final = FakeCostExplorer(
         pages=(
@@ -151,7 +151,7 @@ async def test_it_follows_the_page_token_to_the_end():
 async def test_a_throttle_is_retryable_but_a_refused_identity_is_not():
     """Retrying a throttle next tick is right. Retrying an invalid key forever hides it from
     the operator who has to replace it."""
-    from litellm.types.proxy.provider_billing import FetchFailed
+    from token_iq.types.provider_billing import FetchFailed
 
     throttled: Final = await _fetch(
         FakeCostExplorer(pages=(), raises=RuntimeError("ThrottlingException: Rate exceeded"))
@@ -166,7 +166,7 @@ async def test_a_throttle_is_retryable_but_a_refused_identity_is_not():
 
 @pytest.mark.asyncio
 async def test_a_credential_with_no_key_is_reported_before_any_call_is_made():
-    from litellm.types.proxy.provider_billing import NotConfigured
+    from token_iq.types.provider_billing import NotConfigured
 
     client: Final = FakeCostExplorer(pages=())
 
@@ -178,7 +178,7 @@ async def test_a_credential_with_no_key_is_reported_before_any_call_is_made():
 
 @pytest.mark.asyncio
 async def test_a_response_of_the_wrong_shape_is_a_failure_not_a_crash():
-    from litellm.types.proxy.provider_billing import FetchFailed
+    from token_iq.types.provider_billing import FetchFailed
 
     result: Final = await _fetch(FakeCostExplorer(pages=({"ResultsByTime": "not a list"},)))
 

@@ -9,8 +9,8 @@ from __future__ import annotations
 
 from pydantic import BaseModel
 
-from litellm.types.proxy.attribution import MatchType, OwnerType
 from token_iq.attribution.gap_owner import GapState
+from token_iq.types.attribution import MatchType, OwnerType
 
 
 class AttributionRuleBody(BaseModel):

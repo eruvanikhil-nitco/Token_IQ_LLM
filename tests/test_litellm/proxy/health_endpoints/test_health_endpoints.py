@@ -266,7 +266,7 @@ async def test_health_services_endpoint_sqs(status, error_message):
 
 @pytest.mark.asyncio
 async def test_health_license_reports_the_installations_token_iq_plan():
-    from litellm.proxy.auth.token_iq_plan import TokenIqPlan
+    from token_iq.policy.plan import TokenIqPlan
 
     growth = TokenIqPlan(name="growth", unlocks_gated_features=True, max_users=50, max_teams=4)
     with patch("litellm.proxy.proxy_server.token_iq_plan", growth):
@@ -283,7 +283,7 @@ async def test_health_license_reports_the_installations_token_iq_plan():
 
 @pytest.mark.asyncio
 async def test_health_license_shows_no_caps_on_the_standard_plan():
-    from litellm.proxy.auth.token_iq_plan import PLANS
+    from token_iq.policy.plan import PLANS
 
     with patch("litellm.proxy.proxy_server.token_iq_plan", PLANS["standard"]):
         response = await health_license_endpoint(user_api_key_dict=MagicMock())

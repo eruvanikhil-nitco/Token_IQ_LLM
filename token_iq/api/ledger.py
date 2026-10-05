@@ -17,8 +17,6 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from litellm.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
 from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-from litellm.types.proxy.attribution import AttributionRule
-from litellm.types.proxy.invoice import InvoiceAdjustment, ProviderInvoice
 from token_iq.api.types.ledger import (
     AdjustmentBody,
     InvoiceBody,
@@ -35,6 +33,8 @@ from token_iq.ledger.reconciliation import Reconciliation, reconcile
 from token_iq.repositories.attribution_rule_repository import AttributionRuleRepository
 from token_iq.repositories.invoice_repository import InvoiceRepository
 from token_iq.repositories.ledger_repository import LedgerLine, LedgerRepository
+from token_iq.types.attribution import AttributionRule
+from token_iq.types.invoice import InvoiceAdjustment, ProviderInvoice
 
 router: Final = APIRouter(
     tags=["ledger"],  # mutable-ok: fixed single-element tag list, never grown after this line

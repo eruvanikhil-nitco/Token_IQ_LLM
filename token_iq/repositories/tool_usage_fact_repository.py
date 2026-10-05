@@ -15,7 +15,7 @@ from datetime import datetime
 from types import MappingProxyType
 from typing import Any, Final
 
-from litellm.types.proxy.tool_usage import ToolUsageFact
+from token_iq.types.tool_usage import ToolUsageFact
 
 _UPSERT_SQL: Final = """
 INSERT INTO "LiteLLM_ToolUsageFact"

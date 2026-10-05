@@ -20,7 +20,8 @@ from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from typing import Any, Final
 
-from litellm.types.proxy.tool_usage import (
+from token_iq.connectors.billing.cloud_rows import decimal_or_none, decoded_object, utc_day_start
+from token_iq.types.tool_usage import (
     ToolFetched,
     ToolFetchFailed,
     ToolFetchResult,
@@ -28,7 +29,6 @@ from litellm.types.proxy.tool_usage import (
     ToolNotConfigured,
     ToolUsageFact,
 )
-from token_iq.connectors.billing.cloud_rows import decimal_or_none, decoded_object, utc_day_start
 
 DEFAULT_BASE_URL: Final = "https://api.cursor.com"
 

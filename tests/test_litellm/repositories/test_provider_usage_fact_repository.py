@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from litellm.types.proxy.provider_billing import ProviderUsageFact
+from token_iq.types.provider_billing import ProviderUsageFact
 
 
 def _fact(key: str = "openrouter:gen-1") -> ProviderUsageFact:

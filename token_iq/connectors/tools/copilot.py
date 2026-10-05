@@ -15,7 +15,8 @@ from datetime import datetime, timezone
 from types import MappingProxyType
 from typing import Any, Final
 
-from litellm.types.proxy.tool_usage import (
+from token_iq.connectors.billing.cloud_rows import decoded_object
+from token_iq.types.tool_usage import (
     SeatHolder,
     ToolFetchFailed,
     ToolName,
@@ -23,7 +24,6 @@ from litellm.types.proxy.tool_usage import (
     ToolSeatResult,
     ToolSeatsFetched,
 )
-from token_iq.connectors.billing.cloud_rows import decoded_object
 
 DEFAULT_BASE_URL: Final = "https://api.github.com"
 

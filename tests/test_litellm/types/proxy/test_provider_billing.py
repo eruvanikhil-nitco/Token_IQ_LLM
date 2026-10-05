@@ -8,7 +8,7 @@ import pytest
 
 
 def _fact(**overrides: object):
-    from litellm.types.proxy.provider_billing import ProviderUsageFact
+    from token_iq.types.provider_billing import ProviderUsageFact
 
     return ProviderUsageFact(
         **{
@@ -42,7 +42,7 @@ def test_cost_is_a_decimal_not_a_float():
 def test_a_failure_is_a_value_a_caller_must_handle():
     """The runner drives many connectors. One provider being down must not end the run,
     which it would if connectors raised."""
-    from litellm.types.proxy.provider_billing import Fetched, FetchFailed, NotConfigured
+    from token_iq.types.provider_billing import Fetched, FetchFailed, NotConfigured
 
     for result in (
         Fetched(facts=(), watermark=datetime.now(timezone.utc)),
@@ -55,7 +55,7 @@ def test_a_failure_is_a_value_a_caller_must_handle():
 def test_a_retryable_failure_is_distinguishable_from_a_permanent_one():
     """A 429 should be tried again next tick. A 401 should not, and should surface to an
     operator instead of retrying forever against a revoked key."""
-    from litellm.types.proxy.provider_billing import FetchFailed
+    from token_iq.types.provider_billing import FetchFailed
 
     assert FetchFailed(reason="429", retryable=True).retryable is True
     assert FetchFailed(reason="401 revoked", retryable=False).retryable is False

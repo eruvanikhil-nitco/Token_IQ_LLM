@@ -100,7 +100,7 @@ async def test_it_stays_inside_the_page_size_openai_allows(vendor):
 async def test_the_amount_openai_reports_is_already_dollars(vendor):
     """OpenAI reports dollars where Anthropic reports cents. Scaling this by a hundred, as the
     Anthropic connector correctly does, would overstate a customer's bill a hundredfold."""
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     stand_in: Final = vendor(Reply(json=_page(_bucket(_result(0.06)))))
 
@@ -114,7 +114,7 @@ async def test_the_amount_openai_reports_is_already_dollars(vendor):
 async def test_a_cost_with_more_digits_than_a_float_can_hold_survives(vendor):
     """OpenAI sends the amount as a JSON number, so this is the connector where a decoder that
     goes through a binary float actually corrupts a customer's figure."""
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     stand_in: Final = vendor(
         Reply(
@@ -134,7 +134,7 @@ async def test_a_cost_with_more_digits_than_a_float_can_hold_survives(vendor):
 
 @pytest.mark.asyncio
 async def test_it_follows_the_cursor_to_the_end(vendor):
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     stand_in: Final = vendor(
         Reply(json=_page(_bucket(_result(0.06)), has_more=True, next_page="page_2")),
@@ -155,7 +155,7 @@ async def test_it_follows_the_cursor_to_the_end(vendor):
 )
 @pytest.mark.asyncio
 async def test_it_turns_an_error_into_a_reason_rather_than_raising(vendor, status: int, retryable: bool):
-    from litellm.types.proxy.provider_billing import FetchFailed
+    from token_iq.types.provider_billing import FetchFailed
 
     stand_in: Final = vendor(Reply(json={"error": "nope"}, status=status))
 
@@ -168,7 +168,7 @@ async def test_it_turns_an_error_into_a_reason_rather_than_raising(vendor, statu
 
 @pytest.mark.asyncio
 async def test_a_body_that_is_not_json_is_a_failure_not_a_crash(vendor):
-    from litellm.types.proxy.provider_billing import FetchFailed
+    from token_iq.types.provider_billing import FetchFailed
 
     stand_in: Final = vendor(Reply(text="<html>bad gateway</html>"))
 
@@ -177,7 +177,7 @@ async def test_a_body_that_is_not_json_is_a_failure_not_a_crash(vendor):
 
 @pytest.mark.asyncio
 async def test_a_body_of_the_wrong_shape_is_a_failure_not_a_crash(vendor):
-    from litellm.types.proxy.provider_billing import FetchFailed
+    from token_iq.types.provider_billing import FetchFailed
 
     stand_in: Final = vendor(Reply(json=["not", "an", "object"]))
 

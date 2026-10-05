@@ -1400,8 +1400,8 @@ def _should_store_prompts_and_responses_in_spend_logs(
     optional so existing callers that have no request context keep the global behaviour.
     """
     from litellm.proxy.proxy_server import general_settings
-    from litellm.proxy.spend_tracking.capture_policy import should_capture
     from litellm.secret_managers.main import get_secret_bool
+    from token_iq.policy.capture import should_capture
 
     return should_capture(
         general_settings,

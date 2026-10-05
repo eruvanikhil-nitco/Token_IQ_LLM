@@ -5,7 +5,7 @@ from datetime import datetime
 
 import pytest
 
-from litellm.types.proxy.provider_billing import Fetched, FetchResult
+from token_iq.types.provider_billing import Fetched, FetchResult
 
 
 class _Stub:

@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from litellm.proxy._types import LitellmUserRoles, Member, UserAPIKeyAuth
-from litellm.proxy.credential_endpoints.credential_access import (
+from token_iq.policy.credential_access import (
     credential_team,
     may_change_credential,
     may_read_credential,

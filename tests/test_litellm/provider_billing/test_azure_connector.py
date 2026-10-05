@@ -17,7 +17,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from litellm.types.proxy.provider_billing import BillingCredential
+from token_iq.types.provider_billing import BillingCredential
 
 NOW = datetime(2026, 9, 18, 12, 0, tzinfo=timezone.utc)
 CREDENTIAL = {"subscription_id": "sub-123"}
@@ -301,7 +301,7 @@ async def test_a_page_that_fails_transiently_keeps_what_the_earlier_pages_return
 async def test_a_rate_limited_later_page_still_keeps_what_the_earlier_pages_returned():
     """A 429 is the subscription asking us to come back, not a broken connection. The next
     tick re-reads the same rolling window, so page one's facts are worth keeping."""
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     result = await _fetch(_http_pages(429))
 
@@ -316,7 +316,7 @@ async def test_a_credential_refused_part_way_through_paging_is_a_failure_not_a_h
     successful sync and show the customer a healthy Azure connection over a dead credential.
     Losing page one costs nothing: the facts are keyed by day, upserted, and re-read on a
     rolling window, so the next run that works restores them."""
-    from litellm.types.proxy.provider_billing import FetchFailed
+    from token_iq.types.provider_billing import FetchFailed
 
     result = await _fetch(_http_pages(401))
 
@@ -328,7 +328,7 @@ async def test_a_credential_refused_part_way_through_paging_is_a_failure_not_a_h
 async def test_a_first_page_that_fails_is_still_a_failure_not_an_empty_success():
     """Nothing was collected, so reporting a successful fetch of nothing would file a
     confident zero against a subscription that never answered."""
-    from litellm.types.proxy.provider_billing import FetchFailed
+    from token_iq.types.provider_billing import FetchFailed
 
     result = await _fetch(_http({}, status=500))
 
@@ -339,7 +339,7 @@ async def test_a_first_page_that_fails_is_still_a_failure_not_an_empty_success()
 async def test_a_credential_with_no_subscription_is_not_configured_rather_than_failed():
     """Most customers configure one or two providers. Treating an unconfigured one as a
     failure would make a healthy run look broken on every tick."""
-    from litellm.types.proxy.provider_billing import NotConfigured
+    from token_iq.types.provider_billing import NotConfigured
 
     result = await _fetch(_http(_body()), values={})
 
@@ -348,7 +348,7 @@ async def test_a_credential_with_no_subscription_is_not_configured_rather_than_f
 
 @pytest.mark.asyncio
 async def test_no_token_is_not_configured_rather_than_failed():
-    from litellm.types.proxy.provider_billing import NotConfigured
+    from token_iq.types.provider_billing import NotConfigured
 
     result = await _fetch(_http(_body()), token=None)
 
@@ -360,7 +360,7 @@ async def test_a_refused_token_is_a_permanent_failure_not_a_retryable_one():
     """A 403 means the identity lacks Cost Management reader on that subscription. Retrying
     that every five minutes spends the customer's rate limit on a request that cannot start
     working until a human grants the role."""
-    from litellm.types.proxy.provider_billing import FetchFailed
+    from token_iq.types.provider_billing import FetchFailed
 
     result = await _fetch(_http({}, status=403))
 
@@ -370,7 +370,7 @@ async def test_a_refused_token_is_a_permanent_failure_not_a_retryable_one():
 
 @pytest.mark.asyncio
 async def test_a_rate_limit_is_retryable():
-    from litellm.types.proxy.provider_billing import FetchFailed
+    from token_iq.types.provider_billing import FetchFailed
 
     result = await _fetch(_http({}, status=429))
 

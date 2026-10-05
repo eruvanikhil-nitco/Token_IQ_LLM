@@ -7,7 +7,7 @@ from fastapi import HTTPException
 
 from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 from token_iq.api.recommendations import recommendations_response
-from litellm.types.proxy.recommendation import Evidence, Recommendation
+from token_iq.types.recommendation import Evidence, Recommendation
 
 START: Final = datetime(2026, 9, 1, tzinfo=timezone.utc)
 END: Final = datetime(2026, 9, 30, tzinfo=timezone.utc)

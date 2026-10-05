@@ -60,7 +60,7 @@ async def _fetch(client: MagicMock, credential_values=None):
 async def test_the_amount_is_already_dollars_and_is_not_scaled():
     """OpenAI reports dollars where Anthropic reports cents. Applying Anthropic's
     conversion here would understate every OpenAI bill by a factor of one hundred."""
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     result = await _fetch(_http(_page(_bucket(_result(0.06)))))
 
@@ -72,7 +72,7 @@ async def test_the_amount_is_already_dollars_and_is_not_scaled():
 async def test_a_float_amount_keeps_its_digits():
     """json hands back a float. Decimal(float) carries the binary approximation of it;
     going through str does not."""
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     result = await _fetch(_http(_page(_bucket(_result(0.1)))))
 
@@ -82,7 +82,7 @@ async def test_a_float_amount_keeps_its_digits():
 
 @pytest.mark.asyncio
 async def test_the_unix_bucket_becomes_the_day_the_cost_belongs_to():
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     result = await _fetch(_http(_page(_bucket(_result(1.0)))))
 
@@ -103,7 +103,7 @@ async def test_the_window_is_sent_as_unix_seconds():
 
 @pytest.mark.asyncio
 async def test_line_items_are_kept_separate_within_a_day():
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     result = await _fetch(
         _http(_page(_bucket(_result(0.06, "gpt-4o-mini, input"), _result(0.02, "gpt-4o-mini, output"))))
@@ -115,7 +115,7 @@ async def test_line_items_are_kept_separate_within_a_day():
 
 @pytest.mark.asyncio
 async def test_the_fact_key_is_stable_so_a_refetch_overwrites():
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     first = await _fetch(_http(_page(_bucket(_result(1.0)))))
     second = await _fetch(_http(_page(_bucket(_result(1.0)))))
@@ -126,7 +126,7 @@ async def test_the_fact_key_is_stable_so_a_refetch_overwrites():
 
 @pytest.mark.asyncio
 async def test_every_page_is_followed():
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     client = _http(
         _page(_bucket(_result(1.0)), has_more=True, next_page="page_2"),
@@ -149,7 +149,7 @@ async def test_the_admin_key_goes_in_a_bearer_header():
 
 @pytest.mark.asyncio
 async def test_a_cost_with_no_line_item_is_still_recorded():
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     result = await _fetch(_http(_page(_bucket(_result(3.0, line_item=None)))))
 
@@ -160,14 +160,14 @@ async def test_a_cost_with_no_line_item_is_still_recorded():
 
 @pytest.mark.asyncio
 async def test_a_missing_credential_is_reported_not_raised():
-    from litellm.types.proxy.provider_billing import NotConfigured
+    from token_iq.types.provider_billing import NotConfigured
 
     assert isinstance(await _fetch(_http({}), credential_values={}), NotConfigured)
 
 
 @pytest.mark.asyncio
 async def test_a_rate_limit_is_retryable_and_a_bad_key_is_not():
-    from litellm.types.proxy.provider_billing import FetchFailed
+    from token_iq.types.provider_billing import FetchFailed
 
     limited = await _fetch(_http({}, status=429))
     refused = await _fetch(_http({}, status=401))

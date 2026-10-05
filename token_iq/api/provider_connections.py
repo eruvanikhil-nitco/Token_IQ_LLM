@@ -24,7 +24,6 @@ from litellm.types.proxy.management_endpoints.team_endpoints import (
     ProviderSyncHistoryResponse,
     ProviderSyncHistoryRow,
 )
-from litellm.types.proxy.provider_billing import BillingCredential, ProviderSyncRun
 from token_iq.connectors.billing.connection_state import (
     ConnectionState,
     account_state,
@@ -36,6 +35,7 @@ from token_iq.connectors.billing.fetch_profile import FETCH_PROFILES, FetchProfi
 from token_iq.connectors.billing.scheduled import build_billing_credentials_lookup
 from token_iq.repositories.provider_sync_run_repository import ProviderSyncRunRepository
 from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+from token_iq.types.provider_billing import BillingCredential, ProviderSyncRun
 
 router: Final = APIRouter(
     tags=["provider billing"],  # mutable-ok: fixed single-element tag list, never grown after this line

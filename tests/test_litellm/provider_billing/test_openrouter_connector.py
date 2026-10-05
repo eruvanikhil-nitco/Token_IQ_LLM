@@ -45,7 +45,7 @@ async def test_a_generation_becomes_a_reconciled_fact():
     """OpenRouter states the dollars for this exact request, which is the strongest
     evidence any provider gives. Recording it as anything weaker would understate what we
     can prove to a customer."""
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     client = _http(
         {
@@ -75,7 +75,7 @@ async def test_a_generation_becomes_a_reconciled_fact():
 async def test_the_cost_survives_as_a_decimal_from_the_json():
     """The body is decoded with the JSON numbers kept exact, so the cost carries the digits
     OpenRouter sent rather than the nearest binary approximation of them."""
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     result = await _fetch(["gen-2"], _http({"data": {"id": "gen-2", "total_cost": 0.000001234567}}))
 
@@ -85,7 +85,7 @@ async def test_the_cost_survives_as_a_decimal_from_the_json():
 
 @pytest.mark.asyncio
 async def test_a_missing_credential_is_reported_not_raised():
-    from litellm.types.proxy.provider_billing import NotConfigured
+    from token_iq.types.provider_billing import NotConfigured
 
     assert isinstance(await _fetch(["gen-1"], _http({}), credential_values={}), NotConfigured)
 
@@ -94,7 +94,7 @@ async def test_a_missing_credential_is_reported_not_raised():
 async def test_a_rate_limit_is_retryable_and_a_revoked_key_is_not():
     """Retrying a 429 next tick is correct. Retrying a 401 forever hides a revoked key
     from the operator who needs to replace it."""
-    from litellm.types.proxy.provider_billing import FetchFailed
+    from token_iq.types.provider_billing import FetchFailed
 
     limited = await _fetch(["gen-1"], _http({}, status=429))
     revoked = await _fetch(["gen-1"], _http({}, status=401))
@@ -109,7 +109,7 @@ async def test_one_run_is_capped_so_it_cannot_exhaust_the_rate_limit():
     customer's real traffic. An unbounded run against a backlog would spend their limit on
     our polling."""
     from token_iq.connectors.billing.openrouter import MAX_LOOKUPS_PER_RUN
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     client = _http({"data": {"id": "gen-x", "total_cost": 0.000001}})
     result = await _fetch([f"gen-{i}" for i in range(MAX_LOOKUPS_PER_RUN + 25)], client)
@@ -120,7 +120,7 @@ async def test_one_run_is_capped_so_it_cannot_exhaust_the_rate_limit():
 
 @pytest.mark.asyncio
 async def test_nothing_to_price_is_a_successful_empty_run():
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     client = _http({})
     result = await _fetch([], client)
@@ -134,7 +134,7 @@ async def test_nothing_to_price_is_a_successful_empty_run():
 async def test_a_generation_with_no_cost_yet_is_skipped_rather_than_recorded_as_free():
     """OpenRouter can answer before it has priced a generation. Storing that as zero would
     report a request that cost nothing, which is worse than reporting nothing yet."""
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     result = await _fetch(["gen-3"], _http({"data": {"id": "gen-3"}}))
 
@@ -158,7 +158,7 @@ async def test_the_native_token_counts_are_preferred_over_the_normalised_ones():
     beside a native cost would invent a discrepancy that does not exist. Observed live:
     our record said 14 prompt tokens for a Claude call where OpenRouter's normalised
     figure was 10, while the two costs agreed exactly."""
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     result = await _fetch(
         ["gen-4"],
@@ -184,7 +184,7 @@ async def test_the_native_token_counts_are_preferred_over_the_normalised_ones():
 @pytest.mark.asyncio
 async def test_the_normalised_counts_are_used_when_no_native_ones_are_given():
     """Not every provider behind OpenRouter reports native counts."""
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     result = await _fetch(
         ["gen-5"],

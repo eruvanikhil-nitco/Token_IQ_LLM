@@ -84,7 +84,7 @@ async def test_it_stays_inside_the_page_size_github_allows(vendor):
 
 @pytest.mark.asyncio
 async def test_it_reports_who_holds_a_licence_and_on_what_plan(vendor):
-    from litellm.types.proxy.tool_usage import ToolSeatsFetched
+    from token_iq.types.tool_usage import ToolSeatsFetched
 
     stand_in: Final = vendor(Reply(json=_page(_seat("octocat"), _seat("hubot"))))
 
@@ -99,7 +99,7 @@ async def test_it_reports_who_holds_a_licence_and_on_what_plan(vendor):
 async def test_it_reports_no_cost_at_all_because_github_publishes_none(vendor):
     """The price of a Copilot seat lives on the customer's contract. A figure invented here
     would put a number on a screen that nobody agreed to, so the type cannot carry one."""
-    from litellm.types.proxy.tool_usage import ToolSeatsFetched
+    from token_iq.types.tool_usage import ToolSeatsFetched
 
     stand_in: Final = vendor(Reply(json=_page(_seat())))
 
@@ -115,7 +115,7 @@ async def test_a_seat_with_no_recorded_activity_is_still_a_seat(vendor):
     """`last_activity_at` is null unless that person turned on telemetry in their IDE, so an
     empty value is not evidence the licence is unused. Dropping the row, or treating it as
     reclaimable, would recommend taking a licence from someone who uses it daily."""
-    from litellm.types.proxy.tool_usage import ToolSeatsFetched
+    from token_iq.types.tool_usage import ToolSeatsFetched
 
     stand_in: Final = vendor(Reply(json=_page(_seat(last_activity=None))))
 
@@ -128,7 +128,7 @@ async def test_a_seat_with_no_recorded_activity_is_still_a_seat(vendor):
 
 @pytest.mark.asyncio
 async def test_it_keeps_when_a_seat_was_assigned_and_last_used(vendor):
-    from litellm.types.proxy.tool_usage import ToolSeatsFetched
+    from token_iq.types.tool_usage import ToolSeatsFetched
 
     stand_in: Final = vendor(Reply(json=_page(_seat())))
 
@@ -141,7 +141,7 @@ async def test_it_keeps_when_a_seat_was_assigned_and_last_used(vendor):
 
 @pytest.mark.asyncio
 async def test_it_pages_until_a_short_page_arrives(vendor):
-    from litellm.types.proxy.tool_usage import ToolSeatsFetched
+    from token_iq.types.tool_usage import ToolSeatsFetched
 
     full: Final = _page(*[_seat(f"dev{index}") for index in range(100)])
     stand_in: Final = vendor(Reply(json=full), Reply(json=_page(_seat("last-one"))))
@@ -158,7 +158,7 @@ async def test_it_pages_until_a_short_page_arrives(vendor):
 async def test_a_credential_with_no_organisation_is_refused_rather_than_guessed(vendor):
     """Copilot seats are per organisation. Guessing one would read someone else's licences,
     or more likely just fail in a way nobody can act on."""
-    from litellm.types.proxy.tool_usage import ToolNotConfigured
+    from token_iq.types.tool_usage import ToolNotConfigured
 
     stand_in: Final = vendor(Reply(json=_page(_seat())))
 
@@ -171,7 +171,7 @@ async def test_a_credential_with_no_organisation_is_refused_rather_than_guessed(
 
 @pytest.mark.asyncio
 async def test_an_organisation_github_cannot_see_says_so_and_is_not_retried(vendor):
-    from litellm.types.proxy.tool_usage import ToolFetchFailed
+    from token_iq.types.tool_usage import ToolFetchFailed
 
     stand_in: Final = vendor(Reply(json={"message": "Not Found"}, status=404))
 
@@ -188,7 +188,7 @@ async def test_an_organisation_github_cannot_see_says_so_and_is_not_retried(vend
 )
 @pytest.mark.asyncio
 async def test_it_turns_an_error_into_a_reason_rather_than_raising(vendor, status: int, retryable: bool):
-    from litellm.types.proxy.tool_usage import ToolFetchFailed
+    from token_iq.types.tool_usage import ToolFetchFailed
 
     stand_in: Final = vendor(Reply(json={"message": "nope"}, status=status))
 
@@ -201,7 +201,7 @@ async def test_it_turns_an_error_into_a_reason_rather_than_raising(vendor, statu
 
 @pytest.mark.asyncio
 async def test_a_body_that_is_not_json_is_a_failure_not_a_crash(vendor):
-    from litellm.types.proxy.tool_usage import ToolFetchFailed
+    from token_iq.types.tool_usage import ToolFetchFailed
 
     stand_in: Final = vendor(Reply(text="<html>unicorn</html>"))
 

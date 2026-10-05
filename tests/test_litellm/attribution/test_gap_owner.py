@@ -3,7 +3,7 @@ from decimal import Decimal
 from typing import Final
 
 from token_iq.attribution.gap_owner import AttributedGap, GapRow, _to_utc, attribute
-from litellm.types.proxy.attribution import AttributionRule
+from token_iq.types.attribution import AttributionRule
 
 SETTLED: Final = datetime(2026, 1, 18)
 DAY: Final = datetime(2026, 1, 17)

@@ -8,7 +8,7 @@ from decimal import Decimal, InvalidOperation
 from types import MappingProxyType
 from typing import Any, Final, get_args
 
-from litellm.types.proxy.provider_billing import (
+from token_iq.types.provider_billing import (
     EvidenceLevel,
     ProviderUsageFact,
     RecentFactsPage,

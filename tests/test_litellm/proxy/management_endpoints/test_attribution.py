@@ -8,7 +8,7 @@ from fastapi import HTTPException
 from token_iq.attribution.gap_owner import GapRow, attribute
 from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 from token_iq.api.attribution import unallocated_response
-from litellm.types.proxy.attribution import AttributionRule
+from token_iq.types.attribution import AttributionRule
 
 DAY: Final = datetime(2026, 9, 15, tzinfo=timezone.utc)
 SETTLED: Final = datetime(2026, 9, 19, tzinfo=timezone.utc)

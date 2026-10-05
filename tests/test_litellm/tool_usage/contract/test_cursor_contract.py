@@ -128,7 +128,7 @@ async def test_it_stays_inside_the_page_size_cursor_allows(vendor):
 async def test_a_charge_in_cents_becomes_dollars_without_rounding(vendor):
     """Cursor charges fractional cents, so 21.36232 is twenty-one and a third cents. Rounding
     it to a cent would drift a team's monthly figure by real money."""
-    from litellm.types.proxy.tool_usage import ToolFetched
+    from token_iq.types.tool_usage import ToolFetched
 
     stand_in: Final = vendor(Reply(json=_page(DOCUMENTED_EVENT)))
 
@@ -142,7 +142,7 @@ async def test_a_charge_in_cents_becomes_dollars_without_rounding(vendor):
 async def test_cursor_spend_is_new_money_because_it_is_on_no_provider_bill_we_read(vendor):
     """Cursor buys the models itself and bills the customer, so unlike Claude Code on an API
     organisation this never arrives twice."""
-    from litellm.types.proxy.tool_usage import ToolFetched
+    from token_iq.types.tool_usage import ToolFetched
 
     stand_in: Final = vendor(Reply(json=_page(DOCUMENTED_EVENT)))
 
@@ -157,7 +157,7 @@ async def test_cursor_spend_is_new_money_because_it_is_on_no_provider_bill_we_re
 async def test_a_persons_events_in_one_day_are_summed_into_one_fact(vendor):
     """Cursor reports one row per request. A busy team produces hundreds of thousands a month
     and nothing downstream asks a question that needs them individually."""
-    from litellm.types.proxy.tool_usage import ToolFetched
+    from token_iq.types.tool_usage import ToolFetched
 
     second: Final = {**DOCUMENTED_EVENT, "chargedCents": 10.0}
     stand_in: Final = vendor(Reply(json=_page(DOCUMENTED_EVENT, second)))
@@ -172,7 +172,7 @@ async def test_a_persons_events_in_one_day_are_summed_into_one_fact(vendor):
 
 @pytest.mark.asyncio
 async def test_two_days_stay_two_facts_so_a_day_can_still_be_read_on_its_own(vendor):
-    from litellm.types.proxy.tool_usage import ToolFetched
+    from token_iq.types.tool_usage import ToolFetched
 
     later: Final = {**DOCUMENTED_EVENT, "timestamp": str(DAY_TWO_MILLIS)}
     stand_in: Final = vendor(Reply(json=_page(DOCUMENTED_EVENT, later)))
@@ -188,7 +188,7 @@ async def test_two_days_stay_two_facts_so_a_day_can_still_be_read_on_its_own(ven
 
 @pytest.mark.asyncio
 async def test_two_models_in_one_day_stay_separate_rather_than_becoming_one_number(vendor):
-    from litellm.types.proxy.tool_usage import ToolFetched
+    from token_iq.types.tool_usage import ToolFetched
 
     other_model: Final = {**DOCUMENTED_EVENT, "model": "gpt-5"}
     stand_in: Final = vendor(Reply(json=_page(DOCUMENTED_EVENT, other_model)))
@@ -201,7 +201,7 @@ async def test_two_models_in_one_day_stay_separate_rather_than_becoming_one_numb
 
 @pytest.mark.asyncio
 async def test_an_event_with_nobody_attached_is_left_out_rather_than_guessed_at(vendor):
-    from litellm.types.proxy.tool_usage import ToolFetched
+    from token_iq.types.tool_usage import ToolFetched
 
     anonymous: Final = {k: v for k, v in DOCUMENTED_EVENT.items() if k != "userEmail"}
     stand_in: Final = vendor(Reply(json=_page(anonymous)))
@@ -214,7 +214,7 @@ async def test_an_event_with_nobody_attached_is_left_out_rather_than_guessed_at(
 
 @pytest.mark.asyncio
 async def test_it_follows_pagination_to_the_end(vendor):
-    from litellm.types.proxy.tool_usage import ToolFetched
+    from token_iq.types.tool_usage import ToolFetched
 
     stand_in: Final = vendor(
         Reply(json=_page(DOCUMENTED_EVENT, has_next=True)),
@@ -249,7 +249,7 @@ async def test_a_long_period_is_split_into_windows_the_endpoint_accepts(vendor):
 )
 @pytest.mark.asyncio
 async def test_it_turns_an_error_into_a_reason_rather_than_raising(vendor, status: int, retryable: bool):
-    from litellm.types.proxy.tool_usage import ToolFetchFailed
+    from token_iq.types.tool_usage import ToolFetchFailed
 
     stand_in: Final = vendor(Reply(json={"error": "nope"}, status=status))
 
@@ -262,7 +262,7 @@ async def test_it_turns_an_error_into_a_reason_rather_than_raising(vendor, statu
 
 @pytest.mark.asyncio
 async def test_a_body_that_is_not_json_is_a_failure_not_a_crash(vendor):
-    from litellm.types.proxy.tool_usage import ToolFetchFailed
+    from token_iq.types.tool_usage import ToolFetchFailed
 
     stand_in: Final = vendor(Reply(text="<html>maintenance</html>"))
 
@@ -272,7 +272,7 @@ async def test_a_body_that_is_not_json_is_a_failure_not_a_crash(vendor):
 @pytest.mark.asyncio
 async def test_a_credential_with_no_key_is_reported_before_any_request(vendor):
     from token_iq.connectors.tools.cursor import CursorConnector
-    from litellm.types.proxy.tool_usage import ToolNotConfigured
+    from token_iq.types.tool_usage import ToolNotConfigured
 
     stand_in: Final = vendor(Reply(json=_page()))
 

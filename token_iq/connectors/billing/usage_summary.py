@@ -15,7 +15,7 @@ from decimal import Decimal
 from types import MappingProxyType
 from typing import Final
 
-from litellm.types.proxy.provider_billing import EvidenceLevel, SummaryRow, TokenTotals
+from token_iq.types.provider_billing import EvidenceLevel, SummaryRow, TokenTotals
 
 _EVIDENCE_LEVELS: Final[tuple[EvidenceLevel, ...]] = ("reconciled", "priced", "allocated")
 

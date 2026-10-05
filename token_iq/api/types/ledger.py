@@ -13,9 +13,9 @@ from collections.abc import Mapping
 
 from pydantic import BaseModel
 
-from litellm.types.proxy.invoice import AdjustmentKind
-from litellm.types.proxy.provider_billing import EvidenceLevel
 from token_iq.ledger.reconciliation import ReconciliationOutcome
+from token_iq.types.invoice import AdjustmentKind
+from token_iq.types.provider_billing import EvidenceLevel
 
 
 class AdjustmentBody(BaseModel):

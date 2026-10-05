@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from litellm.proxy.auth.team_api_access import DEFAULT_API_ACCESS_MODE, assert_route_allowed
+from token_iq.policy.team_api_access import DEFAULT_API_ACCESS_MODE, assert_route_allowed
 
 SHARED = "/v1/chat/completions"
 PROVIDER = "/anthropic/v1/messages"

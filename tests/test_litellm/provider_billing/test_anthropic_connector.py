@@ -59,7 +59,7 @@ async def test_the_amount_is_cents_and_must_reach_the_table_as_dollars():
     twenty-three cents. Storing it verbatim would overstate every customer's Anthropic
     spend by a factor of one hundred, in the table whose whole purpose is to be the
     accurate one."""
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     result = await _fetch(_http({"data": [_bucket(_result("123.45"))], "has_more": False, "next_page": None}))
 
@@ -71,7 +71,7 @@ async def test_the_amount_is_cents_and_must_reach_the_table_as_dollars():
 async def test_one_fact_per_model_per_day_summing_the_token_types():
     """A bucket carries a row per token type. The comparable unit against our own spend is
     the day's charge for a model, so they are summed rather than stored separately."""
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     result = await _fetch(
         _http(
@@ -99,7 +99,7 @@ async def test_one_fact_per_model_per_day_summing_the_token_types():
 async def test_the_fact_key_is_stable_so_a_refetch_overwrites():
     """Every run re-reads the last day. Without a key identical across runs, the same
     day's cost would be inserted again on every tick."""
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     payload = {"data": [_bucket(_result("100"))], "has_more": False, "next_page": None}
     first = await _fetch(_http(payload))
@@ -113,7 +113,7 @@ async def test_the_fact_key_is_stable_so_a_refetch_overwrites():
 async def test_the_bucket_start_is_the_day_the_cost_belongs_to():
     """Stamping the fetch time instead would file yesterday's charges under today and make
     every daily comparison off by one."""
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     result = await _fetch(_http({"data": [_bucket(_result("100"))], "has_more": False, "next_page": None}))
 
@@ -125,7 +125,7 @@ async def test_the_bucket_start_is_the_day_the_cost_belongs_to():
 async def test_every_page_is_followed():
     """A page holds at most 31 daily buckets. Reading only the first would silently drop
     history on any longer window."""
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     client = _http(
         {"data": [_bucket(_result("100"))], "has_more": True, "next_page": "page_2"},
@@ -146,7 +146,7 @@ async def test_every_page_is_followed():
 async def test_a_cost_with_no_model_is_still_recorded():
     """Web search and code execution charges carry no model. Dropping them would
     understate the bill by exactly the amount hardest to explain later."""
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     result = await _fetch(
         _http(
@@ -165,14 +165,14 @@ async def test_a_cost_with_no_model_is_still_recorded():
 
 @pytest.mark.asyncio
 async def test_a_missing_credential_is_reported_not_raised():
-    from litellm.types.proxy.provider_billing import NotConfigured
+    from token_iq.types.provider_billing import NotConfigured
 
     assert isinstance(await _fetch(_http({}), credential_values={}), NotConfigured)
 
 
 @pytest.mark.asyncio
 async def test_a_rate_limit_is_retryable_and_a_bad_key_is_not():
-    from litellm.types.proxy.provider_billing import FetchFailed
+    from token_iq.types.provider_billing import FetchFailed
 
     limited = await _fetch(_http({}, status=429))
     refused = await _fetch(_http({}, status=401))
@@ -196,7 +196,7 @@ async def test_the_admin_key_goes_in_the_anthropic_header_not_a_bearer_token():
 
 @pytest.mark.asyncio
 async def test_an_empty_window_is_a_successful_empty_run():
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     result = await _fetch(_http({"data": [], "has_more": False, "next_page": None}))
 

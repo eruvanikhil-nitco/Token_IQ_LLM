@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel
 
-from litellm.types.proxy.seat import SeatCadence
+from token_iq.types.seat import SeatCadence
 
 
 class SeatBody(BaseModel):

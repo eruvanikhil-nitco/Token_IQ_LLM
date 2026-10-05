@@ -12,10 +12,10 @@ from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Final
 
-from litellm.types.proxy.provider_billing import UsageGrain
 from token_iq.connectors.billing.bedrock import SETTLING_HOURS
 from token_iq.connectors.billing.runner import LOOKBACK
 from token_iq.connectors.billing.scheduled import INTERVAL_SECONDS
+from token_iq.types.provider_billing import UsageGrain
 
 _NO_BACKFILL: Final = (
     "Each run re-reads the most recent window. There is no first-connection backfill yet, so "

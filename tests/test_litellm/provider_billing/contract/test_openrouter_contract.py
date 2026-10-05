@@ -93,7 +93,7 @@ async def test_it_authenticates_the_way_openrouter_documents(vendor):
 
 @pytest.mark.asyncio
 async def test_it_reads_the_cost_out_of_openrouters_own_example(vendor):
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     stand_in: Final = vendor(Reply(json=DOCUMENTED_GENERATION))
 
@@ -107,7 +107,7 @@ async def test_it_reads_the_cost_out_of_openrouters_own_example(vendor):
 
 @pytest.mark.asyncio
 async def test_a_cost_with_more_digits_than_a_float_can_hold_survives(vendor):
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     stand_in: Final = vendor(Reply(text='{"data":{"id":"gen-1","total_cost":0.10000000000000000555}}'))
 
@@ -121,7 +121,7 @@ async def test_a_cost_with_more_digits_than_a_float_can_hold_survives(vendor):
 async def test_it_prices_every_generation_it_was_given(vendor):
     """One request per generation is how this endpoint works. Stopping after the first would
     leave the rest unpriced forever, because the run records them as already looked at."""
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     stand_in: Final = vendor(Reply(json=DOCUMENTED_GENERATION))
 
@@ -137,7 +137,7 @@ async def test_it_prices_every_generation_it_was_given(vendor):
 )
 @pytest.mark.asyncio
 async def test_it_turns_an_error_into_a_reason_rather_than_raising(vendor, status: int, retryable: bool):
-    from litellm.types.proxy.provider_billing import FetchFailed
+    from token_iq.types.provider_billing import FetchFailed
 
     stand_in: Final = vendor(Reply(json={"error": "nope"}, status=status))
 
@@ -152,7 +152,7 @@ async def test_it_turns_an_error_into_a_reason_rather_than_raising(vendor, statu
 async def test_a_body_that_is_not_json_leaves_the_generation_unpriced_rather_than_crashing(vendor):
     """Unpriced is the right answer here rather than a failure: the generation stays in the
     queue and is tried again, which is exactly what should happen to one bad response."""
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     stand_in: Final = vendor(Reply(text="<html>maintenance</html>"))
 

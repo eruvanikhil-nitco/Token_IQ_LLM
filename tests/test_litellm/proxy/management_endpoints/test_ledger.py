@@ -9,7 +9,7 @@ from pydantic import ValidationError
 from token_iq.ledger.reconciliation import reconcile
 from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 from token_iq.api.ledger import reconciliation_response
-from litellm.types.proxy.invoice import InvoiceAdjustment, ProviderInvoice
+from token_iq.types.invoice import InvoiceAdjustment, ProviderInvoice
 from token_iq.api.types.ledger import InvoiceBody
 
 START: Final = datetime(2026, 9, 1, tzinfo=timezone.utc)

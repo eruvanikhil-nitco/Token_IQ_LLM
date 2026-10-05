@@ -17,7 +17,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Final, Literal
 
-from litellm.types.proxy.invoice import InvoiceAdjustment, ProviderInvoice
+from token_iq.types.invoice import InvoiceAdjustment, ProviderInvoice
 
 ReconciliationOutcome = Literal["balanced", "unexplained_difference", "currency_mismatch", "no_invoice"]
 """balanced: the bill, its adjustments and the ledger agree exactly.

@@ -51,7 +51,7 @@ async def _fetch(client: MagicMock, credential_values=None):
 
 @pytest.mark.asyncio
 async def test_a_grouped_cost_becomes_a_day_fact():
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     result = await _fetch(_client(_page(_group("1.25"))))
 
@@ -67,7 +67,7 @@ async def test_a_grouped_cost_becomes_a_day_fact():
 @pytest.mark.asyncio
 async def test_the_amount_string_keeps_its_precision():
     """Cost Explorer returns Amount as a string for exactly this reason."""
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     result = await _fetch(_client(_page(_group("0.000001234567"))))
 
@@ -104,7 +104,7 @@ async def test_the_service_name_can_be_overridden_because_a_wrong_one_reports_ze
 async def test_a_still_settling_day_is_not_recorded():
     """Cost Explorer lags roughly 34 hours for Bedrock. A partial day compared against our
     own figure would look like the gateway overcharging."""
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     result = await _fetch(_client(_page(_group("9.99"), start=NOW.date().isoformat())))
 
@@ -116,7 +116,7 @@ async def test_a_still_settling_day_is_not_recorded():
 async def test_an_estimated_day_is_still_recorded_because_it_self_corrects():
     """AWS marks a recent day Estimated and finalises it later. The fact key is stable per
     day, so the next run overwrites it with the settled figure."""
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     result = await _fetch(_client(_page(_group("1.00"), estimated=True)))
 
@@ -126,7 +126,7 @@ async def test_an_estimated_day_is_still_recorded_because_it_self_corrects():
 
 @pytest.mark.asyncio
 async def test_every_page_is_followed():
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     client = _client(_page(_group("1.00"), next_token="tok"), _page(_group("2.00"), start="2026-09-10"))
     result = await _fetch(client)
@@ -138,7 +138,7 @@ async def test_every_page_is_followed():
 
 @pytest.mark.asyncio
 async def test_a_missing_credential_is_reported_not_raised():
-    from litellm.types.proxy.provider_billing import NotConfigured
+    from token_iq.types.provider_billing import NotConfigured
 
     assert isinstance(await _fetch(_client(_page()), credential_values={}), NotConfigured)
 
@@ -147,7 +147,7 @@ async def test_a_missing_credential_is_reported_not_raised():
 async def test_a_refused_key_is_a_permanent_failure_and_throttling_is_not():
     """Cost Explorer throttles aggressively and charges per request, so a retry next tick
     is right. An access-denied error will never fix itself."""
-    from litellm.types.proxy.provider_billing import FetchFailed
+    from token_iq.types.provider_billing import FetchFailed
 
     throttled = MagicMock()
     throttled.get_cost_and_usage = MagicMock(side_effect=RuntimeError("ThrottlingException: rate exceeded"))
@@ -165,7 +165,7 @@ async def test_a_refused_key_is_a_permanent_failure_and_throttling_is_not():
 async def test_an_ungrouped_total_is_still_recorded():
     """A period with no Groups but a Total is a real charge Cost Explorer could not break
     down. Dropping it would understate the bill."""
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     page = {
         "ResultsByTime": [

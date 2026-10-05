@@ -15,7 +15,6 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from litellm.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
 from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-from litellm.types.proxy.provider_billing import BillingCredential, ProviderSyncRun
 from token_iq.api.types.tool_connections import (
     ToolConnection,
     ToolConnectionAccount,
@@ -31,6 +30,7 @@ from token_iq.connectors.tools.credential_purpose import TOOL_NAMES
 from token_iq.connectors.tools.fetch_profile import TOOL_FETCH_PROFILES
 from token_iq.repositories.provider_sync_run_repository import ProviderSyncRunRepository
 from token_iq.repositories.tool_usage_fact_repository import ToolUsageFactRepository
+from token_iq.types.provider_billing import BillingCredential, ProviderSyncRun
 
 router: Final = APIRouter(
     tags=["user tools"],  # mutable-ok: fixed single-element tag list, never grown after this line

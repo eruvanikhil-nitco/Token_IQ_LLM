@@ -55,14 +55,6 @@ from datetime import datetime, timezone
 from types import MappingProxyType
 from typing import Any, Final
 
-from litellm.types.proxy.provider_billing import (
-    BillingTokenFactory,
-    Fetched,
-    FetchFailed,
-    FetchResult,
-    NotConfigured,
-    ProviderUsageFact,
-)
 from token_iq.connectors.billing.cloud_rows import (
     TABLE_PATTERN,
     by_column_name,
@@ -72,6 +64,14 @@ from token_iq.connectors.billing.cloud_rows import (
     decoded_object,
     json_safe_row,
     utc_day_start,
+)
+from token_iq.types.provider_billing import (
+    BillingTokenFactory,
+    Fetched,
+    FetchFailed,
+    FetchResult,
+    NotConfigured,
+    ProviderUsageFact,
 )
 
 DEFAULT_BASE_URL: Final = "https://bigquery.googleapis.com"

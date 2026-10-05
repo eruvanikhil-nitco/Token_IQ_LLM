@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Any, Final, get_args
 from uuid import uuid4
 
-from litellm.types.proxy.provider_billing import ProviderSyncRun, SyncOutcome
+from token_iq.types.provider_billing import ProviderSyncRun, SyncOutcome
 
 _OUTCOMES: Final[frozenset[str]] = frozenset(get_args(SyncOutcome))
 

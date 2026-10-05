@@ -17,14 +17,14 @@ from decimal import Decimal
 from types import MappingProxyType
 from typing import Any, Final, TypeAlias
 
-from litellm.types.proxy.provider_billing import (
+from token_iq.connectors.billing.cloud_rows import decimal_or_none, decoded_object
+from token_iq.types.provider_billing import (
     Fetched,
     FetchFailed,
     FetchResult,
     NotConfigured,
     ProviderUsageFact,
 )
-from token_iq.connectors.billing.cloud_rows import decimal_or_none, decoded_object
 
 DEFAULT_BASE_URL: Final = "https://api.anthropic.com"
 

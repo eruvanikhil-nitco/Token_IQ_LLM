@@ -122,7 +122,7 @@ async def test_the_query_body_is_something_json_can_actually_serialise(vendor):
 
 @pytest.mark.asyncio
 async def test_a_row_is_read_against_the_schema_google_returned(vendor):
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     stand_in: Final = vendor(Reply(json=_body(_cost_row(net="0.00780515"))))
 
@@ -136,7 +136,7 @@ async def test_a_row_is_read_against_the_schema_google_returned(vendor):
 async def test_fields_in_a_different_order_still_read_correctly(vendor):
     """BigQuery returns unlabelled values matched to the schema it sends back, so reading by a
     remembered position rather than by the returned schema is wrong the day the query changes."""
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     reordered: Final = {
         "jobComplete": True,
@@ -165,7 +165,7 @@ async def test_fields_in_a_different_order_still_read_correctly(vendor):
 async def test_it_fetches_the_next_page_from_the_results_path(vendor):
     """The second page is a GET against the job's results, not another POST of the query.
     Repeating the POST would re-run the query and bill the customer for it again."""
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     stand_in: Final = vendor(
         Reply(json=_body(_cost_row(), page_token="page-2")),
@@ -184,7 +184,7 @@ async def test_it_fetches_the_next_page_from_the_results_path(vendor):
 
 @pytest.mark.asyncio
 async def test_a_job_that_has_not_finished_is_retryable_rather_than_a_silent_zero(vendor):
-    from litellm.types.proxy.provider_billing import FetchFailed
+    from token_iq.types.provider_billing import FetchFailed
 
     stand_in: Final = vendor(Reply(json={"jobComplete": False}))
 
@@ -200,7 +200,7 @@ async def test_a_job_that_has_not_finished_is_retryable_rather_than_a_silent_zer
 )
 @pytest.mark.asyncio
 async def test_it_turns_an_error_into_a_reason_rather_than_raising(vendor, status: int, retryable: bool):
-    from litellm.types.proxy.provider_billing import FetchFailed
+    from token_iq.types.provider_billing import FetchFailed
 
     stand_in: Final = vendor(Reply(json={"error": {"message": "nope"}}, status=status))
 
@@ -213,7 +213,7 @@ async def test_it_turns_an_error_into_a_reason_rather_than_raising(vendor, statu
 
 @pytest.mark.asyncio
 async def test_a_body_that_is_not_json_is_a_failure_not_a_crash(vendor):
-    from litellm.types.proxy.provider_billing import FetchFailed
+    from token_iq.types.provider_billing import FetchFailed
 
     stand_in: Final = vendor(Reply(text="<html>backend error</html>"))
 

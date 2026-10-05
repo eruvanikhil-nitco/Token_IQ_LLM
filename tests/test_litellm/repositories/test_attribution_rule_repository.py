@@ -3,7 +3,7 @@ from typing import Final
 import pytest
 
 from token_iq.repositories.attribution_rule_repository import AttributionRuleRepository
-from litellm.types.proxy.attribution import AttributionRule
+from token_iq.types.attribution import AttributionRule
 
 
 class FakeDb:

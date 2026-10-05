@@ -172,7 +172,7 @@ def _connector_returning(result: object, provider: str = "anthropic"):
 
 
 async def _creds(_provider: str):
-    from litellm.types.proxy.provider_billing import BillingCredential
+    from token_iq.types.provider_billing import BillingCredential
 
     return (BillingCredential(name="acme", values={"api_key": "sk-ant-admin01-x"}),)
 
@@ -188,7 +188,7 @@ async def test_the_probe_reports_a_working_connector_without_writing_anything():
     from datetime import datetime, timezone
 
     from token_iq.api.provider_reconciliation import run_billing_probe
-    from litellm.types.proxy.provider_billing import Fetched, ProviderUsageFact
+    from token_iq.types.provider_billing import Fetched, ProviderUsageFact
 
     fact = ProviderUsageFact(
         fact_key="anthropic:2026-09-12:claude-opus-5",
@@ -229,7 +229,7 @@ async def test_the_probe_names_a_missing_credential_rather_than_failing():
 async def test_the_probe_reports_a_refused_key_as_a_failure_with_the_reason():
     """The whole point on the day a key arrives: say why, not just that it did not work."""
     from token_iq.api.provider_reconciliation import run_billing_probe
-    from litellm.types.proxy.provider_billing import FetchFailed
+    from token_iq.types.provider_billing import FetchFailed
 
     result = await run_billing_probe(
         provider="anthropic",
@@ -258,7 +258,7 @@ async def test_a_provider_that_answers_with_nothing_is_not_reported_as_broken():
     from datetime import datetime, timezone
 
     from token_iq.api.provider_reconciliation import run_billing_probe
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     result = await run_billing_probe(
         provider="anthropic",

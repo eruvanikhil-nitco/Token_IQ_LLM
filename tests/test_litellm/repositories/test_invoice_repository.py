@@ -6,7 +6,7 @@ from typing import Final
 import pytest
 
 from token_iq.repositories.invoice_repository import InvoiceRepository
-from litellm.types.proxy.invoice import InvoiceAdjustment, ProviderInvoice
+from token_iq.types.invoice import InvoiceAdjustment, ProviderInvoice
 
 START: Final = datetime(2026, 9, 1, tzinfo=timezone.utc)
 END: Final = datetime(2026, 9, 30, tzinfo=timezone.utc)

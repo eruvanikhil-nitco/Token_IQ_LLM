@@ -10,8 +10,8 @@ from collections.abc import Awaitable, Callable, Mapping
 from types import MappingProxyType
 from typing import Any, Final
 
-from litellm.types.proxy.provider_billing import BillingCredential
 from token_iq.connectors.tools.credential_purpose import is_tool_credential
+from token_iq.types.provider_billing import BillingCredential
 
 INTERVAL_SECONDS: Final = 3600
 """Hourly rather than every five minutes. These endpoints report a day at a time and several

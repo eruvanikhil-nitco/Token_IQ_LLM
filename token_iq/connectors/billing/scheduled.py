@@ -14,8 +14,8 @@ from datetime import datetime, timezone
 from typing import Any, Final
 
 from litellm._logging import verbose_proxy_logger
-from litellm.types.proxy.provider_billing import BillingCredential
 from token_iq.connectors.billing.credential_purpose import is_billing_credential
+from token_iq.types.provider_billing import BillingCredential
 
 LOCK_ID: Final = "provider_billing_ingestion"
 

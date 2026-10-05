@@ -4,7 +4,7 @@ from typing import Final
 
 import pytest
 
-from litellm.types.proxy.tool_usage import ToolUsageFact
+from token_iq.types.tool_usage import ToolUsageFact
 
 DAY: Final = datetime(2026, 9, 1, tzinfo=timezone.utc)
 

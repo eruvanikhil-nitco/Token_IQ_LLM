@@ -122,7 +122,7 @@ async def test_a_cost_is_read_by_column_name_not_by_position(vendor):
     """The same row with the columns declared in a different order must still read correctly.
     This is the assertion a mocked client cannot make, because the mock and the parser share
     whatever order the test author happened to pick."""
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     reordered: Final = {
         "properties": {
@@ -147,7 +147,7 @@ async def test_a_cost_is_read_by_column_name_not_by_position(vendor):
 @pytest.mark.asyncio
 async def test_a_cost_with_more_digits_than_a_float_can_hold_survives(vendor):
     """Azure sends the cost as a JSON number, so this is where a float decode corrupts a bill."""
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     stand_in: Final = vendor(
         Reply(
@@ -165,7 +165,7 @@ async def test_a_cost_with_more_digits_than_a_float_can_hold_survives(vendor):
 
 @pytest.mark.asyncio
 async def test_it_follows_the_next_link_to_the_end(vendor):
-    from litellm.types.proxy.provider_billing import Fetched
+    from token_iq.types.provider_billing import Fetched
 
     stand_in: Final = vendor(
         Reply(json=_body(_row(), next_link="https://management.azure.test/next-page")),
@@ -186,7 +186,7 @@ async def test_it_follows_the_next_link_to_the_end(vendor):
 )
 @pytest.mark.asyncio
 async def test_it_turns_an_error_into_a_reason_rather_than_raising(vendor, status: int, retryable: bool):
-    from litellm.types.proxy.provider_billing import FetchFailed
+    from token_iq.types.provider_billing import FetchFailed
 
     stand_in: Final = vendor(Reply(json={"error": "nope"}, status=status))
 
@@ -199,7 +199,7 @@ async def test_it_turns_an_error_into_a_reason_rather_than_raising(vendor, statu
 
 @pytest.mark.asyncio
 async def test_a_body_that_is_not_json_is_a_failure_not_a_crash(vendor):
-    from litellm.types.proxy.provider_billing import FetchFailed
+    from token_iq.types.provider_billing import FetchFailed
 
     stand_in: Final = vendor(Reply(text="<html>service unavailable</html>"))
 

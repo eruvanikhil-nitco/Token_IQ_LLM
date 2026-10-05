@@ -88,7 +88,7 @@ async def test_the_lookup_returns_only_the_credential_marked_for_that_providers_
     import litellm
     from token_iq.connectors.billing.credential_purpose import BILLING_PURPOSE
     from token_iq.connectors.billing.scheduled import build_billing_credentials_lookup
-    from litellm.types.proxy.provider_billing import BillingCredential
+    from token_iq.types.provider_billing import BillingCredential
     from litellm.types.utils import CredentialItem
 
     stored = (
@@ -124,7 +124,7 @@ async def test_the_lookup_returns_every_matching_credential_not_just_the_first()
     import litellm
     from token_iq.connectors.billing.credential_purpose import BILLING_PURPOSE
     from token_iq.connectors.billing.scheduled import build_billing_credentials_lookup
-    from litellm.types.proxy.provider_billing import BillingCredential
+    from token_iq.types.provider_billing import BillingCredential
     from litellm.types.utils import CredentialItem
 
     stored = (

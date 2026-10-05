@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import Final
 
-from litellm.types.proxy.provider_billing import ConnectionState, ProviderSyncRun
+from token_iq.types.provider_billing import ConnectionState, ProviderSyncRun
 
 _NEVER_RUN: Final = "No sync has run for this account yet."
 

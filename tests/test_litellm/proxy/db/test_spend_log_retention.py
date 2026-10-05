@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from litellm.proxy.db.spend_log_retention import (
+from token_iq.policy.spend_log_retention import (
     BODY_COLUMNS,
     build_clear_bodies_sql,
     clear_expired_bodies,
