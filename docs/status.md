@@ -1013,3 +1013,27 @@ rows cannot apply the wrong one.
 against it: treating env vars as code, renaming `litellm_params` mechanically, dropping the
 table-name rule, widening the census-fixture rule, and losing the screaming case. All five fail the
 suite.
+
+---
+
+## Where to pick up
+
+Phase 5A is finished. Phase 6 has its map and nothing renamed.
+
+**The one thing blocking phase 6 is a review, not work.** `docs/plans/rename-map.csv` is the
+artifact the plan asks to be reviewed before the codemod runs. Reading the `package`, `config key`
+and `request header` rows is enough to catch the dangerous mistakes; the 2,217 identifier rows are
+mechanical and the test holds their rules.
+
+Next, in order:
+
+1. Review the map, then run the codemod pass: move `litellm/` to `token_iq/gateway/`, rewrite
+   imports and identifiers with libcst in one scripted pass, move `tests/test_litellm/` to
+   `tests/gateway/`, and update packaging, the Dockerfile and the path-keyed budget files. Commit
+   the codemod script
+2. Phase 6's check is `rg -n "\blitellm\b" --type py` matching only names phases 7 to 9 own, plus
+   `make check` green
+
+**Two things need the owner and cannot be done from here.** Whether the inherited usage dashboard
+embedded in the Usage page stays, written up above; and running the Playwright walk, which needs the
+proxy, Postgres and the mock upstream up.
