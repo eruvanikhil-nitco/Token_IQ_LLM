@@ -126,6 +126,22 @@ jobs:
             timeout-minutes: 20
             job-timeout-minutes: 60
 
+          # Token IQ's own tests, which until phase 4 were in no shard at all: seven of their
+          # nine directories were invoked by no job, which is why assert_ci_coverage.py has
+          # never exited 0. A new entry rather than a rename, because the `name` of each entry
+          # is a branch-ruleset required context and renaming one stops the ruleset matching it.
+          #
+          # reruns: 0 deliberately. A rerun turns an isolation leak into an intermittent pass,
+          # which is the failure this phase is most likely to introduce and least likely to
+          # notice. Raise it only with a reason recorded.
+          - shard: token-iq
+            artifact-name: token-iq
+            test-path: "tests/token_iq"
+            workers: 2
+            reruns: 0
+            timeout-minutes: 20
+            job-timeout-minutes: 60
+
           - shard: proxy-auth
             artifact-name: proxy-auth
             test-path: >-
