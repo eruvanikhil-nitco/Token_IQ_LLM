@@ -13,6 +13,7 @@ the service differently would otherwise see a confident zero.
 from __future__ import annotations
 
 import asyncio
+import dataclasses
 from collections.abc import Callable, Mapping, Sequence
 from datetime import datetime
 from typing import Any, Final
@@ -27,6 +28,9 @@ from token_iq.types.provider_billing import (
 )
 
 COST_EXPLORER_REGION: Final = "us-east-1"
+ROLE_SESSION_NAME: Final = "token-iq-billing"
+"""What shows up in the customer's CloudTrail for every sync, so they can see who read
+their costs and when."""
 """Cost Explorer is only served here, whatever region the models run in."""
 
 DEFAULT_SERVICE_NAME: Final = "Amazon Bedrock"
@@ -101,6 +105,65 @@ def _facts_from(
     return tuple(facts)
 
 
+@dataclasses.dataclass(frozen=True, slots=True)
+class AssumedRole:
+    """The recommended method. Nothing secret is stored: AWS is asked for short-lived credentials
+    each sync, and the customer can delete the role whenever they like."""
+
+    role_arn: str
+    external_id: str
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class StaticKeys:
+    """Long-lived keys in the customer's account. Still accepted, so an installation that already
+    connected keeps working, but not recommended."""
+
+    access_key_id: str
+    secret_access_key: str
+    session_token: str | None
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class NoCredential:
+    """Neither shape is complete. `why` says which, so the operator is not left guessing."""
+
+    why: str
+
+
+SignIn = AssumedRole | StaticKeys | NoCredential
+
+
+def read_sign_in(credential_values: Mapping[str, str]) -> SignIn:
+    """How this credential proves who it is.
+
+    A role ARN with no external ID is refused rather than tried. Without one, anyone who learns the
+    ARN can ask AWS to assume it from their own account, so a role without it is worse than an
+    access key rather than better.
+    """
+    role_arn: Final = credential_values.get("role_arn")
+    external_id: Final = credential_values.get("external_id")
+    if role_arn and external_id:
+        return AssumedRole(role_arn=role_arn, external_id=external_id)
+    if role_arn:
+        return NoCredential(why="carries a role ARN with no external ID")
+    access_key_id: Final = credential_values.get("aws_access_key_id")
+    secret_access_key: Final = credential_values.get("aws_secret_access_key")
+    if access_key_id and secret_access_key:
+        return StaticKeys(
+            access_key_id=access_key_id,
+            secret_access_key=secret_access_key,
+            session_token=credential_values.get("aws_session_token") or None,
+        )
+    # Half a key pair names the half that is missing. "needs an access key" sends an
+    # operator back to a form where one of the two boxes is already filled in.
+    if access_key_id:
+        return NoCredential(why="needs aws_secret_access_key")
+    if secret_access_key:
+        return NoCredential(why="needs aws_access_key_id")
+    return NoCredential(why="carries neither an IAM role nor an AWS access key")
+
+
 class BedrockBillingConnector:
     def __init__(self, cost_explorer_factory: Callable[[Mapping[str, str]], Any]) -> None:  # any-ok: boto3 client
         self._cost_explorer_factory = cost_explorer_factory
@@ -117,8 +180,9 @@ class BedrockBillingConnector:
         credential_name: str,
         credential_values: Mapping[str, str],
     ) -> FetchResult:
-        if not credential_values.get("aws_access_key_id") or not credential_values.get("aws_secret_access_key"):
-            return NotConfigured(reason=f"credential {credential_name} carries no AWS access key")
+        sign_in: Final = read_sign_in(credential_values)
+        if isinstance(sign_in, NoCredential):
+            return NotConfigured(reason=f"credential {credential_name} {sign_in.why}")
 
         client: Final = self._cost_explorer_factory(credential_values)
         cutoff: Final = settling_cutoff(until, SETTLING_HOURS)
@@ -162,13 +226,36 @@ class BedrockBillingConnector:
 
 
 def build_cost_explorer(credential_values: Mapping[str, str]) -> Any:  # any-ok: the boto3 client is untyped
-    """A Cost Explorer client from the credential's own AWS keys."""
+    """A Cost Explorer client for whichever way this credential signs in.
+
+    An assumed role goes through STS first and the client is built from the short-lived credentials
+    it returns. Falling back to ambient credentials there would read Token IQ's own account instead
+    of the customer's and report their spend as zero.
+    """
     import boto3
 
-    return boto3.client(
-        "ce",
-        region_name=credential_values.get("aws_region_name") or COST_EXPLORER_REGION,
-        aws_access_key_id=credential_values.get("aws_access_key_id"),
-        aws_secret_access_key=credential_values.get("aws_secret_access_key"),
-        aws_session_token=credential_values.get("aws_session_token") or None,
-    )
+    region: Final = credential_values.get("aws_region_name") or COST_EXPLORER_REGION
+    match read_sign_in(credential_values):
+        case AssumedRole(role_arn=role_arn, external_id=external_id):
+            assumed = boto3.client("sts", region_name=region).assume_role(
+                RoleArn=role_arn,
+                RoleSessionName=ROLE_SESSION_NAME,
+                ExternalId=external_id,
+            )["Credentials"]
+            return boto3.client(
+                "ce",
+                region_name=region,
+                aws_access_key_id=assumed["AccessKeyId"],
+                aws_secret_access_key=assumed["SecretAccessKey"],
+                aws_session_token=assumed["SessionToken"],
+            )
+        case StaticKeys(access_key_id=key_id, secret_access_key=secret, session_token=token):
+            return boto3.client(
+                "ce",
+                region_name=region,
+                aws_access_key_id=key_id,
+                aws_secret_access_key=secret,
+                aws_session_token=token,
+            )
+        case NoCredential(why=why):
+            raise ValueError(f"cannot build a Cost Explorer client: the credential {why}")

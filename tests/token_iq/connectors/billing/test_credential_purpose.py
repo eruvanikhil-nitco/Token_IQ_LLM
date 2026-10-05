@@ -201,3 +201,50 @@ def test_require_keys_false_still_accepts_an_incomplete_cloud_credential():
     info = {"purpose": "billing_ingestion", "provider": "azure"}
 
     assert billing_credential_problem(info, {}, require_keys=False) is None
+
+
+class TestABedrockCredentialMayUseEitherSignIn:
+    """A Bedrock billing credential used to need both access keys, so a role-only credential was
+    refused before it could ever be tried. An IAM role with an external ID is the recommended
+    method and has to pass validation."""
+
+    ROLE = {
+        "role_arn": "arn:aws:iam::123456789012:role/token-iq-read-only",
+        "external_id": "tiq-7f3a9c21-acme",
+    }
+    KEYS = {"aws_access_key_id": "AKIATESTNOTREAL", "aws_secret_access_key": "test-not-real"}
+
+    def test_a_role_with_an_external_id_is_accepted(self) -> None:
+        from token_iq.connectors.billing.credential_purpose import billing_credential_problem
+
+        problem = billing_credential_problem(
+            {"purpose": "billing_ingestion", "provider": "bedrock"}, self.ROLE, require_keys=True
+        )
+        assert problem is None, problem
+
+    def test_access_keys_are_still_accepted(self) -> None:
+        from token_iq.connectors.billing.credential_purpose import billing_credential_problem
+
+        problem = billing_credential_problem(
+            {"purpose": "billing_ingestion", "provider": "bedrock"}, self.KEYS, require_keys=True
+        )
+        assert problem is None, problem
+
+    def test_a_role_without_an_external_id_is_refused_and_says_why(self) -> None:
+        from token_iq.connectors.billing.credential_purpose import billing_credential_problem
+
+        problem = billing_credential_problem(
+            {"purpose": "billing_ingestion", "provider": "bedrock"},
+            {"role_arn": self.ROLE["role_arn"]},
+            require_keys=True,
+        )
+        assert problem is not None
+        assert "external ID" in problem, problem
+
+    def test_neither_shape_is_refused(self) -> None:
+        from token_iq.connectors.billing.credential_purpose import billing_credential_problem
+
+        problem = billing_credential_problem(
+            {"purpose": "billing_ingestion", "provider": "bedrock"}, {}, require_keys=True
+        )
+        assert problem is not None

@@ -23,18 +23,22 @@ _ADMIN_KEY_PREFIXES: Final = MappingProxyType({"openai": "sk-admin-", "anthropic
 """Cost reports answer only to an organisation admin key. An ordinary key saves fine and then
 fails every sync with a 401, so the kind of key is checked before it is stored."""
 
-_BEDROCK_REQUIRED: Final = ("aws_access_key_id", "aws_secret_access_key")
 _AZURE_REQUIRED: Final = ("subscription_id",)
 _VERTEX_REQUIRED: Final = ("billing_project_id", "billing_export_table")
 
 _REQUIRED_FIELDS: Final = MappingProxyType(
-    {"bedrock": _BEDROCK_REQUIRED, "azure": _AZURE_REQUIRED, "vertex_ai": _VERTEX_REQUIRED}
+    {"azure": _AZURE_REQUIRED, "vertex_ai": _VERTEX_REQUIRED}
 )
 
 
 def is_billing_credential(credential_info: Mapping[str, object] | None) -> bool:
     """Whether this credential is marked for reading a provider's bill."""
     return credential_info is not None and credential_info.get("purpose") == BILLING_PURPOSE
+
+
+def _strings_only(values: Mapping[str, object]) -> Mapping[str, str]:
+    """The string-valued entries, so a credential carrying a number cannot reach boto3."""
+    return MappingProxyType({k: v for k, v in values.items() if isinstance(v, str)})
 
 
 def _present(value: object) -> bool:
@@ -59,6 +63,14 @@ def billing_credential_problem(
     provider: Final = credential_info.get("provider")
     if not isinstance(provider, str) or provider not in BILLING_PROVIDERS:
         return f"A billing credential needs a provider, one of: {', '.join(sorted(BILLING_PROVIDERS))}."
+
+    if provider == "bedrock":
+        from token_iq.connectors.billing.bedrock import NoCredential, read_sign_in
+
+        sign_in: Final = read_sign_in(_strings_only(credential_values))
+        if require_keys and isinstance(sign_in, NoCredential):
+            return f"A billing credential for bedrock {sign_in.why}."
+        return None
 
     required_fields: Final = _REQUIRED_FIELDS.get(provider)
     if required_fields is not None:

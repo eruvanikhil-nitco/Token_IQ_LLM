@@ -195,3 +195,110 @@ def test_each_fact_keeps_the_cost_explorer_group_it_came_from():
     )
 
     assert facts[0].raw == group
+
+
+ROLE_CREDENTIAL = {
+    "role_arn": "arn:aws:iam::123456789012:role/token-iq-read-only",
+    "external_id": "tiq-7f3a9c21-acme",
+}
+
+
+class TestAnAssumedRoleIsAccepted:
+    """A long-lived access key in a customer's account is the thing to get rid of.
+
+    An IAM role with an external ID is the recommended method: nothing secret is stored, Token IQ
+    asks AWS for short-lived credentials each sync, and the customer can delete the role whenever
+    they like. The external ID is what stops anyone who learns the role ARN assuming it from their
+    own account.
+    """
+
+    @pytest.mark.asyncio
+    async def test_a_credential_with_only_a_role_is_configured(self) -> None:
+        """It used to demand both access keys, so a role-only credential was refused before it was
+        ever tried."""
+        from token_iq.types.provider_billing import Fetched
+
+        assert isinstance(await _fetch(_client(_page()), credential_values=ROLE_CREDENTIAL), Fetched)
+
+    @pytest.mark.asyncio
+    async def test_access_keys_still_work_so_an_existing_connection_survives_the_upgrade(self) -> None:
+        from token_iq.types.provider_billing import Fetched
+
+        assert isinstance(await _fetch(_client(_page()), credential_values=CREDENTIAL), Fetched)
+
+    @pytest.mark.asyncio
+    async def test_neither_shape_is_still_not_configured(self) -> None:
+        from token_iq.types.provider_billing import NotConfigured
+
+        assert isinstance(await _fetch(_client(_page()), credential_values={}), NotConfigured)
+
+    @pytest.mark.asyncio
+    async def test_a_role_arn_without_an_external_id_is_refused(self) -> None:
+        """Without it, anyone who learns the role ARN can ask AWS to assume it from their own
+        account. A role with no external ID is worse than an access key, not better."""
+        from token_iq.types.provider_billing import NotConfigured
+
+        result = await _fetch(
+            _client(_page()), credential_values={"role_arn": ROLE_CREDENTIAL["role_arn"]}
+        )
+        assert isinstance(result, NotConfigured)
+
+
+class TestTheClientIsBuiltFromTemporaryCredentials:
+    @staticmethod
+    def _boto3(assumed: dict | None = None) -> MagicMock:
+        boto3 = MagicMock()
+        sts = MagicMock()
+        sts.assume_role = MagicMock(
+            return_value=assumed
+            or {
+                "Credentials": {
+                    "AccessKeyId": "ASIA-temporary",
+                    "SecretAccessKey": "temporary-secret",
+                    "SessionToken": "temporary-token",
+                }
+            }
+        )
+        boto3.client = MagicMock(side_effect=lambda service, **kwargs: sts if service == "sts" else MagicMock())
+        return boto3
+
+    def test_the_role_is_assumed_with_the_external_id(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        import sys
+
+        from token_iq.connectors.billing.bedrock import build_cost_explorer
+
+        boto3 = self._boto3()
+        monkeypatch.setitem(sys.modules, "boto3", boto3)
+        build_cost_explorer(ROLE_CREDENTIAL)
+
+        sts = boto3.client("sts")
+        assumed = sts.assume_role.call_args.kwargs
+        assert assumed["RoleArn"] == ROLE_CREDENTIAL["role_arn"]
+        assert assumed["ExternalId"] == ROLE_CREDENTIAL["external_id"]
+
+    def test_the_cost_explorer_uses_the_short_lived_credentials(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """If it fell back to ambient credentials the sync would read Token IQ's own account
+        rather than the customer's, and report their spend as zero."""
+        import sys
+
+        from token_iq.connectors.billing.bedrock import build_cost_explorer
+
+        boto3 = self._boto3()
+        monkeypatch.setitem(sys.modules, "boto3", boto3)
+        build_cost_explorer(ROLE_CREDENTIAL)
+
+        built = [c for c in boto3.client.call_args_list if c.args[0] == "ce"]
+        assert len(built) == 1, built
+        assert built[0].kwargs["aws_access_key_id"] == "ASIA-temporary"
+        assert built[0].kwargs["aws_session_token"] == "temporary-token"
+
+    def test_an_access_key_credential_assumes_no_role(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        import sys
+
+        from token_iq.connectors.billing.bedrock import build_cost_explorer
+
+        boto3 = self._boto3()
+        monkeypatch.setitem(sys.modules, "boto3", boto3)
+        build_cost_explorer(CREDENTIAL)
+
+        assert not [c for c in boto3.client.call_args_list if c.args[0] == "sts"]
