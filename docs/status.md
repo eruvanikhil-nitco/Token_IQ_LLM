@@ -662,3 +662,83 @@ clean "0 files rewritten". And `ruff --select I001 --fix` against `tests/`, whos
 that rule, replaced the config's rules instead of narrowing them and reordered 2218 import blocks
 across 1537 files. Neither was caught by a test. Both were caught by a count that did not match
 the size of the change: 0 where something was expected, 2218 where 50 was.
+
+## Phase 4, task 1: the baseline was measuring itself wrong, twice
+
+Phase 4 compares everything it does against the baseline, so the baseline came first. It
+disagreed with itself about the Token IQ tests: the `token_iq` suite recorded 468 cases under
+those directories and `unit` recorded 372 from the same ones. Both numbers came from the same
+tooling, and the tooling was wrong in two separate ways.
+
+### Collection stopped at the first file that would not import
+
+`capture_suite` ran pytest without `--continue-on-collection-errors`. One unimportable file
+interrupts collection, pytest writes the report with whatever it had gathered, and everything
+after that is absent. `capture_suite` guarded the case where collection dies outright, because
+then no report is written at all. It did not guard the case where collection stops partway, which
+is the one that happened, and 96 Token IQ cases were recorded as not existing.
+
+Collecting `tests/test_litellm` today errors on 31 files. With the flag, the same collection
+yields 468 under those directories, matching a direct run. 468 was right.
+
+A collection error also used to be recorded with the nodeid `.py::<module>`, which names no file
+and matches nothing on either side of a comparison. The phase 0 artifact holds 31 of those.
+
+### A run that stopped early was recorded as a complete one
+
+The re-cut `unit` suite then recorded 44,743 cases where pytest collects 46,571, and the
+comparison reported **241 cases as disappeared**, which is what a deleted test file looks like.
+All 241 were accounted for rather than accepted:
+
+- 29 were old `.py::` nodeids being renamed by the fix above
+- 44 were the GitHub automation tests phase 2 deleted with the workflows that served upstream
+- 52 belonged to files that no longer collect
+- **116 were spread one and two at a time across 37 files that collect perfectly in isolation**
+
+That last shape is not a change to any test. A worker died under `-n 4` and took its unreported
+tests with it; pytest still exited and still wrote a report. `capture_suite` writes whatever junit
+holds when pytest exits, which is right when the run finished and wrong when it did not.
+
+A suite now records how many cases were collected alongside how many were reported, measured by a
+separate serial collect-only pass that costs seconds and cannot itself lose a worker. `complete`
+is false only when a count was measured and the report fell short, so the phase 0 artifact, which
+predates the field, is not retroactively called incomplete.
+
+### And a third defect, found while fixing the second
+
+`capture_suite` takes `paths: Iterable[str]` and the fix used it twice. A generator would be empty
+by the second use, which means pytest with no paths, which means collecting the whole repository
+while still looking like a pass. There is now one end-to-end test of the capture path that
+deliberately passes a generator: with the bug in place it fails and takes 83 seconds instead of
+15, because it ran everything.
+
+### Phase 3 broke nothing
+
+The four suites phase 0 captured completely are identical in case count against the re-cut
+baseline, with nothing newly failing and the same 20 pre-existing failures. The one
+disappeared/appeared pair is `test_saml_sso` moving from the garbage nodeid to its real path.
+
+The new baseline is `docs/plans/2026-10-05-phase-4-baseline.json`. The phase 0 file is kept as
+written: it says what was true on 4 Oct, and a later phase that rewrites it loses the only thing
+it was for. `capture.py` takes `--artifact` for that.
+
+### Two pieces of debt this surfaced, neither phase 4's
+
+**36 test files read a price file that no longer exists.** The list moved to
+`data/pricing/model_prices.json` when it was consolidated into one copy, and those tests still
+build a path to the deleted root `model_prices_and_context_window.json`. Five of them break at
+collection, which is why they are among the 31. No production code is affected: all 41 other
+references name the old filename only in prose, a log message or a docstring, though those
+messages do now tell a user to edit a file that is not there. `test-model-map.yml` ran
+`jq empty` on the old path and so failed on every pull request; that one line is fixed.
+
+**A test for a feature that was deliberately removed.**
+`tests/test_litellm/test_lowest_latency_zero_tokens.py` imports
+`litellm.router_strategy.lowest_latency`, which `e422703a0d` deleted when scored routing went for
+observer-only. It can never pass.
+
+**`token_iq/repositories/overview_repository.py` has no test.** Found by validating the test move
+map against the tree: ten of the eleven Token IQ repositories have one. Nothing exercises it
+directly; the Overview router test injects a fake. Its methods are `provider_billed`,
+`tool_new_money`, `seats` and `gateway_recorded`, the four figures the counting rule governs,
+where a wrong one is the silent failure that rule exists to prevent.
