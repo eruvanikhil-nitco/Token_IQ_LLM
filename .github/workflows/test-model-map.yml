@@ -23,9 +23,12 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Validate model_prices_and_context_window.json
+      # The price list moved to data/pricing/model_prices.json when it was consolidated into
+      # one copy. This step still named the old root path, which no longer exists, so the job
+      # failed on every pull request.
+      - name: Validate data/pricing/model_prices.json
         run: |
-          jq empty model_prices_and_context_window.json
+          jq empty data/pricing/model_prices.json
 
       - name: Set up uv
         uses: ./.github/actions/setup-uv-with-retries

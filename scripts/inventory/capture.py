@@ -31,6 +31,8 @@ from scripts.inventory.baseline import (
 
 REPO: Final = pathlib.Path(__file__).resolve().parents[2]
 ARTIFACT: Final = REPO / "docs" / "plans" / "2026-10-04-phase-0-baseline.json"
+"""The phase 0 record. Kept as written: it says what was true on 4 Oct, and a later phase
+that rewrites it loses the only thing it was for. `--artifact` captures somewhere else."""
 
 TOKEN_IQ: Final[tuple[str, ...]] = tuple(
     f"tests/test_litellm/{name}"
@@ -82,9 +84,9 @@ COMMANDS: Final[Mapping[str, tuple[str, ...]]] = {
 IN_UI: Final[frozenset[str]] = frozenset({"ui_build", "ui_tests"})
 
 
-def _load() -> Baseline:
-    if ARTIFACT.exists():
-        return from_json(ARTIFACT.read_text(encoding="utf-8"))
+def _load(artifact: pathlib.Path) -> Baseline:
+    if artifact.exists():
+        return from_json(artifact.read_text(encoding="utf-8"))
     env: Final = describe_environment(REPO, parallel=False)
     return Baseline(
         commit=str(env["commit"]),
@@ -107,23 +109,28 @@ def _replacing_command(existing: Sequence[CommandRun], fresh: CommandRun) -> tup
     return tuple(sorted((*kept, fresh), key=lambda c: c.name))
 
 
-def _write(baseline: Baseline) -> None:
-    ARTIFACT.write_text(json.dumps(dataclasses.asdict(baseline), indent=2, sort_keys=True) + "\n", encoding="utf-8")
+def _write(baseline: Baseline, artifact: pathlib.Path) -> None:
+    artifact.parent.mkdir(parents=True, exist_ok=True)
+    artifact.write_text(json.dumps(dataclasses.asdict(baseline), indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
-def capture(section: str, reports: pathlib.Path, workers: int = 0) -> None:
-    current: Final = _load()
+def capture(section: str, reports: pathlib.Path, workers: int = 0, artifact: pathlib.Path = ARTIFACT) -> None:
+    current: Final = _load(artifact)
     if section in SUITES:
         run: Final = capture_suite(section, SUITES[section], REPO, reports, workers)
         failed: Final = sum(1 for o in run.outcomes if o.outcome in ("failed", "error"))
         print(f"{section}: {len(run.outcomes)} tests, {failed} failing")
-        _write(dataclasses.replace(current, suites=_replacing(current.suites, run)))
+        if run.collection_errors:
+            # Said out loud, because the cases those files hold are absent from the report
+            # rather than failing in it, and a quieter run would read as a smaller suite.
+            print(f"{section}: {run.collection_errors} file(s) would not import")
+        _write(dataclasses.replace(current, suites=_replacing(current.suites, run)), artifact)
         return
 
     where: Final = UI if section in IN_UI else REPO
     command: Final = capture_command(section, COMMANDS[section], where)
     print(f"{section}: exit {command.exit_code}")
-    _write(dataclasses.replace(current, commands=_replacing_command(current.commands, command)))
+    _write(dataclasses.replace(current, commands=_replacing_command(current.commands, command)), artifact)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -133,13 +140,15 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--all", action="store_true")
     parser.add_argument("--reports", default=None, help="where junit xml is written")
     parser.add_argument("--workers", type=int, default=0, help="pytest-xdist workers; 0 runs serially")
+    parser.add_argument("--artifact", default=None, help=f"where to write; default {ARTIFACT.name}")
     args: Final = parser.parse_args(argv)
 
     reports: Final = pathlib.Path(args.reports) if args.reports else REPO / ".git" / "phase0-reports"
     reports.mkdir(parents=True, exist_ok=True)
 
+    artifact: Final = pathlib.Path(args.artifact) if args.artifact else ARTIFACT
     for section in known if args.all else args.section:
-        capture(section, reports, args.workers)
+        capture(section, reports, args.workers, artifact)
     return 0
 
 
