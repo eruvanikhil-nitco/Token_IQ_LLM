@@ -88,10 +88,29 @@ comparing at the end.
 
 ## What I recommend
 
-Split phase 5 in two. **5A** deletes the 13 areas where nothing is reachable at all or only a
-handful of modules are, about 20,000 lines, which needs no judgement beyond confirming the feature
-is not wanted. **5B** handles guardrails, the router strategies and the provider folders, each of
-which needs an answer above and each of which should be its own commit with its own baseline
+Split phase 5 into two passes, called **5.1** and **5.2** here. Not 5A and 5B: **5A is already a
+phase in the spec**, section 5.6, and it is a different thing entirely, rebuilding the screens so
+they can be understood. Reusing the name would have collided with it.
+
+**Pass 5.1** deletes the 13 areas where nothing is reachable at all or only a handful of modules
+are, about 20,000 lines, which needs no judgement beyond confirming the feature is not wanted.
+
+**Pass 5.2** handles guardrails, the router strategies and the provider folders, each of which
+needs one of the answers above and each of which should be its own commit with its own baseline
 comparison.
 
-Approving 5A does not commit you to 5B.
+Approving 5.1 does not commit you to 5.2.
+
+## What comes straight after, and why it matters to you
+
+Phase 5A, the spec's own, runs next and is the one that answers the complaint that started this:
+that the pages are data dumps and walking through Usage, Ledger and Recommendations explains
+nothing. It collapses the three stacked rows of tabs on Usage, reconciles the two date controls
+that currently disagree so switching tab silently changes the period, makes every analytics screen
+open with a plain sentence saying what the figures mean and what to do, gives empty states the
+action that fills them, and replaces raw team UUIDs with names.
+
+It runs after phase 5 so no effort goes into a page about to be deleted, and before phase 6 so the
+rename passes over the final shape of the UI. It also carries an open question for you: whether it
+replaces the inherited LiteLLM usage dashboard embedded in Usage, which is a different product's
+interface with its own controls, its own date range and a chat box.
