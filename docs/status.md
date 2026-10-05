@@ -742,3 +742,59 @@ map against the tree: ten of the eleven Token IQ repositories have one. Nothing 
 directly; the Overview router test injects a fake. Its methods are `provider_billed`,
 `tool_new_money`, `seats` and `gateway_recorded`, the four figures the counting rule governs,
 where a wrong one is the silent failure that rule exists to prevent.
+
+
+## Phase 4 is done: the tests mirror the package and CI runs them
+
+86 test files moved into `tests/token_iq/`, and **`assert_ci_coverage.py` exits 0 for the first
+time**: 2,602 test files and 10 Dockerfiles each invoked by a job or carrying an allowlist entry,
+down from 42 invoked by nothing.
+
+**990 cases under the old paths, 990 at the new paths, nothing missing and nothing new.** 987 pass,
+serially and at `-n 2`, four times over with random ordering. The three that fail are
+`test_project_org_authz`, which failed in the baseline too because `litellm_enterprise` is not
+installed on this machine.
+
+### The comparison almost passed while measuring half the move
+
+`planned()` in the move map expands its directory entries from the tree, so once the directories
+had moved it could no longer enumerate what had been in them. The first comparison reported 480 of
+990 and looked like a clean result. Driving it off `remap`, which works from the map's prefixes
+rather than the tree, gave the exact match. A map that cannot describe the move afterwards is no
+use for checking it.
+
+### The re-exports resolve; none could be shown to be load-bearing
+
+The plan said to remove one and require a sibling to fail. It did not fail. Removing
+`isolate_litellm_state` leaves the suite identical. So does removing the `proxy_server` globals
+hook pair. So does removing that pair and running the Token IQ router tests in the same workers as
+`test_key_management_endpoints.py`, the engine test whose leak the hook's own docstring describes:
+with and without, the same five failures.
+
+What is proved is that all eight fixtures resolve for a moved test, which `pytest --fixtures`
+reports directly. The likely reason removal changes nothing is that the leak came from engine
+tests, and `tests/token_iq` is now its own shard, so it never shares a worker with them. They are
+kept because they preserve the isolation these tests had before moving, not because a failure was
+produced by removing them.
+
+### Two assumptions in the plan were wrong
+
+`tests/deploy` was to be exempted because those tests want Docker and a database. 30 of their 36
+cases pass with no infrastructure and 6 skip cleanly, because three of the four files only parse
+configuration. They got a job.
+
+And four test files were in no capture suite at all, found by checking the move map against what
+the suites cover. They are now the `token_iq_edges` section.
+
+### Why `-n 4` is no longer used on this machine
+
+Measured during this phase: 15.7 GB total with 10.5 GB already in use before pytest starts, VS Code
+at 1.7 GB across 11 processes and `msedgewebview2` another 1.7 GB across 20. Each xdist worker
+imports the whole engine, about 600 MB. At `-n 4` the machine pages: VS Code stops responding, the
+MCP websocket drops, `git` fails to allocate 12 KB, basedpyright exhausts V8's 4 GB heap, and the
+harness kills background jobs for memory pressure. Every one of those happened during this
+programme and each was first read as an unrelated fault. `-n 2` runs the Token IQ suite in 29
+seconds against 23 minutes serially.
+
+The full `unit` suite is not captured on this machine for the same reason. It is not needed for
+this phase: the move only touches tests covered by four suites that are captured and complete.

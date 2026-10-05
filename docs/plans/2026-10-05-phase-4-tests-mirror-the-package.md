@@ -1,6 +1,6 @@
 # Phase 4: the tests mirror the package, and CI runs them
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** every Token IQ test lives at the path that mirrors the module it tests, every one of
 them runs in CI, and `assert_ci_coverage.py` exits 0 for the first time.
@@ -98,13 +98,13 @@ or out of it without looking at that guard.
 
 **Files:** `docs/plans/2026-10-04-phase-0-baseline.json`, `scripts/inventory/`
 
-- [ ] **Step 1: Finish the comparison phase 3 left outstanding**
+- [x] **Step 1: Finish the comparison phase 3 left outstanding**
 
 Phase 3's phase-level run over `unit` was killed partway through when the machine ran low on
 memory, so it never finished. Run it against the current tree before anything moves. If it is
 clean, phase 3 closes. If it is not, that is a phase 3 finding and belongs there, not here.
 
-- [ ] **Step 2: Find out why the two suites counted differently**
+- [x] **Step 2: Find out why the two suites counted differently**
 
 468 cases against 372 for the same directories. Either `unit` under-collected, which makes it an
 unreliable reference for everything after this, or `token_iq` double-counted. Collect both
@@ -113,13 +113,13 @@ without running them (`--collect-only -q`) and compare the sets, not the totals.
 Not a detail to note and move past. A baseline that disagrees with itself cannot answer the one
 question this phase needs answered.
 
-- [ ] **Step 3: Re-cut the baseline on the current tree**
+- [x] **Step 3: Re-cut the baseline on the current tree**
 
 Phase 3 moved 100 modules, so the figures recorded on 4 Oct describe a tree that no longer
 exists. Capture fresh, keep the old file as the historical record rather than overwriting it, and
 say in the new one what it supersedes and why.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ---
 
@@ -127,7 +127,7 @@ say in the new one what it supersedes and why.
 
 **Files:** `tests/token_iq/conftest.py`, `tests/token_iq/api/conftest.py`, the `__init__.py` files
 
-- [ ] **Step 1: Write the conftests that re-export, before moving any test**
+- [x] **Step 1: Write the conftests that re-export, before moving any test**
 
 `tests/token_iq/conftest.py` re-exports from `tests/test_litellm/conftest.py`, and
 `tests/token_iq/api/conftest.py` from `tests/test_litellm/proxy/conftest.py`, because the router
@@ -138,11 +138,11 @@ Underscore-prefixed names are not picked up by a star import and have to be name
 functions: pytest looks them up by name in the conftest module's own namespace, so an imported
 `pytest_runtest_setup` works, and a missing one fails silently.
 
-- [ ] **Step 2: Move one directory, the smallest, and run it**
+- [x] **Step 2: Move one directory, the smallest, and run it**
 
 `tests/test_litellm/ledger` is one test file. Move it, run it, and confirm it passes.
 
-- [ ] **Step 3: Prove the re-export is load-bearing, by removing it**
+- [x] **Step 3: Prove the re-export is load-bearing, by removing it**
 
 Delete one autouse re-export from `tests/token_iq/conftest.py` and run the moved test together
 with a test that depends on that isolation. **It must fail.** If everything still passes, the
@@ -151,14 +151,14 @@ re-export was not doing anything and the real dependency has not been found yet.
 This step is the whole task. Isolation that looks wired up and is not is indistinguishable from
 isolation that works, until a flake appears weeks later in something unrelated.
 
-- [ ] **Step 4: Write the test that keeps this honest**
+- [x] **Step 4: Write the test that keeps this honest**
 
 A repository test asserting that every autouse fixture and every hook implementation reachable
 from `tests/test_litellm/conftest.py` and `tests/test_litellm/proxy/conftest.py` is reachable
 from the matching `tests/token_iq/` conftest. It reads the modules, because the failure being
 guarded is a name going missing, not a fixture misbehaving.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ---
 
@@ -166,7 +166,7 @@ guarded is a name going missing, not a fixture misbehaving.
 
 **Files:** 75 test files, 9 `__init__.py`, 2 `conftest.py`
 
-- [ ] **Step 1: Move, mirroring the package exactly**
+- [x] **Step 1: Move, mirroring the package exactly**
 
 | From | To |
 |---|---|
@@ -182,7 +182,7 @@ Four are renamed to follow the modules phase 3 renamed: `test_audit_log_endpoint
 `test_audit_logs.py`, `test_project_endpoints.py` to `test_projects.py`, `test_token_iq_plan.py`
 to `test_plan.py`, and `test_capture_policy.py` to `test_capture.py`.
 
-- [ ] **Step 2: Move `test_daily_reconciliation.py` too, and say why it was nearly missed**
+- [x] **Step 2: Move `test_daily_reconciliation.py` too, and say why it was nearly missed**
 
 Its subject is `token_iq.api.provider_reconciliation.daily_reconciliation`, but its filename is
 the endpoint's name rather than the module's, so a rule based on filenames does not catch it.
@@ -190,19 +190,19 @@ the endpoint's name rather than the module's, so a rule based on filenames does 
 `token_iq` do not move, because they exercise engine endpoints under plan gating and only treat
 Token IQ policy as a collaborator. Every one of the nine was read before being placed.
 
-- [ ] **Step 3: Update what refers to these paths by name**
+- [x] **Step 3: Update what refers to these paths by name**
 
 Cross-directory conftest imports, `tests/code_coverage_tests/` scripts that walk the test tree,
 `scripts/inventory/capture.py`, which names the Token IQ directories as literal strings, and the
 guard tests added in phase 3. Found by searching for the text.
 
-- [ ] **Step 4: Run them, serially and under `-n 4`, and compare against the re-cut baseline**
+- [x] **Step 4: Run them, serially and under `-n 4`, and compare against the re-cut baseline**
 
 Through the nodeid remap. Nothing newly failing, and the count of cases that moved must equal
 the count that arrived. A case that quietly stops being collected looks identical to one that
 moved, unless both sides are counted.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ---
 
@@ -210,30 +210,30 @@ moved, unless both sides are counted.
 
 **Files:** `.github/workflows/test-unit.yml`, `.github/scripts/assert_ci_coverage.py`
 
-- [ ] **Step 1: Add a `token-iq` shard**
+- [x] **Step 1: Add a `token-iq` shard**
 
 A new matrix entry, which is safe because a new name is a new check rather than a renamed one.
 `tests/test_litellm/repositories` currently sits in the `misc` shard; the ten that moved leave it
 and the sixteen engine ones stay, so `misc` keeps its name and loses some paths.
 
-- [ ] **Step 2: Decide the workers and reruns deliberately**
+- [x] **Step 2: Decide the workers and reruns deliberately**
 
 Every other entry states all four numbers even when they match the defaults, because an absent
 matrix key renders as an empty string and fails the call. Reruns hide flakes, so start at 0 and
 raise only with a reason recorded.
 
-- [ ] **Step 3: Get `assert_ci_coverage.py` to 0**
+- [x] **Step 3: Get `assert_ci_coverage.py` to 0**
 
 42 files today. The 7 Token IQ directories and `tests/deploy` are the bulk. `tests/deploy` needs
 a decision rather than a shard: those tests want Docker and a database, and a job that cannot run
 them is worse than an allowlist entry saying so.
 
-- [ ] **Step 4: Prove the shard runs what it claims**
+- [x] **Step 4: Prove the shard runs what it claims**
 
 Compare the case count the new shard collects against the count that moved. A shard with a typo
 in its path collects nothing and reports success.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ---
 
@@ -241,13 +241,13 @@ in its path collects nothing and reports success.
 
 **Files:** `docs/status.md`
 
-- [ ] **Step 1: Run the whole Token IQ suite under `-n 4` repeatedly**
+- [x] **Step 1: Run the whole Token IQ suite under `-n 4` repeatedly**
 
 The spec's acceptance is that it passes with and without `-n 4`. Once each is not enough for the
 failure mode this phase risks, which is order-dependent and worker-dependent. Run it several
 times, and with `-p no:randomly` off so the order varies.
 
-- [ ] **Step 2: Run the suites that lost tests, too**
+- [x] **Step 2: Run the suites that lost tests, too**
 
 `tests/test_litellm/proxy/management_endpoints` keeps 42 of its 60 test files after 18 leave, and
 four proxy subdirectories lose one each. If any of those 18 was providing isolation the remaining
@@ -255,9 +255,9 @@ tests depended on, this is where it shows. The three `test_project_org_authz` ca
 in the baseline and move with the rest, so they must still fail afterwards and in the same way:
 a pre-existing failure that quietly turns into a pass is as much a signal as a new failure.
 
-- [ ] **Step 3: Record what moved, what stayed and why**
+- [x] **Step 3: Record what moved, what stayed and why**
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ---
 
@@ -296,3 +296,67 @@ sibling has to fail.
 Second hardest: the two baseline numbers. 468 against 372 for the same directories means the
 reference this phase measures itself against currently disagrees with itself, and no amount of
 careful moving fixes a yardstick that is wrong.
+
+
+---
+
+## What phase 4 found
+
+### The move is exact, and the check nearly was not
+
+**990 cases under the old paths, 990 collecting at the new paths, nothing missing and nothing
+new.** 7,228 cases stayed where they were.
+
+The first attempt at that comparison reported 480 of the 990 and would have looked like a clean
+pass of a smaller move. `planned()` expands its directory entries from the tree, so once the
+directories had moved it could no longer say what had been in them. Driving the comparison off
+`remap`, which works from the map's prefixes, is what made it exact. A map that cannot describe
+the move after the move is no use for checking it.
+
+### Four parallel runs agree with the serial one
+
+987 of 990 pass, serially and at `-n 2`, four times over with random ordering, in 29 seconds
+against 23 minutes serially. The three that fail are `test_project_org_authz`, which failed in the
+baseline too, for the same reason: `litellm_enterprise` is not installed on this machine.
+
+### The re-exports resolve, and I could not prove any of them load-bearing
+
+Step 3 of task 2 said to remove a re-export and require a sibling to fail, and to treat everything
+still passing as evidence the real dependency had not been found. That is what happened.
+
+What is proved: all eight autouse and named fixtures resolve for a moved test, which `pytest
+--fixtures` shows directly, reporting each one's defining line in the conftest it was re-exported
+from. The hook pair registers the same way.
+
+What is not proved: removing `isolate_litellm_state` leaves the suite identical, 3 failed and 987
+passed. So does removing the `proxy_server` globals hook pair. So does removing the hook pair and
+then running the Token IQ router tests in the same workers as
+`test_key_management_endpoints.py`, which is the engine test whose leak the hook's docstring
+describes. With and without, 5 failed and 706 passed, the same five.
+
+The likely reason is that the leak those hooks were written for came from engine tests, and
+`tests/token_iq` is now its own shard, so it never shares a worker with them. The re-exports are
+kept because they preserve the isolation these tests had before they moved, which is this phase's
+goal, and because a Token IQ test added later could mutate that state. But the claim is that they
+resolve and preserve prior behaviour, not that a failure was produced by removing them.
+
+### `assert_ci_coverage.py` exits 0 for the first time
+
+2,602 test files and 10 Dockerfiles, each invoked by a job or carrying an allowlist entry, down
+from 42 files invoked by nothing.
+
+Getting there corrected this plan. Task 4 step 3 said `tests/deploy` needed an allowlist entry
+because those tests want Docker and a database. Measured: 30 of their 36 cases pass with no
+infrastructure and the other 6 skip cleanly, because three of the four files only parse
+configuration. They got a job.
+
+It also closed a gap this plan did not know about. Checking the move map against what the capture
+suites cover found four test files in no suite at all, which became the `token_iq_edges` section.
+
+### Why the suite is run at `-n 2` and not `-n 4`
+
+Measured while this phase ran: the machine has 15.7 GB and 10.5 GB is in use before pytest starts,
+with VS Code at 1.7 GB across 11 processes and `msedgewebview2` another 1.7 GB across 20. Each
+xdist worker imports the whole engine, around 600 MB. At `-n 4` the machine pages, VS Code stops
+responding, the MCP websocket drops, `git` fails to allocate 12 KB, and the harness kills
+background jobs for memory pressure. All of that happened and was first read as unrelated faults.
