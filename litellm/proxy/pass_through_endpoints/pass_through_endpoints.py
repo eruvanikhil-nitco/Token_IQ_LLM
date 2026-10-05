@@ -13,10 +13,6 @@ from typing import TYPE_CHECKING, Any, Final, TypedDict, cast
 from urllib.parse import urlencode, urlparse
 
 import httpx
-from litellm.proxy.pass_through_endpoints.same_target_retry import (
-    passthrough_retry_policy,
-    send_with_same_target_retry,
-)
 from fastapi import (
     APIRouter,
     Depends,
@@ -87,6 +83,10 @@ from litellm.proxy.common_utils.sse_keepalive import (
 from litellm.proxy.litellm_pre_call_utils import (
     LiteLLMProxyRequestSetup,
     _get_dynamic_logging_metadata,  # pyright: ignore[reportPrivateUsage]  # shared proxy helper, same import style as _read_request_body above
+)
+from litellm.proxy.pass_through_endpoints.same_target_retry import (
+    passthrough_retry_policy,
+    send_with_same_target_retry,
 )
 from litellm.proxy.utils import normalize_route_for_root_path
 from litellm.repositories.team_repository import TeamRepository

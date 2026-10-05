@@ -13,7 +13,7 @@ from typing import Final
 
 import pytest
 
-from litellm.pricing.history import PriceChange, PriceHistory, parse_history
+from token_iq.pricing.history import PriceChange, PriceHistory, parse_history
 
 
 def _history(*lines: str) -> PriceHistory:
@@ -101,11 +101,11 @@ class TestParsing:
 
     def test_a_malformed_line_is_rejected_loudly(self) -> None:
         """A silently skipped line is a price change that quietly never happened."""
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="line 1 is not JSON"):
             parse_history(["{not json"])
 
     def test_a_line_missing_a_required_field_is_rejected(self) -> None:
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="missing provider, old, effective_from, source, approved_by"):
             parse_history(['{"model":"m","field":"input_cost_per_token","new":"1"}'])
 
     def test_a_change_round_trips_through_its_own_serialisation(self) -> None:
@@ -125,13 +125,13 @@ class TestParsing:
 class TestTheShippedFile:
     def test_the_history_file_exists_and_parses(self) -> None:
         """It ships with the code, so a corrupt line is a build-time problem, not a runtime one."""
-        from litellm.pricing.history import HISTORY_PATH, load_history
+        from token_iq.pricing.history import HISTORY_PATH, load_history
 
         assert HISTORY_PATH.is_file(), f"{HISTORY_PATH} is missing"
         load_history()
 
     def test_it_lives_beside_the_prices_it_describes(self) -> None:
-        from litellm.pricing.history import HISTORY_PATH
+        from token_iq.pricing.history import HISTORY_PATH
 
         assert HISTORY_PATH.parent == pathlib.Path(
             "data/pricing"
@@ -148,7 +148,7 @@ class TestPriceAsOf:
         An earlier version of this test used gpt-4o's real present-day price, so it passed
         whether the lookup consulted history or fell straight through to the price list.
         """
-        from litellm.pricing.history import PriceHistory, price_as_of
+        from token_iq.pricing.history import PriceHistory, price_as_of
 
         history = PriceHistory.from_lines(
             [
@@ -162,13 +162,13 @@ class TestPriceAsOf:
 
     def test_a_known_model_missing_the_field_resolves_to_nothing_rather_than_zero(self) -> None:
         """gpt-4o is priced, but not for a field that does not exist. Zero would read as free."""
-        from litellm.pricing.history import PriceHistory, price_as_of
+        from token_iq.pricing.history import PriceHistory, price_as_of
 
         got = price_as_of("gpt-4o", "cost_per_unicorn", date(2026, 5, 1), history=PriceHistory(()))
         assert got is None
 
     def test_falls_back_to_the_current_list_when_history_is_silent(self) -> None:
-        from litellm.pricing.history import PriceHistory, price_as_of
+        from token_iq.pricing.history import PriceHistory, price_as_of
 
         empty = PriceHistory(changes=())
         got = price_as_of("gpt-4o", "input_cost_per_token", date(2026, 5, 1), history=empty)
@@ -176,7 +176,7 @@ class TestPriceAsOf:
 
     def test_an_unknown_model_resolves_to_nothing_rather_than_zero(self) -> None:
         """Zero would turn a real cost into free usage, and nothing downstream could tell."""
-        from litellm.pricing.history import PriceHistory, price_as_of
+        from token_iq.pricing.history import PriceHistory, price_as_of
 
         got = price_as_of("not-a-real-model", "input_cost_per_token", date(2026, 5, 1), history=PriceHistory(()))
         assert got is None

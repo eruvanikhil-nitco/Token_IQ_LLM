@@ -18,7 +18,7 @@ def _row(model, account="prod", evidence="reconciled", cost="1", facts=1) -> Sum
 
 
 def test_spend_by_model_is_summed_across_accounts_and_ordered_by_cost():
-    from litellm.provider_billing.usage_summary import build_usage_summary
+    from token_iq.connectors.billing.usage_summary import build_usage_summary
 
     summary = build_usage_summary(
         (_row("gpt-4o", "prod", cost="2"), _row("gpt-4o", "staging", cost="3"), _row("o3", cost="4")),
@@ -34,7 +34,7 @@ def test_spend_by_model_is_summed_across_accounts_and_ordered_by_cost():
 def test_spend_by_account_is_summed_across_models():
     """A company running two accounts needs to see which one is spending, which is the
     whole reason several accounts per provider are read separately."""
-    from litellm.provider_billing.usage_summary import build_usage_summary
+    from token_iq.connectors.billing.usage_summary import build_usage_summary
 
     summary = build_usage_summary(
         (_row("gpt-4o", "prod", cost="2"), _row("o3", "prod", cost="3"), _row("o3", "staging", cost="1")),
@@ -50,7 +50,7 @@ def test_spend_by_account_is_summed_across_models():
 def test_a_row_with_no_model_is_kept_and_labelled_rather_than_dropped():
     """Web search and code execution charges carry no model. Dropping them would make the
     breakdown add up to less than the bill."""
-    from litellm.provider_billing.usage_summary import build_usage_summary
+    from token_iq.connectors.billing.usage_summary import build_usage_summary
 
     summary = build_usage_summary((_row(None, cost="7"),), TOKENS)
 
@@ -60,7 +60,7 @@ def test_a_row_with_no_model_is_kept_and_labelled_rather_than_dropped():
 
 def test_the_total_equals_the_sum_of_the_parts():
     """If the headline figure and the breakdown disagree, a reader cannot trust either."""
-    from litellm.provider_billing.usage_summary import build_usage_summary
+    from token_iq.connectors.billing.usage_summary import build_usage_summary
 
     summary = build_usage_summary(
         (_row("gpt-4o", cost="2"), _row("o3", cost="3"), _row(None, cost="1")), TOKENS
@@ -74,7 +74,7 @@ def test_the_total_equals_the_sum_of_the_parts():
 def test_evidence_is_split_so_a_reader_knows_what_the_provider_actually_asserted():
     """reconciled means the provider asserted dollars. allocated means only our own gateway
     events exist. Showing one number for both would overstate how much of this is confirmed."""
-    from litellm.provider_billing.usage_summary import build_usage_summary
+    from token_iq.connectors.billing.usage_summary import build_usage_summary
 
     summary = build_usage_summary(
         (_row("gpt-4o", evidence="reconciled", cost="4"), _row("o3", evidence="allocated", cost="1")),
@@ -86,7 +86,7 @@ def test_evidence_is_split_so_a_reader_knows_what_the_provider_actually_asserted
 
 
 def test_an_empty_window_summarises_to_zero_rather_than_failing():
-    from litellm.provider_billing.usage_summary import build_usage_summary
+    from token_iq.connectors.billing.usage_summary import build_usage_summary
 
     summary = build_usage_summary((), TokenTotals(0, 0, 0, 0))
 
@@ -99,7 +99,7 @@ def test_models_tied_on_cost_break_the_tie_by_name_so_order_is_stable_across_run
     """Set iteration order is not stable across process runs. Two models at the exact same
     cost must still come out in the same order every time, or a spend ranking would appear
     to reshuffle itself between page loads with no data having changed."""
-    from litellm.provider_billing.usage_summary import build_usage_summary
+    from token_iq.connectors.billing.usage_summary import build_usage_summary
 
     summary = build_usage_summary(
         (_row("zeta", cost="3"), _row("alpha", cost="3"), _row(None, cost="3")),
@@ -110,7 +110,7 @@ def test_models_tied_on_cost_break_the_tie_by_name_so_order_is_stable_across_run
 
 
 def test_accounts_tied_on_cost_break_the_tie_by_name_so_order_is_stable_across_runs():
-    from litellm.provider_billing.usage_summary import build_usage_summary
+    from token_iq.connectors.billing.usage_summary import build_usage_summary
 
     summary = build_usage_summary(
         (_row("gpt-4o", "zeta-account", cost="3"), _row("o3", "alpha-account", cost="3")),

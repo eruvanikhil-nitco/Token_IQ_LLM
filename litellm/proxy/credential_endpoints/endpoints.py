@@ -16,7 +16,6 @@ import litellm
 from litellm._logging import verbose_proxy_logger
 from litellm.litellm_core_utils.credential_accessor import CredentialAccessor
 from litellm.litellm_core_utils.litellm_logging import _get_masked_values
-from litellm.provider_billing.credential_purpose import billing_credential_problem, is_billing_credential
 from litellm.proxy._types import CommonProxyErrors, UserAPIKeyAuth, user_api_key_has_admin_view
 from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
 from litellm.proxy.common_utils.encrypt_decrypt_utils import encrypt_value_helper
@@ -30,6 +29,7 @@ from litellm.proxy.credential_endpoints.credential_access import (
 from litellm.proxy.utils import handle_exception_on_proxy, jsonify_object
 from litellm.repositories.credentials_repository import CredentialsRepository
 from litellm.types.utils import CreateCredentialItem, CredentialItem
+from token_iq.connectors.billing.credential_purpose import billing_credential_problem, is_billing_credential
 
 router: Final = APIRouter()
 

@@ -1,6 +1,6 @@
 """Serve the attribution rules and the spend that no rule claims.
 
-The deciding is done by `litellm/attribution/gap_owner.py` and tested there; this module
+The deciding is done by `token_iq/attribution/gap_owner.py` and tested there; this module
 reads the rows, calls it, and shapes the answer into strings a JSON client cannot round.
 
 `settled_before` is computed here rather than inside the decision, so the clock stays at the
@@ -16,12 +16,8 @@ from typing import Final
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from litellm.attribution.gap_owner import AttributedGap, attribute
-from litellm.provider_billing.credential_purpose import BILLING_PROVIDERS
 from litellm.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
 from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-from litellm.repositories.attribution_rule_repository import AttributionRuleRepository
-from litellm.repositories.gap_repository import GapRepository
 from litellm.types.proxy.attribution import AttributionRule
 from litellm.types.proxy.management_endpoints.attribution_endpoints import (
     AttributionRuleBody,
@@ -31,6 +27,10 @@ from litellm.types.proxy.management_endpoints.attribution_endpoints import (
     UnallocatedLine,
     UnallocatedResponse,
 )
+from token_iq.attribution.gap_owner import AttributedGap, attribute
+from token_iq.connectors.billing.credential_purpose import BILLING_PROVIDERS
+from token_iq.repositories.attribution_rule_repository import AttributionRuleRepository
+from token_iq.repositories.gap_repository import GapRepository
 
 router: Final = APIRouter(
     tags=["attribution"],  # mutable-ok: fixed single-element tag list, never grown after this line

@@ -1,7 +1,7 @@
 """Serve the Combined usage views: what the providers billed against what the gateway recorded.
 
-The comparison itself lives in `litellm/repositories/gap_repository.py` and the decision about
-who owns each difference in `litellm/attribution/gap_owner.py`, both tested there. This module
+The comparison itself lives in `token_iq/repositories/gap_repository.py` and the decision about
+who owns each difference in `token_iq/attribution/gap_owner.py`, both tested there. This module
 reads the rows, calls them, and shapes the answer into strings a JSON client cannot round.
 
 The two figures are reported side by side and never added. A customer reading one number that
@@ -20,23 +20,23 @@ from typing import Final
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from litellm.attribution.gap_owner import AttributedGap, attribute
-from litellm.provider_billing.fetch_profile import FETCH_PROFILES
 from litellm.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
 from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-from litellm.repositories.attribution_rule_repository import AttributionRuleRepository
-from litellm.repositories.gap_repository import GapRepository
-from litellm.repositories.gateway_spend_repository import (
-    ExplorerDimension,
-    GatewaySpendRepository,
-    SpendSlice,
-)
 from litellm.types.proxy.management_endpoints.combined_endpoints import (
     ComparisonDay,
     ComparisonResponse,
     ComparisonStatus,
     ExplorerResponse,
     ExplorerSlice,
+)
+from token_iq.attribution.gap_owner import AttributedGap, attribute
+from token_iq.connectors.billing.fetch_profile import FETCH_PROFILES
+from token_iq.repositories.attribution_rule_repository import AttributionRuleRepository
+from token_iq.repositories.gap_repository import GapRepository
+from token_iq.repositories.gateway_spend_repository import (
+    ExplorerDimension,
+    GatewaySpendRepository,
+    SpendSlice,
 )
 
 router: Final = APIRouter(

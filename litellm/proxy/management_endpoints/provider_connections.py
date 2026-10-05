@@ -14,19 +14,8 @@ from typing import Final, TypeAlias
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from litellm.provider_billing.connection_state import (
-    ConnectionState,
-    account_state,
-    provider_state,
-    verified_against_real_account,
-)
-from litellm.provider_billing.credential_purpose import BILLING_PROVIDERS
-from litellm.provider_billing.fetch_profile import FETCH_PROFILES, FetchProfile
-from litellm.provider_billing.scheduled import build_billing_credentials_lookup
 from litellm.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
 from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-from litellm.repositories.provider_sync_run_repository import ProviderSyncRunRepository
-from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
 from litellm.types.proxy.management_endpoints.team_endpoints import (
     ProviderConnection,
     ProviderConnectionAccount,
@@ -36,6 +25,17 @@ from litellm.types.proxy.management_endpoints.team_endpoints import (
     ProviderSyncHistoryRow,
 )
 from litellm.types.proxy.provider_billing import BillingCredential, ProviderSyncRun
+from token_iq.connectors.billing.connection_state import (
+    ConnectionState,
+    account_state,
+    provider_state,
+    verified_against_real_account,
+)
+from token_iq.connectors.billing.credential_purpose import BILLING_PROVIDERS
+from token_iq.connectors.billing.fetch_profile import FETCH_PROFILES, FetchProfile
+from token_iq.connectors.billing.scheduled import build_billing_credentials_lookup
+from token_iq.repositories.provider_sync_run_repository import ProviderSyncRunRepository
+from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
 
 router: Final = APIRouter(
     tags=["provider billing"],  # mutable-ok: fixed single-element tag list, never grown after this line

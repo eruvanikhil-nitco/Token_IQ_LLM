@@ -3,7 +3,7 @@ from typing import Final
 
 import pytest
 
-from litellm.repositories.gateway_spend_repository import GatewaySpendRepository
+from token_iq.repositories.gateway_spend_repository import GatewaySpendRepository
 
 
 class FakeDb:

@@ -1,8 +1,8 @@
 from decimal import Decimal
 from typing import Final
 
-from litellm.recommendations.inputs import RuleInput
-from litellm.recommendations.rules.failed_requests import failed_requests
+from token_iq.recommendations.inputs import RuleInput
+from token_iq.recommendations.rules.failed_requests import failed_requests
 
 
 def _input(failed: int, total: int, spend: str | None = None) -> RuleInput:

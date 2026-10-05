@@ -5,7 +5,7 @@ from typing import Final
 import pytest
 from fastapi import HTTPException
 
-from litellm.attribution.gap_owner import GapRow, attribute
+from token_iq.attribution.gap_owner import GapRow, attribute
 from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 from litellm.proxy.management_endpoints.combined_usage import comparison_response
 from litellm.types.proxy.attribution import AttributionRule
@@ -84,7 +84,7 @@ def test_a_tiny_difference_is_readable_rather_than_scientific() -> None:
 
 
 def test_a_provider_is_named_the_same_here_as_on_the_connections_page() -> None:
-    from litellm.provider_billing.fetch_profile import FETCH_PROFILES
+    from token_iq.connectors.billing.fetch_profile import FETCH_PROFILES
 
     body: Final = _body((GAP_10_MINUS_4,))
     assert body.rows[0].display_name == FETCH_PROFILES["openrouter"].display_name
@@ -112,7 +112,7 @@ async def test_a_non_admin_cannot_read_another_team_s_comparison() -> None:
 
 
 from litellm.proxy.management_endpoints.combined_usage import explorer_response  # noqa: E402  # grouped with its tests
-from litellm.repositories.gateway_spend_repository import SpendSlice  # noqa: E402  # grouped with its tests
+from token_iq.repositories.gateway_spend_repository import SpendSlice  # noqa: E402  # grouped with its tests
 
 TEAM_SLICE: Final = SpendSlice(key="t-1", gateway_cost=Decimal("4"))
 

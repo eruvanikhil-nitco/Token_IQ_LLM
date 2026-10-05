@@ -8,7 +8,7 @@ from pydantic import ValidationError
 
 from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 from litellm.proxy.management_endpoints.seats import user_cost_response
-from litellm.seats.user_cost import SeatLine, UserCost
+from token_iq.seats.user_cost import SeatLine, UserCost
 from litellm.types.proxy.management_endpoints.seat_endpoints import SeatBody
 
 START: Final = datetime(2026, 9, 1, tzinfo=timezone.utc)

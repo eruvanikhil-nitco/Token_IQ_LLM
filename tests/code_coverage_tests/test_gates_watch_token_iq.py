@@ -11,9 +11,11 @@ going unwatched, not a rule misbehaving.
 
 from __future__ import annotations
 
+import fnmatch
 import json
 import pathlib
 import re
+from collections.abc import Sequence
 from typing import Final
 
 import pytest
@@ -75,3 +77,31 @@ class TestTheMakefile:
         target: Final = re.search(r"^format-check:.*?\n(?=\w|\n\w)", makefile, re.MULTILINE | re.DOTALL)
         assert target, "format-check target not found"
         assert "token_iq" in target.group(0), f"format-check does not check token_iq:\n{target.group(0)}"
+
+class TestEveryTokenIqFileIsReallyChecked:
+    """`include` naming the package is not the same as every file in it being checked.
+
+    An `exclude` pattern can quietly swallow a subtree, and the count of files the checker sees
+    is the only thing that says so. Phase 3 moved 59 modules between two watched trees; this is
+    what proves none of them fell down the gap.
+    """
+
+    @staticmethod
+    def _excluded(path: str, patterns: Sequence[str]) -> bool:
+        return any(
+            fnmatch.fnmatch(path, pattern) or path == pattern or path.startswith(pattern.rstrip("*") + "/")
+            for pattern in patterns
+        )
+
+    def test_no_token_iq_module_is_excluded(self) -> None:
+        config: Final = json.loads((REPO / "pyrightconfig.json").read_text(encoding="utf-8"))
+        excluded: Final = tuple(
+            path.relative_to(REPO).as_posix()
+            for path in (REPO / "token_iq").rglob("*.py")
+            if self._excluded(path.relative_to(REPO).as_posix(), config["exclude"])
+        )
+        assert not excluded, f"these are inside token_iq but excluded from type checking: {excluded}"
+
+    def test_the_package_is_not_empty(self) -> None:
+        """Guards the test above, which passes trivially if token_iq holds nothing."""
+        assert len(tuple((REPO / "token_iq").rglob("*.py"))) > 40

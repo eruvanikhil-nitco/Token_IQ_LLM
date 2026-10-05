@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Final
 
-from litellm.seats.user_cost import user_costs
+from token_iq.seats.user_cost import user_costs
 from litellm.types.proxy.seat import Seat
 
 START: Final = datetime(2026, 9, 1, tzinfo=timezone.utc)

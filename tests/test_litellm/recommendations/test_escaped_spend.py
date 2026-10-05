@@ -1,8 +1,8 @@
 from decimal import Decimal
 from typing import Final
 
-from litellm.recommendations.inputs import RuleInput
-from litellm.recommendations.rules.escaped_spend import escaped_spend
+from token_iq.recommendations.inputs import RuleInput
+from token_iq.recommendations.rules.escaped_spend import escaped_spend
 
 
 def _input(unallocated: str = "0", accounts: tuple[str, ...] = ()) -> RuleInput:

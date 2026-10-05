@@ -23,7 +23,7 @@ def _http(payload: dict, status: int = 200) -> MagicMock:
 
 
 def _connector(ids: list[str], client: MagicMock):
-    from litellm.provider_billing.openrouter import OpenRouterBillingConnector
+    from token_iq.connectors.billing.openrouter import OpenRouterBillingConnector
 
     async def unpriced() -> list[str]:
         return ids
@@ -108,7 +108,7 @@ async def test_one_run_is_capped_so_it_cannot_exhaust_the_rate_limit():
     """This endpoint prices one request per call, against a limit shared with the
     customer's real traffic. An unbounded run against a backlog would spend their limit on
     our polling."""
-    from litellm.provider_billing.openrouter import MAX_LOOKUPS_PER_RUN
+    from token_iq.connectors.billing.openrouter import MAX_LOOKUPS_PER_RUN
     from litellm.types.proxy.provider_billing import Fetched
 
     client = _http({"data": {"id": "gen-x", "total_cost": 0.000001}})
@@ -198,7 +198,7 @@ async def test_the_normalised_counts_are_used_when_no_native_ones_are_given():
 
 @pytest.mark.asyncio
 async def test_each_fact_keeps_the_generation_body_openrouter_sent():
-    from litellm.provider_billing.openrouter import OpenRouterBillingConnector
+    from token_iq.connectors.billing.openrouter import OpenRouterBillingConnector
 
     body = {"id": "gen-1", "total_cost": "0.004", "model": "openai/gpt-4o"}
     response = MagicMock()
@@ -235,7 +235,7 @@ async def test_it_calls_the_host_openrouter_documents():
 async def test_a_deployment_can_point_the_connector_at_its_own_host():
     """A customer behind a proxy, or a test standing in for OpenRouter, needs somewhere to
     put their host rather than forking the file."""
-    from litellm.provider_billing.openrouter import OpenRouterBillingConnector
+    from token_iq.connectors.billing.openrouter import OpenRouterBillingConnector
 
     client = _http({"data": {"id": "gen-1", "total_cost": 0.001}})
 

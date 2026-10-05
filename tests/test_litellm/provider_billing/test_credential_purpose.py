@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from litellm.provider_billing.credential_purpose import (
+from token_iq.connectors.billing.credential_purpose import (
     BILLING_PROVIDERS,
     billing_credential_problem,
     is_billing_credential,
@@ -110,7 +110,7 @@ def test_an_azure_billing_credential_needs_its_subscription_not_an_api_key():
     """Azure authenticates with a directory token and identifies the account by
     subscription. Demanding an api_key would reject a correct credential and name a field
     the admin does not have."""
-    from litellm.provider_billing.credential_purpose import billing_credential_problem
+    from token_iq.connectors.billing.credential_purpose import billing_credential_problem
 
     info = {"purpose": "billing_ingestion", "provider": "azure"}
 
@@ -126,7 +126,7 @@ def test_a_vertex_billing_credential_needs_its_project_and_export_table():
     """Google publishes no billing API for this. The only source is a detailed billing
     export the customer enables into BigQuery, so both the project and the table are
     required and neither has a sensible default."""
-    from litellm.provider_billing.credential_purpose import billing_credential_problem
+    from token_iq.connectors.billing.credential_purpose import billing_credential_problem
 
     info = {"purpose": "billing_ingestion", "provider": "vertex_ai"}
     complete = {"billing_project_id": "proj-1", "billing_export_table": "billing.gcp_export"}
@@ -183,7 +183,7 @@ def test_a_hyphenated_gcp_project_id_is_accepted_in_the_export_table():
 def test_neither_cloud_provider_is_asked_for_an_api_key_it_does_not_use():
     """The default branch demands an api_key for anything that is not bedrock. Adding a
     provider without teaching this function about it rejects every credential for it."""
-    from litellm.provider_billing.credential_purpose import billing_credential_problem
+    from token_iq.connectors.billing.credential_purpose import billing_credential_problem
 
     for provider, values in (
         ("azure", {"subscription_id": "sub-123"}),
@@ -196,7 +196,7 @@ def test_neither_cloud_provider_is_asked_for_an_api_key_it_does_not_use():
 def test_require_keys_false_still_accepts_an_incomplete_cloud_credential():
     """A PATCH that changes only the description must not be refused for fields it never
     touched. This is the same allowance the other providers already get."""
-    from litellm.provider_billing.credential_purpose import billing_credential_problem
+    from token_iq.connectors.billing.credential_purpose import billing_credential_problem
 
     info = {"purpose": "billing_ingestion", "provider": "azure"}
 

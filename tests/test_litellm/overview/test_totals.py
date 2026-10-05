@@ -3,7 +3,7 @@ from __future__ import annotations
 from decimal import Decimal
 from typing import Final
 
-from litellm.overview.totals import Sources, totals_for
+from token_iq.overview.totals import Sources, totals_for
 
 
 def _sources(**over: object) -> Sources:

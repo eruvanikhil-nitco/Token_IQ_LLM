@@ -13,17 +13,8 @@ from typing import Final
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from litellm.provider_billing.connection_state import (
-    account_state,
-    provider_state,
-    verified_against_real_account,
-)
 from litellm.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
 from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-from litellm.repositories.provider_sync_run_repository import ProviderSyncRunRepository
-from litellm.repositories.tool_usage_fact_repository import ToolUsageFactRepository
-from litellm.tool_usage.credential_purpose import TOOL_NAMES
-from litellm.tool_usage.fetch_profile import TOOL_FETCH_PROFILES
 from litellm.types.proxy.management_endpoints.tool_endpoints import (
     ToolConnection,
     ToolConnectionAccount,
@@ -31,6 +22,15 @@ from litellm.types.proxy.management_endpoints.tool_endpoints import (
     ToolFetchDetail,
 )
 from litellm.types.proxy.provider_billing import BillingCredential, ProviderSyncRun
+from token_iq.connectors.billing.connection_state import (
+    account_state,
+    provider_state,
+    verified_against_real_account,
+)
+from token_iq.connectors.tools.credential_purpose import TOOL_NAMES
+from token_iq.connectors.tools.fetch_profile import TOOL_FETCH_PROFILES
+from token_iq.repositories.provider_sync_run_repository import ProviderSyncRunRepository
+from token_iq.repositories.tool_usage_fact_repository import ToolUsageFactRepository
 
 router: Final = APIRouter(
     tags=["user tools"],  # mutable-ok: fixed single-element tag list, never grown after this line
@@ -133,7 +133,7 @@ async def tool_connections(
 ) -> ToolConnectionsResponse:
     """One row per user tool, with one row per stored account inside it."""
     from litellm.proxy.proxy_server import prisma_client
-    from litellm.tool_usage.scheduled import build_tool_credentials_lookup
+    from token_iq.connectors.tools.scheduled import build_tool_credentials_lookup
 
     _admin_or_403(user_api_key_dict)
     if prisma_client is None:

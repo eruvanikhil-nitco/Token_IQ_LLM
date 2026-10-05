@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Final
 
-from litellm.tool_usage.credential_purpose import (
+from token_iq.connectors.tools.credential_purpose import (
     TOOL_PURPOSE,
     is_tool_credential,
     tool_credential_problem,

@@ -426,3 +426,75 @@ The baseline comparison reported one newly failing test on each of two runs, and
 that fail intermittently under `-n 4`, so a single newly-failing result from a parallel run
 needs re-running before it is believed. Nothing disappeared on either run, which is the
 check that matters most.
+
+## Phase 3, tasks 1 and 2: Token IQ's code has a package of its own
+
+`token_iq/` now holds the nine product folders and the eleven repositories that were Token
+IQ's, and every quality gate watches it. 227 dotted references and 12 docstring paths were
+repointed by `scripts/move_token_iq_modules.py`, which carries the map of what moved. The
+proxy registers 589 routes, nothing newly fails against the phase 0 baseline, and no test
+disappeared or appeared.
+
+### The gates went first, on purpose
+
+`pyrightconfig.json` and both lint budget scripts named `litellm` as a literal. Had the
+package been created before they were changed, every Token IQ module would have left type
+checking and both budgets at once, and the budgets would have *improved*, because the
+violations they were counting moved somewhere nothing was looking. Task 1 changed all four
+and proved each by planting a violation in a throwaway file and watching it caught.
+
+### There were no quoted module paths
+
+The plan expected eleven strings that `mock.patch` resolves lazily, where a missed one
+patches nothing and the test still goes green. The search found zero: the eleven belong to
+task 3's router move. The search still had to happen, because an import error tells you
+nothing about a string either way.
+
+### Three failures the move surfaced that the move did not cause
+
+**Phase 2 broke three tests and nobody re-ran that suite.** Repairing the dangling
+`"No DB Connected. See"` message reworded it to `"No database connected"`, which three
+assertions in `test_repositories.py` were matching on. They had been failing since
+`fda886b696`. The phase 2 entry above says "All repaired", and the repair was right; what
+was missing was running the tests that asserted the old text. The assertions now follow the
+source.
+
+**`make lint-ruff` was already red.** Three errors in `litellm/`: two empty comments left by
+a comment-stripping pass, and `cache_type` in `router.py`, dead since decision 0005 removed
+response caching. A red lint gate blocks every later phase, so they are fixed.
+
+**The test lint gate was red on 21.** The nine in files written earlier in this programme
+are fixed and each is stronger for it: `match=` naming the error rather than accepting any
+`ValueError`, and `FrozenInstanceError` in place of a blind `Exception` that would have
+passed on a typo in the attribute name. The remaining eleven are inherited engine tests and
+are left alone.
+
+### The codemod rewrote its own map
+
+Run over `scripts/`, it turned its own `MOVES` table into an identity map, and the next run
+then reported a clean "0 files rewritten". The rewrite itself was fine, because the rules
+load before any file is touched, but a no-op that proves nothing is the same failure this
+phase is about. The map is spelled in two pieces now and the script skips itself.
+
+### What did not move
+
+`tests/test_litellm/` stayed. The mirror rule says the test tree follows the source tree, so
+this is a debt rather than a decision that the mirror does not matter. Moving it now would
+make every nodeid in the phase 0 baseline read as `disappeared`, leaving nothing to compare
+task 3 against, and phase 6 turns `litellm/` into `token_iq/gateway/` and moves the same
+tree again. One move, when the baseline is being re-cut anyway.
+
+The other sixteen files in `litellm/repositories/` are the engine's. The eleven that moved
+import nothing from their former siblings.
+
+
+### How the gate was actually proved
+
+Counting basedpyright's errors across both trees was the obvious check and it does not run
+here: the checker exhausts V8's default 4 GB heap partway through `litellm/`, so it needs
+`NODE_OPTIONS=--max-old-space-size` to finish on this machine. The better check turned out not
+to need the checker at all. `include` and `exclude` are path patterns, so whether anything
+escaped the gate is a question about file sets: **2389 files were checked before the move and
+2392 after**, nothing escaped, and the three additions are the new package `__init__.py` files.
+That comparison is now a test, and it fails if an `exclude` pattern ever swallows part of
+`token_iq/`.

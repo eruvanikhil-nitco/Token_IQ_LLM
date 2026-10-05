@@ -127,7 +127,7 @@ class TestHistoryLines:
         assert history_lines(diff, effective_from="2026-10-05", source="x", approved_by="ne") == ()
 
     def test_the_lines_parse_back_as_price_changes(self) -> None:
-        from litellm.pricing.history import parse_history
+        from token_iq.pricing.history import parse_history
 
         upstream: Final = {**BASE, "gpt-4o": {**BASE["gpt-4o"], "input_cost_per_token": 0.000003}}
         diff: Final = classify(current=BASE, upstream=upstream)
@@ -139,11 +139,11 @@ class TestHistoryLines:
 
 class TestSchemaValidation:
     def test_upstream_that_is_not_an_object_is_refused(self) -> None:
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="both price maps must be objects"):
             classify(current=BASE, upstream=["not", "a", "mapping"])  # pyright: ignore[reportArgumentType]  # the point of the test
 
     def test_a_suspiciously_small_upstream_file_is_refused(self) -> None:
         """Upstream shipping two models where there were thousands is a broken fetch, not a
         price change, and merging it would silently unprice most of the product."""
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="refusing a fetch that lost most of the file"):
             classify(current={f"m{i}": {"input_cost_per_token": 1} for i in range(1000)}, upstream=BASE)

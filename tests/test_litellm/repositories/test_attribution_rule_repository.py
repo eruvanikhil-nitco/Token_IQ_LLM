@@ -2,7 +2,7 @@ from typing import Final
 
 import pytest
 
-from litellm.repositories.attribution_rule_repository import AttributionRuleRepository
+from token_iq.repositories.attribution_rule_repository import AttributionRuleRepository
 from litellm.types.proxy.attribution import AttributionRule
 
 

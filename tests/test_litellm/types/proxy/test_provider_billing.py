@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import FrozenInstanceError
 from datetime import datetime, timezone
 from decimal import Decimal
 
@@ -28,7 +29,7 @@ def test_a_fact_is_immutable_because_it_is_an_audit_record():
     edited after it is fetched is not evidence of anything."""
     fact = _fact()
 
-    with pytest.raises(Exception):
+    with pytest.raises(FrozenInstanceError):
         fact.billed_cost = Decimal("99")  # pyright: ignore[reportAttributeAccessIssue]  # proving frozen
 
 

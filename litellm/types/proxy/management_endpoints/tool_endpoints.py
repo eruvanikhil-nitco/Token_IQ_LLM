@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel
 
-from litellm.provider_billing.connection_state import ConnectionState
+from token_iq.connectors.billing.connection_state import ConnectionState
 
 
 class ToolFetchDetail(BaseModel):

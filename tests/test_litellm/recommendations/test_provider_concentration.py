@@ -1,8 +1,8 @@
 from decimal import Decimal
 from typing import Final
 
-from litellm.recommendations.inputs import RuleInput
-from litellm.recommendations.rules.provider_concentration import provider_concentration
+from token_iq.recommendations.inputs import RuleInput
+from token_iq.recommendations.rules.provider_concentration import provider_concentration
 
 
 def _input(**by_provider: str) -> RuleInput:

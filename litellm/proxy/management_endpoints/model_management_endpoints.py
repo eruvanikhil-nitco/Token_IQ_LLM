@@ -34,7 +34,6 @@ from litellm.litellm_core_utils.ptu_pricing import (
     SEARCH_CONTEXT_SIZES,
     ptu_config_error,
 )
-from litellm.provider_billing.credential_purpose import is_billing_credential
 from litellm.proxy._types import (
     BlockModelRequest,
     CommonProxyErrors,
@@ -63,6 +62,21 @@ from litellm.proxy.common_utils.encrypt_decrypt_utils import (
 from litellm.proxy.common_utils.user_api_key_cache import UserApiKeyCache
 from litellm.proxy.credential_endpoints.credential_access import credential_team
 from litellm.proxy.management_endpoints.common_utils import _is_user_team_admin
+from litellm.proxy.management_endpoints.model_discovery import (
+    ModelDiscoveryResponse,
+    merge_with_local_pricing,
+)
+from litellm.proxy.management_endpoints.provider_overview import (
+    DEFAULT_USAGE_RANGE,
+    ModelUsageResponse,
+    ProviderModelsResponse,
+    ProviderOverviewResponse,
+    build_model_usage,
+    build_provider_models,
+    build_provider_overview,
+    rollup_start_date,
+    usage_range_start,
+)
 from litellm.proxy.management_endpoints.team_endpoints import (
     _refresh_cached_team,
     team_model_add,
@@ -112,21 +126,7 @@ from litellm.types.router import (
     updateDeployment,
 )
 from litellm.utils import get_utc_datetime
-from litellm.proxy.management_endpoints.model_discovery import (
-    ModelDiscoveryResponse,
-    merge_with_local_pricing,
-)
-from litellm.proxy.management_endpoints.provider_overview import (
-    DEFAULT_USAGE_RANGE,
-    ModelUsageResponse,
-    ProviderModelsResponse,
-    ProviderOverviewResponse,
-    build_model_usage,
-    build_provider_models,
-    build_provider_overview,
-    rollup_start_date,
-    usage_range_start,
-)
+from token_iq.connectors.billing.credential_purpose import is_billing_credential
 
 if TYPE_CHECKING:
     from prisma import models as prisma_models

@@ -270,7 +270,6 @@ from litellm.proxy.auth.auth_utils import (
 )
 from litellm.proxy.auth.fallback_model_access import router_fallback_access_check
 from litellm.proxy.auth.handle_jwt import JWTHandler
-from litellm.proxy.auth.token_iq_plan import PLAN_ENV, TokenIqPlan, require_plan
 from litellm.proxy.auth.model_checks import (
     expand_wildcard_deployments_for_model_info,
     get_all_fallbacks,
@@ -280,6 +279,7 @@ from litellm.proxy.auth.model_checks import (
     get_team_models,
 )
 from litellm.proxy.auth.password_policy import validate_password_policy
+from litellm.proxy.auth.token_iq_plan import PLAN_ENV, TokenIqPlan, require_plan
 from litellm.proxy.auth.user_api_key_auth import (
     _fetch_global_spend_with_event_coordination,
     user_api_key_auth,
@@ -423,6 +423,10 @@ from litellm.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 from litellm.proxy.logging_endpoints.callback_logs_endpoints import (
     rust_control_plane_router,
 )
+from litellm.proxy.management_endpoints.attribution import router as attribution_router
+from litellm.proxy.management_endpoints.audit_log_endpoints import (
+    router as audit_log_endpoints_router,
+)
 from litellm.proxy.management_endpoints.auto_router_endpoints import (
     router as auto_router_management_router,
 )
@@ -435,6 +439,7 @@ from litellm.proxy.management_endpoints.cache_settings_endpoints import (
 from litellm.proxy.management_endpoints.callback_management_endpoints import (
     router as callback_management_endpoints_router,
 )
+from litellm.proxy.management_endpoints.combined_usage import router as combined_usage_router
 from litellm.proxy.management_endpoints.common_utils import (
     _user_has_admin_privileges,
     _user_has_admin_view,
@@ -472,6 +477,7 @@ from litellm.proxy.management_endpoints.key_management_endpoints import (
 from litellm.proxy.management_endpoints.key_management_endpoints import (
     router as key_management_router,
 )
+from litellm.proxy.management_endpoints.ledger import router as ledger_router
 from litellm.proxy.management_endpoints.management_v1 import (
     router as management_v1_router,
 )
@@ -491,41 +497,35 @@ from litellm.proxy.management_endpoints.model_management_endpoints import (
 from litellm.proxy.management_endpoints.organization_endpoints import (
     router as organization_router,
 )
+from litellm.proxy.management_endpoints.overview import (
+    router as overview_router,
+)
+from litellm.proxy.management_endpoints.project_endpoints import router as project_router
+from litellm.proxy.management_endpoints.provider_connections import (
+    router as provider_connections_router,
+)
+from litellm.proxy.management_endpoints.provider_reconciliation import (
+    router as provider_reconciliation_router,
+)
+from litellm.proxy.management_endpoints.provider_usage import router as provider_usage_router
+from litellm.proxy.management_endpoints.recommendations import router as recommendations_router
 from litellm.proxy.management_endpoints.router_settings_endpoints import (
     router as router_settings_router,
 )
+from litellm.proxy.management_endpoints.seats import router as seats_router
 from litellm.proxy.management_endpoints.tag_management_endpoints import (
     router as tag_management_router,
 )
 from litellm.proxy.management_endpoints.team_callback_endpoints import (
     router as team_callback_router,
 )
-from litellm.provider_billing.scheduled import INTERVAL_SECONDS as PROVIDER_BILLING_INTERVAL_SECONDS
-from litellm.provider_billing.scheduled import build_provider_billing_job
-from litellm.provider_billing.startup import register_billing_connectors
-from litellm.proxy.management_endpoints.provider_connections import (
-    router as provider_connections_router,
-)
-from litellm.proxy.management_endpoints.tool_connections import (
-    router as tool_connections_router,
-)
-from litellm.proxy.management_endpoints.overview import (
-    router as overview_router,
-)
-from litellm.proxy.management_endpoints.provider_reconciliation import (
-    router as provider_reconciliation_router,
-)
-from litellm.proxy.management_endpoints.attribution import router as attribution_router
-from litellm.proxy.management_endpoints.combined_usage import router as combined_usage_router
-from litellm.proxy.management_endpoints.ledger import router as ledger_router
-from litellm.proxy.management_endpoints.recommendations import router as recommendations_router
-from litellm.proxy.management_endpoints.seats import router as seats_router
-from litellm.proxy.management_endpoints.provider_usage import router as provider_usage_router
-from litellm.proxy.management_endpoints.project_endpoints import router as project_router
 from litellm.proxy.management_endpoints.team_endpoints import router as team_router
 from litellm.proxy.management_endpoints.team_endpoints import (
     update_team,
     validate_membership,
+)
+from litellm.proxy.management_endpoints.tool_connections import (
+    router as tool_connections_router,
 )
 from litellm.proxy.management_endpoints.ui_sso import (
     get_disabled_non_admin_personal_key_creation,
@@ -550,17 +550,6 @@ from litellm.proxy.memory.memory_endpoints import router as memory_router
 from litellm.proxy.middleware.billable_request_metrics_middleware import (
     BillableRequestMetricsMiddleware,
     BillingRecorder,
-)
-from litellm.proxy.plugin_routes import (
-    register_plugins_from_config,
-)
-from litellm.proxy.plugin_routes import (
-    router as plugin_router,
-)
-from litellm.types.proxy.management_endpoints.management_v1 import ProblemDetail
-
-from litellm.proxy.management_endpoints.audit_log_endpoints import (
-    router as audit_log_endpoints_router,
 )
 from litellm.proxy.middleware.in_flight_requests_middleware import (
     InFlightRequestsMiddleware,
@@ -592,6 +581,12 @@ from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
 )
 from litellm.proxy.pass_through_endpoints.pass_through_endpoints import (
     router as pass_through_router,
+)
+from litellm.proxy.plugin_routes import (
+    register_plugins_from_config,
+)
+from litellm.proxy.plugin_routes import (
+    router as plugin_router,
 )
 from litellm.proxy.public_endpoints import router as public_endpoints_router
 from litellm.proxy.public_endpoints.public_v1 import router as public_v1_router
@@ -674,6 +669,7 @@ from litellm.types.llms.openai import (
     HttpxBinaryResponseContent,
 )
 from litellm.types.proxy.control_plane_endpoints import WorkerRegistryEntry
+from litellm.types.proxy.management_endpoints.management_v1 import ProblemDetail
 from litellm.types.proxy.management_endpoints.model_management_endpoints import (
     ModelGroupInfoProxy,
 )
@@ -703,6 +699,9 @@ from litellm.types.secret_managers.main import (
 from litellm.types.utils import CredentialItem, CustomHuggingfaceTokenizer, RawRequestTypedDict, StandardLoggingPayload
 from litellm.types.utils import ModelInfo as ModelMapInfo
 from litellm.utils import _add_custom_logger_callback_to_specific_event
+from token_iq.connectors.billing.scheduled import INTERVAL_SECONDS as PROVIDER_BILLING_INTERVAL_SECONDS
+from token_iq.connectors.billing.scheduled import build_provider_billing_job
+from token_iq.connectors.billing.startup import register_billing_connectors
 
 try:
     from litellm._version import version

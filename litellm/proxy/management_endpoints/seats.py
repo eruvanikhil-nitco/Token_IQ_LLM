@@ -1,6 +1,6 @@
 """Serve the seats an admin entered and what each person costs.
 
-The arithmetic lives in `litellm/seats/user_cost.py` and the reads in the two repositories, all
+The arithmetic lives in `token_iq/seats/user_cost.py` and the reads in the two repositories, all
 tested there. This module shapes the answer into strings a JSON client cannot round, and
 enforces who is allowed to see whose cost.
 
@@ -20,9 +20,6 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from litellm.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
 from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-from litellm.repositories.gateway_spend_repository import GatewaySpendRepository
-from litellm.repositories.seat_repository import SeatRepository
-from litellm.seats.user_cost import UserCost, user_costs
 from litellm.types.proxy.management_endpoints.seat_endpoints import (
     SeatBody,
     SeatDeletedResponse,
@@ -33,6 +30,9 @@ from litellm.types.proxy.management_endpoints.seat_endpoints import (
     UserCostResponse,
 )
 from litellm.types.proxy.seat import Seat
+from token_iq.repositories.gateway_spend_repository import GatewaySpendRepository
+from token_iq.repositories.seat_repository import SeatRepository
+from token_iq.seats.user_cost import UserCost, user_costs
 
 router: Final = APIRouter(
     tags=["seats"],  # mutable-ok: fixed single-element tag list, never grown after this line

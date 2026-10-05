@@ -51,7 +51,7 @@ DOCUMENTED_GENERATION: Final = {
 
 
 async def _fetch(vendor: Vendor, *ids: str):
-    from litellm.provider_billing.openrouter import OpenRouterBillingConnector
+    from token_iq.connectors.billing.openrouter import OpenRouterBillingConnector
 
     async def unpriced() -> tuple[str, ...]:
         return ids

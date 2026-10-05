@@ -138,7 +138,7 @@ class TestParseJunit:
 
     def test_rejects_xml_it_cannot_read_rather_than_reporting_an_empty_run(self) -> None:
         """An empty parse would look like a suite where every test vanished."""
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="not a junit report"):
             parse_junit("not xml at all")
 
 

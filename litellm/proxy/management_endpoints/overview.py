@@ -1,7 +1,7 @@
 """The landing page's figures, gathered once for one period.
 
 Composed on the server rather than in the browser so every tile covers the same period and
-the counting rule is applied in one place. The rule itself lives in `litellm/overview/totals.py`
+the counting rule is applied in one place. The rule itself lives in `token_iq/overview/totals.py`
 and is tested there without a database.
 """
 
@@ -15,11 +15,8 @@ from typing import Final
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from litellm.overview.totals import Sources, Totals, totals_for
 from litellm.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
 from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-from litellm.recommendations.registry import evaluate
-from litellm.repositories.overview_repository import OverviewRepository, ProviderStanding
 from litellm.types.proxy.management_endpoints.overview_endpoints import (
     FreshnessResponse,
     MatchStatus,
@@ -27,6 +24,9 @@ from litellm.types.proxy.management_endpoints.overview_endpoints import (
     OverviewResponse,
     ProviderStandingResponse,
 )
+from token_iq.overview.totals import Sources, Totals, totals_for
+from token_iq.recommendations.registry import evaluate
+from token_iq.repositories.overview_repository import OverviewRepository, ProviderStanding
 
 router: Final = APIRouter(
     tags=["overview"],  # mutable-ok: fixed single-element tag list, never grown after this line

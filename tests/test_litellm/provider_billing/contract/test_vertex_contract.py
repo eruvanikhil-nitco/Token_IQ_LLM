@@ -61,7 +61,7 @@ def _body(
 
 
 async def _fetch(vendor: Vendor):
-    from litellm.provider_billing.vertex import VertexBillingConnector
+    from token_iq.connectors.billing.vertex import VertexBillingConnector
 
     async def token_factory(_name: str, _values: object) -> str:
         return "google-token-not-real"

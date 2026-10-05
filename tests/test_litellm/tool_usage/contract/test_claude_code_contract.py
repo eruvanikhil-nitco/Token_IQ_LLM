@@ -56,7 +56,7 @@ DOCUMENTED_PAGE: Final = {"data": [DOCUMENTED_RECORD], "has_more": False, "next_
 
 
 async def _fetch(vendor: Vendor, *, until: datetime = UNTIL):
-    from litellm.tool_usage.claude_code import ClaudeCodeConnector
+    from token_iq.connectors.tools.claude_code import ClaudeCodeConnector
 
     return await ClaudeCodeConnector(
         http_client_factory=vendor.client_factory(), base_url="https://api.anthropic.test"
@@ -228,7 +228,7 @@ async def test_a_body_that_is_not_json_is_a_failure_not_a_crash(vendor):
 @pytest.mark.asyncio
 async def test_a_credential_with_no_key_is_reported_before_any_request(vendor):
     from litellm.types.proxy.tool_usage import ToolNotConfigured
-    from litellm.tool_usage.claude_code import ClaudeCodeConnector
+    from token_iq.connectors.tools.claude_code import ClaudeCodeConnector
 
     stand_in: Final = vendor(Reply(json=DOCUMENTED_PAGE))
 

@@ -72,7 +72,7 @@ def _page(*events: dict[str, object], has_next: bool = False) -> dict[str, objec
 
 
 async def _fetch(vendor: Vendor, *, until: datetime = UNTIL):
-    from litellm.tool_usage.cursor import CursorConnector
+    from token_iq.connectors.tools.cursor import CursorConnector
 
     return await CursorConnector(http_client_factory=vendor.client_factory(), base_url="https://api.cursor.test").fetch(
         since=SINCE, until=until, credential_name="acme-cursor", credential_values=CREDENTIAL
@@ -271,7 +271,7 @@ async def test_a_body_that_is_not_json_is_a_failure_not_a_crash(vendor):
 
 @pytest.mark.asyncio
 async def test_a_credential_with_no_key_is_reported_before_any_request(vendor):
-    from litellm.tool_usage.cursor import CursorConnector
+    from token_iq.connectors.tools.cursor import CursorConnector
     from litellm.types.proxy.tool_usage import ToolNotConfigured
 
     stand_in: Final = vendor(Reply(json=_page()))

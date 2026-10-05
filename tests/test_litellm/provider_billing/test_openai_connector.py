@@ -46,7 +46,7 @@ def _page(*buckets: dict, has_more: bool = False, next_page: str | None = None) 
 
 
 async def _fetch(client: MagicMock, credential_values=None):
-    from litellm.provider_billing.openai import OpenAIBillingConnector
+    from token_iq.connectors.billing.openai import OpenAIBillingConnector
 
     return await OpenAIBillingConnector(http_client_factory=lambda: client).fetch(
         since=NOW - timedelta(days=2),
@@ -177,7 +177,7 @@ async def test_a_rate_limit_is_retryable_and_a_bad_key_is_not():
 
 
 def test_each_fact_keeps_the_result_openai_sent():
-    from litellm.provider_billing.openai import _facts_from
+    from token_iq.connectors.billing.openai import _facts_from
 
     facts = _facts_from(
         [
@@ -195,7 +195,7 @@ def test_each_fact_keeps_the_result_openai_sent():
 def test_two_openai_accounts_do_not_share_a_fact_key():
     """fact_key is the upsert key. Without the credential in it, the second account's row for
     a day overwrites the first account's row for that day and the total silently halves."""
-    from litellm.provider_billing.openai import _facts_from
+    from token_iq.connectors.billing.openai import _facts_from
 
     bucket = [
         {
@@ -223,7 +223,7 @@ async def test_it_calls_the_host_openai_documents():
 async def test_a_deployment_can_point_the_connector_at_its_own_host():
     """A customer behind a gateway or proxy, or a test standing in for OpenAI, needs
     somewhere to put their host rather than forking the file."""
-    from litellm.provider_billing.openai import OpenAIBillingConnector
+    from token_iq.connectors.billing.openai import OpenAIBillingConnector
 
     client = _http(_page())
 

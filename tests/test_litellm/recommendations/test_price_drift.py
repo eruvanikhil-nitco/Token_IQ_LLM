@@ -10,8 +10,8 @@ from __future__ import annotations
 from decimal import Decimal
 from typing import Final
 
-from litellm.recommendations.inputs import ModelPriceVariance, RuleInput
-from litellm.recommendations.rules.price_drift import RULE_ID, price_drift
+from token_iq.recommendations.inputs import ModelPriceVariance, RuleInput
+from token_iq.recommendations.rules.price_drift import RULE_ID, price_drift
 
 
 def _input(*variances: ModelPriceVariance) -> RuleInput:
@@ -113,7 +113,7 @@ class TestSeveralModels:
 class TestItIsRegistered:
     def test_the_rule_runs_as_part_of_the_set(self) -> None:
         """A rule nobody calls protects nothing."""
-        from litellm.recommendations.registry import evaluate
+        from token_iq.recommendations.registry import evaluate
 
         cards: Final = evaluate(_input(_variance()))
         assert any(card.rule_id == RULE_ID for card in cards)

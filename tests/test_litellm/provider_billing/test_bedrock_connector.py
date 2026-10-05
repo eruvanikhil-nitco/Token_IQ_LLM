@@ -39,7 +39,7 @@ def _group(amount: str, usage_type: str = "USE1-Bedrock-Input-Tokens") -> dict:
 
 
 async def _fetch(client: MagicMock, credential_values=None):
-    from litellm.provider_billing.bedrock import BedrockBillingConnector
+    from token_iq.connectors.billing.bedrock import BedrockBillingConnector
 
     return await BedrockBillingConnector(cost_explorer_factory=lambda _values: client).fetch(
         since=NOW - timedelta(days=7),
@@ -185,7 +185,7 @@ async def test_an_ungrouped_total_is_still_recorded():
 
 
 def test_each_fact_keeps_the_cost_explorer_group_it_came_from():
-    from litellm.provider_billing.bedrock import _facts_from
+    from token_iq.connectors.billing.bedrock import _facts_from
 
     group = {"Keys": ["USE1-BedrockTokens"], "Metrics": {"UnblendedCost": {"Amount": "3.50", "Unit": "USD"}}}
     facts = _facts_from(

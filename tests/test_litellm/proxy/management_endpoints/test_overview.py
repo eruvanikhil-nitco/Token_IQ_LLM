@@ -6,9 +6,9 @@ from typing import Final
 
 import pytest
 
-from litellm.overview.totals import Sources, totals_for
+from token_iq.overview.totals import Sources, totals_for
 from litellm.proxy.management_endpoints.overview import match_status, overview_response
-from litellm.repositories.overview_repository import ProviderStanding
+from token_iq.repositories.overview_repository import ProviderStanding
 
 START: Final = datetime(2026, 9, 1, tzinfo=timezone.utc)
 END: Final = datetime(2026, 9, 30, 23, 59, 59, tzinfo=timezone.utc)

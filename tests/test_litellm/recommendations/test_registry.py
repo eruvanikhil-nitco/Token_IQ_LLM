@@ -3,8 +3,8 @@ from typing import Final
 
 import pytest
 
-from litellm.recommendations.inputs import RuleInput
-from litellm.recommendations.registry import evaluate
+from token_iq.recommendations.inputs import RuleInput
+from token_iq.recommendations.registry import evaluate
 from litellm.types.proxy.recommendation import Evidence, Recommendation
 
 EMPTY_INPUT: Final = RuleInput()
@@ -30,17 +30,17 @@ def test_a_card_with_no_honest_figure_carries_no_number() -> None:
 
 
 def test_a_figure_must_say_what_kind_of_figure_it_is() -> None:
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="will not say what kind it is"):
         _card(figure=Decimal("10"), figure_kind="none", currency="USD")
 
 
 def test_a_card_claiming_a_kind_may_not_leave_the_figure_out() -> None:
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="claims a could_stop_spending figure but carries none"):
         _card(figure=None, figure_kind="could_stop_spending", currency="USD")
 
 
 def test_a_figure_always_names_its_currency() -> None:
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="carries a figure with no currency"):
         _card(figure=Decimal("10"), figure_kind="could_stop_spending", currency=None)
 
 

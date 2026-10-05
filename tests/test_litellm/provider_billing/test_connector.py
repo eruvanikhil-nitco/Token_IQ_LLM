@@ -25,7 +25,7 @@ class _Stub:
 def test_a_connector_satisfies_the_protocol_without_inheriting_from_it():
     """Composition over inheritance: a connector is anything with the right shape, so a
     test double is a plain object rather than a subclass of production code."""
-    from litellm.provider_billing.connector import BillingConnector
+    from token_iq.connectors.billing.connector import BillingConnector
 
     connector: BillingConnector = _Stub()
     assert connector.provider == "stub"
@@ -35,7 +35,7 @@ def test_registering_twice_under_one_provider_is_refused():
     """Two connectors for one provider would both write facts, and the second would
     overwrite the first on every tick. Better to fail at startup than to serve a number
     that flips."""
-    from litellm.provider_billing.connector import clear_registry_for_tests, register_connector
+    from token_iq.connectors.billing.connector import clear_registry_for_tests, register_connector
 
     clear_registry_for_tests()
     register_connector(_Stub())
@@ -45,7 +45,7 @@ def test_registering_twice_under_one_provider_is_refused():
 
 
 def test_the_registry_reports_what_was_registered():
-    from litellm.provider_billing.connector import (
+    from token_iq.connectors.billing.connector import (
         clear_registry_for_tests,
         register_connector,
         registered_connectors,
@@ -60,7 +60,7 @@ def test_the_registry_reports_what_was_registered():
 
 def test_an_empty_registry_is_an_empty_tuple_not_a_failure():
     """A deployment with no billing credentials configured is normal, not broken."""
-    from litellm.provider_billing.connector import clear_registry_for_tests, registered_connectors
+    from token_iq.connectors.billing.connector import clear_registry_for_tests, registered_connectors
 
     clear_registry_for_tests()
     assert registered_connectors() == ()

@@ -43,7 +43,7 @@ def _result(amount: str, model: str | None = "claude-opus-5", **extra: object) -
 
 
 async def _fetch(client: MagicMock, credential_values=None):
-    from litellm.provider_billing.anthropic import AnthropicBillingConnector
+    from token_iq.connectors.billing.anthropic import AnthropicBillingConnector
 
     return await AnthropicBillingConnector(http_client_factory=lambda: client).fetch(
         since=NOW - timedelta(days=2),
@@ -205,7 +205,7 @@ async def test_an_empty_window_is_a_successful_empty_run():
 
 
 def test_each_fact_keeps_every_anthropic_row_that_fed_it():
-    from litellm.provider_billing.anthropic import _facts_from
+    from token_iq.connectors.billing.anthropic import _facts_from
 
     facts = _facts_from(
         [
@@ -243,7 +243,7 @@ async def test_a_deployment_can_point_the_connector_at_its_own_host():
     """A customer on a sovereign cloud, behind a corporate proxy, or a test standing in for
     Anthropic needs somewhere to put their host. Without this the only way to reach a
     different endpoint is to fork the file."""
-    from litellm.provider_billing.anthropic import AnthropicBillingConnector
+    from token_iq.connectors.billing.anthropic import AnthropicBillingConnector
 
     client = _http({"data": [], "has_more": False, "next_page": None})
 

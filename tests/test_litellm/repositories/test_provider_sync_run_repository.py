@@ -38,7 +38,7 @@ def _client() -> tuple[MagicMock, MagicMock]:
 
 @pytest.mark.asyncio
 async def test_a_run_is_written_with_its_outcome_and_window():
-    from litellm.repositories.provider_sync_run_repository import ProviderSyncRunRepository
+    from token_iq.repositories.provider_sync_run_repository import ProviderSyncRunRepository
 
     client, table = _client()
 
@@ -56,7 +56,7 @@ async def test_a_run_is_written_with_its_outcome_and_window():
 async def test_recent_runs_come_back_newest_first_and_bounded():
     """Sync History reads this on every page load and the table grows on every tick, so an
     unbounded newest-last read would page through a year of rows to show ten."""
-    from litellm.repositories.provider_sync_run_repository import ProviderSyncRunRepository
+    from token_iq.repositories.provider_sync_run_repository import ProviderSyncRunRepository
 
     client, table = _client()
 
@@ -70,7 +70,7 @@ async def test_recent_runs_come_back_newest_first_and_bounded():
 
 @pytest.mark.asyncio
 async def test_recent_without_a_provider_reads_every_provider():
-    from litellm.repositories.provider_sync_run_repository import ProviderSyncRunRepository
+    from token_iq.repositories.provider_sync_run_repository import ProviderSyncRunRepository
 
     client, table = _client()
 
@@ -110,7 +110,7 @@ async def test_a_row_failing_any_guard_is_dropped_rather_than_guessed(field: str
     """Reporting an unreadable row as healthy would tell a customer their key works when we
     have no idea whether it does. Every guard below must independently drop the row, not just
     the outcome check."""
-    from litellm.repositories.provider_sync_run_repository import ProviderSyncRunRepository
+    from token_iq.repositories.provider_sync_run_repository import ProviderSyncRunRepository
 
     row_fields: Final = _valid_row_fields() | {field: bad_value}
 

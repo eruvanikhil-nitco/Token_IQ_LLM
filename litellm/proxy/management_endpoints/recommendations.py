@@ -1,6 +1,6 @@
 """Serve the recommendations, and remember what an admin decided about each.
 
-The rules live in `litellm/recommendations/` and are pure. This module gathers the slices they
+The rules live in `token_iq/recommendations/` and are pure. This module gathers the slices they
 read, once, runs them, and shapes the answer.
 
 A card is never stored. It is recomputed from current data on every request, so a problem that
@@ -19,17 +19,8 @@ from typing import Final
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from litellm.attribution.gap_owner import attribute
 from litellm.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
 from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-from litellm.recommendations.inputs import BudgetSnapshot, RuleInput
-from litellm.recommendations.registry import evaluate
-from litellm.repositories.attribution_rule_repository import AttributionRuleRepository
-from litellm.repositories.gap_repository import GapRepository
-from litellm.repositories.recommendation_state_repository import (
-    DecisionState,
-    RecommendationStateRepository,
-)
 from litellm.types.proxy.management_endpoints.recommendation_endpoints import (
     DecisionBody,
     DecisionResponse,
@@ -38,6 +29,15 @@ from litellm.types.proxy.management_endpoints.recommendation_endpoints import (
     RecommendationsResponse,
 )
 from litellm.types.proxy.recommendation import Recommendation
+from token_iq.attribution.gap_owner import attribute
+from token_iq.recommendations.inputs import BudgetSnapshot, RuleInput
+from token_iq.recommendations.registry import evaluate
+from token_iq.repositories.attribution_rule_repository import AttributionRuleRepository
+from token_iq.repositories.gap_repository import GapRepository
+from token_iq.repositories.recommendation_state_repository import (
+    DecisionState,
+    RecommendationStateRepository,
+)
 
 router: Final = APIRouter(
     tags=["recommendations"],  # mutable-ok: fixed single-element tag list, never grown after this line

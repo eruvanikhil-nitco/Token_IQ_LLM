@@ -21,7 +21,7 @@ async def test_only_one_replica_polls_the_provider():
     """Every replica running this would multiply the customer's provider rate-limit
     consumption by the replica count, and OpenRouter's per-request endpoint is the
     tightest limit we touch."""
-    from litellm.provider_billing.scheduled import ingest_provider_billing
+    from token_iq.connectors.billing.scheduled import ingest_provider_billing
 
     ran = AsyncMock()
     await ingest_provider_billing(pod_lock_manager=_lock(acquired=False), run=ran, now=NOW)
@@ -31,7 +31,7 @@ async def test_only_one_replica_polls_the_provider():
 
 @pytest.mark.asyncio
 async def test_the_holder_of_the_lock_does_the_work():
-    from litellm.provider_billing.scheduled import ingest_provider_billing
+    from token_iq.connectors.billing.scheduled import ingest_provider_billing
 
     ran = AsyncMock()
     await ingest_provider_billing(pod_lock_manager=_lock(acquired=True), run=ran, now=NOW)
@@ -43,7 +43,7 @@ async def test_the_holder_of_the_lock_does_the_work():
 async def test_the_lock_is_released_even_when_the_run_fails():
     """A lock held by a crashed run would stop ingestion until the next restart, and the
     customer would see stale provider figures with no error to explain it."""
-    from litellm.provider_billing.scheduled import ingest_provider_billing
+    from token_iq.connectors.billing.scheduled import ingest_provider_billing
 
     lock = _lock(acquired=True)
 
@@ -59,7 +59,7 @@ async def test_the_lock_is_released_even_when_the_run_fails():
 async def test_a_failing_run_does_not_take_the_scheduler_down():
     """APScheduler drops a job that raises. One bad tick must not end ingestion for the
     life of the process."""
-    from litellm.provider_billing.scheduled import ingest_provider_billing
+    from token_iq.connectors.billing.scheduled import ingest_provider_billing
 
     async def boom(**_: object):
         raise RuntimeError("boom")
@@ -71,7 +71,7 @@ async def test_a_failing_run_does_not_take_the_scheduler_down():
 async def test_without_redis_a_single_process_still_ingests():
     """A self-hosted single-replica customer has no redis. Requiring a lock would mean
     they never ingest anything at all."""
-    from litellm.provider_billing.scheduled import ingest_provider_billing
+    from token_iq.connectors.billing.scheduled import ingest_provider_billing
 
     ran = AsyncMock()
     await ingest_provider_billing(pod_lock_manager=_lock(with_redis=False), run=ran, now=NOW)
@@ -86,8 +86,8 @@ async def test_the_lookup_returns_only_the_credential_marked_for_that_providers_
     from unittest.mock import patch
 
     import litellm
-    from litellm.provider_billing.credential_purpose import BILLING_PURPOSE
-    from litellm.provider_billing.scheduled import build_billing_credentials_lookup
+    from token_iq.connectors.billing.credential_purpose import BILLING_PURPOSE
+    from token_iq.connectors.billing.scheduled import build_billing_credentials_lookup
     from litellm.types.proxy.provider_billing import BillingCredential
     from litellm.types.utils import CredentialItem
 
@@ -122,8 +122,8 @@ async def test_the_lookup_returns_every_matching_credential_not_just_the_first()
     from unittest.mock import patch
 
     import litellm
-    from litellm.provider_billing.credential_purpose import BILLING_PURPOSE
-    from litellm.provider_billing.scheduled import build_billing_credentials_lookup
+    from token_iq.connectors.billing.credential_purpose import BILLING_PURPOSE
+    from token_iq.connectors.billing.scheduled import build_billing_credentials_lookup
     from litellm.types.proxy.provider_billing import BillingCredential
     from litellm.types.utils import CredentialItem
 
@@ -153,7 +153,7 @@ async def test_the_lookup_returns_every_matching_credential_not_just_the_first()
 async def test_no_lock_manager_at_all_still_ingests():
     """proxy_logging_obj may not carry one. Silently never running would be worse than
     running unlocked on a single replica."""
-    from litellm.provider_billing.scheduled import ingest_provider_billing
+    from token_iq.connectors.billing.scheduled import ingest_provider_billing
 
     ran = AsyncMock()
     await ingest_provider_billing(pod_lock_manager=None, run=ran, now=NOW)

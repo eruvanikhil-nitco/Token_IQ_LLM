@@ -16,9 +16,6 @@ from typing import Final
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from litellm.provider_billing.connector import BillingConnector, registered_connectors
-from litellm.provider_billing.runner import LOOKBACK
-from litellm.provider_billing.scheduled import build_billing_credentials_lookup
 from litellm.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
 from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
 from litellm.types.proxy.management_endpoints.team_endpoints import (
@@ -29,6 +26,9 @@ from litellm.types.proxy.management_endpoints.team_endpoints import (
     ReconciliationRow,
 )
 from litellm.types.proxy.provider_billing import BillingCredential, Fetched, FetchFailed, NotConfigured
+from token_iq.connectors.billing.connector import BillingConnector, registered_connectors
+from token_iq.connectors.billing.runner import LOOKBACK
+from token_iq.connectors.billing.scheduled import build_billing_credentials_lookup
 
 router: Final = APIRouter()
 

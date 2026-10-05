@@ -5,7 +5,7 @@ from typing import Final
 import pytest
 from fastapi import HTTPException
 
-from litellm.attribution.gap_owner import GapRow, attribute
+from token_iq.attribution.gap_owner import GapRow, attribute
 from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 from litellm.proxy.management_endpoints.attribution import unallocated_response
 from litellm.types.proxy.attribution import AttributionRule

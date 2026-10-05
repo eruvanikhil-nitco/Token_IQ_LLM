@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from typing import Final
 
-from litellm.attribution.gap_owner import AttributedGap, GapRow, _to_utc, attribute
+from token_iq.attribution.gap_owner import AttributedGap, GapRow, _to_utc, attribute
 from litellm.types.proxy.attribution import AttributionRule
 
 SETTLED: Final = datetime(2026, 1, 18)

@@ -20,9 +20,11 @@ the same assertions against the same code at a different path.
 An import that moves and is not updated raises `ModuleNotFoundError` on the first run, which
 is the safe failure. A patch target written as a string behaves differently: `mock.patch`
 resolves it lazily, and a test whose patch silently stops applying goes green while
-exercising the real collaborator, or nothing at all. There are **11 such strings** across
-this move, and every one has to be found by searching for the text rather than by running
-the suite.
+exercising the real collaborator, or nothing at all. Every one has to be found by searching
+for the text rather than by running the suite.
+
+The count is **11, all of them in task 3's router move**. Task 2 turned out to have none, which
+was only learnable by looking: the import errors say nothing about it either way.
 
 The same is true of `importlib` strings, and of anything that names a module path in a
 config, a workflow or a gate script.
@@ -35,7 +37,7 @@ config, a workflow or a gate script.
 | Routers moving out of `management_endpoints/` | 16, all present |
 | Dotted references to the moving modules | **227 across 87 files**: 76 in `litellm/`, 149 in `tests/`, 2 in `scripts/` |
 | Dotted references to the moving routers | **139 across 23 files** |
-| Of those, inside quotes, so silent if missed | **11** |
+| Of the router references, inside quotes, so silent if missed | **11** (the module move has none) |
 
 The spec estimated about 38 import lines and 73 patch strings. The import count is twice
 that and the patch-string count is far lower, because most test coupling here is ordinary
@@ -71,15 +73,15 @@ each gate by planting a violation and watching it caught.
 
 **Files:** `pyrightconfig.json`, `scripts/ruff_strict_gate.py`, `scripts/type_discipline_gate.py`, `Makefile`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 A repository test asserting that each gate's configured target includes `token_iq`. It reads
 the config and the scripts rather than running them, because the failure being guarded is a
 path going unwatched, not a rule misbehaving.
 
-- [ ] **Step 2: Add `token_iq` to all four**
+- [x] **Step 2: Add `token_iq` to all four**
 
-- [ ] **Step 3: Prove each one, by planting a violation**
+- [x] **Step 3: Prove each one, by planting a violation**
 
 Create a throwaway `token_iq/_gate_probe.py` holding an untyped function, an `Any`, a mutable
 module-level list and a missing `: Final`. Run pyright and both gates. Each must report it.
@@ -89,7 +91,7 @@ This step is the whole point of the task. A configuration change that looks righ
 watches nothing is indistinguishable from one that works, until a phase later when the
 budgets are meaningless.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ---
 
@@ -97,7 +99,7 @@ budgets are meaningless.
 
 **Files:** the 9 folders listed above, into `token_iq/`
 
-- [ ] **Step 1: Move with `git mv`**
+- [x] **Step 1: Move with `git mv`**
 
 | From | To |
 |---|---|
@@ -109,18 +111,66 @@ budgets are meaningless.
 The other 16 files in `litellm/repositories/` are the engine's and stay. Moving the folder
 wholesale would take them with it.
 
-- [ ] **Step 2: Update the 227 dotted references**
+- [x] **Step 2: Update the 227 dotted references**
 
 By script, with the map committed. Imports fail loudly, so this part is self-checking.
 
-- [ ] **Step 3: Find the string references by searching for the text**
+- [x] **Step 3: Find the string references by searching for the text**
 
 Not by running the suite. A patch string that no longer resolves patches nothing and the
 test still passes.
 
-- [ ] **Step 4: Confirm the proxy imports, and run the touched suites against the baseline**
+- [x] **Step 4: Confirm the proxy imports, and run the touched suites against the baseline**
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
+
+### What task 2 found
+
+The 227 dotted references were exactly as measured, and the 12 slashed ones were all docstrings
+pointing at a source path, which would have rotted silently.
+
+**There were no quoted module paths in this move.** The "11 quoted" figure in the table above
+belongs to the routers row, not this one, and the rule section overstated it by saying the eleven
+were "across this move". They are task 3's. The search still had to happen to learn that, which
+is the point: the count was not knowable from the import errors.
+
+Three things the move surfaced that were not the move's doing:
+
+- `tests/test_litellm/repositories/test_repositories.py` had three tests failing since
+  `fda886b696`, where phase 2 reworded `base_repository`'s error from `"No DB Connected. See"`
+  (a message left dangling by a stripped docs link) to `"No database connected"`. Phase 2 did not
+  re-run that suite. The three assertions now match the source
+- `make lint-ruff` was red at HEAD on three errors in `litellm/`: two empty comments left by a
+  comment-stripping pass, and `cache_type` in `router.py`, dead since decision 0005 removed
+  response caching. Fixed, because a red lint gate blocks every later phase
+- `ruff check --config ruff-tests.toml tests` was red on 21 errors. The 9 in test files written
+  earlier in this programme are fixed, and each got stronger for it: a `match=` naming the error,
+  and `FrozenInstanceError` where a blind `Exception` would have passed on a typo in the attribute
+  name. The remaining 11 are inherited engine tests and are left alone
+
+A fourth thing was the codemod rewriting its own map, turning it into an identity map and then
+reporting a clean no-op on the second run. The rewrite itself was unaffected, because the rules
+load before any file is touched, but a "0 files rewritten" that proves nothing is the same failure
+shape this phase is about. The map is now spelled in two pieces and the script skips itself.
+
+### What stayed, and why
+
+`tests/test_litellm/` did not move. The mirror rule in `CLAUDE.md` says the test tree follows the
+source tree, so this is a real debt rather than a decision that the mirror does not matter. It is
+deferred to phase 6 for two reasons: the phase 0 baseline is keyed on `tests/test_litellm/...`
+nodeids, so moving the tree now would make every suite in it read as `disappeared` and leave
+nothing to compare task 3 against; and phase 6 turns `litellm/` into `token_iq/gateway/`, which
+moves the same tree again. One move, at the point where the baseline is being re-cut anyway.
+
+The other 16 files in `litellm/repositories/` are the engine's and stayed. The 11 that moved
+import nothing from their former siblings, only stdlib and
+`litellm.types.proxy.provider_billing`, which task 4 moves.
+
+### The figure task 3 has to preserve
+
+The proxy registers **589 routes** after this move. Task 3 moves the routers themselves, where an
+unregistered router is a 404 rather than an import error, so that is the number to compare
+against.
 
 ---
 

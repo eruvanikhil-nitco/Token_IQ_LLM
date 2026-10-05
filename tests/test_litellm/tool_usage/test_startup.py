@@ -4,12 +4,12 @@ from typing import Final
 
 import pytest
 
-from litellm.tool_usage.connector import (
+from token_iq.connectors.tools.connector import (
     ToolConnector,
     clear_tool_registry_for_tests,
     registered_tool_connectors,
 )
-from litellm.tool_usage.startup import register_tool_connectors_once
+from token_iq.connectors.tools.startup import register_tool_connectors_once
 
 
 @pytest.fixture(autouse=True)

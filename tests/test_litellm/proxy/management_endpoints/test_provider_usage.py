@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from litellm.provider_billing.fetch_profile import FETCH_PROFILES
+from token_iq.connectors.billing.fetch_profile import FETCH_PROFILES
 from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 from litellm.types.proxy.provider_billing import ProviderUsageFact, RecentFactsPage, SummaryRow, TokenTotals
 

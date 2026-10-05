@@ -141,7 +141,6 @@ from litellm.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrai
     UnifiedLLMGuardrails,
 )
 from litellm.proxy.hooks import PROXY_HOOKS, get_proxy_hook
-from litellm.proxy.pass_through_endpoints.common_utils import assert_passthrough_body_fidelity
 from litellm.proxy.hooks.cache_control_check import _PROXY_CacheControlCheck
 from litellm.proxy.hooks.max_budget_limiter import _PROXY_MaxBudgetLimiter
 from litellm.proxy.hooks.parallel_request_limiter import (
@@ -155,6 +154,7 @@ from litellm.proxy.hooks.sensitive_data_routing import (
 )
 from litellm.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
 from litellm.proxy.management_helpers.key_settings_audit import with_settings_updated_at
+from litellm.proxy.pass_through_endpoints.common_utils import assert_passthrough_body_fidelity
 from litellm.proxy.policy_engine.pipeline_executor import PipelineExecutor
 from litellm.repositories.budget_repository import BudgetRepository
 from litellm.repositories.config_repository import ConfigRepository

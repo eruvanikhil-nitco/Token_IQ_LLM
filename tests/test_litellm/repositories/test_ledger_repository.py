@@ -4,7 +4,7 @@ from typing import Final
 
 import pytest
 
-from litellm.repositories.ledger_repository import LedgerRepository
+from token_iq.repositories.ledger_repository import LedgerRepository
 
 START: Final = datetime(2026, 9, 1, tzinfo=timezone.utc)
 END: Final = datetime(2026, 9, 30, tzinfo=timezone.utc)

@@ -61,7 +61,7 @@ def _sync_runs() -> MagicMock:
 
 
 async def _run(connectors, credentials_for=_creds, repo=None, sync_runs=None):
-    from litellm.provider_billing.runner import run_ingestion
+    from token_iq.connectors.billing.runner import run_ingestion
 
     return await run_ingestion(
         repository=repo or _repo(),
@@ -142,7 +142,7 @@ async def test_a_not_configured_result_is_a_skip_not_a_failure():
 async def test_the_window_asked_for_overlaps_the_last_one():
     """A watermark with no overlap loses whatever the provider recorded after we last
     asked. The fact key makes re-reading free, so the window deliberately looks back."""
-    from litellm.provider_billing.runner import LOOKBACK
+    from token_iq.connectors.billing.runner import LOOKBACK
 
     seen: dict[str, datetime] = {}
 

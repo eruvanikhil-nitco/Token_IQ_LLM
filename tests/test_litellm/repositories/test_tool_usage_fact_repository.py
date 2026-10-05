@@ -8,7 +8,7 @@ from typing import Final
 
 import pytest
 
-from litellm.repositories.tool_usage_fact_repository import ToolUsageFactRepository, fact_key_for
+from token_iq.repositories.tool_usage_fact_repository import ToolUsageFactRepository, fact_key_for
 from litellm.types.proxy.tool_usage import ToolUsageFact
 
 DAY: Final = datetime(2026, 9, 1, tzinfo=timezone.utc)

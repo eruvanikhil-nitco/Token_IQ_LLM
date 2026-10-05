@@ -49,7 +49,7 @@ def _row(cost: object = 1.25, day: int = 20260901) -> tuple[object, ...]:
 
 
 async def _fetch(vendor: Vendor):
-    from litellm.provider_billing.azure import AzureBillingConnector
+    from token_iq.connectors.billing.azure import AzureBillingConnector
 
     async def token_factory(_name: str, _values: object) -> str:
         return "entra-token-not-real"

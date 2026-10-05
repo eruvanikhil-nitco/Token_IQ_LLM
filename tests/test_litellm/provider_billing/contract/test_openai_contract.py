@@ -45,7 +45,7 @@ def _page(*buckets: dict[str, object], has_more: bool = False, next_page: str | 
 
 
 async def _fetch(vendor: Vendor):
-    from litellm.provider_billing.openai import OpenAIBillingConnector
+    from token_iq.connectors.billing.openai import OpenAIBillingConnector
 
     return await OpenAIBillingConnector(
         http_client_factory=vendor.client_factory(), base_url="https://api.openai.test"

@@ -2,7 +2,7 @@ from typing import Final
 
 import pytest
 
-from litellm.repositories.recommendation_state_repository import RecommendationStateRepository
+from token_iq.repositories.recommendation_state_repository import RecommendationStateRepository
 
 
 class FakeDb:

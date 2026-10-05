@@ -4,7 +4,7 @@ from typing import Final
 
 import pytest
 
-from litellm.repositories.gap_repository import GapRepository
+from token_iq.repositories.gap_repository import GapRepository
 
 _PROVIDER_CAST: Final = "SUM(f.billed_cost::numeric)::text"
 _GATEWAY_CAST: Final = "SUM(s.spend)::numeric::text"

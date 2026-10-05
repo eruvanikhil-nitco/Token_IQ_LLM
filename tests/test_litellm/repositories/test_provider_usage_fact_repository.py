@@ -34,7 +34,7 @@ async def test_refetching_the_same_fact_updates_rather_than_duplicates():
     """Every connector re-reads overlapping windows, because a watermark that never
     overlaps loses anything that landed late. Without an upsert on fact_key that would
     double-count a customer's spend on every tick."""
-    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+    from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
 
     client = _client()
     written = await ProviderUsageFactRepository(client).upsert_many([_fact(), _fact()])
@@ -49,7 +49,7 @@ async def test_refetching_the_same_fact_updates_rather_than_duplicates():
 async def test_the_cost_reaches_the_database_as_a_string_not_a_float():
     """The column is text precisely so the provider's digits survive. Handing Prisma a
     float here would round them away at the last possible moment."""
-    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+    from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
 
     client = _client()
     await ProviderUsageFactRepository(client).upsert_many([_fact()])
@@ -61,7 +61,7 @@ async def test_the_cost_reaches_the_database_as_a_string_not_a_float():
 
 @pytest.mark.asyncio
 async def test_writing_nothing_touches_the_database_not_at_all():
-    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+    from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
 
     client = _client()
 
@@ -73,7 +73,7 @@ async def test_writing_nothing_touches_the_database_not_at_all():
 async def test_already_fetched_requests_are_reported_so_they_can_be_skipped():
     """OpenRouter prices one request per call and rate limits. Re-looking-up a request we
     already priced spends the budget we need for new ones."""
-    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+    from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
 
     client = _client()
     client.db.litellm_providerusagefact.find_many = AsyncMock(
@@ -89,7 +89,7 @@ async def test_already_fetched_requests_are_reported_so_they_can_be_skipped():
 
 @pytest.mark.asyncio
 async def test_asking_about_no_requests_does_not_query():
-    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+    from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
 
     client = _client()
 
@@ -103,7 +103,7 @@ async def test_asking_about_no_requests_does_not_query():
 async def test_the_providers_own_payload_is_written_to_the_raw_column():
     """Raw Data shows the provider's fields verbatim. A fact whose payload was dropped at
     parse time can never be shown, and the provider will not serve that day again."""
-    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+    from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
 
     table = MagicMock()
     table.upsert = AsyncMock()
@@ -132,7 +132,7 @@ async def test_counts_by_credential_reads_the_all_count_prisma_actually_returns(
     """prisma-client-py's group_by(count=True) nests the tally under _count._all, not under
     the grouped field name. Reading the wrong key would silently report every account as
     having zero facts, which is indistinguishable from a connection that has never worked."""
-    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+    from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
 
     client = _client()
     client.db.litellm_providerusagefact.group_by = AsyncMock(
@@ -154,7 +154,7 @@ async def test_counts_by_credential_reads_the_all_count_prisma_actually_returns(
 async def test_counts_by_credential_drops_a_row_it_cannot_read():
     """A row missing the fields we depend on must not crash the connections screen or be
     guessed at as zero facts for some other account."""
-    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+    from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
 
     client = _client()
     client.db.litellm_providerusagefact.group_by = AsyncMock(
@@ -173,7 +173,7 @@ async def test_counts_by_credential_drops_a_row_it_cannot_read():
 async def test_summary_rows_aggregate_in_sql_and_are_bounded_by_the_window():
     """This table grows on every scheduler tick. Summing in Python would mean reading the
     whole history to render one screen."""
-    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+    from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
 
     client = MagicMock()
     client.db.query_raw = AsyncMock(return_value=[])
@@ -192,7 +192,7 @@ async def test_summary_sql_casts_the_summed_cost_to_text():
     """asyncpg decodes a bare SUM(::numeric) as a Python float, which has already lost the
     exact digits billed_cost exists to preserve. Casting the sum to text is what keeps the
     value exact from the database to _decimal."""
-    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+    from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
 
     client = MagicMock()
     client.db.query_raw = AsyncMock(return_value=[])
@@ -208,7 +208,7 @@ async def test_summary_sql_orders_by_the_numeric_sum_not_the_text_column():
     """ORDER BY on the ::text alias sorts lexicographically ("10.0" before "9.5"). Harmless
     today only because there is no LIMIT and the summariser re-sorts; ordering by the numeric
     expression keeps the SQL correct if a LIMIT is ever added."""
-    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+    from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
 
     client = MagicMock()
     client.db.query_raw = AsyncMock(return_value=[])
@@ -226,7 +226,7 @@ async def test_a_string_cost_from_the_driver_becomes_an_exact_decimal():
     here: Decimal(str(0.00780515)) matches, but Decimal(str(some_float)) for a value with
     more digits would not. Feeding the exact digits as a string is the only way this
     matters."""
-    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+    from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
 
     client = MagicMock()
     client.db.query_raw = AsyncMock(
@@ -248,7 +248,7 @@ async def test_a_string_cost_from_the_driver_becomes_an_exact_decimal():
 
 @pytest.mark.asyncio
 async def test_summary_rows_carry_model_account_cost_and_request_count():
-    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+    from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
 
     client = MagicMock()
     client.db.query_raw = AsyncMock(
@@ -276,7 +276,7 @@ async def test_summary_rows_carry_model_account_cost_and_request_count():
 async def test_a_row_we_cannot_read_is_dropped_rather_than_guessed():
     """A malformed aggregate row must not become a zero-cost line that silently understates
     the bill."""
-    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+    from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
 
     client = MagicMock()
     client.db.query_raw = AsyncMock(return_value=[{"model": "gpt-4o", "billed_cost": "not-a-number"}])
@@ -289,7 +289,7 @@ async def test_a_row_with_an_unrecognised_evidence_level_is_dropped():
     """evidence tells a reader which figures the provider asserted and which we derived.
     A value outside the known levels must not reach the Summary screen labeled as if it
     were one of them."""
-    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+    from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
 
     client = MagicMock()
     client.db.query_raw = AsyncMock(
@@ -311,7 +311,7 @@ async def test_a_row_with_an_unrecognised_evidence_level_is_dropped():
 async def test_token_totals_sum_each_token_type_separately():
     """Input, output, cache read and cache write are priced differently. Collapsing them
     into one number hides the thing a reader is looking for."""
-    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+    from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
 
     client = MagicMock()
     client.db.query_raw = AsyncMock(
@@ -330,7 +330,7 @@ async def test_token_totals_survive_the_driver_decoding_bigint_sums_as_float():
     of type-changing decode that made billed_cost cross as a float before it was cast to
     text. A totals field that only accepts a strict int silently reports zero tokens next
     to real spend, which reads as a confident false statement rather than a missing one."""
-    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+    from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
 
     client = MagicMock()
     client.db.query_raw = AsyncMock(
@@ -353,7 +353,7 @@ async def test_recent_facts_are_bounded_ordered_newest_first_in_the_database():
     fact it writes with the same watermark), and ordering on bucket_start alone gives no
     guarantee about which of those rows a page boundary lands on, which is exactly what
     the fact_key tiebreaker in the cursor below depends on to stay correct."""
-    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+    from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
 
     table = MagicMock()
     table.find_many = AsyncMock(return_value=[])
@@ -376,7 +376,7 @@ async def test_paging_asks_only_for_rows_older_than_the_cursor():
     Without a fact_key half, the cursor can only filter on bucket_start, which is the
     best-effort fallback for a caller that has nothing else; the composite cursor below is
     what a full page from this repository actually hands back."""
-    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+    from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
 
     table = MagicMock()
     table.find_many = AsyncMock(return_value=[])
@@ -399,7 +399,7 @@ async def test_the_fact_key_tiebreaker_keeps_rows_tied_on_bucket_start_reachable
     on bucket_start alone at that boundary would exclude every tied row forever, including
     ones a previous page never returned; the fact_key half makes the exclusion exact instead
     of blanket."""
-    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+    from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
 
     table = MagicMock()
     table.find_many = AsyncMock(return_value=[])
@@ -448,7 +448,7 @@ def _fact_row(**overrides: object) -> MagicMock:
 async def test_recent_facts_carry_the_raw_payload_and_exact_cost_unchanged():
     """Raw Data exists to show exactly what the provider sent. A read path that reshapes or
     rounds `raw` or `billed_cost` defeats the entire reason this column was stored."""
-    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+    from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
 
     table = MagicMock()
     table.find_many = AsyncMock(return_value=[_fact_row()])
@@ -467,7 +467,7 @@ async def test_recent_facts_carry_the_raw_payload_and_exact_cost_unchanged():
 async def test_recent_facts_drops_a_row_it_cannot_read_rather_than_fabricating_it():
     """A fabricated row on the Raw Data screen is worse than a missing one: the whole point
     of that screen is to show exactly what the provider said, nothing invented."""
-    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+    from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
 
     table = MagicMock()
     table.find_many = AsyncMock(
@@ -489,7 +489,7 @@ async def test_a_full_database_page_stays_full_even_when_one_row_is_dropped():
     cursor exists to rule out, one layer above the bucket_start tie that caused it the first
     time: a customer would stop paging early and believe they had seen everything, while
     rows sit unreachable behind a cursor that was never set."""
-    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+    from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
 
     table = MagicMock()
     table.find_many = AsyncMock(
@@ -506,7 +506,7 @@ async def test_a_full_database_page_stays_full_even_when_one_row_is_dropped():
 
 @pytest.mark.asyncio
 async def test_next_cursor_is_none_when_the_database_page_is_short():
-    from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+    from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
 
     table = MagicMock()
     table.find_many = AsyncMock(return_value=[_fact_row()])

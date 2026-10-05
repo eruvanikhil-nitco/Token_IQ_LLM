@@ -162,7 +162,7 @@ def history_lines(diff: Diff, effective_from: str, source: str, approved_by: str
     """One line per price that moved. Additions have no old price, so they record nothing."""
     from datetime import date
 
-    from litellm.pricing.history import PriceChange
+    from token_iq.pricing.history import PriceChange
 
     return tuple(
         PriceChange(
@@ -240,7 +240,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     from datetime import datetime, timezone
 
-    from litellm.pricing.history import append_changes, parse_history
+    from token_iq.pricing.history import append_changes, parse_history
 
     effective: Final = args.effective_from or datetime.now(timezone.utc).date().isoformat()
     lines: Final = history_lines(diff, effective_from=effective, source=args.url, approved_by=args.approved_by)

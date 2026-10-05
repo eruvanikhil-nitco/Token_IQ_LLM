@@ -148,7 +148,7 @@ def _bigquery_that_groups_the_way_the_query_asks(*charges: tuple[str, str, str])
 
 
 def _connector(client: MagicMock, token: str | None = "google-token"):
-    from litellm.provider_billing.vertex import VertexBillingConnector
+    from token_iq.connectors.billing.vertex import VertexBillingConnector
 
     async def token_factory(_name, _values):
         return token
@@ -200,7 +200,7 @@ async def test_the_runners_own_window_still_reports_a_whole_day():
     last 24 hours from a live clock, so `since` lands mid-day. Driving the connector the way
     the product actually drives it is the only thing that catches a partial day being
     written over a complete one."""
-    from litellm.provider_billing.runner import run_ingestion
+    from token_iq.connectors.billing.runner import run_ingestion
 
     now = datetime(2026, 9, 18, 14, 37, 11, tzinfo=timezone.utc)
     client = _bigquery_that_honours_the_window(
@@ -389,7 +389,7 @@ async def test_paging_follows_page_token_until_it_is_absent():
 async def test_a_pager_that_never_stops_is_cut_off_at_the_page_cap():
     """A paging bug or a hostile server that never drops `pageToken` must not spin the
     ingestion run forever; the cap is what stops it."""
-    from litellm.provider_billing.vertex import MAX_PAGES_PER_RUN
+    from token_iq.connectors.billing.vertex import MAX_PAGES_PER_RUN
 
     client = MagicMock()
     client.post = AsyncMock(
@@ -465,7 +465,7 @@ async def test_a_malformed_export_table_is_refused_before_any_request_is_made(ta
     has no bound parameter for an identifier. A value that does not match the strict table
     reference pattern must be refused before the http client is even built, let alone called,
     or this is a live SQL injection surface into the customer's own billing data."""
-    from litellm.provider_billing.vertex import VertexBillingConnector
+    from token_iq.connectors.billing.vertex import VertexBillingConnector
     from litellm.types.proxy.provider_billing import NotConfigured
 
     http_client_factory = MagicMock()
@@ -543,7 +543,7 @@ async def test_it_calls_the_host_google_documents():
 async def test_a_deployment_can_point_the_connector_at_its_own_host():
     """A customer behind a proxy, or a test standing in for BigQuery, needs somewhere to put
     their host rather than forking the file."""
-    from litellm.provider_billing.vertex import VertexBillingConnector
+    from token_iq.connectors.billing.vertex import VertexBillingConnector
 
     client = _http_single_page(_body(_cost_row()))
 

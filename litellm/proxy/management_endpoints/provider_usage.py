@@ -14,12 +14,8 @@ from typing import Final
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from litellm.provider_billing.credential_purpose import BILLING_PROVIDERS
-from litellm.provider_billing.fetch_profile import FETCH_PROFILES
-from litellm.provider_billing.usage_summary import UsageSummary, build_usage_summary
 from litellm.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
 from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-from litellm.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
 from litellm.types.proxy.management_endpoints.team_endpoints import (
     ProviderAccountSpend,
     ProviderModelSpend,
@@ -29,6 +25,10 @@ from litellm.types.proxy.management_endpoints.team_endpoints import (
     ProviderUsageSummaryResponse,
 )
 from litellm.types.proxy.provider_billing import ProviderUsageFact
+from token_iq.connectors.billing.credential_purpose import BILLING_PROVIDERS
+from token_iq.connectors.billing.fetch_profile import FETCH_PROFILES
+from token_iq.connectors.billing.usage_summary import UsageSummary, build_usage_summary
+from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
 
 router: Final = APIRouter(
     tags=["provider billing"],  # mutable-ok: fixed single-element tag list, never grown after this line

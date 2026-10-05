@@ -39,7 +39,7 @@ def _page(*seats: dict[str, object], total: int | None = None) -> dict[str, obje
 
 
 async def _fetch(vendor: Vendor, *, values: dict[str, str] | None = None):
-    from litellm.tool_usage.copilot import CopilotConnector
+    from token_iq.connectors.tools.copilot import CopilotConnector
 
     return await CopilotConnector(
         http_client_factory=vendor.client_factory(), base_url="https://api.github.test"

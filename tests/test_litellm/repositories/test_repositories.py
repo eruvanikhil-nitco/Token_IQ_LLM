@@ -159,7 +159,7 @@ class TestBaseRepository:
                 return LiteLLM_BudgetTable
 
         repo = TestRepo(None)
-        with pytest.raises(RuntimeError, match="No DB Connected"):
+        with pytest.raises(RuntimeError, match="No database connected"):
             _ = repo.prisma_client
 
     @pytest.mark.asyncio
@@ -1417,7 +1417,7 @@ class TestCredentialsRepository:
 
     def test_prisma_client_none_raises(self):
         repo = CredentialsRepository(None)
-        with pytest.raises(RuntimeError, match="No DB Connected"):
+        with pytest.raises(RuntimeError, match="No database connected"):
             _ = repo.table
 
 
@@ -2259,7 +2259,7 @@ class TestPrismaTableRepository:
         from litellm.repositories.table_repositories import SpendLogsRepository
 
         repo = SpendLogsRepository(None)
-        with pytest.raises(RuntimeError, match="No DB Connected"):
+        with pytest.raises(RuntimeError, match="No database connected"):
             _ = repo.table
 
     CONFIG_SYNCED_TABLE_NAMES = frozenset(

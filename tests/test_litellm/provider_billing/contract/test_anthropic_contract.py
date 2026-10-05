@@ -81,7 +81,7 @@ def _first_of_two() -> dict[str, object]:
 
 
 async def _fetch(vendor: Vendor, *, base_url: str = "https://api.anthropic.test"):
-    from litellm.provider_billing.anthropic import AnthropicBillingConnector
+    from token_iq.connectors.billing.anthropic import AnthropicBillingConnector
 
     return await AnthropicBillingConnector(http_client_factory=vendor.client_factory(), base_url=base_url).fetch(
         since=SINCE, until=UNTIL, credential_name="acme-anthropic", credential_values=CREDENTIAL

@@ -64,7 +64,7 @@ def _body(*rows: list, columns: list | None = None, next_link: str | None = None
 
 
 def _connector(client: MagicMock, token: str | None = "entra-token"):
-    from litellm.provider_billing.azure import AzureBillingConnector
+    from token_iq.connectors.billing.azure import AzureBillingConnector
 
     async def token_factory(_name, _values):
         return token
@@ -159,7 +159,7 @@ async def test_the_runners_own_window_still_reports_a_whole_day():
     last 24 hours from a live clock, so `since` lands mid-day. Driving the connector the way
     the product actually drives it is the only thing that catches a partial day being
     written over a complete one."""
-    from litellm.provider_billing.runner import run_ingestion
+    from token_iq.connectors.billing.runner import run_ingestion
 
     now = datetime(2026, 9, 19, 14, 37, 11, tzinfo=timezone.utc)
     client = _cost_management_that_honours_the_window(
@@ -401,7 +401,7 @@ async def test_it_calls_the_host_azure_documents():
 async def test_a_sovereign_cloud_can_point_the_connector_at_its_own_host():
     """Azure Government and Azure China serve Cost Management from different hosts entirely,
     so a hardcoded commercial host means those customers cannot connect at all."""
-    from litellm.provider_billing.azure import AzureBillingConnector
+    from token_iq.connectors.billing.azure import AzureBillingConnector
 
     client = _http(_body())
 

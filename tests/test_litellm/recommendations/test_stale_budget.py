@@ -1,8 +1,8 @@
 from decimal import Decimal
 from typing import Final
 
-from litellm.recommendations.inputs import BudgetSnapshot, RuleInput
-from litellm.recommendations.rules.stale_budget import stale_budget
+from token_iq.recommendations.inputs import BudgetSnapshot, RuleInput
+from token_iq.recommendations.rules.stale_budget import stale_budget
 
 
 def _budget(owner: str, limit: str, spent: str) -> BudgetSnapshot:

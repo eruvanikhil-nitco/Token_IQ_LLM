@@ -68,7 +68,7 @@ def _factory(client: FakeCostExplorer):
 
 
 async def _fetch(client: FakeCostExplorer, *, values: Mapping[str, str] | None = None):
-    from litellm.provider_billing.bedrock import BedrockBillingConnector
+    from token_iq.connectors.billing.bedrock import BedrockBillingConnector
 
     return await BedrockBillingConnector(cost_explorer_factory=_factory(client)).fetch(
         since=SINCE,

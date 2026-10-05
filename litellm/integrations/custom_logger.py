@@ -61,7 +61,7 @@ _BASE64_INLINE_PATTERN: Final = re.compile(
 )
 
 
-class CustomLogger: #
+class CustomLogger:
     # Class variables or attributes
     server_fulfilled_tool_names: ClassVar[frozenset[str]] = frozenset()
 

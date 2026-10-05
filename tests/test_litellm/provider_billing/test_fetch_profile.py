@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from typing import Final
 
-from litellm.provider_billing.bedrock import SETTLING_HOURS
-from litellm.provider_billing.credential_purpose import BILLING_PROVIDERS
-from litellm.provider_billing.fetch_profile import FETCH_PROFILES
+from token_iq.connectors.billing.bedrock import SETTLING_HOURS
+from token_iq.connectors.billing.credential_purpose import BILLING_PROVIDERS
+from token_iq.connectors.billing.fetch_profile import FETCH_PROFILES
 
 
 def test_every_billing_provider_has_a_fetch_profile():
