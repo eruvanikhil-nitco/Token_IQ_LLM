@@ -79,25 +79,48 @@ rows with the split applied. That gives two requirements:
 **Files:** `litellm/proxy/credential_endpoints/`, `token_iq/policy/credential_access.py`, the UI
 credentials panel
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 A credential stored with `purpose: billing_ingestion` must not appear in the list the model
 credential pages read, and must still appear in the list the provider-billing pages read. Both
 halves, because a filter that hides it from everything breaks the connect flow.
 
-- [ ] **Step 2: Filter in the API, not the browser**
+- [x] **Step 2: Filter in the API, not the browser**
 
 The marker is on `credential_info`. The endpoint decides, so a client that ignores the filter
 cannot list them anyway. A browser-side filter leaves the keys in the response and is a disclosure,
 not a tidy-up.
 
-- [ ] **Step 3: Check what a billing credential discloses when it is listed**
+- [x] **Step 3: Check what a billing credential discloses when it is listed**
 
 An admin key's name and provider are not secret, but its presence on a model page invites someone
 to attach it to a deployment, which is the thing `BILLING_PROVIDERS` exists to prevent. Record what
 the list returns for one.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
+
+### What task 1 found
+
+The split was further along than the blueprint implies. `billing_ingestion`, the per-provider
+required fields, the admin-key prefix checks and the never-return-values rule were all in place.
+Only the list was missing, and it was returning the row with its values emptied rather than leaving
+it out.
+
+**The server-side half already held.** `model_management_endpoints` refuses to attach a billing
+credential to a deployment, and re-checks even when the credential name is unchanged, in case it was
+repurposed for billing after being attached. So this change is the organisational half of a defence
+that was already there, which is a better position than the blueprint's wording suggests.
+
+Three tests rather than one, because the obvious filter is wrong in two ways: it must not hide the
+credential from `by_name`, which the connect flow reads to show a connection's state, and it must not
+treat a missing `purpose` key as billing, which would empty the list most of the product depends on.
+
+### One thing left alone
+
+`CredentialsTable` renders a Purpose column with "Billing access (read-only)", which was the interim
+way of telling the two kinds apart in one table. With the list filtered it will only ever show "Model
+access" from live data. Removing a column is a UI change that needs approval, so it stays, and this
+records that it is now vestigial.
 
 ---
 
