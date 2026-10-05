@@ -110,7 +110,11 @@ async def test_line_items_are_kept_separate_within_a_day():
     )
 
     assert isinstance(result, Fetched)
-    assert {fact.model for fact in result.facts} == {"gpt-4o-mini, input", "gpt-4o-mini, output"}
+    # Still two facts, now one model with two meters rather than two models.
+    assert {(fact.model, fact.meter) for fact in result.facts} == {
+        ("gpt-4o-mini", "input"),
+        ("gpt-4o-mini", "output"),
+    }
 
 
 @pytest.mark.asyncio
@@ -232,3 +236,78 @@ async def test_a_deployment_can_point_the_connector_at_its_own_host():
     )
 
     assert client.get.call_args.args[0] == "https://openai.internal.example/v1/organization/costs"
+
+
+class TestLineItemSplitsIntoModelAndMeter:
+    """OpenAI bills per line item, and the whole string used to land in `model`.
+
+    So the model list read "gpt-4.1-2026-04-14, input", "gpt-4.1-2026-04-14, output" and
+    "web search tool calls" as three different models, and nothing could total a model's cost
+    across its meters. The money was always right; the label was not.
+    """
+
+    @pytest.mark.parametrize(
+        ("line_item", "model", "meter"),
+        [
+            ("gpt-4.1-2026-04-14, input", "gpt-4.1-2026-04-14", "input"),
+            ("gpt-4.1-2026-04-14, output", "gpt-4.1-2026-04-14", "output"),
+            ("o3-mini, cached input", "o3-mini", "cached input"),
+            # A meter against no model. Putting this in `model` is what made the list unreadable.
+            ("web search tool calls", None, "web search tool calls"),
+            ("code interpreter sessions", None, "code interpreter sessions"),
+            # A bare model with no meter part: the model is known, the meter is not stated.
+            ("gpt-4o", "gpt-4o", None),
+            ("text-embedding-3-small", "text-embedding-3-small", None),
+        ],
+    )
+    def test_the_split(self, line_item: str, model: str | None, meter: str | None) -> None:
+        from token_iq.connectors.billing.openai import split_line_item
+
+        assert split_line_item(line_item) == (model, meter)
+
+    def test_a_line_item_openai_did_not_send_is_neither(self) -> None:
+        """`line_item` absent is already handled as unattributed; this is the split's own view."""
+        from token_iq.connectors.billing.openai import split_line_item
+
+        assert split_line_item("") == (None, None)
+
+
+class TestTheFactCarriesBothHalves:
+    @staticmethod
+    def _one(line_item: str):
+        from token_iq.connectors.billing.openai import _facts_from
+
+        return _facts_from(
+            [
+                {
+                    "start_time": 1789344000,
+                    "results": [{"line_item": line_item, "amount": {"value": 2.50, "currency": "usd"}}],
+                }
+            ],
+            "acct",
+        )[0]
+
+    def test_a_metered_model_records_both(self) -> None:
+        fact = self._one("gpt-4.1-2026-04-14, input")
+        assert (fact.model, fact.meter) == ("gpt-4.1-2026-04-14", "input")
+
+    def test_a_tool_call_records_a_meter_against_no_model(self) -> None:
+        fact = self._one("web search tool calls")
+        assert (fact.model, fact.meter) == (None, "web search tool calls")
+
+    def test_the_fact_key_still_uses_the_raw_line_item(self) -> None:
+        """This is the hinge of the whole change.
+
+        The connector is idempotent on `fact_key`, so re-running a sync is what fills `meter` on
+        rows stored before the split, without a data migration that a Prisma migration may not do
+        anyway. That only works while the key keeps the unsplit line item: change it and
+        re-ingestion inserts beside the old rows instead of replacing them, and the period's cost
+        doubles while every individual row looks correct.
+        """
+        assert self._one("gpt-4.1-2026-04-14, input").fact_key == (
+            "openai:acct:2026-09-14:gpt-4.1-2026-04-14, input"
+        )
+
+    def test_the_money_is_untouched_by_the_split(self) -> None:
+        for line_item in ("gpt-4.1-2026-04-14, input", "web search tool calls", "gpt-4o"):
+            assert self._one(line_item).billed_cost == Decimal("2.50"), line_item

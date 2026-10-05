@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import dataclasses
+
 from datetime import datetime, timezone
 from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock
@@ -516,3 +518,32 @@ async def test_next_cursor_is_none_when_the_database_page_is_short():
     page = await ProviderUsageFactRepository(client).recent_facts(provider="openrouter", limit=50, before=None)
 
     assert page.next_cursor is None
+
+
+@pytest.mark.asyncio
+async def test_the_meter_reaches_the_database_beside_the_model():
+    """OpenAI bills per line item and the whole string used to go into `model`, so one model read
+    as several. Both halves have to be written or the split only exists in memory."""
+    from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+
+    client = _client()
+    fact = dataclasses.replace(_fact(), model="gpt-4.1-2026-04-14", meter="input")
+    await ProviderUsageFactRepository(client).upsert_many([fact])
+
+    written = client.db.litellm_providerusagefact.upsert.await_args_list[0].kwargs["data"]["create"]
+    assert written["model"] == "gpt-4.1-2026-04-14"
+    assert written["meter"] == "input"
+
+
+@pytest.mark.asyncio
+async def test_a_charge_against_no_model_still_records_its_meter():
+    """A web search tool call has no model. Writing nothing for it loses the charge's name."""
+    from token_iq.repositories.provider_usage_fact_repository import ProviderUsageFactRepository
+
+    client = _client()
+    fact = dataclasses.replace(_fact(), model=None, meter="web search tool calls")
+    await ProviderUsageFactRepository(client).upsert_many([fact])
+
+    written = client.db.litellm_providerusagefact.upsert.await_args_list[0].kwargs["data"]["create"]
+    assert written["model"] is None
+    assert written["meter"] == "web search tool calls"

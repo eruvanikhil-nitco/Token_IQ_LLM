@@ -1,0 +1,14 @@
+-- OpenAI bills per line item, and the connector put the whole string in `model`, so
+-- "gpt-4.1-2026-04-14, input" and "gpt-4.1-2026-04-14, output" read as two different models and
+-- nothing could total a model's cost across its meters. The model half now goes in `model` and the
+-- charged thing in `meter`.
+--
+-- Schema only, and deliberately no backfill. Rows stored before this keep the combined string in
+-- `model` with a null `meter`. They are corrected by re-running the sync for the periods that
+-- matter, because the connector is idempotent on `fact_key` and `fact_key` still carries the raw
+-- unsplit line item, so a re-fetch replaces the row rather than adding one beside it.
+--
+-- An UPDATE here would be a data rewrite on a table that grows with every provider sync, which
+-- tests/code_coverage_tests/check_migrations_no_data_rewrites.py forbids and which would hold up
+-- proxy start-up while it ran.
+ALTER TABLE "LiteLLM_ProviderUsageFact" ADD COLUMN IF NOT EXISTS "meter" TEXT;

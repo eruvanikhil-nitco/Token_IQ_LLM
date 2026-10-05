@@ -178,6 +178,7 @@ def _fact_or_none(row: object) -> ProviderUsageFact | None:
     if raw is not None and not isinstance(raw, Mapping):
         return None
     model: Final = _read(row, "model")
+    meter: Final = _read(row, "meter")
     provider_request_id: Final = _read(row, "provider_request_id")
     provider_api_key_id: Final = _read(row, "provider_api_key_id")
     return ProviderUsageFact(
@@ -192,6 +193,7 @@ def _fact_or_none(row: object) -> ProviderUsageFact | None:
         provider_request_id=provider_request_id if isinstance(provider_request_id, str) else None,
         provider_api_key_id=provider_api_key_id if isinstance(provider_api_key_id, str) else None,
         model=model if isinstance(model, str) else None,
+        meter=meter if isinstance(meter, str) else None,
         input_tokens=_bigint(_read(row, "input_tokens")),
         output_tokens=_bigint(_read(row, "output_tokens")),
         cached_input_tokens=_bigint(_read(row, "cached_input_tokens")),
@@ -231,6 +233,7 @@ def _row(fact: ProviderUsageFact) -> dict[str, object]:
         "provider_request_id": fact.provider_request_id,
         "provider_api_key_id": fact.provider_api_key_id,
         "model": fact.model,
+        "meter": fact.meter,
         "input_tokens": fact.input_tokens,
         "output_tokens": fact.output_tokens,
         "cached_input_tokens": fact.cached_input_tokens,

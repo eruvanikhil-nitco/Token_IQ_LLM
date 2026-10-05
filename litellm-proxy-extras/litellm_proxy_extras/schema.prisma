@@ -78,6 +78,7 @@ model LiteLLM_ProviderUsageFact {
     provider_request_id  String?
     provider_api_key_id  String?
     model                String?
+    meter                String?  // what was charged against that model: input, output, a tool call
     billed_cost          String   @default("0") // exact digits as text; prisma-client-py gates Decimal behind an experimental flag
     billing_currency     String   @default("USD")
     input_tokens         BigInt?

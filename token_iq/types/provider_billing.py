@@ -40,6 +40,14 @@ class ProviderUsageFact:
     provider_request_id: str | None = None
     provider_api_key_id: str | None = None
     model: str | None = None
+    meter: str | None = None
+    """What the provider charged for against that model: input, output, cached input, a tool
+    call.
+
+    OpenAI bills per line item and used to put the whole string in `model`, so one model read
+    as several and nothing could total a model across its meters. A meter with no model is a
+    charge against no model, such as a web search tool call.
+    """
     input_tokens: int | None = None
     output_tokens: int | None = None
     cached_input_tokens: int | None = None

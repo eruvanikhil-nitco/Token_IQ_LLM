@@ -42,6 +42,30 @@ def _day(bucket: Mapping[str, object]) -> datetime | None:
     return datetime.fromtimestamp(int(raw), tz=timezone.utc)
 
 
+MODEL_AND_METER: Final = ", "
+"""What OpenAI puts between a model and the thing it is charging for."""
+
+
+def split_line_item(line_item: str) -> tuple[str | None, str | None]:
+    """A billing line item as the model it names and the meter it charges.
+
+    OpenAI bills per line item, and the whole string used to go into `model`, so
+    "gpt-4.1-2026-04-14, input" and "gpt-4.1-2026-04-14, output" read as two different models and
+    nothing could total a model across its meters.
+
+    Three shapes, and the discriminator for the last two is a space. A model id never contains one,
+    so "web search tool calls" is a meter charged against no model, while "gpt-4o" is a model whose
+    meter OpenAI did not state.
+    """
+    text: Final = line_item.strip()
+    if not text:
+        return None, None
+    model, separator, meter = text.partition(MODEL_AND_METER)
+    if separator:
+        return model.strip() or None, meter.strip() or None
+    return (None, text) if " " in text else (text, None)
+
+
 def _facts_from(buckets: Sequence[object], credential_name: str) -> tuple[ProviderUsageFact, ...]:
     facts: list[ProviderUsageFact] = []  # mutable-ok: accumulated across buckets
     for bucket in buckets:
@@ -61,6 +85,7 @@ def _facts_from(buckets: Sequence[object], credential_name: str) -> tuple[Provid
                 continue
             raw_line_item = item.get("line_item")
             line_item = raw_line_item if isinstance(raw_line_item, str) else UNATTRIBUTED
+            model, meter = (None, None) if line_item == UNATTRIBUTED else split_line_item(line_item)
             facts.append(
                 ProviderUsageFact(
                     fact_key=f"openai:{credential_name}:{day.date().isoformat()}:{line_item}",
@@ -70,7 +95,8 @@ def _facts_from(buckets: Sequence[object], credential_name: str) -> tuple[Provid
                     bucket_start=day,
                     evidence="reconciled",
                     billed_cost=dollars,
-                    model=None if line_item == UNATTRIBUTED else line_item,
+                    model=model,
+                    meter=meter,
                     raw=dict(item),
                 )
             )
