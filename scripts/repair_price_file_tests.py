@@ -18,6 +18,38 @@ Three kinds of repair, and only the first two are mechanical:
   Those are listed and left alone, because collapsing a loop is a change to what the test asserts
 
 Run with `--dry-run` first. It prints what it would do and touches nothing.
+
+## What a first attempt got wrong, measured
+
+**The right replacement depends on what each path's base is, and this script does not know it.**
+Applying it and running the tests moved 27 failures to 21 and 14 errors to 2, then two further
+attempts to widen its rule made things worse, peaking at 108 failures, and the whole thing was
+reverted. Three distinct reasons, all of them the base:
+
+- `"model_prices_and_context_window_backup.json"`, 38 occurrences, resolves against the *package*
+  directory via `os.path.dirname(litellm.__file__)`. Replacing just the filename yields
+  `litellm/data/pricing/model_prices.json`, which does not exist
+- `"../../model_prices_and_context_window.json"`, 15 occurrences, resolves against the *repository
+  root* from a test two directories down. A rule that rewrites the whole quoted string loses the
+  `../../` and points at the wrong place
+- the filename also appears as a function's default argument value and inside tuples of
+  filenames, which a rule keyed on `open`/`Path`/`join` appearing on the same line cannot see
+
+The seven distinct forms and their counts, measured after reverting:
+
+    75  "model_prices_and_context_window.json"
+    38  "model_prices_and_context_window_backup.json"
+    15  "../../model_prices_and_context_window.json"
+     7  "litellm/model_prices_and_context_window_backup.json"
+     1  "../../litellm/model_prices_and_context_window_backup.json"
+     1  "../../../../model_prices_and_context_window.json"
+     1  "../../../../../model_prices_and_context_window.json"
+
+The repair that will work is not a string substitution. It is replacing each read with the
+loader's own `PRICES_PATH`, which is base-independent and correct by construction, and which the
+four files handled by hand already use. That needs an import added per file and the expression
+rewritten, not a filename swapped, so it wants its own pass rather than being wedged between
+phases. The `VACUOUS` list below still holds and is the part that was right.
 """
 
 from __future__ import annotations
