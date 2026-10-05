@@ -1,0 +1,4765 @@
+{
+ "roles": [
+  [
+   "A",
+   "Org Admin",
+   "Runs the platform"
+  ],
+  [
+   "F",
+   "Finance Admin",
+   "Owns cost, invoices and budgets"
+  ],
+  [
+   "V",
+   "Org Viewer",
+   "Read-only across the organisation"
+  ],
+  [
+   "L",
+   "Team Lead (Manage)",
+   "Manages one team"
+  ],
+  [
+   "R",
+   "Team Lead (Read-only)",
+   "Views one team, changes nothing"
+  ],
+  [
+   "M",
+   "Team Member",
+   "Read-only, own usage"
+  ]
+ ],
+ "matrixRoles": [
+  "Org Owner",
+  "Org Admin",
+  "Finance Admin",
+  "Org Viewer",
+  "Team Lead (Manage)",
+  "Team Lead (Read-only)",
+  "Team Member",
+  "Service Account"
+ ],
+ "matrix": [
+  [
+   "View cost data",
+   "All",
+   "All",
+   "All",
+   "All",
+   "Own team",
+   "Own team",
+   "Own usage",
+   "By scope"
+  ],
+  [
+   "View individual users' cost",
+   "All",
+   "All",
+   "All",
+   "All",
+   "Own team",
+   "Own team",
+   "Self",
+   "—"
+  ],
+  [
+   "Team Home (projects, members, budget)",
+   "—",
+   "—",
+   "—",
+   "—",
+   "Own team",
+   "Own team",
+   "—",
+   "—"
+  ],
+  [
+   "Team members: limits, allowed models, suspend",
+   "Manage",
+   "Manage",
+   "—",
+   "—",
+   "Own team",
+   "View",
+   "View own",
+   "—"
+  ],
+  [
+   "Add members to a team",
+   "Manage",
+   "Manage",
+   "—",
+   "—",
+   "Own team (Team Member role only)",
+   "—",
+   "—",
+   "—"
+  ],
+  [
+   "Approve member requests",
+   "Manage",
+   "Manage",
+   "—",
+   "—",
+   "Own team, within budget",
+   "—",
+   "—",
+   "—"
+  ],
+  [
+   "Projects and virtual keys",
+   "Manage",
+   "Manage",
+   "—",
+   "—",
+   "Own team",
+   "View",
+   "View own",
+   "—"
+  ],
+  [
+   "Invoice reconciliation and month-end close",
+   "Manage",
+   "Manage",
+   "Manage",
+   "View",
+   "—",
+   "—",
+   "—",
+   "—"
+  ],
+  [
+   "Budgets",
+   "Manage",
+   "Manage",
+   "Manage",
+   "View",
+   "View; request changes",
+   "View",
+   "—",
+   "—"
+  ],
+  [
+   "Approve budget increases",
+   "Approve",
+   "Approve",
+   "Approve",
+   "—",
+   "—",
+   "—",
+   "—",
+   "—"
+  ],
+  [
+   "Recommendations",
+   "Manage",
+   "Manage",
+   "View",
+   "View",
+   "Assign within team",
+   "View",
+   "—",
+   "—"
+  ],
+  [
+   "Savings Simulator",
+   "Manage",
+   "Manage",
+   "Manage",
+   "View",
+   "Own team",
+   "View",
+   "—",
+   "—"
+  ],
+  [
+   "Anomalies & alert rules",
+   "Manage",
+   "Manage",
+   "Own subscriptions",
+   "View",
+   "Own team",
+   "View",
+   "Own limit alerts",
+   "—"
+  ],
+  [
+   "Reports and exports",
+   "Manage",
+   "Manage",
+   "Manage",
+   "View, export",
+   "Own team",
+   "View, export",
+   "Own usage",
+   "Read API"
+  ],
+  [
+   "Data sources and connections",
+   "Manage",
+   "Manage",
+   "View; upload invoices",
+   "—",
+   "—",
+   "—",
+   "—",
+   "Ingest only"
+  ],
+  [
+   "Organization (teams, cost centers)",
+   "Manage",
+   "Manage",
+   "View",
+   "—",
+   "—",
+   "—",
+   "—",
+   "—"
+  ],
+  [
+   "Cost allocation and pricing",
+   "Manage",
+   "Manage",
+   "Manage",
+   "—",
+   "—",
+   "—",
+   "—",
+   "—"
+  ],
+  [
+   "Users, roles and SSO",
+   "Manage",
+   "Manage",
+   "View",
+   "View",
+   "—",
+   "—",
+   "—",
+   "—"
+  ],
+  [
+   "Integrations and settings",
+   "Manage",
+   "Manage",
+   "—",
+   "—",
+   "—",
+   "—",
+   "—",
+   "—"
+  ],
+  [
+   "Audit log",
+   "View",
+   "View",
+   "View",
+   "View",
+   "Team activity",
+   "Team activity",
+   "—",
+   "—"
+  ],
+  [
+   "Token IQ licence and ownership transfer",
+   "Manage",
+   "—",
+   "—",
+   "—",
+   "—",
+   "—",
+   "—",
+   "—"
+  ],
+  [
+   "Ask Token IQ answers from",
+   "All data",
+   "All data",
+   "All data",
+   "All data",
+   "Own team",
+   "Own team",
+   "Own usage",
+   "—"
+  ]
+ ],
+ "pages": [
+  {
+   "k": "overview",
+   "g": "",
+   "name": "Overview",
+   "st": "re",
+   "acc": {
+    "A": "e",
+    "F": "v",
+    "V": "v",
+    "L": "n",
+    "R": "n",
+    "M": "o"
+   },
+   "custom": "home",
+   "desc": "Month-to-date spend, forecast, open issues and setup status at a glance.",
+   "tabs": [],
+   "not": "Raw records and configuration.",
+   "help": {
+    "steps": [
+     "Review the four headline metrics: spend to date, month-end forecast, share of cost confirmed by provider invoices, and realized savings.",
+     "Work through \"Needs attention\". Each item links to the page where it is resolved.",
+     "Org Admins: complete the setup checklist until every step is done."
+    ],
+    "tips": [
+     "The scope and period selectors in the top bar apply to every page."
+    ],
+    "doc": "Getting started"
+   },
+   "ask": [
+    [
+     "Why is spend up this month?",
+     "Spend is 12% higher than at the same point in September. $2,960 of the increase is Support Bots: the Billing bot moved to gpt-4.1 on 8 October, which costs about 18% more per request.",
+     [
+      "View in Change Impact",
+      "impact"
+     ]
+    ],
+    [
+     "Will we stay within budget?",
+     "Not at the current run rate. October is forecast at $46,900 against a $40,000 budget; Support Bots is forecast to exceed its budget on 22 October.",
+     [
+      "Open Budgets & Forecasts",
+      "budgets"
+     ]
+    ],
+    [
+     "What should I do first?",
+     "Reconnect the Azure OpenAI billing connection (failing since 08:12), then review the top recommendation: $5.1k–6.8k per month on intent classification.",
+     [
+      "Open Data Sources",
+      "ds",
+      1
+     ]
+    ]
+   ]
+  },
+  {
+   "k": "thome",
+   "g": "My Team",
+   "name": "Team Home",
+   "st": "new",
+   "acc": {
+    "A": "n",
+    "F": "n",
+    "V": "n",
+    "L": "t",
+    "R": "r",
+    "M": "n"
+   },
+   "custom": "thome",
+   "desc": "Everything about your team on one page: projects, members, budget, alerts, requests and recommendations.",
+   "tabs": [],
+   "not": "Other teams and organisation totals.",
+   "help": {
+    "steps": [
+     "Read the four headline metrics for your team: spend to date, forecast against the team budget, active members and open savings.",
+     "Each project card shows its spend, budget use and keys; select one to open it in Cost Explorer.",
+     "Work through \"Needs your attention\": member requests, alerts and policy issues for your team only.",
+     "Use \"Your pages\" to jump to every page your role can open."
+    ],
+    "tips": [
+     "Everything on this page is limited to Support Bots. Organisation totals are never shown to Team Leads."
+    ],
+    "doc": "Team Home"
+   },
+   "ask": [
+    [
+     "How is my team doing this month?",
+     "Support Bots has spent $19,480 (▲ 18% vs September) and is forecast at $29,300 against a $25,000 budget. The Billing bot model change on 8 October explains most of the increase.",
+     [
+      "Cost Explorer",
+      "explorer"
+     ]
+    ],
+    [
+     "Which project is growing fastest?",
+     "Billing bot: $9,870, up 31% on September, after moving from gpt-4o to gpt-4.1.",
+     [
+      "Change Impact",
+      "impact"
+     ]
+    ],
+    [
+     "Who needs a decision from me?",
+     "Two member requests: Ravi K. asks for access to claude-sonnet-4-5, and Divya M. asks to raise her monthly limit to $500.",
+     [
+      "Access requests",
+      "team",
+      1
+     ]
+    ]
+   ]
+  },
+  {
+   "k": "team",
+   "g": "My Team",
+   "name": "Members & Access",
+   "st": "new",
+   "acc": {
+    "A": "n",
+    "F": "n",
+    "V": "n",
+    "L": "t",
+    "R": "r",
+    "M": "n"
+   },
+   "desc": "Your team members, what each one can use, their requests, seats and the team activity log.",
+   "tabs": [
+    [
+     "Members",
+     "People in your team, their usage, monthly limit and allowed models."
+    ],
+    [
+     "Access requests",
+     "Requests from your members for keys, models or a higher limit."
+    ],
+    [
+     "Seats & tools",
+     "Tool seats assigned to your members, and idle seats."
+    ],
+    [
+     "Team activity",
+     "Every change made in your team, by whom and when."
+    ]
+   ],
+   "not": "Other teams, organisation roles and sign-in settings (Org Admin, Access Control).",
+   "actions": [
+    [
+     "Add member",
+     false,
+     "m:addmember"
+    ],
+    [
+     "Manage member",
+     true,
+     "m:member"
+    ]
+   ],
+   "table": {
+    "title": "Members, Support Bots",
+    "cols": [
+     "Member",
+     "Role",
+     "Projects",
+     "Month to date",
+     "Monthly limit",
+     "Allowed models",
+     "Status",
+     ""
+    ],
+    "num": [
+     3,
+     4
+    ],
+    "rows": [
+     [
+      "Asha R.",
+      "chip:i:Team Lead (Manage)",
+      "All",
+      "$655",
+      "—",
+      "All team models",
+      "chip:ok:Active",
+      ""
+     ],
+     [
+      "Kiran T.",
+      "chip:g:Team Lead (Read-only)",
+      "All",
+      "$120",
+      "$300",
+      "Standard",
+      "chip:ok:Active",
+      "modal:Manage:member"
+     ],
+     [
+      "Ravi K.",
+      "chip:g:Team Member",
+      "Billing bot",
+      "$90",
+      "$150",
+      "Standard",
+      "chip:ok:Active",
+      "modal:Manage:member"
+     ],
+     [
+      "Divya M.",
+      "chip:g:Team Member",
+      "FAQ bot",
+      "$364",
+      "$400",
+      "Standard + Sonnet",
+      "chip:w:91% of limit",
+      "modal:Manage:member"
+     ],
+     [
+      "Sam P.",
+      "chip:g:Team Member",
+      "Intent router",
+      "$0",
+      "$150",
+      "Standard",
+      "chip:g:Suspended",
+      "modal:Manage:member"
+     ]
+    ]
+   },
+   "tabtables": {
+    "1": {
+     "title": "Access requests",
+     "cols": [
+      "Requested by",
+      "Request",
+      "Reason",
+      "Requested",
+      "Decision"
+     ],
+     "rows": [
+      [
+       "Ravi K.",
+       "Model access: claude-sonnet-4-5",
+       "Testing long refund answers",
+       "Today",
+       "chip:w:Waiting for you"
+      ],
+      [
+       "Divya M.",
+       "Monthly limit $400 → $500",
+       "FAQ bot evaluation run",
+       "Yesterday",
+       "chip:w:Waiting for you"
+      ],
+      [
+       "Sam P.",
+       "New virtual key for Intent router",
+       "Staging environment",
+       "2 Oct",
+       "chip:ok:Approved by Asha R."
+      ]
+     ]
+    },
+    "2": {
+     "title": "Seats & tools, Support Bots",
+     "cols": [
+      "Member",
+      "Tool",
+      "Seat cost / month",
+      "Last active",
+      "Status"
+     ],
+     "num": [
+      2
+     ],
+     "rows": [
+      [
+       "Asha R.",
+       "ChatGPT Enterprise",
+       "$60",
+       "today",
+       "chip:ok:Active"
+      ],
+      [
+       "Ravi K.",
+       "ChatGPT Enterprise",
+       "$60",
+       "today",
+       "chip:ok:Active"
+      ],
+      [
+       "Divya M.",
+       "GitHub Copilot",
+       "$19",
+       "34 days ago",
+       "chip:w:Idle 30+ days"
+      ],
+      [
+       "Sam P.",
+       "Claude Code",
+       "usage-based",
+       "—",
+       "chip:g:Suspended"
+      ]
+     ]
+    },
+    "3": {
+     "title": "Team activity",
+     "cols": [
+      "Time",
+      "Who",
+      "Change"
+     ],
+     "rows": [
+      [
+       "Today 10:05",
+       "Asha R.",
+       "Suspended Sam P. (on leave)"
+      ],
+      [
+       "Yesterday",
+       "Asha R.",
+       "Raised Kiran T. limit $200 → $300"
+      ],
+      [
+       "2 Oct",
+       "Asha R.",
+       "Approved staging key for Sam P."
+      ],
+      [
+       "30 Sep",
+       "Asha R.",
+       "Created virtual key faq-staging"
+      ],
+      [
+       "28 Sep",
+       "Org Admin",
+       "Added Kiran T. as Team Lead (Read-only)"
+      ]
+     ]
+    }
+   },
+   "help": {
+    "steps": [
+     "Members: set each person's monthly limit and allowed models with \"Manage\". Limits notify the member and you at 80% and 100%.",
+     "Access requests: approve or reject what your members ask for. Anything above your team budget is passed to Finance automatically.",
+     "Seats & tools: request removal of idle seats; the Org Admin removes them in the tool.",
+     "Team activity: every change in your team is recorded here and in the organisation audit log."
+    ],
+    "tips": [
+     "You can add existing employees to your team as Team Members. New roles, such as another Team Lead, are granted by the Org Admin.",
+     "Team Lead (Read-only) sees this page but cannot change anything."
+    ],
+    "doc": "Members & Access"
+   },
+   "ask": [
+    [
+     "Who is close to their limit?",
+     "Divya M. has used $364 of her $400 limit (91%) and has requested $500.",
+     [
+      "Access requests",
+      "team",
+      1
+     ]
+    ],
+    [
+     "Are any seats idle?",
+     "Divya M.'s GitHub Copilot seat has not been used for 34 days ($19 per month).",
+     [
+      "Seats & tools",
+      "team",
+      2
+     ]
+    ]
+   ]
+  },
+  {
+   "k": "tproj",
+   "g": "My Team",
+   "name": "Projects & Keys",
+   "st": "new",
+   "acc": {
+    "A": "n",
+    "F": "n",
+    "V": "n",
+    "L": "t",
+    "R": "r",
+    "M": "n"
+   },
+   "desc": "Your team's projects, their virtual keys, budgets and models.",
+   "tabs": [
+    [
+     "Projects",
+     "Each project with owner, spend, budget and keys."
+    ],
+    [
+     "Virtual keys",
+     "Every key in your team: owner, project, budget and last use."
+    ]
+   ],
+   "not": "Keys and projects of other teams.",
+   "actions": [
+    [
+     "Create project",
+     false,
+     "m:project"
+    ],
+    [
+     "Create virtual key",
+     true,
+     "m:key"
+    ]
+   ],
+   "table": {
+    "title": "Projects, Support Bots",
+    "cols": [
+     "Project",
+     "Owner",
+     "Virtual keys",
+     "Month to date",
+     "Project budget",
+     "Primary model",
+     ""
+    ],
+    "num": [
+     2,
+     3,
+     4
+    ],
+    "rows": [
+     [
+      "Billing bot",
+      "Ravi K.",
+      "2",
+      "$9,870",
+      "$12,000",
+      "gpt-4.1",
+      "go:Analyse:explorer"
+     ],
+     [
+      "FAQ bot",
+      "Divya M.",
+      "2",
+      "$5,210",
+      "$7,000",
+      "claude-sonnet-4-5",
+      "go:Analyse:explorer"
+     ],
+     [
+      "Intent router",
+      "Sam P.",
+      "2",
+      "$4,400",
+      "$6,000",
+      "gpt-4.1",
+      "go:Analyse:explorer"
+     ]
+    ]
+   },
+   "tabtables": {
+    "1": {
+     "title": "Virtual keys, Support Bots",
+     "cols": [
+      "Key",
+      "Project",
+      "Owner",
+      "Budget",
+      "Month to date",
+      "Last used",
+      "Status"
+     ],
+     "num": [
+      3,
+      4
+     ],
+     "rows": [
+      [
+       "billing-prod",
+       "Billing bot",
+       "svc-billing",
+       "$12,000",
+       "$7,440",
+       "12s ago",
+       "chip:ok:Active"
+      ],
+      [
+       "billing-staging",
+       "Billing bot",
+       "Ravi K.",
+       "$300",
+       "$410",
+       "2 Oct",
+       "chip:b:Over budget"
+      ],
+      [
+       "faq-bot",
+       "FAQ bot",
+       "svc-faq",
+       "$5,000",
+       "$3,210",
+       "14s ago",
+       "chip:ok:Active"
+      ],
+      [
+       "faq-staging",
+       "FAQ bot",
+       "Divya M.",
+       "$200",
+       "$64",
+       "today",
+       "chip:ok:Active"
+      ],
+      [
+       "intent-prod",
+       "Intent router",
+       "svc-intent",
+       "$6,000",
+       "$4,400",
+       "8s ago",
+       "chip:ok:Active"
+      ],
+      [
+       "intent-old",
+       "Intent router",
+       "Sam P.",
+       "$100",
+       "$0",
+       "41 days ago",
+       "chip:w:Unused 30+ days"
+      ]
+     ]
+    }
+   },
+   "help": {
+    "steps": [
+     "Create a project for each application your team runs; every key must belong to a project so its cost is always allocated.",
+     "Create one virtual key per project and environment, with a budget inside the team budget.",
+     "Rotate or revoke keys from the Virtual keys tab. Revoke keys unused for 30 days."
+    ],
+    "tips": [
+     "Project and key budgets cannot add up to more than the team budget."
+    ],
+    "doc": "Projects & Keys"
+   },
+   "ask": [
+    [
+     "Which keys should I revoke?",
+     "intent-old has not been used for 41 days. billing-staging spent $410 against a $300 budget on 2 October (a test loop).",
+     [
+      "Virtual keys",
+      "tproj",
+      1
+     ]
+    ]
+   ]
+  },
+  {
+   "k": "explorer",
+   "g": "Analytics",
+   "name": "Cost Explorer",
+   "st": "re",
+   "acc": {
+    "A": "v",
+    "F": "v",
+    "V": "v",
+    "L": "t",
+    "M": "n",
+    "R": "r"
+   },
+   "custom": "spend",
+   "lead": {
+    "ask": [
+     [
+      "Which project grew fastest?",
+      "Billing bot, up 31% on September after moving to gpt-4.1. FAQ bot is up 4%, Intent router up 9%.",
+      [
+       "Change Impact",
+       "impact"
+      ]
+     ],
+     [
+      "Who on my team uses the most?",
+      "Among people, Asha R. ($655) and Divya M. ($364). The Billing bot service key is the largest overall at $9,870.",
+      [
+       "By user",
+       "explorer",
+       1
+      ]
+     ],
+     [
+      "What is the difference between confirmed and estimated cost?",
+      "Confirmed cost is reported in the provider's billing data. Estimated cost is priced from gateway traffic and replaced once the provider reports it, usually within 24 hours.",
+      null
+     ]
+    ]
+   },
+   "desc": "Analyse AI spend by team, project, user, model, provider and agent.",
+   "tabs": [
+    [
+     "By team",
+     "Drill down organisation › team › project › user › virtual key."
+    ],
+    [
+     "By user",
+     "Each user's AI cost across providers and tools."
+    ],
+    [
+     "By model & provider",
+     "Cost per model and provider, effective rate vs list price."
+    ],
+    [
+     "Agents & sessions",
+     "Cost per agent run and per conversation."
+    ],
+    [
+     "Unit economics",
+     "Cost per request, per session and per resolved query."
+    ]
+   ],
+   "not": "Configuration. Raw requests open in a side panel from any row.",
+   "help": {
+    "steps": [
+     "Set the scope (organisation, team or project) and period in the top bar.",
+     "Add filters for provider, model, tool or dimension.",
+     "Select a row to drill down one level.",
+     "Save the view to reuse it in Reports."
+    ],
+    "tips": [
+     "\"Confirmed\" cost appears on the provider's invoice data; \"estimated\" cost has been observed by the gateway but not yet billed.",
+     "Vertical markers on the chart indicate detected changes, such as a model switch."
+    ],
+    "doc": "Cost Explorer"
+   },
+   "ask": [
+    [
+     "Which team grew fastest this month?",
+     "Support Bots, up 18% on September, driven by the Billing bot. Sales Assist is down 3%.",
+     [
+      "Open Support Bots",
+      "explorer",
+      "team"
+     ]
+    ],
+    [
+     "What is the difference between confirmed and estimated cost?",
+     "Confirmed cost is reported in the provider's billing data. Estimated cost has been priced from gateway traffic and is replaced by confirmed cost once the provider reports it, usually within 24 hours.",
+     null
+    ],
+    [
+     "Which model costs the most?",
+     "gpt-4o on Azure account kore-aoai-prod: $11,920 month to date, 38% of total spend.",
+     [
+      "By model & provider",
+      "explorer",
+      2
+     ]
+    ]
+   ]
+  },
+  {
+   "k": "recon",
+   "g": "Analytics",
+   "name": "Invoice Reconciliation",
+   "st": "re",
+   "acc": {
+    "A": "e",
+    "F": "e",
+    "V": "v",
+    "L": "n",
+    "M": "n",
+    "R": "n"
+   },
+   "desc": "Match each provider invoice against recorded usage, explain variances and close the month.",
+   "tabs": [
+    [
+     "Reconciliation",
+     "Invoice total vs recorded cost, per provider per billing period."
+    ],
+    [
+     "Variances",
+     "Line-level differences with their likely cause."
+    ],
+    [
+     "Unallocated cost",
+     "Cost that no allocation rule assigned to a team."
+    ],
+    [
+     "Month-end close",
+     "Close checklist and per-team chargeback statements."
+    ],
+    [
+     "Audit evidence",
+     "Supporting records for a period, exportable for disputes and audits."
+    ]
+   ],
+   "not": "Invoice upload (Data Sources › Uploads).",
+   "actions": [
+    [
+     "Upload invoice",
+     false,
+     "m:upload"
+    ]
+   ],
+   "kpis": [
+    [
+     "September invoiced",
+     "$57,553",
+     "4 providers"
+    ],
+    [
+     "Matched",
+     "$55,210",
+     "96% of invoiced",
+     "ok"
+    ],
+    [
+     "Explained variance",
+     "$2,010",
+     "4 causes identified"
+    ],
+    [
+     "Unexplained variance",
+     "$330",
+     "Azure OpenAI",
+     "up"
+    ]
+   ],
+   "table": {
+    "title": "September 2026",
+    "cols": [
+     "Provider",
+     "Invoice",
+     "Recorded cost",
+     "Variance",
+     "Status",
+     ""
+    ],
+    "num": [
+     1,
+     2,
+     3
+    ],
+    "rows": [
+     [
+      "Azure OpenAI",
+      "$48,210.00",
+      "$45,870.00",
+      "+$2,340.00",
+      "chip:w:Review required",
+      "go:Review:recon:1"
+     ],
+     [
+      "Anthropic",
+      "$2,412.88",
+      "$2,410.10",
+      "+$2.78",
+      "chip:ok:Reconciled",
+      ""
+     ],
+     [
+      "OpenAI",
+      "$6,930.40",
+      "$6,930.40",
+      "$0.00",
+      "chip:ok:Reconciled",
+      ""
+     ],
+     [
+      "AWS Bedrock",
+      "—",
+      "$1,840.00",
+      "—",
+      "chip:b:Invoice missing",
+      "modal:Upload:upload"
+     ]
+    ]
+   },
+   "next": [
+    [
+     "Allocate $2,140 of unallocated cost",
+     "recon",
+     2
+    ],
+    [
+     "Start September close",
+     "recon",
+     3
+    ]
+   ],
+   "setup": {
+    "title": "Each provider needs an invoice for every billing period",
+    "items": [
+     [
+      "Invoice forwarding address configured",
+      true
+     ],
+     [
+      "Upload the September AWS Bedrock invoice",
+      false,
+      "m:upload"
+     ]
+    ]
+   },
+   "help": {
+    "steps": [
+     "Forward or upload each provider invoice every month.",
+     "Open any period marked \"Review required\" to see the explained and unexplained variance.",
+     "Accept each variance with a note, or flag it for dispute.",
+     "When every provider is reconciled, complete Month-end close to lock the period and issue chargeback statements."
+    ],
+    "tips": [
+     "Small variances are normal: credits, tax and commitments are listed as causes.",
+     "Closed periods are locked so reported figures never change."
+    ],
+    "doc": "Invoice Reconciliation"
+   },
+   "ask": [
+    [
+     "Why does the Azure invoice not match?",
+     "$2,010 of the $2,340 variance is explained: a $1,200 PTU commitment, a $400 credit, $900 from an account outside the gateway, and $310 billed for failed requests. $330 remains unexplained.",
+     [
+      "Open Variances",
+      "recon",
+      1
+     ]
+    ],
+    [
+     "How do I dispute a charge?",
+     "Open the variance, select \"Flag for dispute\", and export the Audit evidence pack. It contains the failed requests and the provider's own records.",
+     [
+      "Audit evidence",
+      "recon",
+      4
+     ]
+    ]
+   ]
+  },
+  {
+   "k": "score",
+   "g": "Analytics",
+   "name": "Scorecards",
+   "st": "new",
+   "acc": {
+    "A": "v",
+    "F": "v",
+    "V": "v",
+    "L": "t",
+    "M": "n",
+    "R": "r"
+   },
+   "lead": {
+    "desc": "Your team's efficiency KPIs per project, compared with your own history and the organisation average.",
+    "tabs": [
+     [
+      "Project scorecards",
+      "One scorecard per project in your team."
+     ],
+     [
+      "Trend",
+      "Your team this quarter vs last quarter."
+     ]
+    ],
+    "kpis": [
+     [
+      "Cost per request",
+      "$0.0052",
+      "org average $0.0041",
+      "up"
+     ],
+     [
+      "Cache hit rate",
+      "41%",
+      "target 60%"
+     ],
+     [
+      "Allocated cost",
+      "97%",
+      "target 98%",
+      "ok"
+     ],
+     [
+      "Team grade",
+      "B",
+      "was C in Q2",
+      "ok"
+     ]
+    ],
+    "table": {
+     "title": "Project scorecards, Support Bots",
+     "cols": [
+      "Project",
+      "Cost per request",
+      "Cache hit rate",
+      "Error rate",
+      "Budget accuracy",
+      "Grade"
+     ],
+     "num": [
+      1,
+      2,
+      3,
+      4
+     ],
+     "rows": [
+      [
+       "Billing bot",
+       "$0.0072",
+       "22%",
+       "0.9%",
+       "74%",
+       "chip:w:C"
+      ],
+      [
+       "FAQ bot",
+       "$0.0031",
+       "71%",
+       "0.3%",
+       "93%",
+       "chip:ok:A"
+      ],
+      [
+       "Intent router",
+       "$0.0009",
+       "38%",
+       "0.2%",
+       "88%",
+       "chip:ok:B"
+      ]
+     ]
+    },
+    "next": [
+     [
+      "Recommendations for Billing bot",
+      "recs"
+     ]
+    ],
+    "ask": [
+     [
+      "Why is the Billing bot graded C?",
+      "Its cache hit rate is 22% and cost per request rose 18% after the model change on 8 October.",
+      [
+       "Recommendations",
+       "recs"
+      ]
+     ]
+    ]
+   },
+   "desc": "Efficiency KPIs per team, benchmarked against the organisation and prior periods.",
+   "tabs": [
+    [
+     "Team scorecards",
+     "One scorecard per team with its KPIs and grade."
+    ],
+    [
+     "Benchmarks",
+     "Teams compared, this quarter vs last."
+    ],
+    [
+     "Sustainability",
+     "Estimated energy and carbon per team (indicative)."
+    ]
+   ],
+   "not": "Individual rankings.",
+   "kpis": [
+    [
+     "Cost per request",
+     "$0.0041",
+     "▼ 6% vs Q2",
+     "ok"
+    ],
+    [
+     "Cache hit rate",
+     "38%",
+     "target 60%"
+    ],
+    [
+     "Allocated cost",
+     "93%",
+     "target 98%"
+    ],
+    [
+     "Recommendations closed",
+     "7 of 19",
+     "this quarter"
+    ]
+   ],
+   "table": {
+    "title": "Team scorecards",
+    "cols": [
+     "Team",
+     "Cost per request",
+     "Cache hit rate",
+     "Allocated cost",
+     "Budget accuracy",
+     "Grade"
+    ],
+    "num": [
+     1,
+     2,
+     3,
+     4
+    ],
+    "rows": [
+     [
+      "Support Bots",
+      "$0.0052",
+      "41%",
+      "97%",
+      "82%",
+      "chip:w:B"
+     ],
+     [
+      "Sales Assist",
+      "$0.0031",
+      "52%",
+      "99%",
+      "94%",
+      "chip:ok:A"
+     ],
+     [
+      "Internal Tools",
+      "$0.0047",
+      "12%",
+      "71%",
+      "63%",
+      "chip:b:C"
+     ]
+    ]
+   },
+   "next": [
+    [
+     "Recommendations for Internal Tools",
+     "recs"
+    ],
+    [
+     "Review allocation rules",
+     "alloc"
+    ]
+   ],
+   "help": {
+    "steps": [
+     "Each team is graded on four KPIs; hover a KPI for its definition.",
+     "Open a team to see which KPI lowers its grade and the matching recommendation."
+    ],
+    "tips": [
+     "Grades compare teams with the organisation and their own history."
+    ],
+    "doc": "Scorecards"
+   },
+   "ask": [
+    [
+     "Why is Internal Tools graded C?",
+     "Its cache hit rate is 12%, and 29% of its cost is unallocated because two virtual keys have no project.",
+     [
+      "Review allocation rules",
+      "alloc"
+     ]
+    ]
+   ]
+  },
+  {
+   "k": "reports",
+   "g": "Analytics",
+   "name": "Reports",
+   "st": "new",
+   "acc": {
+    "A": "e",
+    "F": "e",
+    "V": "v",
+    "L": "t",
+    "M": "n",
+    "R": "r"
+   },
+   "lead": {
+    "tabs": [
+     [
+      "Saved views",
+      "Your saved Cost Explorer views."
+     ],
+     [
+      "Scheduled reports",
+      "Reports delivered to your team."
+     ],
+     [
+      "Exports",
+      "CSV downloads of your team's data."
+     ]
+    ],
+    "table": {
+     "title": "Reports, Support Bots",
+     "cols": [
+      "Name",
+      "Type",
+      "Recipients",
+      "Schedule",
+      "Last delivered"
+     ],
+     "rows": [
+      [
+       "Support Bots weekly",
+       "Scheduled report",
+       "Asha R., Kiran T.",
+       "Mondays 09:00",
+       "29 Sep"
+      ],
+      [
+       "Billing bot by model",
+       "Saved view",
+       "Asha R.",
+       "—",
+       "—"
+      ],
+      [
+       "Members' usage, monthly",
+       "Export (CSV)",
+       "Asha R.",
+       "1st of month",
+       "1 Oct"
+      ]
+     ]
+    },
+    "ask": [
+     [
+      "What does the weekly report include?",
+      "Team spend vs budget, the top three projects, new anomalies and open recommendations for Support Bots only.",
+      null
+     ]
+    ]
+   },
+   "desc": "Saved views, dashboards, scheduled reports, executive summaries and data exports.",
+   "tabs": [
+    [
+     "Saved views",
+     "Cost Explorer views saved with their filters."
+    ],
+    [
+     "Dashboards",
+     "Custom dashboards built from saved views."
+    ],
+    [
+     "Scheduled reports",
+     "Recurring delivery by email, Slack or Teams."
+    ],
+    [
+     "Executive summary",
+     "Monthly one-page summary for leadership."
+    ],
+    [
+     "Exports",
+     "CSV downloads and daily FOCUS-format export to BI tools."
+    ]
+   ],
+   "not": "Editing source data.",
+   "actions": [
+    [
+     "Schedule report",
+     true,
+     "m:report"
+    ]
+   ],
+   "table": {
+    "title": "Reports",
+    "cols": [
+     "Name",
+     "Type",
+     "Recipients",
+     "Schedule",
+     "Last delivered"
+    ],
+    "rows": [
+     [
+      "Monthly AI cost summary",
+      "Executive summary",
+      "CFO, CTO",
+      "1st of month",
+      "1 Oct"
+     ],
+     [
+      "Support Bots weekly",
+      "Scheduled report",
+      "Support Bots leads",
+      "Mondays 09:00",
+      "29 Sep"
+     ],
+     [
+      "Azure vs Anthropic by model",
+      "Saved view",
+      "Finance",
+      "—",
+      "—"
+     ],
+     [
+      "Daily FOCUS export",
+      "Export",
+      "Finance BI",
+      "Daily 06:00",
+      "Today"
+     ]
+    ]
+   },
+   "help": {
+    "steps": [
+     "Save any Cost Explorer view.",
+     "Select \"Schedule report\", choose the view, recipients and frequency.",
+     "Use the Executive summary template for leadership reporting."
+    ],
+    "tips": [
+     "Recipients only receive data within their own access scope."
+    ],
+    "doc": "Reports"
+   },
+   "ask": [
+    [
+     "What does the executive summary include?",
+     "Spend vs budget, top three cost drivers, recommendations opened and realized, reconciliation status and risks.",
+     [
+      "Executive summary",
+      "reports",
+      3
+     ]
+    ]
+   ]
+  },
+  {
+   "k": "recs",
+   "g": "Optimization",
+   "name": "Recommendations",
+   "st": "re",
+   "acc": {
+    "A": "e",
+    "F": "v",
+    "V": "v",
+    "L": "t",
+    "M": "n",
+    "R": "r"
+   },
+   "custom": "save",
+   "lead": {
+    "ask": [
+     [
+      "Which recommendations are for my team?",
+      "Two: route short intent requests to a smaller model ($5.1k–6.8k per month, needs validation) and enable prompt caching ($3.2k–4.1k, no quality impact).",
+      null
+     ],
+     [
+      "Which one should I start with?",
+      "Prompt caching for the Billing bot: no change to model output, high confidence, and it would close most of your forecast budget gap.",
+      [
+       "Savings Simulator",
+       "sim"
+      ]
+     ]
+    ]
+   },
+   "desc": "Prioritised cost-saving opportunities with evidence, estimated savings and owners.",
+   "tabs": [
+    [
+     "Open",
+     "New opportunities, ranked by estimated monthly savings."
+    ],
+    [
+     "In progress",
+     "Assigned, with owner and due date."
+    ],
+    [
+     "Completed",
+     "Done; savings are being measured."
+    ],
+    [
+     "Dismissed",
+     "Dismissed with a reason."
+    ],
+    [
+     "Rules",
+     "The 30 checks that generate recommendations, and their thresholds."
+    ]
+   ],
+   "not": "Automatic changes. Your teams decide and implement.",
+   "help": {
+    "steps": [
+     "Start with items marked \"No quality impact\": they change pricing, not model output.",
+     "Select an item to review the evidence and savings range.",
+     "Validate it in the Savings Simulator.",
+     "Assign it to the owning team; mark it completed once implemented, and realized savings are measured automatically."
+    ],
+    "tips": [
+     "Savings are ranges, priced at your effective rates.",
+     "Dismiss with a reason to suppress similar items."
+    ],
+    "doc": "Recommendations"
+   },
+   "ask": [
+    [
+     "Which recommendations have no quality impact?",
+     "Prompt caching, batch processing, failed-request waste and idle seats. Together $5.4k–6.8k per month.",
+     null
+    ],
+    [
+     "How reliable is the top estimate?",
+     "High confidence: 30 days of traffic and invoice-confirmed Azure pricing.",
+     null
+    ]
+   ]
+  },
+  {
+   "k": "sim",
+   "g": "Optimization",
+   "name": "Savings Simulator",
+   "st": "new",
+   "acc": {
+    "A": "e",
+    "F": "e",
+    "V": "v",
+    "L": "t",
+    "M": "n",
+    "R": "r"
+   },
+   "custom": "whatif",
+   "lead": {
+    "ask": [
+     [
+      "What would prompt caching save my team?",
+      "About $2,640 on Support Bots' September usage (9%), with no change to model output.",
+      null
+     ]
+    ]
+   },
+   "desc": "Replay last month's actual usage under different policies to estimate savings. Live traffic is never changed.",
+   "tabs": [
+    [
+     "Simulate",
+     "Toggle policies and see the result."
+    ],
+    [
+     "Saved scenarios",
+     "Saved policy combinations for comparison and approval."
+    ]
+   ],
+   "not": "Changes to live traffic.",
+   "help": {
+    "steps": [
+     "Select the period and scope in the top bar.",
+     "Enable or disable policies; results update immediately.",
+     "Review the assumptions.",
+     "Save the scenario or share it for approval."
+    ],
+    "tips": [
+     "Policies are applied sequentially, so savings are not additive.",
+     "Model-substitution policies require a quality check before implementation."
+    ],
+    "doc": "Savings Simulator"
+   },
+   "ask": [
+    [
+     "What would batch processing save on its own?",
+     "About $1,876 on September usage (4%), with no change to model output.",
+     null
+    ]
+   ]
+  },
+  {
+   "k": "impact",
+   "g": "Optimization",
+   "name": "Change Impact",
+   "st": "new",
+   "acc": {
+    "A": "v",
+    "F": "v",
+    "V": "v",
+    "L": "t",
+    "M": "n",
+    "R": "r"
+   },
+   "lead": {
+    "table": {
+     "title": "Detected changes, Support Bots",
+     "cols": [
+      "Date",
+      "Project",
+      "Change",
+      "Cost per request",
+      "Error rate",
+      "Impact"
+     ],
+     "rows": [
+      [
+       "8 Oct",
+       "Billing bot",
+       "gpt-4o → gpt-4.1",
+       "$0.0061 → $0.0072",
+       "unchanged",
+       "chip:w:+18% cost"
+      ],
+      [
+       "22 Sep",
+       "FAQ bot",
+       "Prompt caching enabled",
+       "$0.0049 → $0.0031",
+       "unchanged",
+       "chip:ok:−37% cost"
+      ],
+      [
+       "15 Sep",
+       "Intent router",
+       "Max output 512 → 64 tokens",
+       "$0.0011 → $0.0009",
+       "unchanged",
+       "chip:ok:−21% cost"
+      ]
+     ]
+    }
+   },
+   "desc": "Automatically detected model, prompt and provider changes, with their effect on cost and reliability.",
+   "tabs": [
+    [
+     "Detected changes",
+     "Changes found in usage data."
+    ],
+    [
+     "Impact analysis",
+     "Before/after comparison for each change."
+    ]
+   ],
+   "not": "Running experiments.",
+   "table": {
+    "title": "Detected changes",
+    "cols": [
+     "Date",
+     "Team › project",
+     "Change",
+     "Cost per request",
+     "Error rate",
+     "Impact"
+    ],
+    "rows": [
+     [
+      "8 Oct",
+      "Support Bots › Billing bot",
+      "gpt-4o → gpt-4.1",
+      "$0.0061 → $0.0072",
+      "unchanged",
+      "chip:w:+18% cost"
+     ],
+     [
+      "22 Sep",
+      "Support Bots › FAQ bot",
+      "Prompt caching enabled",
+      "$0.0049 → $0.0031",
+      "unchanged",
+      "chip:ok:−37% cost"
+     ],
+     [
+      "15 Sep",
+      "Support Bots › Intent router",
+      "Max output 512 → 64 tokens",
+      "$0.0011 → $0.0009",
+      "unchanged",
+      "chip:ok:−21% cost"
+     ],
+     [
+      "3 Sep",
+      "Sales Assist › Lead scorer",
+      "Second provider added",
+      "$0.0034 → $0.0031",
+      "▲ 0.4%",
+      "chip:i:Review errors"
+     ]
+    ]
+   },
+   "next": [
+    [
+     "Related recommendations",
+     "recs"
+    ],
+    [
+     "Simulate a rollback",
+     "sim"
+    ]
+   ],
+   "help": {
+    "steps": [
+     "Changes are detected automatically; no setup is required.",
+     "Select a change to compare the two weeks before and after."
+    ],
+    "tips": [
+     "A cost increase may be intentional if quality improved."
+    ],
+    "doc": "Change Impact"
+   },
+   "ask": [
+    [
+     "Why did the Billing bot's cost increase?",
+     "It moved from gpt-4o to gpt-4.1 on 8 October: $0.0072 per request instead of $0.0061 (+18%), with no change in error rate.",
+     null
+    ]
+   ]
+  },
+  {
+   "k": "realized",
+   "g": "Optimization",
+   "name": "Realized Savings",
+   "st": "new",
+   "acc": {
+    "A": "v",
+    "F": "v",
+    "V": "v",
+    "L": "t",
+    "M": "n",
+    "R": "r"
+   },
+   "lead": {
+    "kpis": [
+     [
+      "Identified for Support Bots",
+      "$12.1k / yr",
+      "5 recommendations"
+     ],
+     [
+      "Implemented",
+      "$6.4k / yr",
+      "2 completed"
+     ],
+     [
+      "Realized",
+      "$6.2k / yr",
+      "97% of expected",
+      "ok"
+     ],
+     [
+      "Rank in organisation",
+      "1 of 3",
+      "by realized savings",
+      "ok"
+     ]
+    ],
+    "tabs": [
+     [
+      "Savings ledger",
+      "Completed items in your team with expected and measured savings."
+     ]
+    ],
+    "table": {
+     "title": "Savings ledger, Support Bots",
+     "cols": [
+      "Recommendation",
+      "Completed",
+      "Expected / month",
+      "Realized / month",
+      "Status"
+     ],
+     "num": [
+      2,
+      3
+     ],
+     "rows": [
+      [
+       "Prompt caching, FAQ bot",
+       "22 Sep",
+       "$410",
+       "$388",
+       "chip:ok:Verified (30 days)"
+      ],
+      [
+       "Output limit, Intent router",
+       "15 Sep",
+       "$120",
+       "$131",
+       "chip:ok:Verified (30 days)"
+      ]
+     ]
+    },
+    "ask": [
+     [
+      "How much has my team saved?",
+      "$519 per month ($6.2k per year), verified 30 days after each change.",
+      null
+     ]
+    ]
+   },
+   "desc": "Measured savings from completed recommendations, verified 14 and 30 days after implementation.",
+   "tabs": [
+    [
+     "Savings ledger",
+     "Each completed item with expected and measured savings."
+    ],
+    [
+     "By team",
+     "Realized savings per team."
+    ]
+   ],
+   "not": "Unimplemented estimates.",
+   "kpis": [
+    [
+     "Identified in 2026",
+     "$38.4k / yr",
+     "19 recommendations"
+    ],
+    [
+     "Implemented",
+     "$14.9k / yr",
+     "7 completed"
+    ],
+    [
+     "Realized",
+     "$11.6k / yr",
+     "78% of expected",
+     "ok"
+    ],
+    [
+     "Platform ROI",
+     "12×",
+     "realized savings vs licence",
+     "ok"
+    ]
+   ],
+   "table": {
+    "title": "Savings ledger",
+    "cols": [
+     "Recommendation",
+     "Completed",
+     "Expected / month",
+     "Realized / month",
+     "Status"
+    ],
+    "num": [
+     2,
+     3
+    ],
+    "rows": [
+     [
+      "Prompt caching, FAQ bot",
+      "22 Sep",
+      "$410",
+      "$388",
+      "chip:ok:Verified (30 days)"
+     ],
+     [
+      "Output limit, Intent router",
+      "15 Sep",
+      "$120",
+      "$131",
+      "chip:ok:Verified (30 days)"
+     ],
+     [
+      "18 idle Copilot seats removed",
+      "1 Oct",
+      "$342",
+      "—",
+      "chip:i:Measuring (day 2)"
+     ]
+    ]
+   },
+   "help": {
+    "steps": [
+     "Items appear automatically when a recommendation is completed.",
+     "Savings are measured against a usage-adjusted baseline."
+    ],
+    "tips": [],
+    "doc": "Realized Savings"
+   },
+   "ask": [
+    [
+     "How much has Token IQ saved so far?",
+     "$11.6k per year verified from 3 completed changes; a further $3.3k per year is being measured.",
+     null
+    ]
+   ]
+  },
+  {
+   "k": "budgets",
+   "g": "Governance",
+   "name": "Budgets & Forecasts",
+   "st": "re",
+   "acc": {
+    "A": "e",
+    "F": "e",
+    "V": "v",
+    "L": "t",
+    "M": "n",
+    "R": "r"
+   },
+   "custom": "budgets",
+   "lead": {
+    "ask": [
+     [
+      "How far over budget will we be?",
+      "About $4,300 over: forecast $29,300 against $25,000. Prompt caching on the Billing bot would close most of the gap.",
+      [
+       "Recommendations",
+       "recs"
+      ]
+     ],
+     [
+      "How do I get more budget?",
+      "Submit a budget increase request; Finance approves it. Your request for +$5,000 per month is waiting.",
+      [
+       "Policies & Approvals",
+       "policies"
+      ]
+     ]
+    ]
+   },
+   "desc": "Budgets by team, project and key, with forecasts and cost estimates for planned workloads.",
+   "tabs": [
+    [
+     "Budgets",
+     "Budgets, thresholds and notification recipients."
+    ],
+    [
+     "Forecasts",
+     "Projected month-end and quarter-end spend."
+    ],
+    [
+     "Cost estimator",
+     "Estimate monthly cost for a planned workload."
+    ]
+   ],
+   "not": "Request blocking. Budgets notify; enforcement stays with your systems.",
+   "actions": [
+    [
+     "Create budget",
+     true,
+     "m:budget"
+    ]
+   ],
+   "table": {
+    "title": "Budgets, October 2026",
+    "cols": [
+     "Budget",
+     "Owner",
+     "Amount",
+     "Spent",
+     "Forecast",
+     "Status"
+    ],
+    "num": [
+     2,
+     3,
+     4
+    ],
+    "rows": [
+     [
+      "Organization",
+      "Finance",
+      "$40,000",
+      "$31,420",
+      "$46,900",
+      "chip:w:At risk"
+     ],
+     [
+      "Support Bots",
+      "Asha R.",
+      "$25,000",
+      "$19,480",
+      "$29,300",
+      "chip:b:Exceeds on 22 Oct"
+     ],
+     [
+      "Sales Assist",
+      "Meera S.",
+      "$12,000",
+      "$6,600",
+      "$9,900",
+      "chip:ok:On track"
+     ],
+     [
+      "Internal Tools",
+      "Dev K.",
+      "$8,000",
+      "$3,200",
+      "$4,800",
+      "chip:ok:On track"
+     ]
+    ]
+   },
+   "next": [
+    [
+     "Analyse Support Bots",
+     "explorer",
+     "team"
+    ],
+    [
+     "Recommendations for Support Bots",
+     "recs"
+    ]
+   ],
+   "help": {
+    "steps": [
+     "Select \"Create budget\" and choose the scope and amount.",
+     "Set alert thresholds and recipients.",
+     "Review forecasts weekly; they refresh hourly.",
+     "Use the Cost estimator before launching a new workload."
+    ],
+    "tips": [
+     "Team Leads submit budget changes through Policies & Approvals; Finance approves."
+    ],
+    "doc": "Budgets & Forecasts"
+   },
+   "ask": [
+    [
+     "How far over budget will Support Bots be?",
+     "About $4,300 over: forecast $29,300 against $25,000. Enabling prompt caching would close most of the gap.",
+     [
+      "Recommendations",
+      "recs"
+     ]
+    ]
+   ]
+  },
+  {
+   "k": "alerts",
+   "g": "Governance",
+   "name": "Anomalies & Alerts",
+   "st": "new",
+   "acc": {
+    "A": "e",
+    "F": "v",
+    "V": "v",
+    "L": "t",
+    "M": "n",
+    "R": "r"
+   },
+   "lead": {
+    "tabs": [
+     [
+      "Anomalies",
+      "Events in your team."
+     ],
+     [
+      "Alert rules",
+      "Rules that watch your team, and who receives them."
+     ]
+    ],
+    "table": {
+     "title": "Recent anomalies, Support Bots",
+     "cols": [
+      "Detected",
+      "Event",
+      "Project",
+      "Impact",
+      "Status",
+      ""
+     ],
+     "rows": [
+      [
+       "2 Oct",
+       "Virtual key billing-staging spent 9× its baseline",
+       "Billing bot",
+       "$410",
+       "chip:b:Open",
+       "go:Investigate:tproj:1"
+      ],
+      [
+       "1 Oct",
+       "Team forecast to exceed budget on 22 Oct",
+       "—",
+       "$4,300",
+       "chip:w:Open",
+       "go:Budgets:budgets"
+      ],
+      [
+       "Today",
+       "Divya M. reached 91% of her monthly limit",
+       "FAQ bot",
+       "—",
+       "chip:g:Notified",
+       "go:Members:team"
+      ]
+     ]
+    },
+    "ask": [
+     [
+      "What caused the billing-staging spike?",
+      "41,000 requests between 14:00 and 16:00 on 2 October from one session, nine times its baseline. It looks like a test loop.",
+      [
+       "Virtual keys",
+       "tproj",
+       1
+      ]
+     ]
+    ]
+   },
+   "desc": "Unusual spend, budget thresholds and data source failures, with routing to the right people.",
+   "tabs": [
+    [
+     "Anomalies",
+     "Detected events with size, status and resolution link."
+    ],
+    [
+     "Alert rules",
+     "What triggers an alert, and who receives it."
+    ],
+    [
+     "Notification channels",
+     "Email, Slack and Microsoft Teams destinations."
+    ]
+   ],
+   "not": "Traffic blocking.",
+   "actions": [
+    [
+     "Create alert rule",
+     true,
+     "m:alert"
+    ]
+   ],
+   "table": {
+    "title": "Recent anomalies",
+    "cols": [
+     "Detected",
+     "Event",
+     "Team",
+     "Impact",
+     "Status",
+     ""
+    ],
+    "rows": [
+     [
+      "Today 08:12",
+      "Azure OpenAI billing connection failed (credential rejected)",
+      "—",
+      "—",
+      "chip:b:Open",
+      "go:Resolve:ds:1"
+     ],
+     [
+      "2 Oct",
+      "Virtual key billing-staging spent 9× its baseline",
+      "Support Bots",
+      "$410",
+      "chip:b:Open",
+      "go:Investigate:explorer"
+     ],
+     [
+      "1 Oct",
+      "Support Bots forecast to exceed budget on 22 Oct",
+      "Support Bots",
+      "$4,300",
+      "chip:w:Open",
+      "go:Budgets:budgets"
+     ],
+     [
+      "30 Sep",
+      "New model detected: o3-pro",
+      "Internal Tools",
+      "first use",
+      "chip:g:Acknowledged",
+      ""
+     ]
+    ]
+   },
+   "help": {
+    "steps": [
+     "Each anomaly links to where it is resolved.",
+     "Acknowledge resolved items, or mark them \"Expected\" to improve detection.",
+     "Configure who is notified in Alert rules."
+    ],
+    "tips": [
+     "Anomalies are measured against each key's and team's own baseline."
+    ],
+    "doc": "Anomalies & Alerts"
+   },
+   "ask": [
+    [
+     "What caused the billing-staging spike?",
+     "41,000 requests between 14:00 and 16:00 on 2 October from a single session, nine times its daily baseline, consistent with a test loop.",
+     [
+      "Investigate",
+      "explorer"
+     ]
+    ]
+   ]
+  },
+  {
+   "k": "policies",
+   "g": "Governance",
+   "name": "Policies & Approvals",
+   "st": "new",
+   "acc": {
+    "A": "e",
+    "F": "e",
+    "V": "v",
+    "L": "t",
+    "M": "n",
+    "R": "r"
+   },
+   "lead": {
+    "tabs": [
+     [
+      "My requests",
+      "Requests you sent to Finance or the Org Admin, and their status."
+     ],
+     [
+      "Usage policies",
+      "Organisation rules and your team's current violations."
+     ],
+     [
+      "Exceptions",
+      "Exceptions approved for your team."
+     ]
+    ],
+    "table": {
+     "title": "My requests",
+     "cols": [
+      "Request",
+      "Details",
+      "Sent",
+      "Approver",
+      "Status"
+     ],
+     "rows": [
+      [
+       "Budget increase",
+       "+$5,000 / mo, Billing bot volume growth",
+       "1 Oct",
+       "Finance Admin",
+       "chip:w:Waiting"
+      ],
+      [
+       "Model access: gpt-4.1",
+       "Billing bot quality issues",
+       "5 Oct",
+       "Org Admin",
+       "chip:ok:Approved"
+      ]
+     ]
+    },
+    "next": [
+     [
+      "1 policy violation in your team",
+      "policies",
+      1
+     ]
+    ],
+    "ask": [
+     [
+      "Is my team breaking any policy?",
+      "One: the non-production key billing-staging uses a premium model.",
+      [
+       "Usage policies",
+       "policies",
+       1
+      ]
+     ]
+    ]
+   },
+   "desc": "Usage policies, violations, and approval workflows for budgets, keys and model access.",
+   "tabs": [
+    [
+     "Approval requests",
+     "Requests awaiting a decision, and their history."
+    ],
+    [
+     "Usage policies",
+     "Organisation rules and current violations."
+    ],
+    [
+     "Exceptions",
+     "Approved exceptions with an expiry date."
+    ]
+   ],
+   "not": "Inline enforcement in the request path.",
+   "actions": [
+    [
+     "New request",
+     true,
+     "m:request"
+    ]
+   ],
+   "table": {
+    "title": "Pending approvals",
+    "cols": [
+     "Requested by",
+     "Request",
+     "Team",
+     "Justification",
+     "Amount",
+     "Approver",
+     ""
+    ],
+    "num": [
+     4
+    ],
+    "rows": [
+     [
+      "Asha R.",
+      "Budget increase",
+      "Support Bots",
+      "Billing bot volume growth",
+      "+$5,000 / mo",
+      "Finance Admin",
+      "go:Review:policies"
+     ],
+     [
+      "Dev K.",
+      "Model access: o3-pro",
+      "Internal Tools",
+      "Research agent evaluation",
+      "—",
+      "Org Admin",
+      "go:Review:policies"
+     ]
+    ]
+   },
+   "next": [
+    [
+     "3 policy violations",
+     "policies",
+     1
+    ]
+   ],
+   "help": {
+    "steps": [
+     "Team Leads submit requests for budget increases, new projects or model access.",
+     "The approver (Finance Admin or Org Admin) approves or rejects with a comment.",
+     "Org Admins define usage policies; violations are listed with the owning team."
+    ],
+    "tips": [
+     "Approved changes are applied automatically and recorded in the audit log."
+    ],
+    "doc": "Policies & Approvals"
+   },
+   "ask": [
+    [
+     "Which policies are being violated?",
+     "Three: two virtual keys without a project (Internal Tools), and one non-production key using a premium model (Support Bots).",
+     [
+      "Usage policies",
+      "policies",
+      1
+     ]
+    ]
+   ]
+  },
+  {
+   "k": "contracts",
+   "g": "Governance",
+   "name": "Contracts & Licenses",
+   "st": "new",
+   "acc": {
+    "A": "e",
+    "F": "e",
+    "V": "v",
+    "L": "n",
+    "M": "n",
+    "R": "n"
+   },
+   "desc": "Provider accounts, seat licenses, commitments and renewal dates.",
+   "tabs": [
+    [
+     "Accounts",
+     "Every AI account and workspace the organisation pays for."
+    ],
+    [
+     "Seats & licenses",
+     "Seats purchased vs used."
+    ],
+    [
+     "Commitments",
+     "PTU, provisioned throughput and prepaid credits."
+    ],
+    [
+     "Renewals",
+     "Upcoming renewals with negotiation data."
+    ]
+   ],
+   "not": "Personal subscriptions.",
+   "table": {
+    "title": "Accounts",
+    "cols": [
+     "Account",
+     "Provider",
+     "Type",
+     "Owner",
+     "Month to date",
+     "Renewal"
+    ],
+    "num": [
+     4
+    ],
+    "rows": [
+     [
+      "kore-aoai-prod",
+      "Microsoft",
+      "Azure OpenAI",
+      "Support Bots",
+      "$11,920",
+      "Pay as you go"
+     ],
+     [
+      "Claude Enterprise",
+      "Anthropic",
+      "Workspace, 120 seats",
+      "IT",
+      "$7,200",
+      "14 Jan 2027"
+     ],
+     [
+      "kore-anthropic",
+      "Anthropic",
+      "Console (API)",
+      "Support Bots",
+      "$5,880",
+      "Pay as you go"
+     ],
+     [
+      "nitco-openai-org",
+      "OpenAI",
+      "API platform",
+      "Sales Assist",
+      "$2,340",
+      "Pay as you go"
+     ],
+     [
+      "Copilot Business",
+      "GitHub",
+      "50 seats",
+      "IT",
+      "$950",
+      "chip:w:28 days"
+     ]
+    ]
+   },
+   "next": [
+    [
+     "Prepare Copilot renewal",
+     "contracts",
+     3
+    ]
+   ],
+   "help": {
+    "steps": [
+     "Accounts appear once connected in Data Sources.",
+     "Add contract terms (seats, commitments, renewal dates) to enable renewal alerts at 60 and 30 days.",
+     "Export the negotiation pack before a renewal."
+    ],
+    "tips": [],
+    "doc": "Contracts & Licenses"
+   },
+   "ask": [
+    [
+     "How many Copilot seats are needed?",
+     "32 of 50 seats were active in September; 18 were idle for 30 days. 35 seats would cover current use with headroom.",
+     [
+      "Seats & licenses",
+      "contracts",
+      1
+     ]
+    ]
+   ]
+  },
+  {
+   "k": "ds",
+   "g": "Data",
+   "name": "Data Sources",
+   "st": "re",
+   "acc": {
+    "A": "e",
+    "F": "v",
+    "V": "n",
+    "L": "n",
+    "R": "n",
+    "M": "n"
+   },
+   "custom": "sources",
+   "desc": "Every place Token IQ gets usage and cost data from, whether it is arriving, and the records exactly as received.",
+   "tabs": [
+    [
+     "Overview",
+     "Can the data be trusted? Health and freshness of every source, invoice coverage, and data quality issues to fix."
+    ],
+    [
+     "Accounts",
+     "Every connected account: AI providers, AI tools, agent platforms, cloud billing exports and custom sources, including your own applications. Each row opens its raw records."
+    ],
+    [
+     "Gateway",
+     "The Token IQ gateway: observed traffic, request log, virtual keys and upstream endpoints."
+    ],
+    [
+     "Uploads",
+     "Invoices, workspace exports and contracts that have no API, uploaded or forwarded by email."
+    ]
+   ],
+   "not": "Spend by team or model. That is analysis (Cost Explorer).",
+   "actions": [
+    [
+     "+ Connect account",
+     true,
+     "m:connect"
+    ]
+   ],
+   "help": {
+    "steps": [
+     "Select \"+ Connect account\" and choose what you are connecting: an AI provider, an AI tool, an agent platform, a cloud billing export, or a custom source for anything else, including your own applications.",
+     "The Setup guide tab explains every field; the Configure tab is where you enter them. Nothing is saved until the connection test passes.",
+     "Check Overview when figures look stale: each source shows when data last arrived, and the issues list says what to fix.",
+     "Forward invoices to the invoice address, or upload them in Uploads, so every month can be reconciled."
+    ],
+    "tips": [
+     "Every connection is read-only. Token IQ can never change your provider accounts or spend money.",
+     "Each account row has \"Raw records\" and \"Sync history\": the data exactly as received, before Token IQ priced or allocated it."
+    ],
+    "doc": "Data Sources"
+   },
+   "ask": [
+    [
+     "Are any providers missing?",
+     "The gateway saw traffic to Google Vertex AI this week, but no Google billing account is connected, so that cost is estimated, not confirmed.",
+     [
+      "Accounts",
+      "ds",
+      1
+     ]
+    ],
+    [
+     "Why is Azure failing?",
+     "Microsoft rejected the credential at 08:12, usually because admin consent was revoked or expired. Reconnect with Microsoft sign-in.",
+     [
+      "Accounts",
+      "ds",
+      1
+     ]
+    ],
+    [
+     "Can we connect a system that is not listed?",
+     "Yes. Choose \"Custom source\" in Connect account. It supports REST API pull, webhook push, OpenTelemetry, scheduled file drops and read-only database queries, with any common sign-in method and a field mapping.",
+     null
+    ],
+    [
+     "How do our own applications send usage?",
+     "Connect them as a Custom source with the \"Your application sends usage\" style. Token IQ creates an ingest token and shows the OpenTelemetry and webhook addresses to send to.",
+     [
+      "Accounts",
+      "ds",
+      1
+     ]
+    ]
+   ]
+  },
+  {
+   "k": "org",
+   "g": "Administration",
+   "adm": 1,
+   "name": "Organization",
+   "st": "re",
+   "acc": {
+    "A": "e",
+    "F": "v",
+    "V": "n",
+    "L": "n",
+    "M": "n",
+    "R": "n"
+   },
+   "desc": "Teams, projects and cost centers, synchronised with your corporate directory.",
+   "tabs": [
+    [
+     "Teams",
+     "Teams, their leads and budgets."
+    ],
+    [
+     "Projects",
+     "Projects, owning team and keys."
+    ],
+    [
+     "Cost centers",
+     "Finance cost centers mapped to teams."
+    ],
+    [
+     "Directory sync",
+     "Microsoft Entra ID or Okta synchronisation."
+    ]
+   ],
+   "not": "User permissions (Access Control).",
+   "actions": [
+    [
+     "Add team",
+     true,
+     "m:team"
+    ]
+   ],
+   "table": {
+    "title": "Teams",
+    "cols": [
+     "Team",
+     "Team Lead",
+     "Projects",
+     "Members",
+     "Virtual keys",
+     "Budget"
+    ],
+    "num": [
+     2,
+     3,
+     4,
+     5
+    ],
+    "rows": [
+     [
+      "Support Bots",
+      "Asha R.",
+      "3",
+      "14",
+      "6",
+      "$25,000"
+     ],
+     [
+      "Sales Assist",
+      "Meera S.",
+      "2",
+      "9",
+      "3",
+      "$12,000"
+     ],
+     [
+      "Internal Tools",
+      "Dev K.",
+      "4",
+      "11",
+      "5",
+      "$8,000"
+     ]
+    ]
+   },
+   "next": [
+    [
+     "Enable directory sync",
+     "org",
+     3
+    ],
+    [
+     "Assign roles in Access Control",
+     "iam"
+    ]
+   ],
+   "help": {
+    "steps": [
+     "Enable Directory sync to import people and groups.",
+     "Create teams and assign a Team Lead to each.",
+     "Map teams to finance cost centers."
+    ],
+    "tips": [],
+    "doc": "Organization"
+   },
+   "ask": [
+    [
+     "Which teams have no lead?",
+     "All teams have a lead. Internal Tools' lead was assigned today.",
+     null
+    ]
+   ]
+  },
+  {
+   "k": "iam",
+   "g": "Administration",
+   "adm": 1,
+   "name": "Access Control",
+   "st": "new",
+   "acc": {
+    "A": "e",
+    "F": "v",
+    "V": "v",
+    "L": "n",
+    "M": "n",
+    "R": "n"
+   },
+   "custom": "iam",
+   "desc": "Users, roles, permissions, service accounts, single sign-on and audit log.",
+   "tabs": [
+    [
+     "Users",
+     "Everyone with access, their role and scope."
+    ],
+    [
+     "Roles & permissions",
+     "What each role can view and manage."
+    ],
+    [
+     "Service accounts",
+     "Non-human identities for API, MCP and ingestion."
+    ],
+    [
+     "Single sign-on",
+     "Microsoft Entra ID, Okta or Google sign-in."
+    ],
+    [
+     "Audit log",
+     "Every configuration and permission change."
+    ]
+   ],
+   "not": "Provider credentials (Data Sources).",
+   "actions": [
+    [
+     "Invite user",
+     true,
+     "m:invite"
+    ]
+   ],
+   "help": {
+    "steps": [
+     "Configure single sign-on so users sign in with corporate accounts.",
+     "Invite users and assign a role and scope (team).",
+     "Create service accounts for integrations instead of sharing user credentials.",
+     "Review the audit log regularly."
+    ],
+    "tips": [
+     "Team scope is enforced in every page, export, report, the assistant and the API."
+    ],
+    "doc": "Access Control"
+   },
+   "ask": [
+    [
+     "What can a Team Lead change?",
+     "Their team's virtual keys, notification settings, recommendation assignments and saved reports; they can submit budget requests. They cannot see other teams, invoices, data sources or organisation settings.",
+     [
+      "Roles & permissions",
+      "iam",
+      1
+     ]
+    ]
+   ]
+  },
+  {
+   "k": "alloc",
+   "g": "Administration",
+   "adm": 1,
+   "name": "Cost Allocation",
+   "st": "re",
+   "acc": {
+    "A": "e",
+    "F": "e",
+    "V": "n",
+    "L": "n",
+    "M": "n",
+    "R": "n"
+   },
+   "desc": "Rules that assign every cost to a team, project or cost center, plus custom dimensions and shared-cost splits.",
+   "tabs": [
+    [
+     "Allocation rules",
+     "Evaluated in priority order; first match wins."
+    ],
+    [
+     "Dimensions",
+     "Custom labels such as product line or customer."
+    ],
+    [
+     "Shared costs",
+     "Split rules for shared services."
+    ]
+   ],
+   "not": "",
+   "actions": [
+    [
+     "Add rule",
+     true,
+     "m:rule"
+    ]
+   ],
+   "kpis": [
+    [
+     "Allocated",
+     "93%",
+     "target 98%"
+    ],
+    [
+     "Unallocated",
+     "$2,140",
+     "2 accounts, 2 keys",
+     "up"
+    ],
+    [
+     "Active rules",
+     "6",
+     "changed 3 days ago"
+    ],
+    [
+     "Dimensions",
+     "3",
+     "product, cost center, customer"
+    ]
+   ],
+   "table": {
+    "title": "Allocation rules",
+    "cols": [
+     "Priority",
+     "Match",
+     "Allocate to",
+     "Matched cost (Oct)"
+    ],
+    "num": [
+     3
+    ],
+    "rows": [
+     [
+      "1",
+      "Virtual key → project",
+      "Project's team",
+      "$27,120"
+     ],
+     [
+      "2",
+      "Account kore-aoai-prod",
+      "Support Bots",
+      "$3,900"
+     ],
+     [
+      "3",
+      "User email (Claude Enterprise, ChatGPT)",
+      "User's team",
+      "$1,180"
+     ],
+     [
+      "4",
+      "AWS tag team=sales",
+      "Sales Assist",
+      "$640"
+     ],
+     [
+      "—",
+      "No rule matched",
+      "chip:w:Unallocated",
+      "$2,140"
+     ]
+    ]
+   },
+   "next": [
+    [
+     "Allocate unallocated cost",
+     "recon",
+     2
+    ]
+   ],
+   "help": {
+    "steps": [
+     "Rules are evaluated top to bottom; the first match applies.",
+     "Select \"Add rule\"; use \"Test against last month\" before saving.",
+     "Define dimensions to report by product, customer or cost center."
+    ],
+    "tips": [],
+    "doc": "Cost Allocation"
+   },
+   "ask": [
+    [
+     "What is unallocated?",
+     "$2,140: account azure-sandbox-02 ($900), two Internal Tools keys without a project ($1,060) and $180 of untagged Bedrock cost.",
+     [
+      "Add rule",
+      "alloc"
+     ]
+    ]
+   ]
+  },
+  {
+   "k": "pricing",
+   "g": "Administration",
+   "adm": 1,
+   "name": "Pricing & Rates",
+   "st": "new",
+   "acc": {
+    "A": "e",
+    "F": "e",
+    "V": "n",
+    "L": "n",
+    "M": "n",
+    "R": "n"
+   },
+   "desc": "Contracted rates, effective prices, currency conversion and the internal rate card.",
+   "tabs": [
+    [
+     "Effective rates",
+     "Contracted discounts and the effective price per model."
+    ],
+    [
+     "Currency & tax",
+     "Exchange rate source and GST."
+    ],
+    [
+     "Internal rate card",
+     "Showback prices, with or without margin."
+    ]
+   ],
+   "not": "",
+   "table": {
+    "title": "Effective rates (per 1M input tokens)",
+    "cols": [
+     "Model",
+     "Account",
+     "List price",
+     "Effective price",
+     "Discount"
+    ],
+    "num": [
+     2,
+     3
+    ],
+    "rows": [
+     [
+      "gpt-4o",
+      "kore-aoai-prod",
+      "$2.50",
+      "$2.15",
+      "chip:ok:14%"
+     ],
+     [
+      "claude-sonnet-4-5",
+      "kore-anthropic",
+      "$3.00",
+      "$3.00",
+      "chip:g:—"
+     ],
+     [
+      "gpt-4.1",
+      "nitco-openai-org",
+      "$2.00",
+      "$2.00",
+      "chip:g:—"
+     ]
+    ]
+   },
+   "help": {
+    "steps": [
+     "Effective rates are derived from invoices; review them here.",
+     "Add contracted discounts not visible on invoices.",
+     "Set the exchange-rate source and GST for INR reporting."
+    ],
+    "tips": [
+     "All savings estimates use effective rates."
+    ],
+    "doc": "Pricing & Rates"
+   },
+   "ask": [
+    [
+     "Why is our gpt-4o rate lower than list?",
+     "Azure invoices show a 14% enterprise agreement discount.",
+     null
+    ]
+   ]
+  },
+  {
+   "k": "integ",
+   "g": "Administration",
+   "adm": 1,
+   "name": "Integrations",
+   "st": "new",
+   "acc": {
+    "A": "e",
+    "F": "n",
+    "V": "n",
+    "L": "n",
+    "M": "n",
+    "R": "n"
+   },
+   "desc": "Slack, Microsoft Teams, email, Jira, ServiceNow, API, webhooks and MCP server.",
+   "actions": [
+    [
+     "Connect integration",
+     true,
+     "m:integration"
+    ]
+   ],
+   "tabs": [
+    [
+     "Notifications",
+     "Slack, Microsoft Teams and email."
+    ],
+    [
+     "Ticketing",
+     "Jira and ServiceNow."
+    ],
+    [
+     "API & webhooks",
+     "Read API and outgoing webhooks."
+    ],
+    [
+     "MCP server",
+     "Let corporate AI assistants query Token IQ within each user's permissions."
+    ]
+   ],
+   "not": "Data sources.",
+   "table": {
+    "title": "Integrations",
+    "cols": [
+     "Integration",
+     "Status",
+     "Used for",
+     ""
+    ],
+    "rows": [
+     [
+      "Microsoft Teams",
+      "chip:ok:Connected",
+      "Alerts and scheduled reports",
+      ""
+     ],
+     [
+      "Email",
+      "chip:ok:Enabled",
+      "Reports and approvals",
+      ""
+     ],
+     [
+      "Jira",
+      "chip:g:Not connected",
+      "Recommendation tickets",
+      "modal:Connect:integration"
+     ],
+     [
+      "MCP server",
+      "chip:g:Disabled",
+      "AI assistant access",
+      "modal:Enable:integration"
+     ]
+    ]
+   },
+   "help": {
+    "steps": [
+     "Select Connect and authorise in the target tool.",
+     "Route alerts in Anomalies & Alerts › Notification channels."
+    ],
+    "tips": [],
+    "doc": "Integrations"
+   },
+   "ask": [
+    [
+     "How do I route alerts to Teams?",
+     "Microsoft Teams is connected. Choose the channel per alert rule in Anomalies & Alerts › Alert rules.",
+     [
+      "Alert rules",
+      "alerts",
+      1
+     ]
+    ]
+   ]
+  },
+  {
+   "k": "settings",
+   "g": "Administration",
+   "adm": 1,
+   "name": "Settings",
+   "st": "re",
+   "acc": {
+    "A": "e",
+    "F": "n",
+    "V": "n",
+    "L": "n",
+    "M": "n",
+    "R": "n"
+   },
+   "desc": "Data retention, privacy, system health, licence and feature flags.",
+   "tabs": [
+    [
+     "Data retention & privacy",
+     "Retention periods. Prompts and responses are never stored."
+    ],
+    [
+     "System health",
+     "Status of each Token IQ component."
+    ],
+    [
+     "Licence",
+     "Plan, users and teams in use."
+    ],
+    [
+     "Feature flags",
+     "Gateway features disabled by default."
+    ]
+   ],
+   "not": "",
+   "table": {
+    "title": "System health",
+    "cols": [
+     "Component",
+     "Status",
+     "Last run"
+    ],
+    "rows": [
+     [
+      "Gateway",
+      "chip:ok:Running",
+      "live"
+     ],
+     [
+      "Provider sync",
+      "chip:w:1 of 5 failing",
+      "09:12"
+     ],
+     [
+      "Recommendation engine",
+      "chip:ok:Completed",
+      "02:00"
+     ],
+     [
+      "Report scheduler",
+      "chip:ok:Delivered",
+      "06:00"
+     ]
+    ]
+   },
+   "help": {
+    "steps": [
+     "Set retention for detailed records (default 13 months).",
+     "Check System health when data appears stale."
+    ],
+    "tips": [],
+    "doc": "Settings"
+   },
+   "ask": [
+    [
+     "Are prompts stored?",
+     "No. Token IQ stores request metadata only: who, model, token counts and cost.",
+     null
+    ]
+   ]
+  },
+  {
+   "k": "myusage",
+   "g": "",
+   "foot": 1,
+   "name": "My Usage",
+   "st": "new",
+   "acc": {
+    "A": "v",
+    "F": "v",
+    "V": "v",
+    "L": "v",
+    "M": "o",
+    "R": "v"
+   },
+   "desc": "Your personal AI usage and cost across tools, keys and seats. Read-only.",
+   "tabs": [
+    [
+     "Summary",
+     "Your cost this month vs your team median."
+    ],
+    [
+     "By tool & model",
+     "Breakdown by tool, provider and model."
+    ],
+    [
+     "Keys & seats",
+     "Keys and seats assigned to you (read-only)."
+    ],
+    [
+     "Limits & access",
+     "Your monthly limit and allowed models, set by your Team Lead."
+    ]
+   ],
+   "not": "Other people's usage.",
+   "kpis": [
+    [
+     "My cost, October",
+     "$41.20",
+     "team median $28.00"
+    ],
+    [
+     "Claude Code",
+     "$14.92",
+     "7 sessions yesterday"
+    ],
+    [
+     "ChatGPT Enterprise seat",
+     "$60.00",
+     "active 18 of 22 days"
+    ],
+    [
+     "Virtual key ravi-dev",
+     "$6.28",
+     "Support Bots › Billing bot"
+    ]
+   ],
+   "table": {
+    "title": "Assigned keys and seats",
+    "cols": [
+     "Item",
+     "Type",
+     "Month to date",
+     "Last used"
+    ],
+    "num": [
+     2
+    ],
+    "rows": [
+     [
+      "ChatGPT Enterprise",
+      "Seat",
+      "$60.00",
+      "today"
+     ],
+     [
+      "Claude Code",
+      "Tool (Console key)",
+      "$14.92",
+      "yesterday"
+     ],
+     [
+      "ravi-dev",
+      "Virtual key",
+      "$6.28",
+      "2 hours ago"
+     ]
+    ]
+   },
+   "tabtables": {
+    "1": {
+     "title": "By tool & model",
+     "cols": [
+      "Tool or key",
+      "Model",
+      "Requests",
+      "Month to date"
+     ],
+     "num": [
+      2,
+      3
+     ],
+     "rows": [
+      [
+       "ChatGPT Enterprise",
+       "gpt-4.1",
+       "—",
+       "$60.00 (seat)"
+      ],
+      [
+       "Claude Code",
+       "claude-sonnet-4-5",
+       "412",
+       "$14.92"
+      ],
+      [
+       "ravi-dev",
+       "gpt-4.1-mini",
+       "1,880",
+       "$6.28"
+      ]
+     ]
+    },
+    "2": {
+     "title": "Assigned keys and seats",
+     "cols": [
+      "Item",
+      "Type",
+      "Month to date",
+      "Last used"
+     ],
+     "num": [
+      2
+     ],
+     "rows": [
+      [
+       "ChatGPT Enterprise",
+       "Seat",
+       "$60.00",
+       "today"
+      ],
+      [
+       "Claude Code",
+       "Tool (Console key)",
+       "$14.92",
+       "yesterday"
+      ],
+      [
+       "ravi-dev",
+       "Virtual key (sk-…3f9a)",
+       "$6.28",
+       "2 hours ago"
+      ]
+     ]
+    },
+    "3": {
+     "title": "Limits & access",
+     "cols": [
+      "Setting",
+      "Value",
+      "Set by"
+     ],
+     "rows": [
+      [
+       "Monthly limit",
+       "$150 (you have used 27%)",
+       "Asha R., Team Lead"
+      ],
+      [
+       "Allowed models",
+       "gpt-4.1-mini, claude-haiku-4-5",
+       "Asha R., Team Lead"
+      ],
+      [
+       "Projects",
+       "Billing bot",
+       "Asha R., Team Lead"
+      ],
+      [
+       "Notifications",
+       "Email at 80% and 100% of your limit",
+       "Team default"
+      ]
+     ]
+    }
+   },
+   "help": {
+    "steps": [
+     "This page shows only your own usage. Nothing here can be changed.",
+     "Limits & access shows what your Team Lead has set for you.",
+     "For a new key, a model or a higher limit, contact your Team Lead (Asha R.)."
+    ],
+    "tips": [],
+    "doc": "My Usage"
+   },
+   "ask": [
+    [
+     "Why is my cost above the team median?",
+     "Mainly the ChatGPT Enterprise seat ($60 fixed). Your usage-based cost ($21.20) is below the median.",
+     null
+    ]
+   ]
+  },
+  {
+   "k": "docs",
+   "g": "",
+   "foot": 1,
+   "name": "Documentation",
+   "st": "new",
+   "acc": {
+    "A": "v",
+    "F": "v",
+    "V": "v",
+    "L": "v",
+    "M": "v",
+    "R": "v"
+   },
+   "custom": "help",
+   "desc": "Guides for every page, setup walkthroughs, glossary and support.",
+   "tabs": [],
+   "not": "",
+   "help": {
+    "steps": [
+     "Search for a task.",
+     "Every page has a Page guide button with short steps."
+    ],
+    "tips": [],
+    "doc": "Getting started"
+   },
+   "ask": [
+    [
+     "What is a token?",
+     "A unit of text, roughly three-quarters of a word. Providers charge per input and output token.",
+     null
+    ]
+   ]
+  }
+ ],
+ "modals": {
+  "invite": {
+   "title": "Invite user",
+   "intro": "Give a person access to Token IQ. Their role decides which pages they see; their team decides which data they see.",
+   "save": "Send invitation",
+   "fields": [
+    [
+     "Email address",
+     "text",
+     "name@company.com",
+     "Work email. If single sign-on is on, the person signs in with this corporate account.",
+     "asha.r@kore.ai",
+     1
+    ],
+    [
+     "Role",
+     "select",
+     [
+      "Team Member",
+      "Team Lead (Manage)",
+      "Team Lead (Read-only)",
+      "Org Viewer",
+      "Finance Admin",
+      "Org Admin"
+     ],
+     "Team Member: read-only, own usage. Team Lead (Manage): runs one team: members, projects, keys, requests. Team Lead (Read-only): sees everything about one team but changes nothing, for deputies and project managers. Org Viewer: read-only, whole organisation. Finance Admin: invoices, budgets, pricing. Org Admin: everything except licence ownership.",
+     "Team Lead (Manage)",
+     1
+    ],
+    [
+     "Team",
+     "select",
+     [
+      "Support Bots",
+      "Sales Assist",
+      "Internal Tools"
+     ],
+     "Required for both Team Lead roles and Team Member. Limits every page, export and assistant answer to this team.",
+     "Support Bots",
+     0
+    ],
+    [
+     "Access expires",
+     "date",
+     "",
+     "Optional end date, for contractors or temporary access. Access is removed automatically.",
+     "31 Mar 2027",
+     0
+    ],
+    [
+     "Send welcome email",
+     "check",
+     "Send a welcome email with a link to the getting-started guide",
+     "Recommended for new users.",
+     "",
+     0
+    ]
+   ],
+   "after": "The person receives an email invitation. Their access is active as soon as they sign in, and the change is recorded in the audit log."
+  },
+  "svc": {
+   "title": "Create service account",
+   "intro": "A non-human identity for an application, BI tool, MCP client or ingestion job. Never share a user's credentials with a system.",
+   "save": "Create service account",
+   "fields": [
+    [
+     "Name",
+     "text",
+     "powerbi-export",
+     "A recognisable name; it appears in the audit log.",
+     "powerbi-finance",
+     1
+    ],
+    [
+     "Purpose",
+     "select",
+     [
+      "Read cost data (API)",
+      "Send usage data (ingest token)",
+      "AI assistant access (MCP)"
+     ],
+     "Read: query cost data. Ingest: send usage only, cannot read (also created automatically when you connect your own application in Data Sources). MCP: lets an AI assistant query Token IQ.",
+     "Read cost data (API)",
+     1
+    ],
+    [
+     "Scope",
+     "select",
+     [
+      "Organization",
+      "Support Bots",
+      "Sales Assist",
+      "Internal Tools"
+     ],
+     "The data this account can access. Use the narrowest scope that works.",
+     "Organization",
+     1
+    ],
+    [
+     "Expires",
+     "date",
+     "",
+     "Credentials stop working after this date. Recommended: 90 days, then rotate.",
+     "90 days",
+     1
+    ]
+   ],
+   "after": "The token is shown once. Store it in your secrets manager; Token IQ keeps only a hash."
+  },
+  "sso": {
+   "title": "Configure single sign-on",
+   "intro": "Let users sign in with their corporate account and keep Token IQ users in sync with your directory.",
+   "save": "Save and test",
+   "fields": [
+    [
+     "Identity provider",
+     "select",
+     [
+      "Microsoft Entra ID",
+      "Okta",
+      "Google Workspace"
+     ],
+     "The system your company uses for sign-in.",
+     "Microsoft Entra ID",
+     1
+    ],
+    [
+     "Tenant ID or domain",
+     "text",
+     "00000000-0000-…",
+     "Found in your identity provider's overview page.",
+     "kore.onmicrosoft.com",
+     1
+    ],
+    [
+     "Client ID",
+     "text",
+     "",
+     "From the Token IQ app registration in your identity provider.",
+     "",
+     1
+    ],
+    [
+     "Client secret",
+     "secret",
+     "",
+     "Stored encrypted in the secrets manager and never shown again.",
+     "",
+     1
+    ],
+    [
+     "Default role for new users",
+     "select",
+     [
+      "Team Member",
+      "Org Viewer"
+     ],
+     "Role given to people who sign in for the first time. Team Member is the safest default.",
+     "Team Member",
+     1
+    ],
+    [
+     "Map directory groups to teams",
+     "check",
+     "Create and update teams from directory groups",
+     "Keeps team membership in sync automatically.",
+     "",
+     0
+    ]
+   ],
+   "after": "Token IQ runs a test sign-in. When it succeeds, password sign-in can be disabled for everyone except the Org Owner."
+  },
+  "key": {
+   "title": "Create virtual key",
+   "intro": "A virtual key is the credential an application uses to send requests through the Token IQ gateway. Every key belongs to a project, so its cost is always allocated.",
+   "save": "Create key",
+   "fields": [
+    [
+     "Key name",
+     "text",
+     "billing-prod",
+     "Use project and environment, e.g. billing-prod or faq-staging.",
+     "faq-staging",
+     1
+    ],
+    [
+     "Team",
+     "select",
+     [
+      "Support Bots",
+      "Sales Assist",
+      "Internal Tools"
+     ],
+     "Team Leads see only their own team here.",
+     "Support Bots",
+     1
+    ],
+    [
+     "Project",
+     "select",
+     [
+      "Billing bot",
+      "FAQ bot",
+      "Intent router"
+     ],
+     "The project this key's cost is allocated to.",
+     "FAQ bot",
+     1
+    ],
+    [
+     "Owner",
+     "text",
+     "person or service account",
+     "Who is responsible for this key.",
+     "svc-faq",
+     1
+    ],
+    [
+     "Monthly budget (USD)",
+     "number",
+     "500",
+     "Alerts are sent at 80% and 100%. Cannot exceed the team's remaining budget.",
+     "500",
+     1
+    ],
+    [
+     "Allowed models",
+     "multi",
+     [
+      "gpt-4.1-mini",
+      "gpt-4.1",
+      "claude-haiku-4-5",
+      "claude-sonnet-4-5"
+     ],
+     "Restrict to the models this application needs. Non-production keys should not use premium models.",
+     "gpt-4.1-mini, claude-haiku-4-5",
+     0
+    ],
+    [
+     "Expires",
+     "date",
+     "",
+     "Optional. Recommended for non-production keys.",
+     "90 days",
+     0
+    ]
+   ],
+   "after": "The key is shown once. Its spend appears in Cost Explorer under the selected project within a minute of first use."
+  },
+  "budget": {
+   "title": "Create budget",
+   "intro": "A budget sets an expected monthly amount and who is notified as spend approaches it. Budgets notify; they do not block requests.",
+   "save": "Create budget",
+   "fields": [
+    [
+     "Budget name",
+     "text",
+     "Support Bots monthly",
+     "A clear name used in alerts and reports.",
+     "Support Bots monthly",
+     1
+    ],
+    [
+     "Scope",
+     "select",
+     [
+      "Organization",
+      "Team",
+      "Project",
+      "Virtual key"
+     ],
+     "What the budget covers.",
+     "Team",
+     1
+    ],
+    [
+     "Applies to",
+     "select",
+     [
+      "Support Bots",
+      "Sales Assist",
+      "Internal Tools"
+     ],
+     "The specific team, project or key.",
+     "Support Bots",
+     1
+    ],
+    [
+     "Amount (USD)",
+     "number",
+     "25000",
+     "Monthly amount at your effective rates.",
+     "25000",
+     1
+    ],
+    [
+     "Alert thresholds",
+     "multi",
+     [
+      "50%",
+      "80%",
+      "100%",
+      "Forecast exceeds budget"
+     ],
+     "When to notify. \"Forecast exceeds budget\" warns days in advance.",
+     "80%, 100%, Forecast exceeds budget",
+     1
+    ],
+    [
+     "Notify",
+     "text",
+     "names, emails or channels",
+     "People or channels to notify.",
+     "Asha R., #support-bots-cost",
+     1
+    ]
+   ],
+   "after": "The budget appears in Budgets & Forecasts immediately; the forecast is recalculated hourly."
+  },
+  "alert": {
+   "title": "Create alert rule",
+   "intro": "Decide which events notify whom, and where.",
+   "save": "Create rule",
+   "fields": [
+    [
+     "Alert type",
+     "select",
+     [
+      "Unusual spend",
+      "Budget threshold",
+      "Data source failure",
+      "New model detected",
+      "Policy violation"
+     ],
+     "The event that triggers the alert.",
+     "Unusual spend",
+     1
+    ],
+    [
+     "Scope",
+     "select",
+     [
+      "Organization",
+      "Support Bots",
+      "Sales Assist",
+      "Internal Tools"
+     ],
+     "Which costs or sources the rule watches.",
+     "Support Bots",
+     1
+    ],
+    [
+     "Sensitivity",
+     "select",
+     [
+      "Low (only large spikes)",
+      "Medium",
+      "High (small changes too)"
+     ],
+     "How far from normal spend must move. Start with Medium.",
+     "Medium",
+     1
+    ],
+    [
+     "Channel",
+     "multi",
+     [
+      "Email",
+      "Microsoft Teams",
+      "Slack"
+     ],
+     "Where the alert is delivered.",
+     "Microsoft Teams",
+     1
+    ],
+    [
+     "Recipients",
+     "text",
+     "people or channels",
+     "Who receives the alert.",
+     "#support-bots-cost",
+     1
+    ]
+   ],
+   "after": "The rule takes effect immediately and is evaluated every 15 minutes."
+  },
+  "upload": {
+   "title": "Upload invoice",
+   "intro": "Add a provider invoice so it can be reconciled against recorded usage.",
+   "save": "Upload and parse",
+   "fields": [
+    [
+     "Provider",
+     "select",
+     [
+      "AWS Bedrock",
+      "Azure OpenAI",
+      "Anthropic",
+      "OpenAI",
+      "Google Vertex AI"
+     ],
+     "The provider that issued the invoice.",
+     "AWS Bedrock",
+     1
+    ],
+    [
+     "Billing period",
+     "select",
+     [
+      "September 2026",
+      "October 2026"
+     ],
+     "The month the invoice covers.",
+     "September 2026",
+     1
+    ],
+    [
+     "Invoice file",
+     "file",
+     "PDF or CSV",
+     "The original invoice. It is stored as audit evidence.",
+     "invoice-sep-2026.pdf",
+     1
+    ],
+    [
+     "Currency",
+     "select",
+     [
+      "USD",
+      "INR",
+      "EUR"
+     ],
+     "Invoice currency; converted using Pricing & Rates.",
+     "USD",
+     1
+    ]
+   ],
+   "after": "Token IQ reads the totals and line items and shows them for confirmation before anything is saved. Reconciliation runs immediately after."
+  },
+  "rule": {
+   "title": "Add allocation rule",
+   "intro": "Allocation rules decide which team, project or cost center owns each cost. Rules are evaluated in priority order; the first match applies.",
+   "save": "Save rule",
+   "fields": [
+    [
+     "Rule name",
+     "text",
+     "Sandbox account to Internal Tools",
+     "Describes what the rule does.",
+     "Sandbox account to Internal Tools",
+     1
+    ],
+    [
+     "Priority",
+     "number",
+     "5",
+     "Lower numbers are evaluated first.",
+     "5",
+     1
+    ],
+    [
+     "Match on",
+     "select",
+     [
+      "Provider account",
+      "Virtual key",
+      "Cloud tag",
+      "User email",
+      "Request header"
+     ],
+     "The attribute of the cost to match.",
+     "Provider account",
+     1
+    ],
+    [
+     "Match value",
+     "text",
+     "azure-sandbox-02",
+     "The value to match.",
+     "azure-sandbox-02",
+     1
+    ],
+    [
+     "Allocate to",
+     "select",
+     [
+      "Support Bots",
+      "Sales Assist",
+      "Internal Tools",
+      "Shared (split by usage)"
+     ],
+     "Who owns matching cost.",
+     "Internal Tools",
+     1
+    ],
+    [
+     "Effective from",
+     "date",
+     "",
+     "Apply from this date. Closed periods are never changed.",
+     "1 Oct 2026",
+     1
+    ]
+   ],
+   "after": "Use \"Test against last month\" to preview matched cost before saving. Changes are recorded in the audit log."
+  },
+  "report": {
+   "title": "Schedule report",
+   "intro": "Deliver a saved view or summary to people on a schedule.",
+   "save": "Schedule",
+   "fields": [
+    [
+     "Report",
+     "select",
+     [
+      "Executive summary",
+      "Support Bots overview (saved view)",
+      "Azure vs Anthropic by model (saved view)"
+     ],
+     "What to send.",
+     "Executive summary",
+     1
+    ],
+    [
+     "Recipients",
+     "text",
+     "people, emails or channels",
+     "Recipients only see data within their own access.",
+     "CFO, CTO",
+     1
+    ],
+    [
+     "Frequency",
+     "select",
+     [
+      "Daily",
+      "Weekly (Monday)",
+      "Monthly (1st)"
+     ],
+     "How often it is delivered.",
+     "Monthly (1st)",
+     1
+    ],
+    [
+     "Format",
+     "select",
+     [
+      "PDF",
+      "CSV",
+      "Link only"
+     ],
+     "PDF for leadership, CSV for analysis.",
+     "PDF",
+     1
+    ]
+   ],
+   "after": "The first delivery happens on the next scheduled date. You can send a test now."
+  },
+  "team": {
+   "title": "Add team",
+   "intro": "Teams group people, projects and keys. Each team has one Team Lead and its own budget.",
+   "save": "Add team",
+   "fields": [
+    [
+     "Team name",
+     "text",
+     "Support Bots",
+     "As people refer to it.",
+     "Customer Analytics",
+     1
+    ],
+    [
+     "Team Lead",
+     "text",
+     "name or email",
+     "Gets the Team Lead role scoped to this team.",
+     "Meera S.",
+     1
+    ],
+    [
+     "Cost center",
+     "text",
+     "CC-4410",
+     "Finance cost center for chargeback.",
+     "CC-5120",
+     0
+    ],
+    [
+     "Monthly budget (USD)",
+     "number",
+     "10000",
+     "Creates a team budget with 80% and 100% alerts.",
+     "10000",
+     0
+    ],
+    [
+     "Directory group",
+     "text",
+     "optional",
+     "Sync members from this directory group.",
+     "grp-customer-analytics",
+     0
+    ]
+   ],
+   "after": "The team appears in Organization. The Team Lead is notified and can start creating keys for the team's projects."
+  },
+  "connect": {
+   "title": "Connect account",
+   "intro": "Connect a source of AI usage or cost. Choose what you are connecting; the fields below change to match. Every connection is read-only: Token IQ can never change the account or spend money.",
+   "save": "Test and connect",
+   "typeLabel": "What are you connecting?",
+   "types": [
+    [
+     "AI provider",
+     "Anthropic, OpenAI, Azure OpenAI, AWS Bedrock, Google Vertex AI"
+    ],
+    [
+     "AI tool",
+     "Claude Code, Cursor, GitHub Copilot, ChatGPT and Claude workspaces"
+    ],
+    [
+     "Agent platform",
+     "Kore.ai, CrewAI, Copilot Studio, Agentforce, LangSmith"
+    ],
+    [
+     "Cloud billing export",
+     "AWS, Azure or Google Cloud cost exports"
+    ],
+    [
+     "Custom source",
+     "Any other company or system, connected any way"
+    ]
+   ],
+   "variants": {
+    "AI provider": {
+     "fields": [
+      [
+       "Provider",
+       "select",
+       [
+        "Anthropic",
+        "OpenAI",
+        "Microsoft Azure OpenAI",
+        "AWS Bedrock",
+        "Google Vertex AI",
+        "Mistral",
+        "Cohere"
+       ],
+       "Where the AI is billed. Not listed? Use Custom source.",
+       "Anthropic",
+       1
+      ],
+      [
+       "Account type",
+       "select",
+       [
+        "Console / API platform",
+        "Enterprise workspace (Claude Enterprise, ChatGPT Enterprise)",
+        "Team workspace (CSV export only)"
+       ],
+       "Decides how Token IQ connects. Team workspaces have no billing API, so they are uploaded in Uploads.",
+       "Console / API platform",
+       1
+      ],
+      [
+       "Connection method",
+       "select",
+       [
+        "Admin API key (Anthropic, OpenAI)",
+        "Sign in with Microsoft (Azure)",
+        "IAM role via CloudFormation (AWS)",
+        "Sign in with Google (Vertex AI)"
+       ],
+       "The provider decides this. Anthropic and OpenAI issue a read-only admin key; Azure and Google use a sign-in with admin consent; AWS uses a role you create with one click.",
+       "Admin API key",
+       1
+      ],
+      [
+       "Admin key",
+       "secret",
+       "sk-ant-admin…",
+       "Only for the admin-key method. Anthropic: platform.claude.com › Settings › Admin keys. OpenAI: Organization settings › Admin keys. Stored encrypted; never shown again.",
+       "sk-ant-admin01-…",
+       0
+      ],
+      [
+       "Account name",
+       "text",
+       "kore-anthropic",
+       "How this account appears across Token IQ.",
+       "kore-anthropic",
+       1
+      ],
+      [
+       "Default owner",
+       "select",
+       [
+        "Unallocated",
+        "Support Bots",
+        "Sales Assist",
+        "Internal Tools"
+       ],
+       "Team that owns cost no allocation rule assigns.",
+       "Support Bots",
+       0
+      ],
+      [
+       "Load history",
+       "select",
+       [
+        "6 months",
+        "3 months",
+        "12 months",
+        "None"
+       ],
+       "Backfill so trends and recommendations work from day one.",
+       "6 months",
+       1
+      ]
+     ],
+     "after": "Token IQ tests each permission. Nothing is saved until the required checks pass; then history loads in the background (about 4 minutes)."
+    },
+    "AI tool": {
+     "fields": [
+      [
+       "Tool",
+       "select",
+       [
+        "Claude Code",
+        "Cursor",
+        "GitHub Copilot",
+        "ChatGPT Enterprise",
+        "Claude Enterprise",
+        "Windsurf",
+        "Gemini Code Assist"
+       ],
+       "The tool your people use. Personal subscriptions are not connected.",
+       "GitHub Copilot",
+       1
+      ],
+      [
+       "Connection method",
+       "select",
+       [
+        "Admin or analytics API key",
+        "Install the GitHub app",
+        "Workspace CSV export (Uploads)"
+       ],
+       "GitHub uses an app install with read-only billing scope; most others issue an admin or analytics key.",
+       "Install the GitHub app",
+       1
+      ],
+      [
+       "Credential",
+       "secret",
+       "",
+       "The key, if the method uses one. Stored encrypted.",
+       "",
+       0
+      ],
+      [
+       "Match users by",
+       "select",
+       [
+        "Work email",
+        "Single sign-on identity",
+        "Manual mapping"
+       ],
+       "How tool users are matched to people in your directory, so cost lands on the right person and team.",
+       "Work email",
+       1
+      ],
+      [
+       "Seat price per month",
+       "number",
+       "19",
+       "Used for seat cost and idle-seat recommendations when the tool does not report price.",
+       "19",
+       0
+      ],
+      [
+       "Load history",
+       "select",
+       [
+        "3 months",
+        "6 months",
+        "None"
+       ],
+       "Earlier usage, where the tool keeps it.",
+       "3 months",
+       1
+      ]
+     ],
+     "after": "Users are matched immediately; anyone not matched is listed in Data Sources › Overview, under issues to fix."
+    },
+    "Agent platform": {
+     "fields": [
+      [
+       "Platform",
+       "select",
+       [
+        "Kore.ai XO Platform",
+        "CrewAI",
+        "Microsoft Copilot Studio",
+        "Salesforce Agentforce",
+        "LangSmith",
+        "Langfuse",
+        "Dify"
+       ],
+       "The platform your bots or agents run on. Not listed? Use Custom source.",
+       "Kore.ai XO Platform",
+       1
+      ],
+      [
+       "Connection method",
+       "select",
+       [
+        "App credentials (client ID and secret)",
+        "Platform API key",
+        "Platform sends usage to Token IQ (OpenTelemetry)"
+       ],
+       "App credentials: Token IQ reads usage logs from the platform. Sends usage: the platform pushes usage to Token IQ with an ingest token.",
+       "App credentials",
+       1
+      ],
+      [
+       "Instance or workspace URL",
+       "text",
+       "https://bots.kore.ai",
+       "Your platform address or workspace ID.",
+       "https://bots.kore.ai",
+       1
+      ],
+      [
+       "Client ID",
+       "text",
+       "",
+       "From the app you register in the platform with usage-log (read) access.",
+       "cs-5a1f…",
+       0
+      ],
+      [
+       "Client secret or API key",
+       "secret",
+       "",
+       "Stored encrypted.",
+       "",
+       0
+      ],
+      [
+       "Bots or agents to include",
+       "select",
+       [
+        "All",
+        "Selected only"
+       ],
+       "Leave All unless some bots are out of scope.",
+       "All",
+       1
+      ],
+      [
+       "What the platform reports",
+       "select",
+       [
+        "Tokens only (Token IQ prices them)",
+        "Cost per conversation",
+        "Platform licence fee only"
+       ],
+       "Decides whether Token IQ prices the usage at your effective rates or takes the platform's cost as given.",
+       "Tokens only",
+       1
+      ],
+      [
+       "Map each bot to a project",
+       "check",
+       "Create a mapping step after connecting",
+       "So each bot's cost lands on the right team and project.",
+       "",
+       0
+      ]
+     ],
+     "after": "Token IQ lists the bots it found and asks you to map each one to a project. Cost per conversation appears in Cost Explorer › Agents & sessions."
+    },
+    "Cloud billing export": {
+     "fields": [
+      [
+       "Cloud",
+       "select",
+       [
+        "AWS Cost and Usage Report (CUR 2.0)",
+        "Azure Cost Management export",
+        "Google Cloud BigQuery billing export"
+       ],
+       "The cloud cost export that includes your AI services. Used for invoice-level cost, commitments and credits.",
+       "Azure Cost Management export",
+       1
+      ],
+      [
+       "Export location",
+       "text",
+       "storage account / S3 bucket / dataset",
+       "Where the cloud writes the export.",
+       "korebillingexports/ai",
+       1
+      ],
+      [
+       "Access",
+       "select",
+       [
+        "Managed identity or IAM role",
+        "Service account key",
+        "Shared access signature"
+       ],
+       "Read-only access to that location. A role or managed identity is recommended: no long-lived secret.",
+       "IAM role",
+       1
+      ],
+      [
+       "Only AI services",
+       "check",
+       "Read AI service lines only (Bedrock, Azure OpenAI, Vertex AI)",
+       "Keeps unrelated cloud cost out of Token IQ.",
+       "",
+       0
+      ]
+     ],
+     "after": "Token IQ reads the latest export and every new one as it arrives (usually daily)."
+    },
+    "Custom source": {
+     "fields": [
+      [
+       "Source name",
+       "text",
+       "Acme LLM Gateway",
+       "A name for this source, shown across Token IQ.",
+       "Acme LLM Gateway",
+       1
+      ],
+      [
+       "Company or system",
+       "text",
+       "vendor, internal system, reseller or your own app",
+       "Who provides the data. Anything works: an internal gateway, a reseller, a regional provider, an in-house platform, or one of your own applications.",
+       "In-house RAG platform",
+       1
+      ],
+      [
+       "Connection style",
+       "select",
+       [
+        "Pull from a REST API",
+        "Your application sends usage (OpenTelemetry or webhook)",
+        "Scheduled file drop (SFTP, S3, Azure Blob, email)",
+        "Read-only database query (SQL)",
+        "Manual CSV upload with a template"
+       ],
+       "How data moves. Pull: Token IQ calls their API on a schedule. Sends usage: the system or your own application pushes each record to Token IQ as OpenTelemetry gen_ai spans or JSON webhooks, using an ingest token Token IQ creates for it. File drop: CSV or JSON files on a schedule. Database: a read-only query against a view. Manual: someone uploads a file each month.",
+       "Pull from a REST API",
+       1
+      ],
+      [
+       "Endpoint or location",
+       "text",
+       "https://api.example.com/v1/usage",
+       "Depends on the style: the API URL to call, the folder or bucket to read, or the database host. Leave blank when the system sends usage: Token IQ gives you the address and ingest token to send with.",
+       "https://llm.internal/v1/usage",
+       0
+      ],
+      [
+       "Authentication",
+       "select",
+       [
+        "API key in a header",
+        "Bearer token",
+        "OAuth 2.0 client credentials",
+        "Basic (username and password)",
+        "Mutual TLS certificate",
+        "Signed webhook (HMAC secret)",
+        "None (private network only)"
+       ],
+       "How Token IQ proves who it is, or how it checks that pushed data is genuine. Use OAuth 2.0 or mutual TLS where the system supports it.",
+       "OAuth 2.0 client credentials",
+       1
+      ],
+      [
+       "Credential",
+       "secret",
+       "key, secret or certificate",
+       "The secret for the chosen method. Stored encrypted and never shown again.",
+       "",
+       0
+      ],
+      [
+       "Data format",
+       "select",
+       [
+        "JSON",
+        "CSV",
+        "NDJSON (one JSON record per line)",
+        "OpenTelemetry"
+       ],
+       "The shape of each record.",
+       "JSON",
+       1
+      ],
+      [
+       "Field mapping",
+       "map",
+       [
+        [
+         "Timestamp",
+         "$.created_at"
+        ],
+        [
+         "User or email",
+         "$.user.email"
+        ],
+        [
+         "Team or project",
+         "$.metadata.project"
+        ],
+        [
+         "Model",
+         "$.model"
+        ],
+        [
+         "Input tokens",
+         "$.usage.prompt_tokens"
+        ],
+        [
+         "Output tokens",
+         "$.usage.completion_tokens"
+        ],
+        [
+         "Cost (optional)",
+         "$.cost_usd"
+        ],
+        [
+         "Currency (optional)",
+         "USD"
+        ]
+       ],
+       "Tell Token IQ where each standard field is in their record (a JSON path or CSV column). Only timestamp, model and token counts are required; if cost is missing, Token IQ prices it at your effective rates.",
+       "$.usage.prompt_tokens",
+       1
+      ],
+      [
+       "Sample record",
+       "textarea",
+       "{\"created_at\":\"2026-10-03T09:12:00Z\",\"model\":\"gpt-4.1\",\"usage\":{\"prompt_tokens\":812,\"completion_tokens\":96},\"user\":{\"email\":\"ravi.k@kore.ai\"}}",
+       "Paste one real record. The Configure tab shows how Token IQ reads it before you save.",
+       "",
+       0
+      ],
+      [
+       "Sync schedule",
+       "select",
+       [
+        "Hourly",
+        "Every 15 minutes",
+        "Daily",
+        "On arrival (webhooks, OpenTelemetry, file drop)"
+       ],
+       "How often Token IQ pulls, or when it processes pushed data.",
+       "Hourly",
+       1
+      ],
+      [
+       "Default owner",
+       "select",
+       [
+        "Unallocated",
+        "Support Bots",
+        "Sales Assist",
+        "Internal Tools"
+       ],
+       "Team for records with no user or project.",
+       "Internal Tools",
+       0
+      ]
+     ],
+     "after": "Token IQ tests the connection and parses your sample record into the standard fields. Records from this source are labelled \"Custom\" with their evidence level (reported cost, or priced by Token IQ), and appear in Raw records exactly as received."
+    }
+   }
+  },
+  "member": {
+   "title": "Manage member",
+   "intro": "Set what one person in your team can use. Changes apply immediately and are recorded in Team activity.",
+   "save": "Save changes",
+   "fields": [
+    [
+     "Member",
+     "select",
+     [
+      "Ravi K.",
+      "Divya M.",
+      "Kiran T.",
+      "Sam P."
+     ],
+     "Only people in your team are listed.",
+     "Divya M.",
+     1
+    ],
+    [
+     "Monthly limit (USD)",
+     "number",
+     "150",
+     "The member and you are notified at 80% and 100%. The total of limits can exceed the team budget; the team budget alert still applies.",
+     "400",
+     1
+    ],
+    [
+     "Allowed models",
+     "multi",
+     [
+      "gpt-4.1-mini",
+      "claude-haiku-4-5",
+      "gpt-4.1",
+      "claude-sonnet-4-5"
+     ],
+     "Models this person's keys may use. Premium models for development keys need a reason.",
+     "gpt-4.1-mini, claude-haiku-4-5",
+     1
+    ],
+    [
+     "Projects",
+     "multi",
+     [
+      "Billing bot",
+      "FAQ bot",
+      "Intent router"
+     ],
+     "Projects this person can create keys for and whose usage they appear in.",
+     "FAQ bot",
+     1
+    ],
+    [
+     "Access status",
+     "select",
+     [
+      "Active",
+      "Suspended"
+     ],
+     "Suspended: the person's keys stop working and they cannot sign in to team pages. Use for leave or offboarding.",
+     "Active",
+     1
+    ],
+    [
+     "Notify the member",
+     "check",
+     "Email the member a summary of this change",
+     "Recommended.",
+     "",
+     0
+    ]
+   ],
+   "after": "The member sees the new limit and models in My Usage › Limits & access. Suspending revokes their keys within a minute."
+  },
+  "addmember": {
+   "title": "Add member to team",
+   "intro": "Add an existing employee to your team. They join as a Team Member (read-only, own usage). Other roles are granted by the Org Admin.",
+   "save": "Add member",
+   "fields": [
+    [
+     "Person",
+     "text",
+     "name or work email",
+     "Must already be in the company directory.",
+     "sam.p@kore.ai",
+     1
+    ],
+    [
+     "Projects",
+     "multi",
+     [
+      "Billing bot",
+      "FAQ bot",
+      "Intent router"
+     ],
+     "Projects the person works on.",
+     "Intent router",
+     1
+    ],
+    [
+     "Monthly limit (USD)",
+     "number",
+     "150",
+     "Starting limit. Your team default is $150.",
+     "150",
+     1
+    ]
+   ],
+   "after": "The person is notified and sees their usage in My Usage. If they belong to another team, that Team Lead is told about the move."
+  },
+  "project": {
+   "title": "Create project",
+   "intro": "A project is an application or workload in your team. Keys belong to projects, so every request's cost is allocated.",
+   "save": "Create project",
+   "fields": [
+    [
+     "Project name",
+     "text",
+     "Refund assistant",
+     "As your team refers to it.",
+     "Refund assistant",
+     1
+    ],
+    [
+     "Owner",
+     "select",
+     [
+      "Ravi K.",
+      "Divya M.",
+      "Sam P.",
+      "Asha R."
+     ],
+     "The person responsible for the project's cost.",
+     "Divya M.",
+     1
+    ],
+    [
+     "Project budget (USD / month)",
+     "number",
+     "3000",
+     "Must fit within the team budget's unassigned amount ($0 left: request an increase first).",
+     "3000",
+     0
+    ],
+    [
+     "Environment",
+     "multi",
+     [
+      "Production",
+      "Staging",
+      "Development"
+     ],
+     "One key is suggested per environment.",
+     "Production, Staging",
+     1
+    ]
+   ],
+   "after": "The project appears in Projects & Keys and Cost Explorer. Create its first virtual key next."
+  },
+  "request": {
+   "title": "New approval request",
+   "intro": "Ask for a budget increase, a new project or access to a model. The right approver is selected automatically.",
+   "save": "Submit request",
+   "fields": [
+    [
+     "Request type",
+     "select",
+     [
+      "Budget increase",
+      "New project",
+      "Model access"
+     ],
+     "Budget increases go to Finance; model access and projects go to the Org Admin.",
+     "Budget increase",
+     1
+    ],
+    [
+     "Team",
+     "select",
+     [
+      "Support Bots"
+     ],
+     "Team Leads can only request for their own team.",
+     "Support Bots",
+     1
+    ],
+    [
+     "Details",
+     "text",
+     "+$5,000 per month",
+     "Amount, project name or model.",
+     "+$5,000 per month",
+     1
+    ],
+    [
+     "Justification",
+     "text",
+     "why it is needed",
+     "Approvers decide faster with a clear reason and the expected impact.",
+     "Billing bot volume grew 31%",
+     1
+    ]
+   ],
+   "after": "The approver is notified. You can track the request in Policies & Approvals."
+  },
+  "integration": {
+   "title": "Connect integration",
+   "intro": "Send recommendations, alerts and reports to the tools your teams already use.",
+   "save": "Authorise",
+   "fields": [
+    [
+     "Integration",
+     "select",
+     [
+      "Jira",
+      "ServiceNow",
+      "Slack",
+      "MCP server"
+     ],
+     "The tool to connect.",
+     "Jira",
+     1
+    ],
+    [
+     "Site or workspace",
+     "text",
+     "kore.atlassian.net",
+     "Your instance address.",
+     "kore.atlassian.net",
+     1
+    ],
+    [
+     "Default project or channel",
+     "text",
+     "FINOPS",
+     "Where items are created.",
+     "FINOPS",
+     0
+    ]
+   ],
+   "after": "You are redirected to the tool to approve access, then returned here."
+  }
+ }
+}
