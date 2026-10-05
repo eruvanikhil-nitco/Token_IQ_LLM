@@ -4,7 +4,7 @@ import { Info } from "lucide-react";
 
 import type { DateRangePickerValue } from "@/components/shared/date_picker_types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { combinedCoverage } from "../usagePeriod";
+import { lastNDaysCoverage } from "../usagePeriod";
 import CostExplorerView from "./CostExplorerView";
 import SourceComparisonView from "./SourceComparisonView";
 import UnallocatedView from "./UnallocatedView";
@@ -17,8 +17,9 @@ export default function CombinedTabs({ period }: CombinedTabsProps) {
   // The period comes from the page, so switching tab cannot change it. These endpoints take a
   // number of days capped at 90 and always mean "the last N days", so they cannot serve every
   // period the picker offers. When they cannot, the reader is told, because showing a different
-  // window that looks like the one they chose is the failure this replaced.
-  const coverage = combinedCoverage(period);
+  // window that looks like the one they chose is the failure this replaced. The APIs tab reads an
+  // endpoint of the same shape and says the same thing, from the same helper.
+  const coverage = lastNDaysCoverage(period);
 
   return (
     <Tabs defaultValue="explorer" className="flex flex-col gap-6">

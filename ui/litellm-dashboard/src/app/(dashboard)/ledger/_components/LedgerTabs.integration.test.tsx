@@ -201,4 +201,16 @@ describe("LedgerTabs", () => {
 
     expect(await screen.findByRole("tab", { name: "Invoices", selected: true })).toBeInTheDocument();
   });
+
+  it("says what the ledger is before showing its total, not after", async () => {
+    // The screen printed the ledger total first and explained underneath why the gateway’s own
+    // figure is missing from it. A reader who stops at the first number has already been given a
+    // figure they can misread as everything that was spent.
+    renderTabs();
+
+    const claim = await screen.findByText(/Every cost line the provider reported/);
+    const total = screen.getByText("Ledger total, USD");
+    // DOCUMENT_POSITION_FOLLOWING: the claim comes first in the document.
+    expect(claim.compareDocumentPosition(total) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
 });

@@ -29,4 +29,6 @@ export enum Page {
   VectorStores = "vector-stores",
   NewUsage = "new_usage",
   Usage = "usage",
+  Ledger = "ledger",
+  Attribution = "attribution",
 }

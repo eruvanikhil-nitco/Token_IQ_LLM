@@ -862,3 +862,95 @@ features during this work." No phase sanctioned that change. It is kept rather t
 it is correct, tested, and the one test whose expectation changed was updated in the same commit, so
 no later baseline comparison reads it as a regression. Recorded here as a known deviation rather than
 left to be discovered.
+
+---
+
+## Phase 5A, tasks 4 to 6: empty states, names, and the walk
+
+### Task 4: every empty state now offers the way out
+
+Reconciliation answered "No bill entered" and stopped, while the form that fixes it sat in a
+different tab the reader had to go and find. It now offers a control that takes them there, and
+`LedgerTabs` became a controlled `Tabs` so the control can actually move the reader rather than
+naming a place. Invoices and the attribution rules table say where their form is instead of only
+reporting that they hold nothing.
+
+Two empty states were left as they were, deliberately. `UnmatchedPanel`'s "This provider has
+reported nothing in the last N days" and the cost ledger's "Nothing recorded for this provider in
+this period" are not fixable by anything a reader can do, so naming an action would be a lie.
+
+### Task 5: a team is called by its name, not by its uuid
+
+The explorer grouped `LiteLLM_DailyTeamSpend` by `team_id` and printed that id, so a reader looking
+for what their own team spent had nothing on the page to recognise. Team and user slices now carry
+the name the database already holds, read in the same query by a left join. Project, provider and
+model group by a column that already reads as a name and gained no join; project has no name
+anywhere in the schema, so it keeps its id.
+
+Three decisions worth keeping:
+
+- **Left join, not join.** A team deleted from the team table still has spend on the rollup. An
+  inner join would drop the row and quietly lower the page's own total
+- **The identifier stays on the row.** It is what an attribution rule, a filter or a support
+  question is written against. Outside-gateway spend is still matched to a slice by identifier, so
+  renaming a team cannot move its money. The id is printed only when it differs from the name
+- **The leak question was already answered.** The plan asked for a test proving a reader limited to
+  one team cannot learn another team's name. The explorer route is admin-only through
+  `_admin_or_403`, so no non-admin reaches any name at all, and the honest guard is a test holding
+  that door shut now that names cross the wire. Mutation-tested by removing the guard
+
+### Task 6: the walk, and three things it found
+
+`tests/e2e/ui/tests/usage/screenClaims.spec.ts` opens each screen cold and asserts the sentence
+saying what its figures mean, before any control is touched. It needs no traffic on purpose: the
+claim belongs to the screen, not to its data, so a reader who arrives before anything is ingested is
+still told what they are looking at. The arithmetic those claims describe is asserted where it can
+be made deterministic, in the component tests beside each view, rather than as a browser test that
+only fires when the database happens to hold a row.
+
+The walk found three real defects, all fixed here:
+
+- **Two existing specs were broken by task 3.** `usagePage.spec.ts` and `usageActivityTabs.spec.ts`
+  both navigate to Usage and go straight for the Gateway view's contents. The page now opens on
+  Combined, and `keepMounted` leaves Gateway in the DOM but hidden, so both would have failed on a
+  visibility timeout rather than on anything to do with their subject. Both now click Gateway first
+- **The APIs tab ignored the page's period.** Task 2 gave the page one date control and threaded it
+  into Combined and Gateway. The APIs tab kept a hard-coded 30 days, so the header could say seven
+  and that tab would answer about thirty with nothing saying so. `/provider/usage/summary` has the
+  same `ge=1, le=90` "last N days" shape as the combined endpoints, so it now reads the same helper,
+  renamed `lastNDaysCoverage` because it is no longer Combined's alone, and shows the same note when
+  the chosen period cannot be served. The Raw Data view is deliberately left out: it is the newest
+  rows the provider sent, keyset-paged, and claims no window
+- **The APIs tab led with no claim at all, and the cost ledger led with its total.** The APIs tab now
+  says these are the provider's own figures, which say how much was spent and never who spent it.
+  The ledger's sentence moved above its total, because a reader who stops at the first figure was
+  being handed one they could read as everything that was spent
+
+### What has not been run here, and how to run it
+
+The Playwright walk has not been executed on this machine. The suite needs a live proxy on port
+4000, a seeded Postgres and the mock LLM upstream, and nothing is listening on any of those ports;
+Docker is installed but its daemon is not running, and the box has 4.4 GB free against a stack that
+wants postgres plus a Next build plus a proxy plus a browser. It is type-checked, Playwright collects
+all eight cases, and the two specs it fixes are the evidence that the breakage it catches is real.
+
+To run it: `tests/e2e/ui/run_e2e.sh tests/usage/screenClaims.spec.ts`, which brings up postgres, the
+mock upstream and the proxy itself.
+
+### The open question this phase cannot answer
+
+**Does Token IQ keep the inherited usage dashboard that sits inside the Usage page?**
+
+The Gateway tab is another product's interface: its own controls, its own grouping, its own filter
+row, and a chat box. Section 7 of the spec carries this as a decision to make, and task 2 of this
+phase only stopped it fighting the page over the date range. It is a product decision about what the
+Usage page is, not a code decision, so it stays open rather than being settled by whoever happens to
+touch the file next.
+
+Three things are now true that were not when the question was first written, and they narrow it:
+
+- The page has one period, and all three tabs read it, so the inherited view no longer contradicts
+  the header
+- Combined opens first, so the inherited view is no longer what a reader meets
+- Combined, APIs and the ledger each say what their figures mean. The inherited view says nothing,
+  and it is the only tab now that does not

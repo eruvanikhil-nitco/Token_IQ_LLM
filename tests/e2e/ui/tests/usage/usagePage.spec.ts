@@ -20,6 +20,9 @@ const topKeysCard = (page: PlaywrightPage): Locator =>
 async function openUsage(page: PlaywrightPage): Promise<Locator> {
   await navigateToPage(page, Page.NewUsage);
   await dismissFeedbackPopup(page);
+  // The page opens on Combined, which is the only view that reconciles the two sources against
+  // each other. Everything below lives on the Gateway view, which is one tab across.
+  await page.getByRole("tab", { name: "Gateway" }).click();
   const card = topKeysCard(page);
   await expect(card).toBeVisible({ timeout: 30_000 });
   // Widen past the default top-5 so other keys in the database cannot crowd this one out.

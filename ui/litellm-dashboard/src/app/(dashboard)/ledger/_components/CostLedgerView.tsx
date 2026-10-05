@@ -21,6 +21,14 @@ export default function CostLedgerView({ provider, periodStart, periodEnd }: Cos
 
   return (
     <div className="flex flex-col gap-4">
+      {/* Meaning first. The total used to be printed above this, so a reader who stopped at the
+          first figure had one they could read as everything that was spent. */}
+      <p className="text-sm text-muted-foreground">
+        Every cost line the provider reported, with how it was arrived at and who owns the account it came from. The
+        gateway&apos;s own records are not listed here: the two describe the same money, so showing both would count it
+        twice.
+      </p>
+
       {totals.length === 0 ? (
         <p className="text-sm text-muted-foreground">Nothing recorded for this provider in this period.</p>
       ) : (
@@ -33,12 +41,6 @@ export default function CostLedgerView({ provider, periodStart, periodEnd }: Cos
           ))}
         </div>
       )}
-
-      <p className="text-sm text-muted-foreground">
-        Every cost line the provider reported, with how it was arrived at and who owns the account it came from. The
-        gateway&apos;s own records are not listed here: the two describe the same money, so showing both would count it
-        twice.
-      </p>
 
       {data.lines.length === 0 ? null : (
         <div className="overflow-x-auto">

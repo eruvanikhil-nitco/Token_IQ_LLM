@@ -8,16 +8,16 @@ import type { DateRangePickerValue } from "@/components/shared/date_picker_types
  * window with nothing on screen saying so. Opening on Combined and moving to Gateway took you from
  * thirty days to seven.
  *
- * One period now, chosen once. The two views still cannot read the same windows: Gateway takes a
- * start and an end, while the combined endpoints take a number of days bounded to 90 and always
+ * One period now, chosen once. The views still cannot read the same windows: Gateway takes a start
+ * and an end, while the Combined and APIs endpoints take a number of days bounded to 90 and always
  * mean "the last N days from now". So a view that cannot serve the chosen period says what it did
  * instead, rather than showing a different window that looks like the one that was asked for.
  */
 
-/** `days` on /usage/combined/* is `ge=1, le=90`, so a longer period cannot be requested. */
-export const COMBINED_MAX_DAYS = 90;
+/** `days` is `ge=1, le=90` on /usage/combined/* and on /provider/usage/summary alike. */
+export const LAST_N_DAYS_MAX = 90;
 
-/** What the Combined views fall back to when the period gives them nothing to work from. */
+/** What a last-N-days view falls back to when the period gives it nothing to work from. */
 export const DEFAULT_DAYS = 30;
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -54,20 +54,20 @@ const asDay = (date: Date): string =>
   date.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
 
 /**
- * What the Combined views can serve for this period, and what to say when it is not what was asked.
+ * What a last-N-days view can serve for this period, and what to say when it is not what was asked.
  *
  * Two reasons it cannot be exact, and they can both apply. The period may be longer than 90 days,
  * which the endpoint refuses. Or it may not end today, in which case `days` would be read as a
  * recent window and the figures would belong to the wrong dates entirely.
  */
-export const combinedCoverage = (period: DateRangePickerValue, today: Date = new Date()): CombinedCoverage => {
+export const lastNDaysCoverage = (period: DateRangePickerValue, today: Date = new Date()): CombinedCoverage => {
   const requested = daysSpanned(period);
-  const days = Math.min(requested, COMBINED_MAX_DAYS);
+  const days = Math.min(requested, LAST_N_DAYS_MAX);
   const endsToday = period.to !== undefined && startOfDay(period.to) === startOfDay(today);
 
   const reasons = [
-    requested > COMBINED_MAX_DAYS
-      ? `these figures cover the last ${COMBINED_MAX_DAYS} days, the longest this view can read`
+    requested > LAST_N_DAYS_MAX
+      ? `these figures cover the last ${LAST_N_DAYS_MAX} days, the longest this view can read`
       : undefined,
     endsToday ? undefined : `these figures end on ${asDay(today)}, not on the date you chose`,
   ].filter((reason): reason is string => reason !== undefined);

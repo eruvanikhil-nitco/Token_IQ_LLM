@@ -13,7 +13,11 @@ function StatefulGatewayFilter() {
 describe("UsageTabs", () => {
   it("opens on Combined, the only view that reconciles the sources against each other", () => {
     render(
-      <UsageTabs gateway={() => <p>gateway content</p>} apis={<p>apis content</p>} combined={() => <p>combined content</p>} />,
+      <UsageTabs
+        gateway={() => <p>gateway content</p>}
+        apis={() => <p>apis content</p>}
+        combined={() => <p>combined content</p>}
+      />,
     );
     expect(screen.getByText("combined content")).toBeInTheDocument();
   });
@@ -21,7 +25,11 @@ describe("UsageTabs", () => {
   it("still reaches the Gateway view, which is unchanged", async () => {
     const user = userEvent.setup();
     render(
-      <UsageTabs gateway={() => <p>gateway content</p>} apis={<p>apis content</p>} combined={() => <p>combined content</p>} />,
+      <UsageTabs
+        gateway={() => <p>gateway content</p>}
+        apis={() => <p>apis content</p>}
+        combined={() => <p>combined content</p>}
+      />,
     );
     await user.click(screen.getByRole("tab", { name: "Gateway" }));
     expect(await screen.findByText("gateway content")).toBeInTheDocument();
@@ -30,7 +38,11 @@ describe("UsageTabs", () => {
   it("shows the APIs view when that tab is chosen", async () => {
     const user = userEvent.setup();
     render(
-      <UsageTabs gateway={() => <p>gateway content</p>} apis={<p>apis content</p>} combined={() => <p>combined content</p>} />,
+      <UsageTabs
+        gateway={() => <p>gateway content</p>}
+        apis={() => <p>apis content</p>}
+        combined={() => <p>combined content</p>}
+      />,
     );
     await user.click(screen.getByRole("tab", { name: "APIs" }));
     expect(await screen.findByText("apis content")).toBeInTheDocument();
@@ -39,7 +51,11 @@ describe("UsageTabs", () => {
   it("keeps Gateway filters set after visiting APIs and coming back", async () => {
     const user = userEvent.setup();
     render(
-      <UsageTabs gateway={() => <StatefulGatewayFilter />} apis={<p>apis content</p>} combined={() => <p>combined content</p>} />,
+      <UsageTabs
+        gateway={() => <StatefulGatewayFilter />}
+        apis={() => <p>apis content</p>}
+        combined={() => <p>combined content</p>}
+      />,
     );
 
     await user.click(screen.getByRole("tab", { name: "Gateway" }));
@@ -67,16 +83,25 @@ describe("UsageTabs", () => {
       seen.gateway = period.from?.getTime() ?? 0;
       return <p>gateway content</p>;
     };
+    const showApis = (period: { from?: Date; to?: Date }) => {
+      seen.apis = period.from?.getTime() ?? 0;
+      return <p>apis content</p>;
+    };
 
-    render(<UsageTabs gateway={showGateway} apis={<p>apis content</p>} combined={showCombined} />);
+    render(<UsageTabs gateway={showGateway} apis={showApis} combined={showCombined} />);
     await user.click(screen.getByRole("tab", { name: "Gateway" }));
     await screen.findByText("gateway content");
+    await user.click(screen.getByRole("tab", { name: "APIs" }));
+    await screen.findByText("apis content");
 
+    // APIs is in here because it was the tab left out: it asked its endpoint for a fixed 30 days
+    // whatever the picker said, so the figures on it belonged to dates nobody had chosen.
     expect(seen.gateway).toBe(seen.combined);
+    expect(seen.apis).toBe(seen.combined);
   });
 
   it("puts the period control above the tabs, where it governs all three", () => {
-    render(<UsageTabs gateway={() => <p>g</p>} apis={<p>a</p>} combined={() => <p>c</p>} />);
+    render(<UsageTabs gateway={() => <p>g</p>} apis={() => <p>a</p>} combined={() => <p>c</p>} />);
 
     // One control on the page, not one per tab. `data-slot` is what the primitive sets
     // deliberately and treats as stable; the trigger exposes no role or label to query.

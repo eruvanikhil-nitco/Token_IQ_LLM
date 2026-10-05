@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface UsageTabsProps {
   gateway: (period: DateRangePickerValue) => ReactNode;
-  apis: ReactNode;
+  apis: (period: DateRangePickerValue) => ReactNode;
   combined: (period: DateRangePickerValue) => ReactNode;
 }
 
@@ -53,7 +53,7 @@ export default function UsageTabs({ gateway, apis, combined }: UsageTabsProps) {
       <TabsContent value="gateway" keepMounted>
         {gateway(period)}
       </TabsContent>
-      <TabsContent value="apis">{apis}</TabsContent>
+      <TabsContent value="apis">{apis(period)}</TabsContent>
     </Tabs>
   );
 }

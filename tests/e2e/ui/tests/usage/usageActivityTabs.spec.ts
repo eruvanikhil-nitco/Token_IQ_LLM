@@ -27,6 +27,8 @@ const entityCard = (page: PlaywrightPage, tab: string, name: string): Locator =>
 async function openUsageTab(page: PlaywrightPage, tab: string): Promise<Locator> {
   await navigateToPage(page, Page.NewUsage);
   await dismissFeedbackPopup(page);
+  // These breakdowns are on the Gateway view, and the page opens on Combined.
+  await page.getByRole("tab", { name: "Gateway" }).click();
   await page.getByRole("tab", { name: tab }).click();
   const panel = page.getByRole("tabpanel", { name: tab });
   await expect(panel).toBeVisible({ timeout: 30_000 });

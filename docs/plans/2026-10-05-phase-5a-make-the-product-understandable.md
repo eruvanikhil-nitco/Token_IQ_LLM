@@ -89,19 +89,19 @@ declares what it claims, and a test checks the screen renders that claim. Taste 
 
 **Files:** `docs/product/token-iq-product-blueprint.html`, new `docs/product/page-model.json`
 
-- [ ] **Step 1: Write the extractor and the schema**
+- [x] **Step 1: Write the extractor and the schema**
 
 Pages, tabs, sub-tabs, per-role access, dialogs and help text, out of the HTML and into committed
 JSON. The JSON is the artefact every later task checks itself against, so it is the deliverable,
 not a by-product.
 
-- [ ] **Step 2: Reconcile it against what the UI actually renders**
+- [x] **Step 2: Reconcile it against what the UI actually renders**
 
 The blueprint describes the product as intended. A tab in the JSON that no page renders, or a page
 that renders a tab the JSON does not know, is a finding either way: either the UI drifted or the
 blueprint did. Record which, per discrepancy, and do not silently make one match the other.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ---
 
@@ -109,22 +109,22 @@ blueprint did. Record which, per discrepancy, and do not silently make one match
 
 **Files:** `UsageTabs.tsx`, `CombinedTabs.tsx`, `UsagePageView.tsx`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Two panels, one period: switching tab must not change the window. Today it does, and the test
 should fail before the change.
 
-- [ ] **Step 2: Lift the period to the page**
+- [x] **Step 2: Lift the period to the page**
 
 One control, above the tabs, owned by `UsageTabs` and passed down. The days-based `Select` and the
 from/to picker become one thing; from/to is the more expressive, so days becomes a preset on it.
 
-- [ ] **Step 3: Say so where the numbers change**
+- [x] **Step 3: Say so where the numbers change**
 
 Unifying the period changes what each panel shows relative to today. The commit says which panels
 and in which direction.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ---
 
@@ -132,7 +132,7 @@ and in which direction.
 
 **Files:** the Combined, Gateway, APIs, Ledger, Recommendations and Overview views
 
-- [ ] **Step 1: Write the sentence for each screen, and the source rule into a test**
+- [x] **Step 1: Write the sentence for each screen, and the source rule into a test**
 
 One sentence per screen: what the figures are, which of the three sources they came from, what to
 do next. The test asserts each screen renders its claim from the page model, and asserts no screen
@@ -141,12 +141,12 @@ presents a provider figure and a gateway figure as addends of one total.
 That second assertion is the one that matters. It is the counting rule, in the only place this
 phase can break it.
 
-- [ ] **Step 2: Put the meaning above the controls**
+- [x] **Step 2: Put the meaning above the controls**
 
 Sentence, then figures, then evidence, then controls. Today the controls come first and the meaning
 is in a footnote.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ---
 
@@ -154,16 +154,16 @@ is in a footnote.
 
 **Files:** `ledgerDisplay.ts`, `BillReconciliationView.tsx`, and the other empty states
 
-- [ ] **Step 1: Find every empty state and what fills it**
+- [x] **Step 1: Find every empty state and what fills it**
 
 `no_invoice` is the known one. Enumerate the rest rather than fixing the one the spec named.
 
-- [ ] **Step 2: Give each one the action**
+- [x] **Step 2: Give each one the action**
 
 "No bill entered" becomes a sentence and a control that opens the form, in place, rather than
 naming a tab the reader has to find.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ---
 
@@ -171,22 +171,22 @@ naming a tab the reader has to find.
 
 **Files:** the explorer endpoint and `explorerDisplay.ts`
 
-- [ ] **Step 1: Decide where the name comes from, and write the leak test first**
+- [x] **Step 1: Decide where the name comes from, and write the leak test first**
 
 A row grouped by `team_id` needs that team's name. The lookup is filtered by the caller's
 authorisation, so a reader limited to one team cannot learn another team's name. The test asserts
 exactly that before the feature exists.
 
-- [ ] **Step 2: Return the name beside the key, never instead of it**
+- [x] **Step 2: Return the name beside the key, never instead of it**
 
 `ExplorerSlice` keeps `key` and gains a display name. The key stays because it is what a filter or
 a link needs, and because a name is not unique.
 
-- [ ] **Step 3: Fall back to the identifier rather than hiding the row**
+- [x] **Step 3: Fall back to the identifier rather than hiding the row**
 
 A team deleted since the spend was recorded has no name. Showing nothing loses the money.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ---
 
@@ -194,20 +194,20 @@ A team deleted since the spend was recorded has no name. Showing nothing loses t
 
 **Files:** `tests/e2e/ui/`, `docs/status.md`
 
-- [ ] **Step 1: A Playwright walk per screen**
+- [x] **Step 1: A Playwright walk per screen**
 
 Open each screen cold and assert the claim is visible before any control is touched, and that the
 figures presented as a sum add up on screen.
 
-- [ ] **Step 2: Put the open question to the owner**
+- [x] **Step 2: Put the open question to the owner**
 
 Whether this phase also replaces the inherited usage dashboard embedded in Usage, which is another
 product's interface with its own controls, its own date range and a chat box. Section 7 of the spec
 carries it as a decision to make, and it is not mine.
 
-- [ ] **Step 3: Record what changed and what each screen now claims**
+- [x] **Step 3: Record what changed and what each screen now claims**
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ---
 

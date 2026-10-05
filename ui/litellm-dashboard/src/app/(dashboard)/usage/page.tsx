@@ -22,7 +22,7 @@ export default function UsagePage() {
           onPeriodChange={() => undefined}
         />
       )}
-      apis={<ProviderUsagePanel />}
+      apis={(period) => <ProviderUsagePanel period={period} />}
       combined={(period) => <CombinedTabs period={period} />}
     />
   );
