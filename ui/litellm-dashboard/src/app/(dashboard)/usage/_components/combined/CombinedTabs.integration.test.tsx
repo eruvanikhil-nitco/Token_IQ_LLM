@@ -67,6 +67,11 @@ vi.mock("@/app/(dashboard)/hooks/useAuthorized", () => ({
   default: () => ({ accessToken: "sk-test", userRole: "proxy_admin" }),
 }));
 
+const user_clickComparison = async () => {
+  const user = userEvent.setup();
+  await user.click(screen.getByRole("tab", { name: "Source Comparison" }));
+};
+
 const renderTabs = (period: { from: Date; to: Date } = PERIOD) => {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
@@ -165,5 +170,45 @@ describe("CombinedTabs", () => {
     await user.click(screen.getByRole("tab", { name: "Unallocated" }));
 
     expect(await screen.findAllByRole("link", { name: /assign this account/i })).toHaveLength(1);
+  });
+
+  it("never shows the provider and gateway figures as one total", async () => {
+    // The counting rule, in the one place a screen can break it. A provider figure says how much
+    // was spent and a gateway figure says who spent it, so the same request is in both and their
+    // sum is meaningless. This screen puts them side by side, which is exactly where "so your
+    // total spend is..." gets written by accident, and it would read perfectly well.
+    renderTabs();
+    await screen.findByText("Providers billed");
+    await user_clickComparison();
+
+    const sum = Number(COMPARISON.total_provider) + Number(COMPARISON.total_gateway);
+    for (const digits of [2, 4, 6, 8]) {
+      expect(screen.queryByText(new RegExp(sum.toFixed(digits).replace(".", "\.")))).not.toBeInTheDocument();
+    }
+  });
+
+  it("says the two sources are not addends, above the figures rather than under them", async () => {
+    renderTabs();
+    await screen.findByText("Providers billed");
+    await user_clickComparison();
+
+    const explanation = await screen.findByText(/never added together/);
+    const billed = screen.getByText("Providers billed");
+    // Node.DOCUMENT_POSITION_FOLLOWING: the explanation comes first in the document.
+    expect(explanation.compareDocumentPosition(billed) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("tells the explorer's two columns apart from the comparison's two figures", async () => {
+    // The same screen family, opposite rules. On Source Comparison the provider and gateway totals
+    // must never be added, because the same request is in both. On Cost Explorer the two columns are
+    // one group's spend split by route, so they do add up. Borrowing either sentence for the other
+    // screen would read perfectly well and be wrong.
+    renderTabs();
+
+    // The claim is located by a contiguous phrase, then asserted with toHaveTextContent, because
+    // the sentence emphasises one word and getByText does not see across child elements.
+    const claim = await screen.findByText(/Who the spend belongs to/);
+    expect(claim).toHaveTextContent("add up to that group's spend");
+    expect(screen.queryByText(/never added together/)).not.toBeInTheDocument();
   });
 });

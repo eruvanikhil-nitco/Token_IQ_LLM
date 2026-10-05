@@ -23,6 +23,16 @@ export default function CostExplorerView({ days }: CostExplorerViewProps) {
 
   return (
     <div className="flex flex-col gap-4">
+      {/* Meaning before controls. And deliberately not the Source Comparison wording: there the
+          provider and gateway totals must never be added, because the same request is in both.
+          Here the two columns are one group&apos;s spend split by route, so they do add up, and
+          saying otherwise would be as wrong as saying it the other way round. */}
+      <p className="text-sm text-muted-foreground">
+        Who the spend belongs to, split by how it reached the provider: through this gateway, or outside it
+        and matched back by an attribution rule. For each row those two <strong>do</strong> add up to that
+        group&apos;s spend. Anything that could not be matched to a group is listed separately rather than shared
+        out, so no figure here is an estimate.
+      </p>
       <div className="flex flex-wrap items-center gap-2">
         <Label htmlFor="explorer-group-by" className="text-muted-foreground">
           Group by

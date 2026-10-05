@@ -21,6 +21,14 @@ export default function BillReconciliationView({ provider, periodStart, periodEn
 
   return (
     <div className="flex flex-col gap-4">
+      {/* Meaning first, and the same rule as Source Comparison: the bill and the ledger are two
+          accounts of the same spend, so their sum means nothing. Only the gap between them does. */}
+      <p className="text-sm text-muted-foreground">
+        What this provider invoiced for the period, against what the ledger recorded for it.
+        <strong> These two are never added together:</strong> they are two accounts of the same spend, and only
+        the difference between them is worth reading. Credits, tax and commitments explain part of it; whatever
+        is left is unexplained and needs a person.
+      </p>
       <Card className="p-4">
         <p className="text-sm text-muted-foreground">Outcome</p>
         <p className="text-xl font-semibold">{OUTCOME_LABEL[data.outcome]}</p>

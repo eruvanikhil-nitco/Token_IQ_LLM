@@ -148,4 +148,28 @@ describe("BillReconciliationView", () => {
     renderView();
     expect(await screen.findByText("$0.00119485")).toBeInTheDocument();
   });
+
+  it("opens by saying what the two figures are, before showing them", async () => {
+    reconciliationCall.mockResolvedValue(OVER);
+    renderView();
+
+    const claim = await screen.findByText(/What this provider invoiced/);
+    expect(claim).toHaveTextContent("never added together");
+    const bill = screen.getByText("The bill says");
+    // The claim precedes the figures in the document, not in a footnote under them.
+    expect(claim.compareDocumentPosition(bill) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("never renders the bill and the ledger as one total", async () => {
+    // Two accounts of the same spend. Their sum is the number a reader must never be handed, and a
+    // sentence introducing it would read perfectly well.
+    reconciliationCall.mockResolvedValue(OVER);
+    renderView();
+    await screen.findByText("The bill says");
+
+    const sum = Number(OVER.invoice_total) + Number(OVER.ledger_total);
+    for (const digits of [2, 4, 6, 8]) {
+      expect(screen.queryByText(new RegExp(sum.toFixed(digits).replace(".", "\.")))).not.toBeInTheDocument();
+    }
+  });
 });

@@ -17,6 +17,14 @@ export default function SourceComparisonView({ days }: SourceComparisonViewProps
 
   return (
     <div className="flex flex-col gap-4">
+      {/* The meaning comes before the figures. A reader who meets three money totals first
+          has already decided what they add up to by the time any footnote reaches them. */}
+      <p className="text-sm text-muted-foreground">
+        What each provider invoiced, against what this gateway recorded, for the same days. <strong>These
+        figures are never added together:</strong> the provider says how much was spent and the gateway says
+        who spent it, so the same request appears in both. The difference is spend that did not go through
+        the gateway, and the last column says who owns it.
+      </p>
       <div className="grid gap-4 sm:grid-cols-3">
         <Card className="p-4">
           <p className="text-sm text-muted-foreground">Providers billed</p>
@@ -31,11 +39,6 @@ export default function SourceComparisonView({ days }: SourceComparisonViewProps
           <p className="text-2xl font-semibold">{formatAmount(data.total_gap)}</p>
         </Card>
       </div>
-
-      <p className="text-sm text-muted-foreground">
-        These three figures are never added together. The provider says how much was spent and the gateway says who
-        spent it, so the same request appears in both.
-      </p>
 
       {data.rows.length === 0 ? (
         <p className="text-sm text-muted-foreground">No provider has reported anything in this window.</p>
