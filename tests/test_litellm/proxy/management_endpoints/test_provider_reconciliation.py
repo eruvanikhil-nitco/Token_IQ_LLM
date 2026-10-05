@@ -28,7 +28,7 @@ def _row(request_id: str, ours: str, theirs: str | None, evidence: str = "reconc
 
 
 async def _call(rows: list[dict], caller: UserAPIKeyAuth = ADMIN):
-    from litellm.proxy.management_endpoints.provider_reconciliation import provider_reconciliation
+    from token_iq.api.provider_reconciliation import provider_reconciliation
 
     with patch("litellm.proxy.proxy_server.prisma_client", _prisma(rows)):
         return await provider_reconciliation(provider="openrouter", days=7, user_api_key_dict=caller)
@@ -80,7 +80,7 @@ async def test_an_unmatched_row_does_not_pollute_their_total():
 async def test_the_window_is_bounded_so_one_call_cannot_scan_all_history():
     """Spend logs grow without limit. An unbounded reconciliation query would eventually
     take the database down while someone is looking at a dashboard."""
-    from litellm.proxy.management_endpoints.provider_reconciliation import provider_reconciliation
+    from token_iq.api.provider_reconciliation import provider_reconciliation
 
     client = _prisma([])
     with patch("litellm.proxy.proxy_server.prisma_client", client):
@@ -128,7 +128,7 @@ def _prisma_matching_driver(our_cost: str, their_cost: str) -> MagicMock:
 
 @pytest.mark.asyncio
 async def test_the_total_keeps_every_digit_the_provider_billed():
-    from litellm.proxy.management_endpoints.provider_reconciliation import provider_reconciliation
+    from token_iq.api.provider_reconciliation import provider_reconciliation
 
     client = _prisma_matching_driver(our_cost="0.123456789012345678", their_cost="0.123456789012345678")
     with patch("litellm.proxy.proxy_server.prisma_client", client):
@@ -145,7 +145,7 @@ async def test_the_total_keeps_every_digit_the_provider_billed():
 
 @pytest.mark.asyncio
 async def test_a_float_input_is_rejected_as_unparseable():
-    from litellm.proxy.management_endpoints.provider_reconciliation import _decimal
+    from token_iq.api.provider_reconciliation import _decimal
 
     assert _decimal(1.5) is None
 
@@ -187,7 +187,7 @@ async def test_the_probe_reports_a_working_connector_without_writing_anything():
     probe is how the first real key gets checked, in one command."""
     from datetime import datetime, timezone
 
-    from litellm.proxy.management_endpoints.provider_reconciliation import run_billing_probe
+    from token_iq.api.provider_reconciliation import run_billing_probe
     from litellm.types.proxy.provider_billing import Fetched, ProviderUsageFact
 
     fact = ProviderUsageFact(
@@ -214,7 +214,7 @@ async def test_the_probe_reports_a_working_connector_without_writing_anything():
 
 @pytest.mark.asyncio
 async def test_the_probe_names_a_missing_credential_rather_than_failing():
-    from litellm.proxy.management_endpoints.provider_reconciliation import run_billing_probe
+    from token_iq.api.provider_reconciliation import run_billing_probe
 
     result = await run_billing_probe(
         provider="anthropic", connectors=(_connector_returning(None),), credentials_for=_no_creds
@@ -228,7 +228,7 @@ async def test_the_probe_names_a_missing_credential_rather_than_failing():
 @pytest.mark.asyncio
 async def test_the_probe_reports_a_refused_key_as_a_failure_with_the_reason():
     """The whole point on the day a key arrives: say why, not just that it did not work."""
-    from litellm.proxy.management_endpoints.provider_reconciliation import run_billing_probe
+    from token_iq.api.provider_reconciliation import run_billing_probe
     from litellm.types.proxy.provider_billing import FetchFailed
 
     result = await run_billing_probe(
@@ -244,7 +244,7 @@ async def test_the_probe_reports_a_refused_key_as_a_failure_with_the_reason():
 
 @pytest.mark.asyncio
 async def test_the_probe_says_so_when_no_connector_exists_for_a_provider():
-    from litellm.proxy.management_endpoints.provider_reconciliation import run_billing_probe
+    from token_iq.api.provider_reconciliation import run_billing_probe
 
     result = await run_billing_probe(provider="bedrock", connectors=(), credentials_for=_no_creds)
 
@@ -257,7 +257,7 @@ async def test_a_provider_that_answers_with_nothing_is_not_reported_as_broken():
     otherwise see a failure."""
     from datetime import datetime, timezone
 
-    from litellm.proxy.management_endpoints.provider_reconciliation import run_billing_probe
+    from token_iq.api.provider_reconciliation import run_billing_probe
     from litellm.types.proxy.provider_billing import Fetched
 
     result = await run_billing_probe(
@@ -274,7 +274,7 @@ async def test_a_provider_that_answers_with_nothing_is_not_reported_as_broken():
 async def test_only_an_admin_may_probe():
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.provider_reconciliation import provider_billing_probe
+    from token_iq.api.provider_reconciliation import provider_billing_probe
 
     member = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-u", user_id="u")
     with pytest.raises(HTTPException) as exc:

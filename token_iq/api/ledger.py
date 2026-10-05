@@ -19,7 +19,7 @@ from litellm.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKey
 from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
 from litellm.types.proxy.attribution import AttributionRule
 from litellm.types.proxy.invoice import InvoiceAdjustment, ProviderInvoice
-from litellm.types.proxy.management_endpoints.ledger_endpoints import (
+from token_iq.api.types.ledger import (
     AdjustmentBody,
     InvoiceBody,
     InvoiceDeletedResponse,

@@ -21,14 +21,14 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from litellm.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
 from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-from litellm.types.proxy.management_endpoints.recommendation_endpoints import (
+from litellm.types.proxy.recommendation import Recommendation
+from token_iq.api.types.recommendations import (
     DecisionBody,
     DecisionResponse,
     EvidenceResponse,
     RecommendationResponse,
     RecommendationsResponse,
 )
-from litellm.types.proxy.recommendation import Recommendation
 from token_iq.attribution.gap_owner import attribute
 from token_iq.recommendations.inputs import BudgetSnapshot, RuleInput
 from token_iq.recommendations.registry import evaluate

@@ -17,7 +17,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from litellm.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
 from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-from litellm.types.proxy.management_endpoints.overview_endpoints import (
+from token_iq.api.types.overview import (
     FreshnessResponse,
     MatchStatus,
     OverviewRecommendation,
@@ -149,8 +149,8 @@ async def overview(
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ) -> OverviewResponse:
     """What was spent, whether the bills matched, what nobody owns, and what to do about it."""
-    from litellm.proxy.management_endpoints.recommendations import gather_rule_input
     from litellm.proxy.proxy_server import prisma_client
+    from token_iq.api.recommendations import gather_rule_input
 
     _admin_or_403(user_api_key_dict)
     start: Final = _day_or_400(period_start, "period_start")

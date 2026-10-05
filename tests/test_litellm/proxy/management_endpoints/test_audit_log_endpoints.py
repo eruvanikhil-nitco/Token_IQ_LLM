@@ -4,7 +4,7 @@ import pytest
 from fastapi import HTTPException
 
 from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.management_endpoints.audit_log_endpoints import list_audit_logs
+from token_iq.api.audit_logs import list_audit_logs
 
 
 def _prisma_with_no_rows() -> MagicMock:

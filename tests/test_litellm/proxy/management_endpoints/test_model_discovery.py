@@ -1,7 +1,7 @@
 import litellm
 import pytest
 
-from litellm.proxy.management_endpoints.model_discovery import (
+from token_iq.api.model_discovery import (
     merge_with_local_pricing,
 )
 

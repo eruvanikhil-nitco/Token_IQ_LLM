@@ -43,6 +43,47 @@ MOVES: Final[Mapping[str, str]] = MappingProxyType(
         _OLD + "seats": "token_iq.seats",
         _OLD + "recommendations": "token_iq.recommendations",
         _OLD + "pricing": "token_iq.pricing",
+        # Phase 3 task 3: the API routers, and the wire types each one serves.
+        #
+        # `audit_logs` and `projects` are renamed on the way: the spec's rule for routers is a
+        # plural resource name with no `_endpoints` suffix. The phase 3 plan wrote the first of
+        # those as `audit_log`, which drops the suffix without applying the plural; the spec is
+        # the authority and `projects.py` is its own worked example.
+        **{
+            _OLD + f"proxy.management_endpoints.{old}": f"token_iq.api.{new}"
+            for old, new in (
+                ("audit_log_endpoints", "audit_logs"),
+                ("project_endpoints", "projects"),
+                *((name, name) for name in (
+                    "attribution",
+                    "combined_usage",
+                    "ledger",
+                    "overview",
+                    "provider_connections",
+                    "provider_reconciliation",
+                    "provider_usage",
+                    "recommendations",
+                    "seats",
+                    "tool_connections",
+                    "provider_overview",
+                    "model_discovery",
+                    "audit_log_diff",
+                    "courier_coverage",
+                )),
+            )
+        },
+        **{
+            _OLD + f"types.proxy.management_endpoints.{old}": f"token_iq.api.types.{new}"
+            for old, new in (
+                ("attribution_endpoints", "attribution"),
+                ("combined_endpoints", "combined_usage"),
+                ("ledger_endpoints", "ledger"),
+                ("recommendation_endpoints", "recommendations"),
+                ("seat_endpoints", "seats"),
+                ("tool_endpoints", "tool_connections"),
+                ("overview_endpoints", "overview"),
+            )
+        },
         **{
             _OLD + f"repositories.{name}_repository": f"token_iq.repositories.{name}_repository"
             for name in (

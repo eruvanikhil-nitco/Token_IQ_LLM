@@ -40,7 +40,7 @@ def _prisma_with_teams(*team_rows: SimpleNamespace) -> MagicMock:
 async def test_a_project_is_created_under_its_team():
     """A project with no team is an orphan the hierarchy cannot report on, which is why
     team_id is required on the request model rather than optional."""
-    from litellm.proxy.management_endpoints.project_endpoints import new_project
+    from token_iq.api.projects import new_project
 
     created = MagicMock(project_id="p1", project_alias="api-service", team_id="t1")
     with (
@@ -66,7 +66,7 @@ async def test_someone_outside_the_team_cannot_create_a_project_in_it():
     could spend against another team's budget."""
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.project_endpoints import new_project
+    from token_iq.api.projects import new_project
 
     with patch("litellm.proxy.proxy_server.prisma_client", _prisma()), pytest.raises(HTTPException) as exc:
         await new_project(
@@ -82,7 +82,7 @@ async def test_a_team_admin_may_create_a_project_in_their_own_team():
     """Otherwise every project has to go through a proxy admin, which makes the hierarchy
     theatre rather than delegation."""
     from litellm.proxy._types import Member
-    from litellm.proxy.management_endpoints.project_endpoints import new_project
+    from token_iq.api.projects import new_project
 
     lead = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
     team = _team_row(members_with_roles=[Member(user_id="lead", role="admin").model_dump()])
@@ -108,7 +108,7 @@ async def test_creating_under_a_team_that_does_not_exist_is_a_404():
     every hierarchy view."""
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.project_endpoints import new_project
+    from token_iq.api.projects import new_project
 
     client = MagicMock()
     client.db.litellm_teamtable.find_unique = AsyncMock(return_value=None)
@@ -127,7 +127,7 @@ def _project(project_id: str = "p1", team_id: str = "t1") -> MagicMock:
 async def test_a_member_of_the_owning_team_may_read_a_project():
     """These two routes are already in the internal-user allowlist, so the product has
     said a non-admin may call them."""
-    from litellm.proxy.management_endpoints.project_endpoints import project_info
+    from token_iq.api.projects import project_info
 
     member = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-m", user_id="m", team_id="t1")
     with (
@@ -146,7 +146,7 @@ async def test_a_member_of_the_owning_team_may_read_a_project():
 async def test_reading_a_project_of_another_team_is_refused():
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.project_endpoints import project_info
+    from token_iq.api.projects import project_info
 
     with (
         patch("litellm.proxy.proxy_server.prisma_client", _prisma()),
@@ -165,7 +165,7 @@ async def test_reading_a_project_of_another_team_is_refused():
 async def test_an_unknown_project_is_a_404_not_an_empty_object():
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.project_endpoints import project_info
+    from token_iq.api.projects import project_info
 
     with (
         patch("litellm.proxy.proxy_server.prisma_client", _prisma()),
@@ -182,7 +182,7 @@ async def test_an_unknown_project_is_a_404_not_an_empty_object():
 
 @pytest.mark.asyncio
 async def test_listing_returns_only_the_named_team_s_projects():
-    from litellm.proxy.management_endpoints.project_endpoints import project_list
+    from token_iq.api.projects import project_list
 
     with (
         patch("litellm.proxy.proxy_server.prisma_client", _prisma()),
@@ -203,7 +203,7 @@ async def test_listing_another_team_s_projects_is_refused_not_empty():
     permissions problem from whoever has to debug it."""
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.project_endpoints import project_list
+    from token_iq.api.projects import project_list
 
     with patch("litellm.proxy.proxy_server.prisma_client", _prisma()), pytest.raises(HTTPException) as exc:
         await project_list(team_id="t1", user_api_key_dict=OUTSIDER)
@@ -215,7 +215,7 @@ async def test_listing_another_team_s_projects_is_refused_not_empty():
 async def test_listing_without_a_team_shows_an_admin_every_project():
     """The Projects page asks for every project at once. Requiring a team made the page fail
     for everyone, admins included."""
-    from litellm.proxy.management_endpoints.project_endpoints import project_list
+    from token_iq.api.projects import project_list
 
     with (
         patch("litellm.proxy.proxy_server.prisma_client", _prisma()),
@@ -232,7 +232,7 @@ async def test_listing_without_a_team_shows_an_admin_every_project():
 @pytest.mark.asyncio
 async def test_listing_without_a_team_shows_a_team_admin_only_the_teams_they_run():
     from litellm.proxy._types import Member
-    from litellm.proxy.management_endpoints.project_endpoints import project_list
+    from token_iq.api.projects import project_list
 
     lead = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
     mine = _team_row("t1", members_with_roles=[Member(user_id="lead", role="admin").model_dump()])
@@ -253,7 +253,7 @@ async def test_listing_without_a_team_shows_a_team_admin_only_the_teams_they_run
 async def test_listing_without_a_team_includes_the_team_the_caller_s_key_belongs_to():
     """A key's own team may already read one of its projects through /project/info, so the
     list has to agree with that rule."""
-    from litellm.proxy.management_endpoints.project_endpoints import project_list
+    from token_iq.api.projects import project_list
 
     member = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-m", user_id="m", team_id="t2")
     by_teams = AsyncMock(return_value=[_project("p2", "t2")])
@@ -269,7 +269,7 @@ async def test_listing_without_a_team_includes_the_team_the_caller_s_key_belongs
 
 @pytest.mark.asyncio
 async def test_listing_without_a_team_gives_an_outsider_nothing_without_querying_projects():
-    from litellm.proxy.management_endpoints.project_endpoints import project_list
+    from token_iq.api.projects import project_list
 
     by_teams = AsyncMock(return_value=[_project("p1", "t1")])
 
@@ -289,7 +289,7 @@ async def test_a_view_only_admin_may_read_a_project_but_not_change_it():
     from fastapi import HTTPException
 
     from litellm.proxy._types import UpdateProjectRequest
-    from litellm.proxy.management_endpoints.project_endpoints import project_info, update_project
+    from token_iq.api.projects import project_info, update_project
 
     with (
         patch("litellm.proxy.proxy_server.prisma_client", _prisma()),
@@ -311,7 +311,7 @@ async def test_unblocking_a_project_is_possible_because_an_error_message_promise
     """auth_checks tells the owner of a blocked project to update it via this route. Until
     now that route did not exist, so the instruction was unfollowable."""
     from litellm.proxy._types import UpdateProjectRequest
-    from litellm.proxy.management_endpoints.project_endpoints import update_project
+    from token_iq.api.projects import update_project
 
     with (
         patch("litellm.proxy.proxy_server.prisma_client", _prisma()),
@@ -335,7 +335,7 @@ async def test_a_field_not_sent_is_left_alone_rather_than_cleared():
     """A partial update that nulls everything it was not told about would wipe a project's
     model list on a rename."""
     from litellm.proxy._types import UpdateProjectRequest
-    from litellm.proxy.management_endpoints.project_endpoints import update_project
+    from token_iq.api.projects import update_project
 
     with (
         patch("litellm.proxy.proxy_server.prisma_client", _prisma()),
@@ -361,7 +361,7 @@ async def test_updating_another_team_s_project_is_refused():
     from fastapi import HTTPException
 
     from litellm.proxy._types import UpdateProjectRequest
-    from litellm.proxy.management_endpoints.project_endpoints import update_project
+    from token_iq.api.projects import update_project
 
     with (
         patch("litellm.proxy.proxy_server.prisma_client", _prisma()),
@@ -378,7 +378,7 @@ async def test_updating_another_team_s_project_is_refused():
 
 @pytest.mark.asyncio
 async def test_deleting_reports_which_projects_went():
-    from litellm.proxy.management_endpoints.project_endpoints import ProjectDeleteRequest, delete_project
+    from token_iq.api.projects import ProjectDeleteRequest, delete_project
 
     with (
         patch("litellm.proxy.proxy_server.prisma_client", _prisma()),
@@ -405,7 +405,7 @@ async def test_deleting_is_authorised_per_project_not_once_for_the_batch():
     from fastapi import HTTPException
 
     from litellm.proxy._types import Member
-    from litellm.proxy.management_endpoints.project_endpoints import ProjectDeleteRequest, delete_project
+    from token_iq.api.projects import ProjectDeleteRequest, delete_project
 
     lead = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
     mine = _team_row("t1", members_with_roles=[Member(user_id="lead", role="admin").model_dump()])
@@ -442,7 +442,7 @@ def _capture_daily_activity() -> tuple[dict, object]:
 
 @pytest.mark.asyncio
 async def test_daily_activity_reads_the_project_rollup_not_the_raw_spend_logs():
-    from litellm.proxy.management_endpoints.project_endpoints import get_project_daily_activity
+    from token_iq.api.projects import get_project_daily_activity
 
     recorded, capture = _capture_daily_activity()
     with (
@@ -451,7 +451,7 @@ async def test_daily_activity_reads_the_project_rollup_not_the_raw_spend_logs():
             "litellm.repositories.project_repository.ProjectRepository.find_many",
             AsyncMock(return_value=[_project("p1"), _project("p2")]),
         ),
-        patch("litellm.proxy.management_endpoints.project_endpoints.get_daily_activity", capture),
+        patch("token_iq.api.projects.get_daily_activity", capture),
     ):
         result = await get_project_daily_activity(project_ids="p1", user_api_key_dict=ADMIN)
 
@@ -467,7 +467,7 @@ async def test_daily_activity_without_named_projects_gives_an_admin_the_whole_to
     """The Usage page's Project view opens before anything is picked and must show the total. Filtering
     to the projects that exist today would drop the spend of deleted projects and build an IN list as
     long as the project table."""
-    from litellm.proxy.management_endpoints.project_endpoints import get_project_daily_activity
+    from token_iq.api.projects import get_project_daily_activity
 
     recorded, capture = _capture_daily_activity()
     with (
@@ -476,7 +476,7 @@ async def test_daily_activity_without_named_projects_gives_an_admin_the_whole_to
             "litellm.repositories.project_repository.ProjectRepository.find_many",
             AsyncMock(return_value=(_project("p1"), _project("p2"))),
         ),
-        patch("litellm.proxy.management_endpoints.project_endpoints.get_daily_activity", capture),
+        patch("token_iq.api.projects.get_daily_activity", capture),
     ):
         await get_project_daily_activity(project_ids=None, user_api_key_dict=VIEWER)
 
@@ -489,7 +489,7 @@ async def test_daily_activity_without_named_projects_gives_an_admin_the_whole_to
 @pytest.mark.asyncio
 async def test_daily_activity_without_named_projects_gives_a_team_admin_only_their_projects():
     from litellm.proxy._types import Member
-    from litellm.proxy.management_endpoints.project_endpoints import get_project_daily_activity
+    from token_iq.api.projects import get_project_daily_activity
 
     lead: Final = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
     mine: Final = _team_row("t1", members_with_roles=(Member(user_id="lead", role="admin").model_dump(),))
@@ -500,7 +500,7 @@ async def test_daily_activity_without_named_projects_gives_a_team_admin_only_the
             "litellm.repositories.project_repository.ProjectRepository.find_by_team_ids",
             AsyncMock(return_value=(_project("p1", "t1"),)),
         ),
-        patch("litellm.proxy.management_endpoints.project_endpoints.get_daily_activity", capture),
+        patch("token_iq.api.projects.get_daily_activity", capture),
     ):
         await get_project_daily_activity(project_ids=None, user_api_key_dict=lead)
 
@@ -510,7 +510,7 @@ async def test_daily_activity_without_named_projects_gives_a_team_admin_only_the
 @pytest.mark.asyncio
 async def test_daily_activity_is_bucketed_in_the_caller_s_timezone():
     """The dashboard sends its timezone so a day in the chart is the caller's day, not a UTC day."""
-    from litellm.proxy.management_endpoints.project_endpoints import get_project_daily_activity
+    from token_iq.api.projects import get_project_daily_activity
 
     recorded, capture = _capture_daily_activity()
     with (
@@ -519,7 +519,7 @@ async def test_daily_activity_is_bucketed_in_the_caller_s_timezone():
             "litellm.repositories.project_repository.ProjectRepository.find_many",
             AsyncMock(return_value=(_project("p1"),)),
         ),
-        patch("litellm.proxy.management_endpoints.project_endpoints.get_daily_activity", capture),
+        patch("token_iq.api.projects.get_daily_activity", capture),
     ):
         await get_project_daily_activity(project_ids="p1", timezone=-330, user_api_key_dict=ADMIN)
 
@@ -531,7 +531,7 @@ async def test_daily_activity_asking_for_a_readable_and_an_unreadable_project_is
     from fastapi import HTTPException
 
     from litellm.proxy._types import Member
-    from litellm.proxy.management_endpoints.project_endpoints import get_project_daily_activity
+    from token_iq.api.projects import get_project_daily_activity
 
     lead: Final = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
     mine: Final = _team_row("t1", members_with_roles=(Member(user_id="lead", role="admin").model_dump(),))
@@ -542,7 +542,7 @@ async def test_daily_activity_asking_for_a_readable_and_an_unreadable_project_is
             "litellm.repositories.project_repository.ProjectRepository.find_by_team_ids",
             AsyncMock(return_value=(_project("p1", "t1"),)),
         ),
-        patch("litellm.proxy.management_endpoints.project_endpoints.get_daily_activity", report),
+        patch("token_iq.api.projects.get_daily_activity", report),
         pytest.raises(HTTPException) as exc,
     ):
         await get_project_daily_activity(project_ids="p1,p2", user_api_key_dict=lead)
@@ -557,12 +557,12 @@ async def test_daily_activity_asking_for_a_readable_and_an_unreadable_project_is
 async def test_daily_activity_for_a_caller_with_no_projects_filters_to_nothing_not_everything():
     """An empty id list reaches the query as an empty IN filter. Passing None instead would drop
     the filter and report every project's spend to someone who can read none of them."""
-    from litellm.proxy.management_endpoints.project_endpoints import get_project_daily_activity
+    from token_iq.api.projects import get_project_daily_activity
 
     recorded, capture = _capture_daily_activity()
     with (
         patch("litellm.proxy.proxy_server.prisma_client", _prisma_with_teams(_team_row("t1"))),
-        patch("litellm.proxy.management_endpoints.project_endpoints.get_daily_activity", capture),
+        patch("token_iq.api.projects.get_daily_activity", capture),
     ):
         await get_project_daily_activity(project_ids=None, user_api_key_dict=OUTSIDER)
 
@@ -573,7 +573,7 @@ async def test_daily_activity_for_a_caller_with_no_projects_filters_to_nothing_n
 async def test_daily_activity_of_a_project_the_caller_cannot_read_is_refused_not_empty():
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.project_endpoints import get_project_daily_activity
+    from token_iq.api.projects import get_project_daily_activity
 
     with (
         patch("litellm.proxy.proxy_server.prisma_client", _prisma_with_teams(_team_row("t1"))),
@@ -591,7 +591,7 @@ async def test_daily_activity_for_an_unknown_project_is_refused_without_confirmi
     project ids exist."""
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.project_endpoints import get_project_daily_activity
+    from token_iq.api.projects import get_project_daily_activity
 
     with (
         patch("litellm.proxy.proxy_server.prisma_client", _prisma()),
@@ -612,7 +612,7 @@ async def test_attaching_a_budget_to_a_project_is_actually_saved():
     """/project/update answered 200 while dropping budget_id, which left the project
     budget check in auth_checks comparing spend against a budget nothing could set."""
     from litellm.proxy._types import UpdateProjectRequest
-    from litellm.proxy.management_endpoints.project_endpoints import update_project
+    from token_iq.api.projects import update_project
 
     saved = AsyncMock(return_value=_project())
     with (
@@ -637,7 +637,7 @@ async def test_a_view_only_admin_cannot_create_a_project():
     write check is the only thing standing between an admin viewer and a new project."""
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.project_endpoints import new_project
+    from token_iq.api.projects import new_project
 
     create: Final = AsyncMock()
     with (
@@ -655,7 +655,7 @@ async def test_a_view_only_admin_cannot_create_a_project():
 async def test_a_view_only_admin_cannot_delete_a_project():
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.project_endpoints import ProjectDeleteRequest, delete_project
+    from token_iq.api.projects import ProjectDeleteRequest, delete_project
 
     deleter: Final = AsyncMock()
     with (
@@ -687,7 +687,7 @@ async def test_a_team_admin_cannot_move_their_project_into_a_team_they_do_not_ru
     from fastapi import HTTPException
 
     from litellm.proxy._types import UpdateProjectRequest
-    from litellm.proxy.management_endpoints.project_endpoints import update_project
+    from token_iq.api.projects import update_project
 
     lead, mine = _lead_of_t1()
     client: Final = MagicMock()
@@ -713,7 +713,7 @@ async def test_a_team_admin_cannot_move_their_project_into_a_team_they_do_not_ru
 @pytest.mark.asyncio
 async def test_a_proxy_admin_may_move_a_project_to_another_team():
     from litellm.proxy._types import UpdateProjectRequest
-    from litellm.proxy.management_endpoints.project_endpoints import update_project
+    from token_iq.api.projects import update_project
 
     saved: Final = AsyncMock(return_value=_project("p1", "t2"))
     with (
@@ -735,7 +735,7 @@ async def test_a_team_admin_cannot_attach_a_budget_when_creating_a_project():
     a project spends against."""
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.project_endpoints import new_project
+    from token_iq.api.projects import new_project
 
     lead, mine = _lead_of_t1()
     create: Final = AsyncMock()
@@ -758,7 +758,7 @@ async def test_a_team_admin_cannot_attach_a_budget_when_updating_a_project():
     from fastapi import HTTPException
 
     from litellm.proxy._types import UpdateProjectRequest
-    from litellm.proxy.management_endpoints.project_endpoints import update_project
+    from token_iq.api.projects import update_project
 
     lead, mine = _lead_of_t1()
     saved: Final = AsyncMock()
@@ -781,7 +781,7 @@ async def test_a_team_admin_cannot_attach_a_budget_when_updating_a_project():
 @pytest.mark.asyncio
 async def test_a_team_admin_may_still_update_their_project_without_touching_the_budget():
     from litellm.proxy._types import UpdateProjectRequest
-    from litellm.proxy.management_endpoints.project_endpoints import update_project
+    from token_iq.api.projects import update_project
 
     lead, mine = _lead_of_t1()
     saved: Final = AsyncMock(return_value=_project())
@@ -802,7 +802,7 @@ async def test_a_team_admin_may_still_update_their_project_without_touching_the_
 
 @pytest.mark.asyncio
 async def test_a_proxy_admin_may_attach_a_budget_when_creating_a_project():
-    from litellm.proxy.management_endpoints.project_endpoints import new_project
+    from token_iq.api.projects import new_project
 
     create: Final = AsyncMock(return_value=_project())
     with (

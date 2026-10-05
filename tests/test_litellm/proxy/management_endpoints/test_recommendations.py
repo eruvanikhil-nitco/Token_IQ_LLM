@@ -6,7 +6,7 @@ import pytest
 from fastapi import HTTPException
 
 from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.management_endpoints.recommendations import recommendations_response
+from token_iq.api.recommendations import recommendations_response
 from litellm.types.proxy.recommendation import Evidence, Recommendation
 
 START: Final = datetime(2026, 9, 1, tzinfo=timezone.utc)
@@ -91,7 +91,7 @@ def test_the_period_is_reported_back_so_a_reader_knows_what_was_examined() -> No
 
 @pytest.mark.asyncio
 async def test_a_non_admin_cannot_read_cross_team_recommendations() -> None:
-    from litellm.proxy.management_endpoints.recommendations import recommendations
+    from token_iq.api.recommendations import recommendations
 
     with pytest.raises(HTTPException) as caught:
         await recommendations(period_start="2026-09-01", period_end="2026-09-30", user_api_key_dict=MEMBER)
@@ -100,8 +100,8 @@ async def test_a_non_admin_cannot_read_cross_team_recommendations() -> None:
 
 @pytest.mark.asyncio
 async def test_a_non_admin_cannot_dismiss_a_card() -> None:
-    from litellm.proxy.management_endpoints.recommendations import decide_recommendation
-    from litellm.types.proxy.management_endpoints.recommendation_endpoints import DecisionBody
+    from token_iq.api.recommendations import decide_recommendation
+    from token_iq.api.types.recommendations import DecisionBody
 
     with pytest.raises(HTTPException) as caught:
         await decide_recommendation(
@@ -113,7 +113,7 @@ async def test_a_non_admin_cannot_dismiss_a_card() -> None:
 def test_a_decision_we_do_not_recognise_is_refused_by_validation() -> None:
     from pydantic import ValidationError
 
-    from litellm.types.proxy.management_endpoints.recommendation_endpoints import DecisionBody
+    from token_iq.api.types.recommendations import DecisionBody
 
     with pytest.raises(ValidationError):
         DecisionBody(state="maybe")  # pyright: ignore[reportArgumentType]  # the point of the test

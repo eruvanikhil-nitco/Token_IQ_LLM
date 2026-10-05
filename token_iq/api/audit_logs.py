@@ -22,7 +22,7 @@ from pydantic import BaseModel, Field
 
 from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-from litellm.proxy.management_endpoints.audit_log_diff import FieldChange, diff_snapshots, summarise
+from token_iq.api.audit_log_diff import FieldChange, diff_snapshots, summarise
 
 router: Final = fastapi.APIRouter(tags=["audit"])
 

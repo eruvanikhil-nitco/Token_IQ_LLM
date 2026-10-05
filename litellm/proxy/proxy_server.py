@@ -423,10 +423,6 @@ from litellm.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 from litellm.proxy.logging_endpoints.callback_logs_endpoints import (
     rust_control_plane_router,
 )
-from litellm.proxy.management_endpoints.attribution import router as attribution_router
-from litellm.proxy.management_endpoints.audit_log_endpoints import (
-    router as audit_log_endpoints_router,
-)
 from litellm.proxy.management_endpoints.auto_router_endpoints import (
     router as auto_router_management_router,
 )
@@ -439,7 +435,6 @@ from litellm.proxy.management_endpoints.cache_settings_endpoints import (
 from litellm.proxy.management_endpoints.callback_management_endpoints import (
     router as callback_management_endpoints_router,
 )
-from litellm.proxy.management_endpoints.combined_usage import router as combined_usage_router
 from litellm.proxy.management_endpoints.common_utils import (
     _user_has_admin_privileges,
     _user_has_admin_view,
@@ -477,7 +472,6 @@ from litellm.proxy.management_endpoints.key_management_endpoints import (
 from litellm.proxy.management_endpoints.key_management_endpoints import (
     router as key_management_router,
 )
-from litellm.proxy.management_endpoints.ledger import router as ledger_router
 from litellm.proxy.management_endpoints.management_v1 import (
     router as management_v1_router,
 )
@@ -497,22 +491,9 @@ from litellm.proxy.management_endpoints.model_management_endpoints import (
 from litellm.proxy.management_endpoints.organization_endpoints import (
     router as organization_router,
 )
-from litellm.proxy.management_endpoints.overview import (
-    router as overview_router,
-)
-from litellm.proxy.management_endpoints.project_endpoints import router as project_router
-from litellm.proxy.management_endpoints.provider_connections import (
-    router as provider_connections_router,
-)
-from litellm.proxy.management_endpoints.provider_reconciliation import (
-    router as provider_reconciliation_router,
-)
-from litellm.proxy.management_endpoints.provider_usage import router as provider_usage_router
-from litellm.proxy.management_endpoints.recommendations import router as recommendations_router
 from litellm.proxy.management_endpoints.router_settings_endpoints import (
     router as router_settings_router,
 )
-from litellm.proxy.management_endpoints.seats import router as seats_router
 from litellm.proxy.management_endpoints.tag_management_endpoints import (
     router as tag_management_router,
 )
@@ -523,9 +504,6 @@ from litellm.proxy.management_endpoints.team_endpoints import router as team_rou
 from litellm.proxy.management_endpoints.team_endpoints import (
     update_team,
     validate_membership,
-)
-from litellm.proxy.management_endpoints.tool_connections import (
-    router as tool_connections_router,
 )
 from litellm.proxy.management_endpoints.ui_sso import (
     get_disabled_non_admin_personal_key_creation,
@@ -699,6 +677,28 @@ from litellm.types.secret_managers.main import (
 from litellm.types.utils import CredentialItem, CustomHuggingfaceTokenizer, RawRequestTypedDict, StandardLoggingPayload
 from litellm.types.utils import ModelInfo as ModelMapInfo
 from litellm.utils import _add_custom_logger_callback_to_specific_event
+from token_iq.api.attribution import router as attribution_router
+from token_iq.api.audit_logs import (
+    router as audit_log_endpoints_router,
+)
+from token_iq.api.combined_usage import router as combined_usage_router
+from token_iq.api.ledger import router as ledger_router
+from token_iq.api.overview import (
+    router as overview_router,
+)
+from token_iq.api.projects import router as project_router
+from token_iq.api.provider_connections import (
+    router as provider_connections_router,
+)
+from token_iq.api.provider_reconciliation import (
+    router as provider_reconciliation_router,
+)
+from token_iq.api.provider_usage import router as provider_usage_router
+from token_iq.api.recommendations import router as recommendations_router
+from token_iq.api.seats import router as seats_router
+from token_iq.api.tool_connections import (
+    router as tool_connections_router,
+)
 from token_iq.connectors.billing.scheduled import INTERVAL_SECONDS as PROVIDER_BILLING_INTERVAL_SECONDS
 from token_iq.connectors.billing.scheduled import build_provider_billing_job
 from token_iq.connectors.billing.startup import register_billing_connectors
@@ -13863,7 +13863,7 @@ async def model_info_v2(
         # left to test. `is True` because direct-call tests bypass FastAPI and the Query
         # default arrives as a truthy sentinel rather than False.
         if configured_only is True:
-            from litellm.proxy.management_endpoints.provider_overview import has_credentials
+            from token_iq.api.provider_overview import has_credentials
 
             all_models = [deployment for deployment in all_models if has_credentials((deployment,))]
 

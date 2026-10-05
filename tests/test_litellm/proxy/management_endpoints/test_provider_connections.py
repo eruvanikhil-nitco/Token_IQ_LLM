@@ -30,7 +30,7 @@ def _run(provider: str, credential_name: str, outcome: str, detail: str | None =
 
 @pytest.mark.asyncio
 async def test_a_provider_with_no_credential_is_reported_not_connected():
-    from litellm.proxy.management_endpoints.provider_connections import build_provider_connections
+    from token_iq.api.provider_connections import build_provider_connections
 
     async def no_credentials(_provider: str) -> tuple[BillingCredential, ...]:
         return ()
@@ -48,7 +48,7 @@ async def test_a_provider_with_no_credential_is_reported_not_connected():
 
 @pytest.mark.asyncio
 async def test_each_account_gets_its_own_row_and_the_worst_one_sets_the_provider_state():
-    from litellm.proxy.management_endpoints.provider_connections import build_provider_connections
+    from token_iq.api.provider_connections import build_provider_connections
 
     async def two(_provider: str) -> tuple[BillingCredential, ...]:
         return (
@@ -79,7 +79,7 @@ async def test_each_account_gets_its_own_row_and_the_worst_one_sets_the_provider
 async def test_only_the_newest_run_for_an_account_decides_its_state():
     """Runs arrive newest first. Letting an older failure win would leave a connection the
     customer already fixed showing as broken until the history rolled over."""
-    from litellm.proxy.management_endpoints.provider_connections import build_provider_connections
+    from token_iq.api.provider_connections import build_provider_connections
 
     async def one(_provider: str) -> tuple[BillingCredential, ...]:
         return (BillingCredential(name="prod", values={"api_key": "k"}),)
@@ -96,7 +96,7 @@ async def test_only_the_newest_run_for_an_account_decides_its_state():
 
 @pytest.mark.asyncio
 async def test_every_connection_says_what_it_fetches():
-    from litellm.proxy.management_endpoints.provider_connections import build_provider_connections
+    from token_iq.api.provider_connections import build_provider_connections
 
     async def none(_provider: str) -> tuple[BillingCredential, ...]:
         return ()
@@ -120,7 +120,7 @@ async def test_only_an_admin_may_read_provider_connections():
     every provider in the deployment. A non-admin caller must never reach that data."""
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.provider_connections import provider_connections
+    from token_iq.api.provider_connections import provider_connections
 
     with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()):
         with pytest.raises(HTTPException) as exc:
@@ -133,7 +133,7 @@ async def test_only_an_admin_may_read_provider_connections():
 async def test_provider_connections_without_a_database_answers_500_not_a_crash():
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.provider_connections import provider_connections
+    from token_iq.api.provider_connections import provider_connections
 
     with patch("litellm.proxy.proxy_server.prisma_client", None):
         with pytest.raises(HTTPException) as exc:
@@ -147,7 +147,7 @@ async def test_only_an_admin_may_read_sync_history():
     """Sync history exposes which credential was tried and why it failed, per provider."""
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.provider_connections import provider_sync_history
+    from token_iq.api.provider_connections import provider_sync_history
 
     with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()):
         with pytest.raises(HTTPException) as exc:
@@ -160,7 +160,7 @@ async def test_only_an_admin_may_read_sync_history():
 async def test_sync_history_without_a_database_answers_500_not_a_crash():
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.provider_connections import provider_sync_history
+    from token_iq.api.provider_connections import provider_sync_history
 
     with patch("litellm.proxy.proxy_server.prisma_client", None):
         with pytest.raises(HTTPException) as exc:

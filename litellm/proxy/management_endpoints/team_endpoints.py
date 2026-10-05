@@ -6231,11 +6231,11 @@ async def team_courier_coverage(
     Providers are narrowed to the ones this team can actually reach, because a warning
     about a provider the team was never granted is noise that teaches admins to skim.
     """
-    from litellm.proxy.management_endpoints.courier_coverage import (
+    from litellm.proxy.proxy_server import llm_router, prisma_client
+    from token_iq.api.courier_coverage import (
         provider_courier_coverage,
         providers_of,
     )
-    from litellm.proxy.proxy_server import llm_router, prisma_client
 
     if prisma_client is None:
         raise HTTPException(

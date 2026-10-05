@@ -20,7 +20,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from litellm.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
 from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-from litellm.types.proxy.management_endpoints.seat_endpoints import (
+from litellm.types.proxy.seat import Seat
+from token_iq.api.types.seats import (
     SeatBody,
     SeatDeletedResponse,
     SeatLineResponse,
@@ -29,7 +30,6 @@ from litellm.types.proxy.management_endpoints.seat_endpoints import (
     UserCostListResponse,
     UserCostResponse,
 )
-from litellm.types.proxy.seat import Seat
 from token_iq.repositories.gateway_spend_repository import GatewaySpendRepository
 from token_iq.repositories.seat_repository import SeatRepository
 from token_iq.seats.user_cost import UserCost, user_costs

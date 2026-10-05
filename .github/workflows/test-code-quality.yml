@@ -140,6 +140,24 @@ jobs:
       - name: memory_test
         run: uv run --no-sync python ./tests/code_coverage_tests/memory_test.py
 
+      # The checks above are standalone scripts, invoked by name. The pytest files that this
+      # programme added to the same directory were invoked by nothing, so their guards ran only
+      # when somebody ran them by hand. Listed one by one rather than as a directory, because
+      # running pytest over the whole of it also collects the scripts, which fail when they are
+      # imported instead of executed. Phase 4 should give these a directory of their own; until
+      # then assert_ci_coverage.py flags any new file that is missing from this list.
+      - name: quality guard tests
+        run: >-
+          uv run --no-sync pytest -q
+          ./tests/code_coverage_tests/test_dependabot_config.py
+          ./tests/code_coverage_tests/test_gates_watch_token_iq.py
+          ./tests/code_coverage_tests/test_inventory_baseline.py
+          ./tests/code_coverage_tests/test_inventory_census.py
+          ./tests/code_coverage_tests/test_inventory_reachability.py
+          ./tests/code_coverage_tests/test_patch_targets_resolve.py
+          ./tests/code_coverage_tests/test_remove_ui_doc_links.py
+          ./tests/code_coverage_tests/test_rewrite_upstream_links.py
+
       - name: documentation_test_env_keys
         run: uv run --no-sync python ./tests/documentation_tests/test_env_keys.py
 

@@ -19,7 +19,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from litellm.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
 from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
 from litellm.types.proxy.attribution import AttributionRule
-from litellm.types.proxy.management_endpoints.attribution_endpoints import (
+from token_iq.api.types.attribution import (
     AttributionRuleBody,
     AttributionRuleDeletedResponse,
     AttributionRuleListResponse,

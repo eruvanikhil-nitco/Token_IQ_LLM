@@ -8,9 +8,9 @@ from pydantic import ValidationError
 
 from token_iq.ledger.reconciliation import reconcile
 from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.management_endpoints.ledger import reconciliation_response
+from token_iq.api.ledger import reconciliation_response
 from litellm.types.proxy.invoice import InvoiceAdjustment, ProviderInvoice
-from litellm.types.proxy.management_endpoints.ledger_endpoints import InvoiceBody
+from token_iq.api.types.ledger import InvoiceBody
 
 START: Final = datetime(2026, 9, 1, tzinfo=timezone.utc)
 END: Final = datetime(2026, 9, 30, tzinfo=timezone.utc)
@@ -100,7 +100,7 @@ def test_the_period_is_reported_back_so_a_reader_knows_what_was_compared() -> No
 
 @pytest.mark.asyncio
 async def test_a_non_admin_cannot_read_another_team_s_ledger() -> None:
-    from litellm.proxy.management_endpoints.ledger import ledger_lines
+    from token_iq.api.ledger import ledger_lines
 
     with pytest.raises(HTTPException) as caught:
         await ledger_lines(
@@ -116,7 +116,7 @@ async def test_a_non_admin_cannot_read_another_team_s_ledger() -> None:
 
 @pytest.mark.asyncio
 async def test_a_non_admin_cannot_enter_a_bill() -> None:
-    from litellm.proxy.management_endpoints.ledger import upsert_invoice
+    from token_iq.api.ledger import upsert_invoice
 
     body: Final = InvoiceBody(provider="openrouter", period_start="2026-09-01", period_end="2026-09-30", total="100")
     with pytest.raises(HTTPException) as caught:
@@ -126,7 +126,7 @@ async def test_a_non_admin_cannot_enter_a_bill() -> None:
 
 @pytest.mark.asyncio
 async def test_an_unknown_provider_is_refused_rather_than_reconciled_as_empty() -> None:
-    from litellm.proxy.management_endpoints.ledger import ledger_reconciliation
+    from token_iq.api.ledger import ledger_reconciliation
 
     with pytest.raises(HTTPException) as caught:
         await ledger_reconciliation(
@@ -140,7 +140,7 @@ async def test_an_unknown_provider_is_refused_rather_than_reconciled_as_empty() 
 
 @pytest.mark.asyncio
 async def test_a_period_that_is_not_a_date_is_refused_rather_than_defaulted() -> None:
-    from litellm.proxy.management_endpoints.ledger import ledger_reconciliation
+    from token_iq.api.ledger import ledger_reconciliation
 
     with pytest.raises(HTTPException) as caught:
         await ledger_reconciliation(
@@ -164,14 +164,14 @@ def test_an_invoice_with_an_unknown_adjustment_kind_is_refused_by_validation() -
 
 
 def test_a_cursor_round_trips_through_its_two_halves() -> None:
-    from litellm.proxy.management_endpoints.ledger import _decode_cursor, _encode_cursor
+    from token_iq.api.ledger import _decode_cursor, _encode_cursor
 
     cursor: Final = (datetime(2026, 9, 15, tzinfo=timezone.utc), "openrouter:acct:2026-09-15")
     assert _decode_cursor(_encode_cursor(cursor)) == cursor
 
 
 def test_a_cursor_we_cannot_read_is_none_rather_than_a_guessed_position() -> None:
-    from litellm.proxy.management_endpoints.ledger import _decode_cursor
+    from token_iq.api.ledger import _decode_cursor
 
     assert _decode_cursor("nonsense") is None
     assert _decode_cursor("not-a-date|key") is None
@@ -181,7 +181,7 @@ def test_a_period_end_given_as_a_date_covers_that_whole_day() -> None:
     """A reader who types the thirtieth means all of it. Parsing to midnight and comparing with
     <= drops almost the entire final day, which would report a difference the size of that day's
     usage and blame the provider for it."""
-    from litellm.proxy.management_endpoints.ledger import _period_end_or_400
+    from token_iq.api.ledger import _period_end_or_400
 
     end: Final = _period_end_or_400("2026-09-30", "period_end")
     assert end.hour == 23
@@ -190,7 +190,7 @@ def test_a_period_end_given_as_a_date_covers_that_whole_day() -> None:
 
 
 def test_a_period_end_that_names_a_time_is_taken_at_its_word() -> None:
-    from litellm.proxy.management_endpoints.ledger import _period_end_or_400
+    from token_iq.api.ledger import _period_end_or_400
 
     end: Final = _period_end_or_400("2026-09-30T12:00:00+00:00", "period_end")
     assert end.hour == 12
@@ -198,7 +198,7 @@ def test_a_period_end_that_names_a_time_is_taken_at_its_word() -> None:
 
 
 def test_a_period_start_is_still_the_first_instant_of_its_day() -> None:
-    from litellm.proxy.management_endpoints.ledger import _day_or_400
+    from token_iq.api.ledger import _day_or_400
 
     start: Final = _day_or_400("2026-09-01", "period_start")
     assert start.hour == 0

@@ -157,10 +157,12 @@ shape this phase is about. The map is now spelled in two pieces and the script s
 
 `tests/test_litellm/` did not move. The mirror rule in `CLAUDE.md` says the test tree follows the
 source tree, so this is a real debt rather than a decision that the mirror does not matter. It is
-deferred to phase 6 for two reasons: the phase 0 baseline is keyed on `tests/test_litellm/...`
-nodeids, so moving the tree now would make every suite in it read as `disappeared` and leave
-nothing to compare task 3 against; and phase 6 turns `litellm/` into `token_iq/gateway/`, which
-moves the same tree again. One move, at the point where the baseline is being re-cut anyway.
+deferred because the phase 0 baseline is keyed on `tests/test_litellm/...` nodeids, so moving the
+tree now would make every suite in it read as `disappeared` and leave nothing to compare task 3
+against. **Phase 4 is where it moves**, not phase 6: spec 5.4 puts the Token IQ tests in
+`tests/token_iq/` mirroring the package, and the phase 6 rename table takes what is left of
+`tests/test_litellm/` to `tests/gateway/`. Phase 4 has to re-cut the baseline for exactly this
+reason, which makes it the right moment.
 
 The other 16 files in `litellm/repositories/` are the engine's and stayed. The 11 that moved
 import nothing from their former siblings, only stdlib and
@@ -178,24 +180,60 @@ against.
 
 **Files:** 16 routers from `litellm/proxy/management_endpoints/` to `token_iq/api/`
 
-- [ ] **Step 1: Move, renaming the three the spec renames**
+- [x] **Step 1: Move, renaming the three the spec renames**
 
 `audit_log_endpoints.py` to `audit_log.py`, `project_endpoints.py` to `projects.py`, and the
 `*_endpoints.py` types alongside them.
 
-- [ ] **Step 2: Update `proxy_server.py`**
+- [x] **Step 2: Update `proxy_server.py`**
 
 It imports the routers in a block around line 506 and lazily in two places. A lazy import
 inside a function is easy to miss because nothing resolves it until that path runs.
 
-- [ ] **Step 3: Update the 139 references and the 11 quoted ones**
+- [x] **Step 3: Update the 139 references and the 11 quoted ones**
 
-- [ ] **Step 4: Confirm every route is still registered**
+- [x] **Step 4: Confirm every route is still registered**
 
 Start the proxy and compare its route list against the one before the move. An unregistered
 router is a 404 at runtime, not an import error, so the suite will not tell you.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
+
+### What task 3 found
+
+**The eleven quoted paths were exactly eleven**, all `patch()` targets in two test files: six
+naming `project_endpoints.get_daily_activity` and five naming
+`provider_usage.ProviderUsageFactRepository`. Each would have gone on passing while patching
+nothing. They are now covered by `tests/code_coverage_tests/test_patch_targets_resolve.py`,
+which resolves every `patch` string in the suite naming a `token_iq` path and fails if one points
+at nothing. Proved by planting a stale target and watching it named in the failure.
+
+**The route list is byte-identical: 589 before, 589 after.** Captured as methods, path and
+endpoint name, then diffed literally. This is the check the suite cannot do, because an
+unregistered router answers 404 rather than failing to import.
+
+**Both lazy imports were caught**, the two the plan predicted:
+`provider_overview.has_credentials` inside `model_info_v2()`, and `courier_coverage`'s two names
+inside `team_courier_coverage()`. Found by walking the AST for imports nested inside a function
+rather than by reading, then resolved by name afterwards. There are 57 such imports in
+`litellm/`; the other 55 name modules that stayed.
+
+### Sixteen files, of which twelve are routers
+
+Twelve define an `APIRouter`. The other four are helpers moved with them: `audit_log_diff`, used
+only by the audit router, and `provider_overview`, `model_discovery` and `courier_coverage`, each
+used by an engine module that stays. The engine importing from `token_iq` is the direction phase 6
+goes anyway, since `litellm/` becomes `token_iq/gateway/`.
+
+The seven `*_endpoints.py` wire types went to `token_iq/api/types/`, each renamed after the one
+router that uses it. Nothing else imports any of them, so the pairing is exact.
+
+### One deviation from this plan, following the spec
+
+`audit_log_endpoints.py` became **`audit_logs.py`**, not `audit_log.py` as step 1 above says. The
+spec's rule for routers is "plural resource name, no `_endpoints` suffix", with `projects.py` as
+its worked example, and dropping the suffix without applying the plural follows half of it. The
+routes are `/audit/list` and `/project/*`, so both resources are countable.
 
 ---
 

@@ -7,9 +7,9 @@ from fastapi import HTTPException
 from pydantic import ValidationError
 
 from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.management_endpoints.seats import user_cost_response
+from token_iq.api.seats import user_cost_response
 from token_iq.seats.user_cost import SeatLine, UserCost
-from litellm.types.proxy.management_endpoints.seat_endpoints import SeatBody
+from token_iq.api.types.seats import SeatBody
 
 START: Final = datetime(2026, 9, 1, tzinfo=timezone.utc)
 END: Final = datetime(2026, 9, 30, tzinfo=timezone.utc)
@@ -66,7 +66,7 @@ def test_the_period_is_reported_back_so_a_reader_knows_what_was_counted() -> Non
 
 @pytest.mark.asyncio
 async def test_a_person_may_not_read_someone_else_s_cost() -> None:
-    from litellm.proxy.management_endpoints.seats import user_cost
+    from token_iq.api.seats import user_cost
 
     with pytest.raises(HTTPException) as caught:
         await user_cost(
@@ -81,7 +81,7 @@ async def test_a_person_may_not_read_someone_else_s_cost() -> None:
 
 @pytest.mark.asyncio
 async def test_a_person_reading_their_own_cost_gets_past_the_privacy_check() -> None:
-    from litellm.proxy.management_endpoints.seats import user_cost
+    from token_iq.api.seats import user_cost
 
     with pytest.raises(HTTPException) as caught:
         await user_cost(
@@ -97,7 +97,7 @@ async def test_a_person_reading_their_own_cost_gets_past_the_privacy_check() -> 
 
 @pytest.mark.asyncio
 async def test_a_non_admin_cannot_list_everyone_s_cost() -> None:
-    from litellm.proxy.management_endpoints.seats import all_user_costs
+    from token_iq.api.seats import all_user_costs
 
     with pytest.raises(HTTPException) as caught:
         await all_user_costs(
@@ -111,7 +111,7 @@ async def test_a_non_admin_cannot_list_everyone_s_cost() -> None:
 
 @pytest.mark.asyncio
 async def test_a_non_admin_cannot_assign_a_seat() -> None:
-    from litellm.proxy.management_endpoints.seats import upsert_seat
+    from token_iq.api.seats import upsert_seat
 
     body: Final = SeatBody(
         tool="claude-code",
@@ -128,7 +128,7 @@ async def test_a_non_admin_cannot_assign_a_seat() -> None:
 
 @pytest.mark.asyncio
 async def test_a_period_that_is_not_a_date_is_refused_rather_than_defaulted() -> None:
-    from litellm.proxy.management_endpoints.seats import all_user_costs
+    from token_iq.api.seats import all_user_costs
 
     with pytest.raises(HTTPException) as caught:
         await all_user_costs(
@@ -153,7 +153,7 @@ def test_a_seat_with_an_unknown_cadence_is_refused_by_validation() -> None:
 
 
 def test_a_period_end_given_as_a_date_covers_that_whole_day() -> None:
-    from litellm.proxy.management_endpoints.seats import _period_end_or_400
+    from token_iq.api.seats import _period_end_or_400
 
     end: Final = _period_end_or_400("2026-09-30", "period_end")
     assert end.hour == 23
@@ -164,7 +164,7 @@ def test_the_last_instant_survives_a_millisecond_column_without_rolling_over() -
     """These columns are TIMESTAMP(3). A microsecond value rounds up on insert, so a period
     ending 23:59:59.999999 is stored as midnight the next day and falls outside its own period.
     Proven live: a seat saved that way could never be found again."""
-    from litellm.proxy.management_endpoints.seats import _period_end_or_400
+    from token_iq.api.seats import _period_end_or_400
 
     end: Final = _period_end_or_400("2026-09-30", "period_end")
     assert end.microsecond == 999000

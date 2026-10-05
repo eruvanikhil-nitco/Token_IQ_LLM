@@ -38,7 +38,7 @@ async def test_only_an_admin_may_read_provider_usage():
     leaks financial data across teams."""
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.provider_usage import provider_usage_summary
+    from token_iq.api.provider_usage import provider_usage_summary
 
     with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()):
         with pytest.raises(HTTPException) as exc:
@@ -51,7 +51,7 @@ async def test_only_an_admin_may_read_provider_usage():
 async def test_usage_without_a_database_answers_500_not_a_crash():
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.provider_usage import provider_usage_summary
+    from token_iq.api.provider_usage import provider_usage_summary
 
     with patch("litellm.proxy.proxy_server.prisma_client", None):
         with pytest.raises(HTTPException) as exc:
@@ -66,7 +66,7 @@ async def test_an_unknown_provider_is_refused_rather_than_answering_an_empty_sum
     different and much worse message than 'no such provider'."""
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.provider_usage import provider_usage_summary
+    from token_iq.api.provider_usage import provider_usage_summary
 
     with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()):
         with pytest.raises(HTTPException) as exc:
@@ -79,7 +79,7 @@ async def test_an_unknown_provider_is_refused_rather_than_answering_an_empty_sum
 
 @pytest.mark.asyncio
 async def test_the_response_carries_the_settling_note_so_recent_figures_are_not_read_as_final():
-    from litellm.proxy.management_endpoints.provider_usage import provider_usage_summary
+    from token_iq.api.provider_usage import provider_usage_summary
 
     rows = (
         SummaryRow(model="claude-3-5", credential_name="prod", evidence="reconciled", billed_cost=Decimal("1.50"),
@@ -88,7 +88,7 @@ async def test_the_response_carries_the_settling_note_so_recent_figures_are_not_
     fake_repository = _FakeRepository(rows, TOKENS)
 
     with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()):
-        with patch("litellm.proxy.management_endpoints.provider_usage.ProviderUsageFactRepository", fake_repository):
+        with patch("token_iq.api.provider_usage.ProviderUsageFactRepository", fake_repository):
             result = await provider_usage_summary(provider="bedrock", days=30, user_api_key_dict=ADMIN)
 
     assert result.total_cost == "1.50"
@@ -157,7 +157,7 @@ async def test_an_unknown_provider_is_refused_on_the_raw_route_too():
     depending on which screen the customer happens to be looking at."""
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.provider_usage import provider_usage_raw
+    from token_iq.api.provider_usage import provider_usage_raw
 
     with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()):
         with pytest.raises(HTTPException) as exc:
@@ -174,7 +174,7 @@ async def test_only_an_admin_may_read_provider_raw_usage():
     it leaks financial detail across teams."""
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.provider_usage import provider_usage_raw
+    from token_iq.api.provider_usage import provider_usage_raw
 
     with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()):
         with pytest.raises(HTTPException) as exc:
@@ -187,7 +187,7 @@ async def test_only_an_admin_may_read_provider_raw_usage():
 async def test_raw_usage_without_a_database_answers_500_not_a_crash():
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.provider_usage import provider_usage_raw
+    from token_iq.api.provider_usage import provider_usage_raw
 
     with patch("litellm.proxy.proxy_server.prisma_client", None):
         with pytest.raises(HTTPException) as exc:
@@ -201,13 +201,13 @@ async def test_raw_rows_carry_the_providers_own_payload_and_exact_cost_as_a_stri
     """Raw Data exists to show the provider's fields verbatim. A response that reshapes,
     prunes or rounds `raw`, or that lets the cost cross as a JSON number, defeats the whole
     point of storing it."""
-    from litellm.proxy.management_endpoints.provider_usage import provider_usage_raw
+    from token_iq.api.provider_usage import provider_usage_raw
 
     fact = _raw_fact("gen-1", datetime(2026, 9, 15, tzinfo=timezone.utc))
     fake_repository = _FakeRawRepository((fact,))
 
     with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()):
-        with patch("litellm.proxy.management_endpoints.provider_usage.ProviderUsageFactRepository", fake_repository):
+        with patch("token_iq.api.provider_usage.ProviderUsageFactRepository", fake_repository):
             result = await provider_usage_raw(provider="openrouter", limit=50, before=None, user_api_key_dict=ADMIN)
 
     assert len(result.rows) == 1
@@ -223,7 +223,7 @@ async def test_raw_rows_carry_the_providers_own_payload_and_exact_cost_as_a_stri
 async def test_next_before_is_set_when_the_page_is_full():
     """A full page means there may be more rows behind it. Omitting the cursor here would
     silently truncate a customer's history at whatever the page size happened to be."""
-    from litellm.proxy.management_endpoints.provider_usage import provider_usage_raw
+    from token_iq.api.provider_usage import provider_usage_raw
 
     facts = tuple(
         _raw_fact(f"gen-{i}", datetime(2026, 9, 15 - i, tzinfo=timezone.utc)) for i in range(5)
@@ -231,7 +231,7 @@ async def test_next_before_is_set_when_the_page_is_full():
     fake_repository = _FakeRawRepository(facts)
 
     with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()):
-        with patch("litellm.proxy.management_endpoints.provider_usage.ProviderUsageFactRepository", fake_repository):
+        with patch("token_iq.api.provider_usage.ProviderUsageFactRepository", fake_repository):
             result = await provider_usage_raw(provider="openrouter", limit=5, before=None, user_api_key_dict=ADMIN)
 
     assert len(result.rows) == 5
@@ -242,7 +242,7 @@ async def test_next_before_is_set_when_the_page_is_full():
 async def test_next_before_is_none_when_the_page_is_short():
     """A short page is the only reliable signal that the scan reached the end. Reporting a
     cursor anyway would make the client ask for a page that will always come back empty."""
-    from litellm.proxy.management_endpoints.provider_usage import provider_usage_raw
+    from token_iq.api.provider_usage import provider_usage_raw
 
     facts = tuple(
         _raw_fact(f"gen-{i}", datetime(2026, 9, 15 - i, tzinfo=timezone.utc)) for i in range(3)
@@ -250,7 +250,7 @@ async def test_next_before_is_none_when_the_page_is_short():
     fake_repository = _FakeRawRepository(facts)
 
     with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()):
-        with patch("litellm.proxy.management_endpoints.provider_usage.ProviderUsageFactRepository", fake_repository):
+        with patch("token_iq.api.provider_usage.ProviderUsageFactRepository", fake_repository):
             result = await provider_usage_raw(provider="openrouter", limit=50, before=None, user_api_key_dict=ADMIN)
 
     assert len(result.rows) == 3
@@ -264,7 +264,7 @@ async def test_the_composite_cursor_resumes_across_a_tie_on_bucket_start_without
     watermark. A page boundary that lands inside that group must defer the whole remainder
     to the next page; filtering the next page on bucket_start alone would have dropped it
     for good, which is exactly the bug this cursor exists to rule out."""
-    from litellm.proxy.management_endpoints.provider_usage import provider_usage_raw
+    from token_iq.api.provider_usage import provider_usage_raw
 
     tied_bucket = datetime(2026, 9, 15, 11, 7, 58, tzinfo=timezone.utc)
     tied_facts = tuple(_raw_fact(f"gen-tied-{i}", tied_bucket) for i in range(6))
@@ -272,7 +272,7 @@ async def test_the_composite_cursor_resumes_across_a_tie_on_bucket_start_without
     fake_repository = _FakeRawRepository((newer_fact, *tied_facts))
 
     with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()):
-        with patch("litellm.proxy.management_endpoints.provider_usage.ProviderUsageFactRepository", fake_repository):
+        with patch("token_iq.api.provider_usage.ProviderUsageFactRepository", fake_repository):
             page1 = await provider_usage_raw(provider="openrouter", limit=4, before=None, user_api_key_dict=ADMIN)
             assert page1.next_before is not None
             page2 = await provider_usage_raw(
@@ -322,7 +322,7 @@ async def test_next_before_is_set_even_when_one_row_in_a_full_page_is_dropped():
     already-filtered facts cannot represent "the database returned more rows than survived",
     which is the entire bug.
     """
-    from litellm.proxy.management_endpoints.provider_usage import provider_usage_raw
+    from token_iq.api.provider_usage import provider_usage_raw
 
     good_row = _raw_prisma_row(
         fact_key="openrouter:gen-1",
@@ -352,7 +352,7 @@ async def test_next_before_is_set_even_when_one_row_in_a_full_page_is_dropped():
 async def test_a_malformed_cursor_is_refused_rather_than_crashing():
     from fastapi import HTTPException
 
-    from litellm.proxy.management_endpoints.provider_usage import provider_usage_raw
+    from token_iq.api.provider_usage import provider_usage_raw
 
     with patch("litellm.proxy.proxy_server.prisma_client", MagicMock()):
         with pytest.raises(HTTPException) as exc:

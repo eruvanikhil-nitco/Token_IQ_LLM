@@ -481,8 +481,10 @@ phase is about. The map is spelled in two pieces now and the script skips itself
 `tests/test_litellm/` stayed. The mirror rule says the test tree follows the source tree, so
 this is a debt rather than a decision that the mirror does not matter. Moving it now would
 make every nodeid in the phase 0 baseline read as `disappeared`, leaving nothing to compare
-task 3 against, and phase 6 turns `litellm/` into `token_iq/gateway/` and moves the same
-tree again. One move, when the baseline is being re-cut anyway.
+task 3 against. Phase 4 is where it moves: spec 5.4 puts the Token IQ tests in
+`tests/token_iq/` mirroring the package, and phase 6 takes what is left of
+`tests/test_litellm/` to `tests/gateway/`. Phase 4 re-cuts the baseline anyway, which makes it
+the right moment.
 
 The other sixteen files in `litellm/repositories/` are the engine's. The eleven that moved
 import nothing from their former siblings.
@@ -498,3 +500,40 @@ escaped the gate is a question about file sets: **2389 files were checked before
 2392 after**, nothing escaped, and the three additions are the new package `__init__.py` files.
 That comparison is now a test, and it fails if an `exclude` pattern ever swallows part of
 `token_iq/`.
+
+
+## Phase 3, task 3: the API routers moved, and nothing 404s
+
+Sixteen modules from `litellm/proxy/management_endpoints/` now live in `token_iq/api/`, with
+their seven wire-type modules in `token_iq/api/types/`. 139 dotted references and 13 type
+references repointed. Twelve of the sixteen define a router; the other four are helpers that
+moved with them.
+
+### The route list is the proof, not the test suite
+
+**589 routes before, 589 after, byte-identical** as methods, path and endpoint name. A router
+that stops being included answers 404 at runtime rather than failing to import, so no test in
+the suite would have reported it. The comparison was captured to a file before the first `git
+mv` and diffed literally afterwards.
+
+### The eleven silent strings were really there
+
+Six `patch()` calls naming `project_endpoints.get_daily_activity` and five naming
+`provider_usage.ProviderUsageFactRepository`. Had any been missed it would have patched
+nothing, exercised the real collaborator, and passed. They are now covered by a test that
+resolves every `patch` string in the suite naming a `token_iq` path, proved by planting a stale
+target and watching it named in the failure.
+
+### Both lazy imports, found by walking the tree
+
+`provider_overview.has_credentials` inside `model_info_v2()` and `courier_coverage`'s two names
+inside `team_courier_coverage()`: nothing resolves either until that request arrives. Found by
+parsing for imports nested inside a function rather than by reading, and resolved by name
+afterwards. There are 57 function-local imports in `litellm/`; the other 55 name modules that
+stayed.
+
+### One name differs from the plan
+
+`audit_log_endpoints.py` became `audit_logs.py`, where the plan wrote `audit_log.py`. The spec's
+rule is "plural resource name, no `_endpoints` suffix" with `projects.py` as its example, and
+dropping the suffix without the plural follows half of it.

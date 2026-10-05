@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from litellm.proxy.management_endpoints.courier_coverage import (
+from token_iq.api.courier_coverage import (
     pricing_branch_providers,
     provider_courier_coverage,
 )
@@ -59,7 +59,7 @@ def test_the_providers_a_team_reaches_come_from_its_deployments():
     """The panel warns per provider, so it has to know which providers are in play. A
     warning about a provider the team was never granted is noise, and noise teaches
     admins to skim the one warning that mattered."""
-    from litellm.proxy.management_endpoints.courier_coverage import providers_of
+    from token_iq.api.courier_coverage import providers_of
 
     deployments = [
         {"model_name": "a", "litellm_params": {"model": "openrouter/openai/gpt-4o-mini"}},
@@ -71,6 +71,6 @@ def test_the_providers_a_team_reaches_come_from_its_deployments():
 
 
 def test_a_deployment_naming_no_provider_is_not_guessed_at():
-    from litellm.proxy.management_endpoints.courier_coverage import providers_of
+    from token_iq.api.courier_coverage import providers_of
 
     assert providers_of([{"model_name": "a", "litellm_params": {"model": "gpt-4o-mini"}}]) == ()

@@ -22,7 +22,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from litellm.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
 from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-from litellm.types.proxy.management_endpoints.combined_endpoints import (
+from token_iq.api.types.combined_usage import (
     ComparisonDay,
     ComparisonResponse,
     ComparisonStatus,

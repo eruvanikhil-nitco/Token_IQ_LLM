@@ -7,7 +7,7 @@ from typing import Final
 import pytest
 
 from token_iq.overview.totals import Sources, totals_for
-from litellm.proxy.management_endpoints.overview import match_status, overview_response
+from token_iq.api.overview import match_status, overview_response
 from token_iq.repositories.overview_repository import ProviderStanding
 
 START: Final = datetime(2026, 9, 1, tzinfo=timezone.utc)
@@ -121,7 +121,7 @@ async def test_a_non_admin_cannot_read_the_overview() -> None:
     from fastapi import HTTPException
 
     from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-    from litellm.proxy.management_endpoints.overview import _admin_or_403
+    from token_iq.api.overview import _admin_or_403
 
     with pytest.raises(HTTPException) as refusal:
         _admin_or_403(UserAPIKeyAuth(api_key="sk-x", user_role=LitellmUserRoles.INTERNAL_USER))

@@ -7,7 +7,7 @@ from fastapi import HTTPException
 
 from token_iq.attribution.gap_owner import GapRow, attribute
 from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.management_endpoints.attribution import unallocated_response
+from token_iq.api.attribution import unallocated_response
 from litellm.types.proxy.attribution import AttributionRule
 
 DAY: Final = datetime(2026, 9, 15, tzinfo=timezone.utc)
@@ -78,7 +78,7 @@ def test_every_row_appears_as_a_line_in_the_order_it_arrived() -> None:
 
 @pytest.mark.asyncio
 async def test_a_non_admin_cannot_read_another_team_s_unallocated_spend() -> None:
-    from litellm.proxy.management_endpoints.attribution import attribution_unallocated
+    from token_iq.api.attribution import attribution_unallocated
 
     with pytest.raises(HTTPException) as caught:
         await attribution_unallocated(provider="openrouter", days=7, user_api_key_dict=MEMBER)
@@ -87,7 +87,7 @@ async def test_a_non_admin_cannot_read_another_team_s_unallocated_spend() -> Non
 
 @pytest.mark.asyncio
 async def test_a_non_admin_cannot_list_the_rules() -> None:
-    from litellm.proxy.management_endpoints.attribution import list_attribution_rules
+    from token_iq.api.attribution import list_attribution_rules
 
     with pytest.raises(HTTPException) as caught:
         await list_attribution_rules(user_api_key_dict=MEMBER)
@@ -96,7 +96,7 @@ async def test_a_non_admin_cannot_list_the_rules() -> None:
 
 @pytest.mark.asyncio
 async def test_an_unknown_provider_is_refused_rather_than_answered_empty() -> None:
-    from litellm.proxy.management_endpoints.attribution import attribution_unallocated
+    from token_iq.api.attribution import attribution_unallocated
 
     with pytest.raises(HTTPException) as caught:
         await attribution_unallocated(provider="opnerouter", days=7, user_api_key_dict=ADMIN)
@@ -106,7 +106,7 @@ async def test_an_unknown_provider_is_refused_rather_than_answered_empty() -> No
 def test_an_unknown_owner_type_is_refused_by_validation() -> None:
     from pydantic import ValidationError
 
-    from litellm.types.proxy.management_endpoints.attribution_endpoints import AttributionRuleBody
+    from token_iq.api.types.attribution import AttributionRuleBody
 
     with pytest.raises(ValidationError):
         AttributionRuleBody(
@@ -121,7 +121,7 @@ def test_an_unknown_owner_type_is_refused_by_validation() -> None:
 def test_an_unknown_match_type_is_refused_by_validation() -> None:
     from pydantic import ValidationError
 
-    from litellm.types.proxy.management_endpoints.attribution_endpoints import AttributionRuleBody
+    from token_iq.api.types.attribution import AttributionRuleBody
 
     with pytest.raises(ValidationError):
         AttributionRuleBody(

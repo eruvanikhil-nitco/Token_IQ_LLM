@@ -94,7 +94,6 @@ from litellm.proxy.management_endpoints.common_utils import (
 from litellm.proxy.management_endpoints.model_management_endpoints import (
     _add_model_to_db,
 )
-from litellm.proxy.management_endpoints.project_endpoints import project_a_key_may_join_or_403
 from litellm.proxy.management_helpers.access_group_key_sync import (
     sync_key_access_group_membership,
     sync_key_regeneration_access_group_membership,
@@ -156,6 +155,7 @@ from litellm.types.utils import (
     PersonalUIKeyGenerationConfig,
     TeamUIKeyGenerationConfig,
 )
+from token_iq.api.projects import project_a_key_may_join_or_403
 
 if TYPE_CHECKING:
     import prisma

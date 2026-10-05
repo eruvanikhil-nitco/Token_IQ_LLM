@@ -15,13 +15,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from litellm.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
 from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
-from litellm.types.proxy.management_endpoints.tool_endpoints import (
+from litellm.types.proxy.provider_billing import BillingCredential, ProviderSyncRun
+from token_iq.api.types.tool_connections import (
     ToolConnection,
     ToolConnectionAccount,
     ToolConnectionsResponse,
     ToolFetchDetail,
 )
-from litellm.types.proxy.provider_billing import BillingCredential, ProviderSyncRun
 from token_iq.connectors.billing.connection_state import (
     account_state,
     provider_state,

@@ -21,7 +21,7 @@ def _row(day: str, ours: str | None, theirs: str | None) -> dict:
 
 
 async def _call(rows: list[dict], caller: UserAPIKeyAuth = ADMIN):
-    from litellm.proxy.management_endpoints.provider_reconciliation import daily_reconciliation
+    from token_iq.api.provider_reconciliation import daily_reconciliation
 
     client = MagicMock()
     client.db.query_raw = AsyncMock(return_value=rows)
@@ -112,7 +112,7 @@ def _prisma_matching_driver(our_cost: str, their_cost: str) -> MagicMock:
 
 @pytest.mark.asyncio
 async def test_daily_totals_keep_every_digit_the_provider_billed():
-    from litellm.proxy.management_endpoints.provider_reconciliation import daily_reconciliation
+    from token_iq.api.provider_reconciliation import daily_reconciliation
 
     client = _prisma_matching_driver(our_cost="0.123456789012345678", their_cost="0.123456789012345678")
     with patch("litellm.proxy.proxy_server.prisma_client", client):
@@ -168,7 +168,7 @@ async def test_a_request_grain_fact_counts_toward_the_daily_provider_total():
     """Grain says how finely the provider answered, not what period the money belongs to.
     A request-grain fact still has a bucket_start and still belongs to a day, so filtering
     it out of the daily total told a customer their provider charged them nothing."""
-    from litellm.proxy.management_endpoints.provider_reconciliation import daily_reconciliation
+    from token_iq.api.provider_reconciliation import daily_reconciliation
 
     client = _prisma_summing_facts([_fact("2026-09-19", "request", "5.00")])
     with patch("litellm.proxy.proxy_server.prisma_client", client):
@@ -182,7 +182,7 @@ async def test_a_request_grain_fact_counts_toward_the_daily_provider_total():
 async def test_mixed_grain_facts_for_the_same_day_are_summed_not_dropped():
     """No connector emits two grains for one period today, but nothing in the query says
     so. If one ever does, both amounts belong in the day's total, not just one of them."""
-    from litellm.proxy.management_endpoints.provider_reconciliation import daily_reconciliation
+    from token_iq.api.provider_reconciliation import daily_reconciliation
 
     client = _prisma_summing_facts([_fact("2026-09-19", "request", "5.00"), _fact("2026-09-19", "day", "2.00")])
     with patch("litellm.proxy.proxy_server.prisma_client", client):

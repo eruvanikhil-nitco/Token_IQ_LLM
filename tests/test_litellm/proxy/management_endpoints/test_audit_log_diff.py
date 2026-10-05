@@ -1,6 +1,6 @@
 import json
 
-from litellm.proxy.management_endpoints.audit_log_diff import diff_snapshots, summarise
+from token_iq.api.audit_log_diff import diff_snapshots, summarise
 
 
 def _fields(changes) -> list[str]:

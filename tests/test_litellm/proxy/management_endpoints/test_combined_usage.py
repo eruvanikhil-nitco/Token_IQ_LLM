@@ -7,7 +7,7 @@ from fastapi import HTTPException
 
 from token_iq.attribution.gap_owner import GapRow, attribute
 from litellm.proxy._types import LitellmUserRoles, UserAPIKeyAuth
-from litellm.proxy.management_endpoints.combined_usage import comparison_response
+from token_iq.api.combined_usage import comparison_response
 from litellm.types.proxy.attribution import AttributionRule
 
 DAY: Final = datetime(2026, 9, 15, tzinfo=timezone.utc)
@@ -104,14 +104,14 @@ def test_every_row_keeps_the_account_that_produced_it() -> None:
 
 @pytest.mark.asyncio
 async def test_a_non_admin_cannot_read_another_team_s_comparison() -> None:
-    from litellm.proxy.management_endpoints.combined_usage import combined_comparison
+    from token_iq.api.combined_usage import combined_comparison
 
     with pytest.raises(HTTPException) as caught:
         await combined_comparison(days=7, user_api_key_dict=MEMBER)
     assert caught.value.status_code == 403
 
 
-from litellm.proxy.management_endpoints.combined_usage import explorer_response  # noqa: E402  # grouped with its tests
+from token_iq.api.combined_usage import explorer_response  # noqa: E402  # grouped with its tests
 from token_iq.repositories.gateway_spend_repository import SpendSlice  # noqa: E402  # grouped with its tests
 
 TEAM_SLICE: Final = SpendSlice(key="t-1", gateway_cost=Decimal("4"))
