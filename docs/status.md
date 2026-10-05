@@ -954,3 +954,62 @@ Three things are now true that were not when the question was first written, and
 - Combined opens first, so the inherited view is no longer what a reader meets
 - Combined, APIs and the ledger each say what their figures mean. The inherited view says nothing,
   and it is the only tab now that does not
+
+---
+
+## Phase 6, first deliverable: the rename map
+
+`docs/plans/rename-map.csv` is built by `scripts/rename/build_rename_map.py`, which measures and
+never edits. Phase 6 asks for this map before any rename and asks for it to be reviewed first, so
+it is committed on its own.
+
+**3,111 rows over 10,363 tracked files.** Counts come from the git index, not a directory walk, so
+the virtualenv, `node_modules` and build output cannot inflate them.
+
+| kind | rows | owned by |
+|---|---|---|
+| identifier | 2,217 | phase 6 |
+| database model | 453 | phase 8 |
+| env var | 287 | phase 7 |
+| metric name | 141 | phase 9 |
+| census fixture | 4 | nothing: a gate greps for these spellings |
+| package | 3 | phase 6 |
+| request header | 3 | phase 7 |
+| config key | 2 | phase 7 |
+| test tree | 1 | phase 6 |
+
+Which phase owns a name is read from where it is written, not from how it is spelled, because a
+name a running installation reads must not be renamed in phase 6. `LiteLLM_SpendLogs` appearing in
+a raw SQL string inside Python is still a database model, which is the one case the schema rule
+cannot see.
+
+Three things the map settled that were open:
+
+- **No genuine collisions.** Ten new names have two old names folding onto them, and every one is
+  a case-variant pair of the same concept. `LiteLLMLogging` and `LitellmLogging` are both local
+  aliases of one `Logging` class, imported with different spellings in different modules;
+  `LiteLLMParams` is a local stub class in one test while `LitellmParams` is the guardrails model.
+  All are module-scoped, so none share a namespace after the rename. The `note` column says which
+  names fold with which, per row
+- **Odd spellings exist and are still the name.** `liteLLM`, `LiTeLlM` and `LiteLlm` appear in 27
+  files. They are renamed on the leading letter's case, because nothing else about them is
+  consistent enough to read
+- **Four spellings must not be renamed at all.** `tests/code_coverage_tests/test_inventory_census.py`
+  holds them deliberately: they are what a gate greps for, so renaming them would leave the gate
+  passing against names that no longer exist
+
+The `files` column means two different things by design, and the `kind` says which. For an
+identifier it is how many files contain that name. For a package or the test tree it is how many
+files move, which is a question about paths: counting content occurrences reported 0 for the test
+tree, whose own name appears inside no file, and 0 for `litellm_core_utils`, whose path is
+`litellm/litellm_core_utils`.
+
+An identifier row for a name that is also a package move is not a contradiction. The package
+becomes `token_iq.gateway` while the name a module binds becomes `gateway`, which is both of the
+plan's rules at once, and the note says so on the row so a reviewer reading only the identifier
+rows cannot apply the wrong one.
+
+`tests/test_litellm/test_build_rename_map.py` holds the rules. Five deliberate breakages were tried
+against it: treating env vars as code, renaming `litellm_params` mechanically, dropping the
+table-name rule, widening the census-fixture rule, and losing the screaming case. All five fail the
+suite.
