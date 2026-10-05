@@ -9,7 +9,7 @@ from typing import Final
 
 import pytest
 
-from scripts.inventory.baseline import Baseline, SuiteRun, CaseOutcome, as_json, compare, count_collection_errors, from_json, parse_junit
+from scripts.inventory.baseline import Baseline, SuiteRun, CaseOutcome, as_json, capture_suite, compare, count_collection_errors, from_json, parse_junit
 
 REPO: Final = pathlib.Path(__file__).resolve().parents[2]
 
@@ -290,3 +290,90 @@ class TestCountingCollectionErrors:
         names no file and matches nothing on either side of a comparison."""
         nodeids: Final = tuple(case.nodeid for case in parse_junit(self.COLLECTION_ERROR))
         assert not any(n.startswith(".py") for n in nodeids), nodeids
+
+
+class TestATruncatedRunIsNotMistakenForACompleteOne:
+    """pytest collected 46,571 cases and the report held 44,743, and nothing said so.
+
+    `capture_suite` writes whatever junit holds when pytest exits. That is right when the run
+    finished and wrong when it did not: a worker that dies under `-n 4` takes its unreported
+    tests with it, pytest still exits and still writes a report, and the missing cases read
+    later as tests that were deleted on purpose. Recording how many were collected alongside
+    how many were reported is the only thing that tells those two apart.
+    """
+
+    def test_a_suite_records_how_many_cases_were_collected(self) -> None:
+        run: Final = SuiteRun(name="s", outcomes=(), collected=12)
+        assert run.collected == 12
+
+    def test_collected_defaults_to_zero_so_older_artifacts_still_load(self) -> None:
+        restored: Final = from_json(
+            json.dumps(
+                {
+                    "commit": "c", "python": "3.12", "platform": "p", "captured_at": "t",
+                    "parallel": False,
+                    "suites": [{"name": "s", "outcomes": []}],
+                    "commands": [],
+                }
+            )
+        )
+        assert restored.suites[0].collected == 0
+
+    def test_a_run_reporting_fewer_cases_than_it_collected_is_incomplete(self) -> None:
+        run: Final = SuiteRun(name="s", outcomes=(CaseOutcome("t.py::one", "passed"),), collected=3)
+        assert run.unreported == 2
+        assert not run.complete
+
+    def test_a_run_reporting_everything_it_collected_is_complete(self) -> None:
+        run: Final = SuiteRun(name="s", outcomes=(CaseOutcome("t.py::one", "passed"),), collected=1)
+        assert run.unreported == 0
+        assert run.complete
+
+    def test_a_suite_that_never_recorded_a_collected_count_is_not_called_incomplete(self) -> None:
+        """The phase 0 artifact predates the field; absent is unknown, not zero cases run."""
+        run: Final = SuiteRun(name="s", outcomes=(CaseOutcome("t.py::one", "passed"),))
+        assert run.complete
+
+    def test_an_incomplete_run_is_reported_as_drift(self) -> None:
+        before: Final = Baseline(
+            commit="a", python="3.12", platform="p", captured_at="t", parallel=False,
+            suites=(SuiteRun(name="s", outcomes=(CaseOutcome("t.py::one", "passed"),), collected=1),),
+            commands=(),
+        )
+        after: Final = dataclasses.replace(
+            before,
+            suites=(SuiteRun(name="s", outcomes=(CaseOutcome("t.py::one", "passed"),), collected=9),),
+        )
+        assert compare(before, after).incomplete == ("s: reported 1 of 9 collected",)
+
+
+class TestCaptureSuiteEndToEnd:
+    """One real capture, on one real directory, through the whole path.
+
+    Everything above tests the pieces. This runs pytest, writes junit, parses it back, and
+    compares the reported count against the collected one, which is the only way to find out
+    that an `Iterable` consumed twice leaves the second use with nothing.
+    """
+
+    @pytest.fixture(scope="class")
+    def run(self, tmp_path_factory: pytest.TempPathFactory) -> SuiteRun:
+        reports: Final = tmp_path_factory.mktemp("reports")
+        # A generator, not a tuple: a second use of an exhausted one means pytest with no paths,
+        # which collects the entire repository rather than this one directory.
+        paths = (p for p in ("tests/test_litellm/ledger",))
+        return capture_suite("one_directory", paths, REPO, reports, workers=0)
+
+    def test_it_collected_and_reported_the_same_number(self, run: SuiteRun) -> None:
+        assert run.collected > 0, "nothing was collected; the paths did not reach pytest"
+        assert run.unreported == 0, f"reported {len(run.outcomes)} of {run.collected} collected"
+        assert run.complete
+
+    def test_it_stayed_inside_the_directory_it_was_given(self, run: SuiteRun) -> None:
+        """An exhausted generator would run the whole repository and still look like a pass."""
+        outside: Final = tuple(
+            case.nodeid for case in run.outcomes if not case.nodeid.startswith("tests/test_litellm/ledger/")
+        )
+        assert not outside, f"ran {len(outside)} cases outside the given path, e.g. {outside[:2]}"
+
+    def test_nothing_failed_to_collect(self, run: SuiteRun) -> None:
+        assert run.collection_errors == 0

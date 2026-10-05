@@ -14,6 +14,7 @@ import dataclasses
 import json
 import pathlib
 import platform
+import re
 import shutil
 import subprocess
 import sys
@@ -44,6 +45,20 @@ class SuiteRun:
     """Files pytest could not import. Recorded because the cases they hold are absent from
     the report rather than failing in it, so a file that stops collecting looks exactly like
     a file that was deleted on purpose."""
+    collected: int = 0
+    """How many cases pytest collected, against however many the report ended up holding. A
+    worker that dies under `-n 4` takes its unreported tests with it and pytest still exits
+    and still writes a report, so without this a truncated run is indistinguishable from a
+    smaller suite. 0 means it was never measured, not that nothing ran."""
+
+    @property
+    def unreported(self) -> int:
+        return max(0, self.collected - len(self.outcomes)) if self.collected else 0
+
+    @property
+    def complete(self) -> bool:
+        """False only when a collected count was measured and the report fell short of it."""
+        return self.unreported == 0
 
 
 @dataclasses.dataclass(frozen=True, slots=True)
@@ -75,6 +90,9 @@ class Drift:
     disappeared: tuple[str, ...]
     appeared: tuple[str, ...]
     newly_uncollectable: tuple[str, ...]
+    incomplete: tuple[str, ...]
+    """Suites whose run reported fewer cases than it collected. Read this before anything
+    else in a comparison: a truncated run makes every case it never reached look deleted."""
 
 
 def _keyed(baseline: Baseline) -> Mapping[str, Outcome]:
@@ -93,6 +111,11 @@ def compare(before: Baseline, after: Baseline) -> Drift:
         disappeared=tuple(sorted(frozenset(old) - frozenset(new))),
         appeared=tuple(sorted(frozenset(new) - frozenset(old))),
         newly_uncollectable=_more_uncollectable(before, after),
+        incomplete=tuple(
+            f"{suite.name}: reported {len(suite.outcomes)} of {suite.collected} collected"
+            for suite in after.suites
+            if not suite.complete
+        ),
     )
 
 
@@ -186,6 +209,7 @@ def from_json(text: str) -> Baseline:
                 outcomes=tuple(CaseOutcome(**o) for o in s["outcomes"]),
                 workers=s.get("workers", 0),
                 collection_errors=s.get("collection_errors", 0),
+                collected=s.get("collected", 0),
             )
             for s in raw["suites"]
         ),
@@ -211,10 +235,44 @@ def _run(command: tuple[str, ...], cwd: pathlib.Path) -> tuple[int, str]:
     return finished.returncode, "\n".join(tail[-12:])
 
 
+COLLECTED: Final = re.compile(r"^(\d+)\s+tests?\s+collected", re.MULTILINE)
+
+
+def count_collected(paths: Iterable[str], repo: pathlib.Path) -> int:
+    """How many cases pytest would run, measured before running them.
+
+    Separate from the run itself on purpose: the run's own report cannot say how much of the
+    suite it never reached. Serial and collect-only, so it costs seconds and cannot itself lose
+    a worker.
+    """
+    _, summary = _run(
+        (
+            sys.executable,
+            "-m",
+            "pytest",
+            *paths,
+            "--collect-only",
+            "-q",
+            "-p",
+            "no:randomly",
+            "--continue-on-collection-errors",
+        ),
+        repo,
+    )
+    found: Final = COLLECTED.search(summary)
+    return int(found.group(1)) if found else 0
+
+
 def capture_suite(
     name: str, paths: Iterable[str], repo: pathlib.Path, reports: pathlib.Path, workers: int = 0
 ) -> SuiteRun:
     report: Final = reports / f"{name}.xml"
+    # Materialised once: `paths` is an Iterable, and it is used twice below. A generator would
+    # be empty by the second use, which means pytest with no paths at all, which means the
+    # whole repository.
+    targets: Final = tuple(paths)
+    # Measured first, so the run can be compared against what it was supposed to cover.
+    collected: Final = count_collected(targets, repo)
     # Workers cut the proxy suite from an hour to minutes and produced identical outcomes when
     # checked against a serial run, so the recorded result is the same either way. `parallel`
     # on the artifact says which was used, since a baseline that does not say how it was
@@ -229,7 +287,7 @@ def capture_suite(
             sys.executable,
             "-m",
             "pytest",
-            *paths,
+            *targets,
             "-q",
             f"--junitxml={report}",
             "-p",
@@ -249,6 +307,7 @@ def capture_suite(
         outcomes=parse_junit(text),
         workers=workers,
         collection_errors=count_collection_errors(text),
+        collected=collected,
     )
 
 
